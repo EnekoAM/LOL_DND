@@ -4,10 +4,10 @@ import Personajes from './components/Personajes';
 import Habilidades from './components/Habilidades';
 
 function App() {
-  const [screen, setScreen] = useState<'items' | 'calculos' | 'habilidades'>('items');
+  const [screen, setScreen] = useState<'items' | 'personajes' | 'habilidades'>('items');
   const [gold, setGold] = useState<number>(4306); // oro actual (ejemplo)
 
-  const handleScreenChange = (newScreen: 'items' | 'calculos' | 'habilidades') => {
+  const handleScreenChange = (newScreen: 'items' | 'personajes' | 'habilidades') => {
     setScreen(newScreen);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -68,10 +68,10 @@ function App() {
             Habilidades
           </button>
           <button
-            style={{ ...btnStyle, ...(screen === 'calculos' ? activeBtnStyle : {}) }}
-            onClick={() => handleScreenChange('calculos')}
+            style={{ ...btnStyle, ...(screen === 'personajes' ? activeBtnStyle : {}) }}
+            onClick={() => handleScreenChange('personajes')}
           >
-            Cálculos
+            Personajes
           </button>
         </div>
       </header>
@@ -80,7 +80,7 @@ function App() {
       <main style={{ padding: '2rem' }}>
         {screen === 'items' && <Items />}
         {screen === 'habilidades' && <Habilidades />}
-        {screen === 'calculos' && <Personajes />}
+        {screen === 'personajes' && <Personajes />}
       </main>
     </div>
   );
