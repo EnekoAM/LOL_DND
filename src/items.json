@@ -1,0 +1,1682 @@
+[
+  {
+    "nombre": "Sello Oscuro",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 1, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 1, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Consigues 1 carga por cada campeon que hayas matado hasta un maximo de 10 cargas) (Cada carga te da +1 de AP) (Solo puedes tener 1 item que tenga relacion entre los siguientes: Sello oscuro, Robaalmas de Mejai)",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dark_Seal_item_HD.png?4ce67"
+
+  },
+  {
+    "nombre": "Lagrima de la Diosa",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 0,"AC": 0,"MR": 0,"MANA": 5,"AD": 0,"AP": 0,"CRIT_CHANCE": 0,"CRIT_DAMAGE": 0,"SPE": 0,"ATK_SPE_PCT": 0,"AB_SPE_PCT": 0,"LETHALITY": 0,"MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(+5 de mana cada 10 cargas hasta un maximo de 100 cargas. Consigues 2 cargas por combate como maximo y las cargas se consiguen si en el combate has matado a alguien. Si el enemigo es un campeon, te da 4 cargas) (Solo puedes tener 1 item que tenga relacion entre los siguientes: Lagrima de la diosa, Llegada del invierno, Baston del Arcangel, El gran invierno, Abrazo del serafin, Muramana)",
+      "activa": ""
+    },
+    "cantidad": 2,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tear_of_the_Goddess_item_HD.png?3e2b7"
+  },
+  {
+    "nombre": "Anillo de Doran",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 1,"AC": 0,"MR": 0,"MANA": 0,"AD": 0,"AP": "1d2","CRIT_CHANCE": 0,"CRIT_DAMAGE": 0,"SPE": 0,"ATK_SPE_PCT": 0,"AB_SPE_PCT": 0,"LETHALITY": 0,"MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(+1d2 de daño fisico a enemigos basicos) (Solo puedes tener 1 item que tenga relacion entre los siguientes: Anillo de Doran, Espada de Doran, Escudo de Doran)",
+      "activa": "(Puede recuperar 5 de mana por cada uso de este item. Si no puede restaurar mana recupera 2 de vida. Tiene 4 usos hasta descanso corto.)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Ring_item_HD.png?a5057"
+
+  },
+  {
+    "nombre": "Espada de Doran",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": "1d2", "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Blade_item_HD.png?98bb0"
+  },
+  {
+    "nombre": "Preferencia",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 1, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cull_item_HD.png?b357a"
+  },
+  {
+    "nombre": "Escudo de Doran",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 2, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Shield_item_HD.png?11316"
+  },
+  {
+    "nombre": "Amuleto de las Hadas",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Faerie_Charm_item_HD.png?0d640"
+  },
+  {
+    "nombre": "Daga",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 10, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dagger_item_HD.png?6d6fe"
+  },
+  {
+    "nombre": "Mota Brillante",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 5, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glowing_Mote_item_HD.png?71565"
+  },
+  {
+    "nombre": "Cristal de Zafiro",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 5, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sapphire_Crystal_item_HD.png?96f09"
+  },
+  {
+    "nombre": "Armadura de Tela",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0.25, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cloth_Armor_item_HD.png?25257"
+  },
+  {
+    "nombre": "Perla de Rejuvenecimiento",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rejuvenation_Bead_item_HD.png?1fc9c"
+  },
+  {
+    "nombre": "Espada Larga",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 1, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Long_Sword_item_HD.png?b877f"
+  },
+  {
+    "nombre": "Tomo Amplificador",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 1, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 2,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Amplifying_Tome_item_HD.png?776f8"
+  },
+  {
+    "nombre": "Manto de Anulacion de Magia",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0.25, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Null-Magic_Mantle_item_old2_HD.png?557d1"
+  },
+  {
+    "nombre": "Cristal de Rubi",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 2, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ruby_Crystal_WR_item.png?c87bc"
+  },
+  {
+    "nombre": "Capa de Agilidad",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 1, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cloak_of_Agility_item_HD.png?525db"
+  },
+  {
+    "nombre": "Vara Explosiva",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": "2d2", "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blasting_Wand_item_HD.png?ddd05"
+  },
+  {
+    "nombre": "Pico",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": "2d2", "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Pickaxe_item_HD.png?05cf1"
+  },
+  {
+    "nombre": "Vara Innecesariamente Grande",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": "2d4", "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Needlessly_Large_Rod_item_HD.png?b815e"
+  },
+  {
+    "nombre": "Espadon",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": "2d4", "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/B._F._Sword_item_HD.png?12e17"
+  },
+  {
+    "nombre": "Idolo Prohibido",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Forbidden_Idol_item_HD.png?ffd19"
+  },
+  {
+    "nombre": "Honda de explorador",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Scout%27s_Slingshot_item_HD.png?adc7b"
+  },
+  {
+    "nombre": "Arco curvo",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Recurve_Bow_item_HD.png?f1452"
+  },
+  {
+    "nombre": "Rectrice",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rectrix_item_HD.png?4b29c"
+  },
+  {
+    "nombre": "Orbe del olvido",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Oblivion_Orb_item_HD.png?2234a"
+  },
+  {
+    "nombre": "Llamada del verdugo",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Executioner%27s_Calling_item_HD.png?e2848"
+  },
+  {
+    "nombre": "Gema avivadora",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kindlegem_item_Unused_HD.png?a878e"
+  },
+  {
+    "nombre": "Chaleco de cadenas",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chain_Vest_item_Unused_HD.png?6c7a7"
+  },
+  {
+    "nombre": "Chaleco de zarzas",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bramble_Vest_item_HD.png?a79df"
+  },
+  {
+    "nombre": "Brazal cristalino",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Crystalline_Bracer_item_Unused_HD.png?59e49"
+  },
+  {
+    "nombre": "Armadura lunar alada",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winged_Moonplate_item_HD.png?71a7e"
+  },
+  {
+    "nombre": "Codice diabolico",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fiendish_Codex_item_HD.png?d144a"
+  },
+  {
+    "nombre": "Capa negatron",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Negatron_Cloak_item_HD.png?c9809"
+  },
+  {
+    "nombre": "Broquel glaciar",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glacial_Buckler_item_Unused_HD.png?5e44e"
+  },
+  {
+    "nombre": "Brisa del eter",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Aether_Wisp_item_HD.png?993ef"
+  },
+  {
+    "nombre": "Cenizas predestinadas",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fated_Ashes_item_HD.png?b222a"
+  },
+  {
+    "nombre": "Espejo de cristal de Bandle",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bandleglass_Mirror_item_HD.png?42862"
+  },
+  {
+    "nombre": "Cetro vampirico",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Vampiric_Scepter_item_Unused2_HD.png?80dcc"
+  },
+  {
+    "nombre": "Brillo",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sheen_item_HD.png?6e245"
+  },
+  {
+    "nombre": "Rescoldo de Bami",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bami%27s_Cinder_item_HD.png?5f6ec"
+  },
+  {
+    "nombre": "Cinturon de gigante",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Giant%27s_Belt_item_HD.png?b62f9"
+  },
+  {
+    "nombre": "Daga dentada",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serrated_Dirk_item_HD.png?cbf82"
+  },
+  {
+    "nombre": "Malla del guardian",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warden%27s_Mail_item_HD.png?475e6"
+  },
+  {
+    "nombre": "Martillo de guerra de Claufield",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Caulfield%27s_Warhammer_item_HD.png?5e566"
+  },
+  {
+    "nombre": "Alternador hextech",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Alternator_item_HD.png?b3ba0"
+  },
+  {
+    "nombre": "Joya de la plaga",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blighting_Jewel_item_HD.png?3888c"
+  },
+  {
+    "nombre": "Sello de acero",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Steel_Sigil_item_HD.png?b1f6e"
+  },
+  {
+    "nombre": "Bacteriofago",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phage_item_HD.png?a4bb4"
+  },
+  {
+    "nombre": "Tuneladora",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tunneler_item_HD.png?44fad"
+  },
+  {
+    "nombre": "Capitulo perdido",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lost_Chapter_item_HD.png?f5c22"
+  },
+  {
+    "nombre": "Fervor",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeal_item_HD.png?e61a6"
+  },
+  {
+    "nombre": "Hacha hogareña",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hearthbound_Axe_item_HD.png?5b2d3"
+  },
+  {
+    "nombre": "Tiamat",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tiamat_item_HD.png?d7041"
+  },
+  {
+    "nombre": "Habito del espectro",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectre%27s_Cowl_item_Unused_HD.png?28289"
+  },
+  {
+    "nombre": "Catalizador de eones",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Catalyst_of_Aeons_item_HD.png?150b3"
+  },
+  {
+    "nombre": "Disfraz encantado",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Haunting_Guise_item_HD.png?07160"
+  },
+  {
+    "nombre": "Carcaj de mediodia",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Noonquiver_item_HD.png?17c55"
+  },
+  {
+    "nombre": "Sorbemaleficios",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hexdrinker_item_HD.png?e729d"
+  },
+  {
+    "nombre": "Fajin de mercurio",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Quicksilver_Sash_item_HD.png?1fbb5"
+  },
+  {
+    "nombre": "Embrutecedor",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/The_Brutalizer_item_HD.png?32b72"
+  },
+  {
+    "nombre": "Ultimas palabras",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Last_Whisper_item_HD.png?fa92c"
+  },
+  {
+    "nombre": "Robaalmas de Mejai",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mejai%27s_Soulstealer_item_HD.png?21142"
+  },
+  {
+    "nombre": "Barrera frondosa",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Verdant_Barrier_item_HD.png?eb380"
+  },
+  {
+    "nombre": "Salvavidas",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lifeline_item.png?2b8f0"
+  },
+  {
+    "nombre": "Brazalete de la buscadora",
+    "rareza": "Épico",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seeker%27s_Armguard_item_HD.png?0a1fc"
+  },
+  {
+    "nombre": "Cancion de batalla de Shurelya",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item_HD.png?139cb"
+  },
+  {
+    "nombre": "Incensario Ardiente",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item_HD.png?a5793"
+  },
+  {
+    "nombre": "Ecos de helia",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item_HD.png?ebc88"
+  },
+  {
+    "nombre": "Renovacion de piedra lunar",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Moonstone_Renewer_item_HD.png?2e7a2"
+  },
+  {
+    "nombre": "Convergencia de Zeke",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeke%27s_Convergence_item_HD.png?d63f1"
+  },
+  {
+    "nombre": "Medallon de los Solari de Hierro",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Locket_of_the_Iron_Solari_item_HD.png?f6a2e"
+  },
+  {
+    "nombre": "Mandato imperial",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item_old_HD.png?082b8"
+  },
+  {
+    "nombre": "Baston de aguas fluidas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Staff_of_Flowing_Water_item_HD.png?15016"
+  },
+  {
+    "nombre": "Bendicion de Mikael",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mikael%27s_Blessing_item_HD.png?2ac53"
+  },
+  {
+    "nombre": "Redencion",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Redemption_item_HD.png?24e28"
+  },
+  {
+    "nombre": "Promesa del caballero",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Knight%27s_Vow_item_HD.png?5be23"
+  },
+  {
+    "nombre": "Llegada del invierno",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winter%27s_Approach_item_HD.png?d872e"
+  },
+  {
+    "nombre": "El gran invierno",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fimbulwinter_item_HD.png?aa009"
+  },
+  {
+    "nombre": "Marcasendas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trailblazer_item_HD.png?5b38f"
+  },
+  {
+    "nombre": "Malla de espinas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Thornmail_item_HD.png?9a105"
+  },
+  {
+    "nombre": "Corazon de hielo",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Frozen_Heart_item_HD.png?db166"
+  },
+  {
+    "nombre": "Nucleo albar",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item_HD.png?47cdc"
+  },
+  {
+    "nombre": "Colmillo de serpiente",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serpent%27s_Fang_item_HD.png?4c722"
+  },
+  {
+    "nombre": "Vara de los edades",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rod_of_Ages_item_HD.png?32e97"
+  },
+  {
+    "nombre": "Cetro de cristal de Rylai",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rylai%27s_Crystal_Scepter_item_HD.png?46b75"
+  },
+  {
+    "nombre": "Cintomisil hextech",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item_HD.png?02607"
+  },
+  {
+    "nombre": "Bailarin espectral",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phantom_Dancer_item_HD.png?64a8b"
+  },
+  {
+    "nombre": "Huracan de runaan",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Runaan%27s_Hurricane_item_HD.png?436be"
+  },
+  {
+    "nombre": "Filofugaz de Navori",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Navori_Flickerblade_item_HD.png?03bb2"
+  },
+  {
+    "nombre": "Cañon de fuego rapido",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rapid_Firecannon_item_HD.png?b9f6f"
+  },
+  {
+    "nombre": "Mascara Abisal",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Abyssal_Mask_item_HD.png?d5b47"
+  },
+  {
+    "nombre": "Malignidad",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Malignance_item_HD.png?985a3"
+  },
+  {
+    "nombre": "Precision infalible",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item_HD.png?04ad1"
+  },
+  {
+    "nombre": "Oportunidades",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Opportunity_item_HD.png?0d845"
+  },
+  {
+    "nombre": "Puñal de Statikk",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Statikk_Shiv_item_HD.png?605f8"
+  },
+  {
+    "nombre": "Rostro espiritual",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spirit_Visage_item_HD.png?e33fe"
+  },
+  {
+    "nombre": "Egida de Fuego Solar",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sunfire_Aegis_item_HD.png?5f709"
+  },
+  {
+    "nombre": "Presagio de Randuin",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Randuin%27s_Omen_item_HD.png?393f0"
+  },
+  {
+    "nombre": "Antorcha de fuego negro",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blackfire_Torch_item_HD.png?ab1e3"
+  },
+  {
+    "nombre": "Filo fantasmal de Youmuu",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Youmuu%27s_Ghostblade_item_HD.png?b4a89"
+  },
+  {
+    "nombre": "Final del ingenio",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Wit%27s_End_item_HD.png?6dbcd"
+  },
+  {
+    "nombre": "Fulgor vano",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hollow_Radiance_item_HD.png?a1abd"
+  },
+  {
+    "nombre": "Desesperanza eterna",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Unending_Despair_item_HD.png?da251"
+  },
+  {
+    "nombre": "Fuerza de la naturaleza",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Force_of_Nature_item_HD.png?8749b"
+  },
+  {
+    "nombre": "Compañera de Luden",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item_HD.png?17780"
+  },
+  {
+    "nombre": "Florescencia sepulcral",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cryptbloom_item_HD.png?9c1ec"
+  },
+  {
+    "nombre": "Baston del Arcangel",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item_HD.png?4be7f"
+  },
+  {
+    "nombre": "Abrazo del serafin",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seraph%27s_Embrace_item_HD.png?811fa"
+  },
+  {
+    "nombre": "Manamune",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Manamune_item_HD.png?6c325"
+  },
+  {
+    "nombre": "Muramana",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Muramana_item_HD.png?08cde"
+  },
+  {
+    "nombre": "Sobrecarga tormentosa",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item_HD.png?e7adb"
+  },
+  {
+    "nombre": "Segador de esencia",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Essence_Reaver_item_HD.png?c4393"
+  },
+  {
+    "nombre": "Eclipse",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Eclipse_item_HD.png?a4729"
+  },
+  {
+    "nombre": "Guantelete de hielo",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Iceborn_Gauntlet_item_HD.png?1ff32"
+  },
+  {
+    "nombre": "Rookern kaenico",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kaenic_Rookern_item_HD.png?392b5"
+  },
+  {
+    "nombre": "Coraza del muerto",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dead_Man%27s_Plate_item_HD.png?1fb1b"
+  },
+  {
+    "nombre": "Maldiion sanguinolenta",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodletter%27s_Curse_item_HD.png?91ec3"
+  },
+  {
+    "nombre": "Morellonomicon",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Morellonomicon_item_HD.png?1eca4"
+  },
+  {
+    "nombre": "Recaudadora",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/The_Collector_item_HD.png?85e92"
+  },
+  {
+    "nombre": "Velo del hada de la muerte",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Banshee%27s_Veil_item_HD.png?9484c"
+  },
+  {
+    "nombre": "Baston del vacio",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Void_Staff_item_HD.png?6ad88"
+  },
+  {
+    "nombre": "Diente de Nashor",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Nashor%27s_Tooth_item_HD.png?a3dca"
+  },
+  {
+    "nombre": "Impulso cosmico",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cosmic_Drive_item_HD.png?486be"
+  },
+  {
+    "nombre": "Tormento de liandry",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Liandry%27s_Torment_item_HD.png?b42e8"
+  },
+  {
+    "nombre": "Hoja de furia de Guinsoo",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guinsoo%27s_Rageblade_item_HD.png?23c5a"
+  },
+  {
+    "nombre": "Soberbia",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hubris_item_HD.png?b4418"
+  },
+  {
+    "nombre": "Arco Axiomatico",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Axiom_Arc_item_HD.png?996d1"
+  },
+  {
+    "nombre": "Espada ciclovoltaica",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Voltaic_Cyclosword_item_HD.png?692d3"
+  },
+  {
+    "nombre": "Filo de la noche",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Edge_of_Night_item_HD.png?3529c"
+  },
+  {
+    "nombre": "Sable espectral",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectral_Cutlass_item.png?f1c9e"
+  },
+  {
+    "nombre": "Arcoescudo inmortal",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Immortal_Shieldbow_item_HD.png?ae143"
+  },
+  {
+    "nombre": "Recuerdos de lord dominik",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lord_Dominik%27s_Regards_item_HD.png?f2a7a"
+  },
+  {
+    "nombre": "El final",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Terminus_item_HD.png?84cb9"
+  },
+  {
+    "nombre": "Flechas de los Yun Tal",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Yun_Tal_Wildarrows_item_HD.png?cceb4"
+  },
+  {
+    "nombre": "Experimento de hexarmadura",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Experimental_Hexplate_item_HD.png?56811"
+  },
+  {
+    "nombre": "Rencor de Serylda",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serylda%27s_Grudge_item_HD.png?66f33"
+  },
+  {
+    "nombre": "Cuchilla negra",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Black_Cleaver_item_HD.png?3df06"
+  },
+  {
+    "nombre": "Rompecascos",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hullbreaker_item_HD.png?1b941"
+  },
+  {
+    "nombre": "Corazon de acero",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Heartsteel_item_HD.png?788a3"
+  },
+  {
+    "nombre": "Creagrietas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Riftmaker_item_HD.png?7236d"
+  },
+  {
+    "nombre": "Verdugo de Krakens",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kraken_Slayer_item_HD.png?1b4a5"
+  },
+  {
+    "nombre": "Fauces de Malmortius",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Maw_of_Malmortius_item_HD.png?901a6"
+  },
+  {
+    "nombre": "Mecanoespada punki",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chempunk_Chainsword_item_HD.png?2a7e1"
+  },
+  {
+    "nombre": "Lanza de Shojin",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spear_of_Shojin_item_HD.png?111a2"
+  },
+  {
+    "nombre": "Firmamento desgarrado",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sundered_Sky_item_HD.png?26bfd"
+  },
+  {
+    "nombre": "Perdicion de liche",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item_HD.png?37a26"
+  },
+  {
+    "nombre": "Llamasombria",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shadowflame_item_HD.png?8f301"
+  },
+  {
+    "nombre": "Hidra profana",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Profane_Hydra_item_HD.png?a6f1e"
+  },
+  {
+    "nombre": "Recordatorio letal",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mortal_Reminder_item_HD.png?cc922"
+  },
+  {
+    "nombre": "Hoja del rey arruinado",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blade_of_the_Ruined_King_item_HD.png?33292"
+  },
+  {
+    "nombre": "Angel de la guarda",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guardian_Angel_item_HD.png?a4f20"
+  },
+  {
+    "nombre": "Cimitarra mercurial",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mercurial_Scimitar_item_HD.png?76847"
+  },
+  {
+    "nombre": "Jak'sho el proteico",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Jak%27Sho%2C_The_Protean_item_HD.png?2ebc2"
+  },
+  {
+    "nombre": "Calibrador de Sterak",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sterak%27s_Gage_item_HD.png?f2129"
+  },
+  {
+    "nombre": "Reloj de arena de Zhonya",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zhonya%27s_Hourglass_item_HD.png?98c3c"
+  },
+  {
+    "nombre": "Cortasendas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stridebreaker_item_HD.png?715c3"
+  },
+  {
+    "nombre": "Hidra voraz",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ravenous_Hydra_item_HD.png?6ec25"
+  },
+  {
+    "nombre": "Baile de la muerte",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Death%27s_Dance_item_HD.png?4688b"
+  },
+  {
+    "nombre": "Hidra titanica",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Titanic_Hydra_item_HD.png?a4a79"
+  },
+  {
+    "nombre": "Sangria del soverano",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Overlord%27s_Bloodmail_item_HD.png?19287"
+  },
+  {
+    "nombre": "Armadura de Warmog",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warmog%27s_Armor_item_HD.png?5bed4"
+  },
+  {
+    "nombre": "Fuerza de la trinidad",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trinity_Force_item_HD.png?fb053"
+  },
+  {
+    "nombre": "Sanguinaria",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodthirster_item_HD.png?9476d"
+  },
+  {
+    "nombre": "Filo infinito",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Infinity_Edge_item_HD.png?a5e3f"
+  },
+  {
+    "nombre": "Sombrero mortal de Rabadon",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0, "AC": 0, "MR": 0, "MANA": 0, "AD": 0, "AP": 0, "CRIT_CHANCE": 0, "CRIT_DAMAGE": 0, "SPE": 0, "ATK_SPE_PCT": 0, "AB_SPE_PCT": 0, "LETHALITY": 0, "MAGIC_PEN": 0
+    },
+    "efecto": { "pasiva": "", "activa": "" },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rabadon%27s_Deathcap_item_HD.png?4d31a"
+  }
+]

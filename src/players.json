@@ -1,0 +1,63 @@
+[
+  {
+    "name": "Samael",
+    "basicAttack": {
+      "type": "AP",
+      "scaling": [
+        0.05,
+        0.10,
+        0.15
+      ]
+    },
+    "abilities": {
+      "P": "Firma del visionario",
+      "H1": "Sembrar la destrucción",
+      "H2": "A través del velo",
+      "H3": "Cosechar",
+      "R": null
+    },
+    "equipamiento": [
+      "Lagrima de la diosa",
+      "Vara de las edades",
+      "Reloj de arena de Zhonya",
+      "Vara innecesariamente grande",
+      "Tomo amplificador",
+      "Barrera frondosa",
+      "Botas"
+    ],
+    "build": [
+      "Botas de hechicero",
+      "Bastón del arcángel",
+      "Malignidad",
+      "Sombrero mortal de Rabadon",
+      "Reloj de arena de Zhonya",
+      "Tormento de Liandry",
+      "Antorcha de fuego negro",
+      "Vara de las edades",
+      "Precision infalible",
+      "Cetro de cristal de Rylai",
+      "Baston del vacio",
+      "Florescencia sepulcral"
+    ]
+  },
+  {
+    "name": "Combatiente",
+    "abilities": {
+      "P": "Cadencia marcial",
+      "H1": "Fauces de la Bestia",
+      "H2": "Golpes Penetrantes",
+      "H3": "Estandarte demaciano",
+      "R": null
+    }
+  },
+  {
+    "name": "Zeraf",
+    "abilities": {
+      "P": "Regalo de los ahogados",
+      "H1": "Portador del anochecer",
+      "H2": "Saltamuros",
+      "H3": "Corte de sombra",
+      "R": null
+    }
+  }
+]

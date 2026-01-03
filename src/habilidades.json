@@ -1,0 +1,2351 @@
+[
+  {
+    "champion": "Aatrox",
+    "abilities": {
+      "P": {
+        "name": "Aspecto de la Muerte",
+        "description": ""
+      },
+      "Q": {
+        "name": "La espada de los Oscuros",
+        "description": ""
+      },
+      "W": {
+        "name": "Cadenas infernales",
+        "description": ""
+      },
+      "E": {
+        "name": "Deslizamiento sombrio",
+        "description": ""
+      },
+      "R": {
+        "name": "El aniquilador de mundos",
+        "description": ""
+      }
+    }
+  },
+  {
+    "champion": "Ahri",
+    "abilities": {
+      "P": {
+        "name": "Robo de esencia",
+        "description": ""
+      },
+      "Q": {
+        "name": "Orbe del engaño",
+        "description": ""
+      },
+      "W": {
+        "name": "Fuego Zorruno",
+        "description": ""
+      },
+      "E": {
+        "name": "Hechizar",
+        "description": ""
+      },
+      "R": {
+        "name": "Impulso Espiritual",
+        "description": ""
+      }
+    }
+  },
+  {
+    "champion": "Akali",
+    "abilities": {
+      "P": {
+        "name": "Marca del asesino",
+        "description": ""
+      },
+      "Q": {
+        "name": "Pleno de cinco puntas",
+        "description": ""
+      },
+      "W": {
+        "name": "Velo del crepusculo",
+        "description": ""
+      },
+      "E": {
+        "name": "Voltereta shuriken",
+        "description": ""
+      },
+      "R": {
+        "name": "Ejecucion perfecta",
+        "description": ""
+      }
+    }
+  },
+  {
+    "champion": "Akshan",
+    "abilities": {
+      "P": {
+        "name": "Disparo de Escaramuza",
+        "description": "Akshan puede disparar a enemigos marcados para revivir a aliados caidos."
+      },
+      "Q": {
+        "name": "Balas Giratorias",
+        "description": "Akshan dispara una rafaga de balas en un cono, infligiendo daño a los enemigos alcanzados."
+      },
+      "W": {
+        "name": "Gancho de Agarre",
+        "description": "Akshan lanza un gancho que le permite balancearse y reposicionarse en el campo de batalla."
+      },
+      "E": {
+        "name": "Cebo y Cambio",
+        "description": "Akshan lanza un señuelo que explota despues de un breve retraso, ralentizando a los enemigos cercanos."
+      },
+      "R": {
+        "name": "Disparo Final",
+        "description": "Akshan apunta a un enemigo, infligiendo daño significativo y aplicando efectos adicionales si el objetivo esta marcado."
+      }
+    }
+  },
+  {
+    "champion": "Alistar",
+    "abilities": {
+      "P": {
+        "name": "Triunfo Inquebrantable",
+        "description": "Alistar regenera vida cada vez que recibe daño de campeones enemigos."
+      },
+      "Q": {
+        "name": "Golpe de Cabeza",
+        "description": "Alistar golpea a un enemigo, lanzandolo por el aire y causando daño."
+      },
+      "W": {
+        "name": "Pisoton",
+        "description": "Alistar golpea el suelo, aturdiendo a los enemigos cercanos y causando daño."
+      },
+      "E": {
+        "name": "Fuerza de la Voluntad",
+        "description": "Alistar absorbe daño durante unos segundos y puede lanzar a los enemigos cercanos al aire."
+      },
+      "R": {
+        "name": "Último Suspiro",
+        "description": "Alistar gana resistencia adicional y lanza a los enemigos cercanos al aire varias veces, causando daño."
+      }
+    }
+  },
+  {
+    "champion": "Ambessa",
+    "abilities": {}
+  },
+  {
+    "champion": "Amumu",
+    "abilities": {
+      "P": {
+        "name": "Lagrimas de la Desesperacion",
+        "description": "Amumu pierde vida con el tiempo, pero sus habilidades infligen daño adicional basado en la vida perdida."
+      },
+      "Q": {
+        "name": "Vendaje Lanzado",
+        "description": "Amumu lanza un vendaje que inmoviliza al primer enemigo alcanzado y lo acerca a el."
+      },
+      "W": {
+        "name": "Lamento Eterno",
+        "description": "Amumu emite un lamento que inflige daño magico a los enemigos cercanos y reduce su velocidad de ataque."
+      },
+      "E": {
+        "name": "Golpe Desgarrador",
+        "description": "Amumu golpea el suelo, infligiendo daño magico a los enemigos cercanos y aumentando el daño de sus siguientes ataques basicos."
+      },
+      "R": {
+        "name": "Maldicion de la Momia Triste",
+        "description": "Amumu se lanza al aire y aterriza, aturdiendo a los enemigos cercanos y causando daño magico."
+      }
+    }
+  },
+  {
+    "champion": "Anivia",
+    "abilities": {
+      "P": {
+        "name": "Renacer Glacial",
+        "description": "Cuando Anivia muere, se transforma en un huevo de hielo. Si el huevo sobrevive durante unos segundos, Anivia renace con vida completa."
+      },
+      "Q": {
+        "name": "Destello Glacial",
+        "description": "Anivia lanza una bola de hielo que explota al impactar, infligiendo daño y ralentizando a los enemigos."
+      },
+      "W": {
+        "name": "Muro de Hielo",
+        "description": "Anivia crea un muro de hielo que bloquea el paso y ralentiza a los enemigos que lo atraviesan."
+      },
+      "E": {
+        "name": "Tormenta Helada",
+        "description": "Anivia lanza una rafaga de viento helado que inflige daño a los enemigos en su camino."
+      },
+      "R": {
+        "name": "Tempestad Glacial",
+        "description": "Anivia invoca una tormenta de hielo en una zona, infligiendo daño continuo y ralentizando a los enemigos dentro del area."
+      }
+    }
+  },
+  {
+    "champion": "Annie",
+    "abilities": {
+      "P": {
+        "name": "Piromania",
+        "description": "Despues de lanzar varias habilidades, Annie's next offensive spell will stun the target."
+      },
+      "Q": {
+        "name": "Desintegrar",
+        "description": "Annie lanza una bola de fuego que inflige daño magico a un enemigo. Si el objetivo muere, Annie recupera mana."
+      },
+      "W": {
+        "name": "Incinerar",
+        "description": "Annie lanza una llamarada en un cono, infligiendo daño magico a todos los enemigos alcanzados."
+      },
+      "E": {
+        "name": "Escudo de Fuego",
+        "description": "Annie se envuelve en un escudo de fuego que le otorga un escudo y daña a los enemigos que la atacan con ataques basicos."
+      },
+      "R": {
+        "name": "Invocar: Tibbers",
+        "description": "Annie invoca a su oso de peluche, Tibbers, que inflige daño magico al aparecer y puede atacar a los enemigos cercanos."
+      }
+    }
+  },
+  {
+    "champion": "Ashe",
+    "abilities": {
+      "P": {
+        "name": "Tiro Congelante",
+        "description": "Los ataques basicos de Ashe ralentizan a los enemigos, y despues de varios ataques, el siguiente ataque inflige daño adicional y aplica una ralentizacion mas fuerte."
+      },
+      "Q": {
+        "name": "Concentracion del aguila",
+        "description": "Ashe aumenta su velocidad de ataque durante unos segundos, permitiendole disparar flechas mas rapidamente."
+      },
+      "W": {
+        "name": "Rafaga de Flechas",
+        "description": "Ashe dispara flechas en rapida sucesion, infligiendo daño adicional y ralentizando a los enemigos alcanzados."
+      },
+      "E": {
+        "name": "Descenso del Halcon",
+        "description": "Ashe envia a su halcon para explorar una zona del mapa, revelando areas ocultas y enemigos cercanos."
+      },
+      "R": {
+        "name": "Flecha de Cristal Encantada",
+        "description": "Ashe dispara una flecha gigante que aturde al primer enemigo que golpea y causa daño significativo."
+      }
+    }
+  },
+  {
+    "champion": "Aurelion Sol",
+    "abilities": {
+      "P": {
+        "name": "Centella de las Estrellas",
+        "description": "Aurelion Sol inflige daño magico adicional con sus ataques basicos basados en su poder de habilidad."
+      },
+      "Q": {
+        "name": "Estrella Fugaz",
+        "description": "Aurelion Sol lanza una estrella que inflige daño magico a los enemigos en su camino."
+      },
+      "W": {
+        "name": "Alas de Luz",
+        "description": "Aurelion Sol extiende sus alas, aumentando su velocidad de movimiento y causando daño a los enemigos cercanos."
+      },
+      "E": {
+        "name": "Cometa Celestial",
+        "description": "Aurelion Sol crea un cometa que orbita a su alrededor, infligiendo daño magico a los enemigos que toca."
+      },
+      "R": {
+        "name": "Explosion Estelar",
+        "description": "Aurelion Sol libera una explosion de energia estelar que inflige daño magico masivo a los enemigos en un area grande."
+      }
+    }
+  },
+  {
+    "champion": "Aurora",
+    "abilities": {}
+  },
+  {
+    "champion": "Azir",
+    "abilities": {
+      "P": {
+        "name": "Legado del Imperio",
+        "description": "Azir puede invocar soldados de arena que atacan a los enemigos cercanos."
+      },
+      "Q": {
+        "name": "Lanzamiento de Soldado",
+        "description": "Azir lanza a uno de sus soldados hacia una ubicacion, infligiendo daño a los enemigos en su camino."
+      },
+      "W": {
+        "name": "Conjuro de Arena",
+        "description": "Azir invoca un soldado de arena en una ubicacion objetivo."
+      },
+      "E": {
+        "name": "Cortina de Arena",
+        "description": "Azir se desplaza hacia uno de sus soldados, ganando un escudo y empujando a los enemigos cercanos."
+      },
+      "R": {
+        "name": "Emperador de las Arenas",
+        "description": "Azir invoca una gran muralla de soldados de arena que avanza hacia adelante, empujando y dañando a los enemigos en su camino."
+      }
+    }
+  },
+  {
+    "champion": "Bard",
+    "abilities": {
+      "P": {
+        "name": "Cantos Misticos",
+        "description": "Bard genera campanas que otorgan experiencia y mana al recogerlas. Ademas, sus ataques basicos infligen daño magico adicional."
+      },
+      "Q": {
+        "name": "Canto Cosmico",
+        "description": "Bard lanza una onda de energia que inflige daño magico y aturde a los enemigos alcanzados despues de un breve retraso."
+      },
+      "W": {
+        "name": "Camino de las Estrellas",
+        "description": "Bard crea un portal que permite a los aliados y a el mismo desplazarse rapidamente a traves del terreno."
+      },
+      "E": {
+        "name": "Viaje Magico",
+        "description": "Bard crea un tunel a traves del terreno que permite a los aliados y a el mismo moverse rapidamente entre dos puntos."
+      },
+      "R": {
+        "name": "Temporizador Cosmico",
+        "description": "Bard invoca una zona que suspende en el tiempo a todos los campeones, tanto aliados como enemigos, durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Bel'Veth",
+    "abilities": {
+      "P": {
+        "name": "Devoradora del Vacio",
+        "description": "Bel'Veth gana velocidad de ataque y puede devorar a los monstruos grandes para curarse."
+      },
+      "Q": {
+        "name": "Mordisco del Vacio",
+        "description": "Bel'Veth ataca con sus colmillos, infligiendo daño fisico a los enemigos en un area frontal."
+      },
+      "W": {
+        "name": "Tormenta Abisal",
+        "description": "Bel'Veth gira rapidamente, infligiendo daño magico a los enemigos cercanos y ganando velocidad de movimiento."
+      },
+      "E": {
+        "name": "Salto del Vacio",
+        "description": "Bel'Veth salta hacia una ubicacion objetivo, infligiendo daño fisico al aterrizar y ralentizando a los enemigos cercanos."
+      },
+      "R": {
+        "name": "Reina del Vacio",
+        "description": "Bel'Veth se transforma, ganando vida adicional y aumentando su tamaño. Durante esta forma, sus ataques basicos infligen daño adicional y aplican efectos adicionales."
+      }
+    }
+  },
+  {
+    "champion": "Blitzcrank",
+    "abilities": {
+      "P": {
+        "name": "Manos de Acero",
+        "description": "Los ataques basicos de Blitzcrank infligen daño magico adicional basado en la vida maxima del objetivo."
+      },
+      "Q": {
+        "name": "Agarre Cohete",
+        "description": "Blitzcrank lanza su mano hacia adelante, agarrando al primer enemigo alcanzado y arrastrandolo hacia el."
+      },
+      "W": {
+        "name": "Campo de Fuerza",
+        "description": "Blitzcrank crea un escudo que absorbe daño durante unos segundos."
+      },
+      "E": {
+        "name": "Puño de Poder",
+        "description": "El siguiente ataque basico de Blitzcrank inflige daño adicional y lanza al objetivo por el aire."
+      },
+      "R": {
+        "name": "Carga Estatica",
+        "description": "Blitzcrank se carga de energia, ralentizando a los enemigos cercanos y aturdiendolos si permanecen cerca al final de la duracion."
+      }
+    }
+  },
+  {
+    "champion": "Brand",
+    "abilities": {
+      "P": {
+        "name": "Piroclasma",
+        "description": "Las habilidades de Brand encienden a los enemigos, infligiendo daño magico adicional con el tiempo."
+      },
+      "Q": {
+        "name": "Llama Sostenida",
+        "description": "Brand lanza una bola de fuego que inflige daño magico al impactar y puede rebotar entre enemigos si estan encendidos."
+      },
+      "W": {
+        "name": "Pilar de Llamas",
+        "description": "Brand crea un pilar de fuego en una ubicacion objetivo, infligiendo daño magico a los enemigos en el area."
+      },
+      "E": {
+        "name": "Conflagracion",
+        "description": "Brand lanza una llamarada que inflige daño magico y enciende a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Incendio Abrasador",
+        "description": "Brand desata una ola de fuego que inflige daño magico masivo a todos los enemigos en un area grande, aplicando efectos adicionales si estan encendidos."
+      }
+    }
+  },
+  {
+    "champion": "Braum",
+    "abilities": {
+      "P": {
+        "name": "Golpe Conmovedor",
+        "description": "Los ataques basicos de Braum aplican Poro Marcado. Al acumular varios impactos, el objetivo queda aturdido."
+      },
+      "Q": {
+        "name": "Impacto Inquebrantable",
+        "description": "Braum lanza su escudo hacia adelante, infligiendo daño magico y ralentizando a los enemigos alcanzados."
+      },
+      "W": {
+        "name": "Muro de Hielo",
+        "description": "Braum crea un muro de hielo que bloquea los proyectiles enemigos y ralentiza a los enemigos que lo atraviesan."
+      },
+      "E": {
+        "name": "Puñetazo Inquebrantable",
+        "description": "Braum se lanza hacia un aliado, otorgandole un escudo y ralentizando a los enemigos cercanos al aterrizar."
+      },
+      "R": {
+        "name": "Gran Entrada",
+        "description": "Braum salta al aire y aterriza en una ubicacion objetivo, lanzando por el aire a los enemigos cercanos y causando daño magico."
+      }
+    }
+  },
+  {
+    "champion": "Briar",
+    "abilities": {}
+  },
+  {
+    "champion": "Caitlyn",
+    "abilities": {
+      "P": {
+        "name": "Ojo de la Mente",
+        "description": "Los ataques basicos de Caitlyn tienen un alcance aumentado."
+      },
+      "Q": {
+        "name": "Disparo de Trampa",
+        "description": "Caitlyn dispara una bala que inflige daño fisico al primer enemigo alcanzado. Si golpea a un campeon, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Trampa para Yordles",
+        "description": "Caitlyn coloca una trampa en el suelo que inmoviliza y revela a los enemigos que la pisan."
+      },
+      "E": {
+        "name": "Red de Seguridad",
+        "description": "Caitlyn lanza una red que ralentiza al primer enemigo alcanzado y la impulsa hacia atras."
+      },
+      "R": {
+        "name": "Disparo de Último Recurso",
+        "description": "Caitlyn dispara un disparo de largo alcance que inflige daño fisico significativo al primer enemigo alcanzado, con daño adicional basado en la vida faltante del objetivo."
+      }
+    }
+  },
+  {
+    "champion": "Camille",
+    "abilities": {
+      "P": {
+        "name": "Adaptacion Hextech",
+        "description": "Camille gana un escudo al recibir daño de campeones enemigos. Ademas, sus ataques basicos infligen daño adicional basado en la vida maxima del objetivo."
+      },
+      "Q": {
+        "name": "Tajo Preciso",
+        "description": "Camille realiza un tajo rapido que inflige daño fisico. Si golpea a un enemigo, puede lanzar un segundo tajo en un cono."
+      },
+      "W": {
+        "name": "Gancho de Caña",
+        "description": "Camille lanza un gancho que le permite reposicionarse y ralentiza a los enemigos cercanos al aterrizar."
+      },
+      "E": {
+        "name": "Salto de Tijera",
+        "description": "Camille salta hacia una ubicacion objetivo, infligiendo daño fisico al aterrizar y ganando velocidad de movimiento si aterriza en terreno empinado."
+      },
+      "R": {
+        "name": "Ultimatum Hextech",
+        "description": "Camille se lanza hacia un campeon enemigo, atrapandolo en una zona donde solo ella puede moverse libremente durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Cassiopeia",
+    "abilities": {
+      "P": {
+        "name": "Sangre Venenosa",
+        "description": "Los ataques basicos de Cassiopeia infligen daño magico adicional a los enemigos envenenados."
+      },
+      "Q": {
+        "name": "Nube Nociva",
+        "description": "Cassiopeia lanza una nube de veneno que inflige daño magico a los enemigos en el area y los envenena."
+      },
+      "W": {
+        "name": "Mordedura de la Serpiente",
+        "description": "Cassiopeia lanza una rafaga de veneno en un cono, infligiendo daño magico y envenenando a los enemigos alcanzados."
+      },
+      "E": {
+        "name": "Colmillo Toxico",
+        "description": "Cassiopeia lanza un colmillo que inflige daño magico. Si el objetivo esta envenenado, Cassiopeia gana velocidad de movimiento."
+      },
+      "R": {
+        "name": "Gran Marea de Veneno",
+        "description": "Cassiopeia desata una ola de veneno en un area grande, infligiendo daño magico continuo y aturdiendo a los enemigos que miran hacia ella."
+      }
+    }
+  },
+  {
+    "champion": "Chogath",
+    "abilities": {
+      "P": {
+        "name": "Voracidad",
+        "description": "Cada vez que Chogath mata a un enemigo, gana vida maxima adicional."
+      },
+      "Q": {
+        "name": "Ruptura",
+        "description": "Chogath lanza un ataque que inflige daño magico y lanza por el aire a los enemigos alcanzados."
+      },
+      "W": {
+        "name": "Furia Sonica",
+        "description": "Chogath emite un grito que inflige daño magico a los enemigos cercanos y reduce su velocidad de movimiento."
+      },
+      "E": {
+        "name": "Espinas Voraces",
+        "description": "Chogath lanza espinas en un cono frontal, infligiendo daño magico a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Festin",
+        "description": "Chogath devora a un enemigo, infligiendo daño verdadero. Si el objetivo es un campeon o una unidad grande, Chogath gana un aumento permanente en su tamaño y vida maxima."
+      }
+    }
+  },
+  {
+    "champion": "Corki",
+    "abilities": {
+      "P": {
+        "name": "Mecanico de Vuelo",
+        "description": "Corki obtiene una cantidad adicional de daño magico en sus ataques basicos."
+      },
+      "Q": {
+        "name": "Proyectil Giratorio",
+        "description": "Corki dispara un proyectil que inflige daño magico al primer enemigo alcanzado."
+      },
+      "W": {
+        "name": "Bomba de Fosforo",
+        "description": "Corki lanza una bomba que explota al impactar, infligiendo daño magico en un area."
+      },
+      "E": {
+        "name": "Maquina de Guerra",
+        "description": "Corki se desplaza rapidamente en una direccion, ganando velocidad de movimiento."
+      },
+      "R": {
+        "name": "Misil Definitivo",
+        "description": "Corki dispara un misil que inflige daño magico significativo en un area grande al impactar."
+      }
+    }
+  },
+  {
+    "champion": "Darius",
+    "abilities": {
+      "P": {
+        "name": "Hemorragia",
+        "description": "Los ataques basicos y habilidades de Darius causan que los enemigos sangren, recibiendo daño verdadero con el tiempo."
+      },
+      "Q": {
+        "name": "Cuchilla Noxiana",
+        "description": "Darius realiza un tajo en un cono frontal, infligiendo daño fisico a los enemigos alcanzados. Si golpea a un campeon, puede lanzar un segundo tajo."
+      },
+      "W": {
+        "name": "Golpe Decisivo",
+        "description": "Darius gana velocidad de movimiento y su proximo ataque basico inflige daño adicional y ralentiza al objetivo."
+      },
+      "E": {
+        "name": "Aprehender",
+        "description": "Darius extiende su brazo, atrayendo a los enemigos cercanos hacia el y ralentizandolos."
+      },
+      "R": {
+        "name": "Noxian Guillotine",
+        "description": "Darius salta sobre un campeon enemigo, infligiendo daño verdadero. Si el objetivo muere, el enfriamiento se reinicia y Darius puede usar la habilidad nuevamente."
+      }
+    }
+  },
+  {
+    "champion": "Diana",
+    "abilities": {
+      "P": {
+        "name": "Espiritu Lunar",
+        "description": "Diana gana velocidad de ataque adicional despues de usar una habilidad."
+      },
+      "Q": {
+        "name": "Creciente Lunar",
+        "description": "Diana lanza un arco de energia lunar que inflige daño magico a los enemigos en su camino."
+      },
+      "W": {
+        "name": "Orbe de la Luna",
+        "description": "Diana lanza un orbe que inflige daño magico al impactar y regresa a ella, infligiendo daño nuevamente a los enemigos en su camino."
+      },
+      "E": {
+        "name": "Golpe Lunar",
+        "description": "Diana se desplaza hacia un enemigo, infligiendo daño magico y ralentizandolo."
+      },
+      "R": {
+        "name": "Ascenso Lunar",
+        "description": "Diana se lanza hacia un area objetivo, infligiendo daño magico a los enemigos cercanos y ganando un escudo."
+      }
+    }
+  },
+  {
+    "champion": "Dr. Mundo",
+    "abilities": {
+      "P": {
+        "name": "Adiccion a la Quimica",
+        "description": "Dr. Mundo regenera vida adicional basada en su vida maxima."
+      },
+      "Q": {
+        "name": "Cuchilla Giratoria",
+        "description": "Dr. Mundo lanza una cuchilla que inflige daño fisico a los enemigos en su camino y se cura por una parte del daño infligido."
+      },
+      "W": {
+        "name": "Sobrevivir y Rebotar",
+        "description": "Dr. Mundo se cura una parte de su vida maxima durante unos segundos."
+      },
+      "E": {
+        "name": "Infeccion Toxica",
+        "description": "Dr. Mundo infecta a un enemigo, infligiendo daño magico con el tiempo y ralentizandolo."
+      },
+      "R": {
+        "name": "Masacre de Mundo",
+        "description": "Dr. Mundo aumenta su vida maxima y regenera una gran cantidad de vida durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Draven",
+    "abilities": {
+      "P": {
+        "name": "Gloria en la Muerte",
+        "description": "Draven gana oro adicional al matar a un campeon enemigo."
+      },
+      "Q": {
+        "name": "Hacha Giratoria",
+        "description": "Draven lanza un hacha que inflige daño fisico al primer enemigo alcanzado. Puede recoger el hacha para lanzarla de nuevo."
+      },
+      "W": {
+        "name": "Furia de la Horda",
+        "description": "Draven gana velocidad de movimiento y velocidad de ataque durante unos segundos."
+      },
+      "E": {
+        "name": "Corte Audaz",
+        "description": "Draven lanza una bola de energia que inflige daño fisico y ralentiza a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Ejecutar",
+        "description": "Draven lanza un gran hacha que inflige daño fisico significativo a todos los enemigos en su camino, con daño adicional basado en la vida faltante del objetivo."
+      }
+    }
+  },
+  {
+    "champion": "Ekko",
+    "abilities": {
+      "P": {
+        "name": "Z-Drive Resonance",
+        "description": "Ekko's damaging abilities build up Resonance stacks on enemies. Upon reaching three stacks, the target takes bonus magic damage and is slowed."
+      },
+      "Q": {
+        "name": "Timewinder",
+        "description": "Ekko throws a device that deals magic damage to enemies it passes through and slows them. After a delay, it returns to Ekko, dealing damage again."
+      },
+      "W": {
+        "name": "Parallel Convergence",
+        "description": "Ekko creates a temporal anomaly that slows enemies. If Ekko enters the anomaly, he gains a shield and stuns enemies inside."
+      },
+      "E": {
+        "name": "Phase Dive",
+        "description": "Ekko dashes a short distance and empowers his next attack to deal bonus magic damage."
+      },
+      "R": {
+        "name": "Chronobreak",
+        "description": "Ekko rewinds time, returning to a previous location and healing for a portion of the damage taken in the last few seconds. He also deals massive magic damage to nearby enemies upon arrival."
+      }
+    }
+  },
+  {
+    "champion": "Elise",
+    "abilities": {
+      "P": {
+        "name": "Veneno de Araña",
+        "description": "Las habilidades de Elise aplican Veneno de Araña, que inflige daño magico adicional con el tiempo."
+      },
+      "Q": {
+        "name": "Latigo de Araña / Colmillo de Araña",
+        "description": "En forma humana, Elise lanza un latigo que inflige daño magico. En forma de araña, salta hacia un enemigo, infligiendo daño magico adicional."
+      },
+      "W": {
+        "name": "Granada Veneno / Mordisco de Araña",
+        "description": "En forma humana, Elise lanza una granada que explota al impactar, infligiendo daño magico. En forma de araña, muerde a un enemigo, infligiendo daño magico adicional."
+      },
+      "E": {
+        "name": "Cautivar / Salto de Araña",
+        "description": "En forma humana, Elise lanza una telaraña que ralentiza y cautiva al primer enemigo alcanzado. En forma de araña, salta hacia una ubicacion objetivo."
+      },
+      "R": {
+        "name": "Transformacion",
+        "description": "Elise se transforma entre su forma humana y su forma de araña, cambiando sus habilidades y ganando nuevas propiedades."
+      }
+    }
+  },
+  {
+    "champion": "Evelynn",
+    "abilities": {
+      "P": {
+        "name": "Sombra Acechante",
+        "description": "Evelynn entra en sigilo despues de no ser atacada durante unos segundos. Mientras esta en sigilo, sus ataques basicos infligen daño magico adicional."
+      },
+      "Q": {
+        "name": "Azote de Agonia",
+        "description": "Evelynn lanza un latigo de energia que inflige daño magico a los enemigos en su camino. Si golpea a un enemigo, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Cautiverio",
+        "description": "Evelynn crea una zona que ralentiza a los enemigos y les inflige daño magico con el tiempo."
+      },
+      "E": {
+        "name": "Golpe Sombrio",
+        "description": "Evelynn se desplaza rapidamente hacia un enemigo, infligiendo daño magico y aplicando efectos adicionales si el objetivo esta bajo cierto umbral de vida."
+      },
+      "R": {
+        "name": "Último Beso",
+        "description": "Evelynn se lanza hacia un enemigo, infligiendo daño magico significativo y curandose por una parte del daño infligido."
+      }
+    }
+  },
+  {
+    "champion": "Ezreal",
+    "abilities": {
+      "P": {
+        "name": "Pasaje Arcano",
+        "description": "Los ataques basicos de Ezreal reducen el enfriamiento de sus otras habilidades."
+      },
+      "Q": {
+        "name": "Disparo Mistico",
+        "description": "Ezreal dispara un proyectil de energia que inflige daño magico al primer enemigo alcanzado."
+      },
+      "W": {
+        "name": "Flujo de Energia",
+        "description": "Ezreal lanza una onda de energia que marca a los enemigos. Al golpear a un enemigo marcado con una habilidad, Ezreal inflige daño magico adicional y restaura mana."
+      },
+      "E": {
+        "name": "Desplazamiento Arcano",
+        "description": "Ezreal se teletransporta a una ubicacion cercana y dispara un proyectil que inflige daño magico al enemigo mas cercano."
+      },
+      "R": {
+        "name": "Trueno del Vacio",
+        "description": "Ezreal dispara un poderoso rayo de energia que inflige daño magico a todos los enemigos en su camino."
+      }
+    }
+  },
+  {
+    "champion": "Fiddlesticks",
+    "abilities": {
+      "P": {
+        "name": "Acechador de Almas",
+        "description": "Fiddlesticks regenera vida al estar fuera de combate y sus habilidades infligen daño adicional a enemigos con poca vida."
+      },
+      "Q": {
+        "name": "Cosecha de Miedo",
+        "description": "Fiddlesticks lanza una guadaña que inflige daño magico al primer enemigo alcanzado y aplica efectos adicionales si el objetivo esta atemorizado."
+      },
+      "W": {
+        "name": "Viento Aullador",
+        "description": "Fiddlesticks crea un area que ralentiza a los enemigos y les inflige daño magico con el tiempo."
+      },
+      "E": {
+        "name": "Pavor",
+        "description": "Fiddlesticks atemoriza a un enemigo, haciendolo huir durante unos segundos."
+      },
+      "R": {
+        "name": "Tormenta de Cuervos",
+        "description": "Fiddlesticks invoca una tormenta de cuervos en una ubicacion objetivo, infligiendo daño magico continuo a los enemigos dentro del area."
+      }
+    }
+  },
+  {
+    "champion": "Fiora",
+    "abilities": {
+      "P": {
+        "name": "Danza de la Llama",
+        "description": "Fiora gana velocidad de movimiento al acercarse a enemigos y puede atacar puntos vitales para infligir daño verdadero."
+      },
+      "Q": {
+        "name": "Estocada Lacerante",
+        "description": "Fiora realiza una estocada rapida en una direccion, infligiendo daño fisico. Si golpea un punto vital, inflige daño verdadero adicional."
+      },
+      "W": {
+        "name": "Ripostar",
+        "description": "Fiora se prepara para bloquear el proximo ataque basico o habilidad enemiga, contraatacando y aturdiendo al atacante si lo bloquea con exito."
+      },
+      "E": {
+        "name": "Embiste",
+        "description": "Fiora se desplaza rapidamente hacia un enemigo, infligiendo daño fisico y ganando velocidad de ataque."
+      },
+      "R": {
+        "name": "Gran Duelo",
+        "description": "Fiora desafia a un campeon enemigo, revelando puntos vitales adicionales. Si derrota al objetivo durante la duracion, obtiene un aumento significativo en su velocidad de movimiento y curacion."
+      }
+    }
+  },
+  {
+    "champion": "Fizz",
+    "abilities": {
+      "P": {
+        "name": "Navegante de las Mareas",
+        "description": "Fizz puede moverse a traves de unidades y gana velocidad de movimiento al acercarse a enemigos."
+      },
+      "Q": {
+        "name": "Tridente de la Marea",
+        "description": "Fizz lanza su tridente, infligiendo daño magico al primer enemigo alcanzado. Si golpea a un campeon, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Juego de Manos",
+        "description": "Fizz salta hacia una ubicacion objetivo, infligiendo daño magico a los enemigos cercanos al aterrizar."
+      },
+      "E": {
+        "name": "Golpe del Tiburon",
+        "description": "Fizz se sumerge en el agua, volviendose invulnerable durante un breve periodo. Al emerger, inflige daño magico a los enemigos cercanos."
+      },
+      "R": {
+        "name": "¡A Comer!",
+        "description": "Fizz invoca un tiburon gigante que emerge del suelo, persiguiendo a un enemigo y causando una explosion que inflige daño magico significativo."
+      }
+    }
+  },
+  {
+    "champion": "Galio",
+    "abilities": {
+      "P": {
+        "name": "Escudo de Durand",
+        "description": "Galio gana un escudo al recibir daño de habilidades enemigas. Al activar su escudo, inflige daño magico a los enemigos cercanos."
+      },
+      "Q": {
+        "name": "Viento de Guerra",
+        "description": "Galio lanza un viento que inflige daño magico en linea recta y reduce el enfriamiento de sus otras habilidades si golpea a un enemigo."
+      },
+      "W": {
+        "name": "Escudo de Durand",
+        "description": "Galio se envuelve en un escudo que absorbe daño y ralentiza a los enemigos cercanos. Al finalizar, inflige daño magico a los enemigos alrededor."
+      },
+      "E": {
+        "name": "Carga Heroica",
+        "description": "Galio se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño magico a los enemigos en su camino y ralentizandolos."
+      },
+      "R": {
+        "name": "Juicio de los Colosos",
+        "description": "Galio se lanza hacia una ubicacion objetivo, otorgando un escudo a los aliados cercanos y ralentizando a los enemigos al aterrizar."
+      }
+    }
+  },
+  {
+    "champion": "Gangplank",
+    "abilities": {
+      "P": {
+        "name": "Cañones de Barco",
+        "description": "Los ataques basicos de Gangplank infligen daño adicional basado en su vida maxima."
+      },
+      "Q": {
+        "name": "Cuchillada de Pistolero",
+        "description": "Gangplank dispara una bala que inflige daño fisico al primer enemigo alcanzado."
+      },
+      "W": {
+        "name": "Barril Explosivo",
+        "description": "Gangplank coloca un barril que puede detonar, infligiendo daño fisico a los enemigos cercanos. Puede encadenar multiples barriles para aumentar el daño."
+      },
+      "E": {
+        "name": "Corte de Sable",
+        "description": "Gangplank realiza un corte con su sable, infligiendo daño fisico y aplicando efectos adicionales a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Lluvia de Cañones",
+        "description": "Gangplank llama a una lluvia de cañones en un area objetivo, infligiendo daño fisico continuo a los enemigos dentro del area."
+      }
+    }
+  },
+  {
+    "champion": "Garen",
+    "abilities": {
+      "P": {
+        "name": "Perseverancia",
+        "description": "Garen regenera vida rapidamente cuando no ha recibido daño recientemente."
+      },
+      "Q": {
+        "name": "Golpe Decisivo",
+        "description": "Garen gana velocidad de movimiento y su proximo ataque basico inflige daño adicional y silencia al objetivo."
+      },
+      "W": {
+        "name": "Coraje",
+        "description": "Garen gana un escudo temporal y resistencia adicional a daño durante unos segundos."
+      },
+      "E": {
+        "name": "Juicio",
+        "description": "Garen gira rapidamente, infligiendo daño fisico a los enemigos cercanos con cada giro."
+      },
+      "R": {
+        "name": "Justicia Demaciana",
+        "description": "Garen ejecuta a un enemigo, infligiendo daño verdadero basado en la vida faltante del objetivo."
+      }
+    }
+  },
+  {
+    "champion": "Gnar",
+    "abilities": {
+      "P": {
+        "name": "Evolucion Prehistorica",
+        "description": "Gnar acumula furia al atacar. Al alcanzar un umbral, se transforma en Mega Gnar, ganando nuevas habilidades y propiedades."
+      },
+      "Q": {
+        "name": "Bumeran Hiperespacial / Lanzamiento de Roca",
+        "description": "En forma pequeña, Gnar lanza un bumeran que inflige daño fisico y ralentiza a los enemigos. En forma grande, lanza una roca que inflige daño fisico en un area."
+      },
+      "W": {
+        "name": "Salto / Golpe Terrestre",
+        "description": "En forma pequeña, Gnar salta hacia una ubicacion objetivo, infligiendo daño fisico al aterrizar. En forma grande, golpea el suelo, infligiendo daño fisico y aturdiendo a los enemigos cercanos."
+      },
+      "E": {
+        "name": "Hiper / Lanzamiento de Gnar",
+        "description": "En forma pequeña, Gnar se impulsa hacia adelante, ganando velocidad de movimiento. En forma grande, lanza a un enemigo, infligiendo daño fisico y ralentizandolo."
+      },
+      "R": {
+        "name": "GNAR!",
+        "description": "Gnar se transforma en Mega Gnar si no lo esta ya, lanzandose hacia una ubicacion objetivo y aturdiendo a los enemigos en el area al aterrizar."
+      }
+    }
+  },
+  {
+    "champion": "Gragas",
+    "abilities": {
+      "P": {
+        "name": "Barril Rodante",
+        "description": "Despues de usar una habilidad, el siguiente ataque basico de Gragas inflige daño magico adicional."
+      },
+      "Q": {
+        "name": "Cerveza Explosiva",
+        "description": "Gragas lanza un barril que explota al impactar, infligiendo daño magico y ralentizando a los enemigos en el area."
+      },
+      "W": {
+        "name": "Barril de Cerveza",
+        "description": "Gragas bebe de su barril, curandose una parte de su vida maxima."
+      },
+      "E": {
+        "name": "Embriaguez",
+        "description": "Gragas se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño magico y lanzando por el aire a los enemigos cercanos al aterrizar."
+      },
+      "R": {
+        "name": "Explosion Etilica",
+        "description": "Gragas lanza una gran explosion de cerveza que inflige daño magico y aleja a los enemigos en un area grande."
+      }
+    }
+  },
+  {
+    "champion": "Graves",
+    "abilities": {
+      "P": {
+        "name": "Doble Cañon",
+        "description": "Los ataques basicos de Graves disparan en un cono, infligiendo daño fisico a todos los enemigos en el area."
+      },
+      "Q": {
+        "name": "Disparo Rapido",
+        "description": "Graves dispara una rafaga de balas que infligen daño fisico a los enemigos en linea recta."
+      },
+      "W": {
+        "name": "Humo Cortina",
+        "description": "Graves lanza una granada de humo que crea una zona de humo, otorgandole sigilo y ralentizando a los enemigos dentro del area."
+      },
+      "E": {
+        "name": "Carga Rapida",
+        "description": "Graves se desplaza rapidamente en una direccion, ganando velocidad de movimiento."
+      },
+      "R": {
+        "name": "Cargamento Pesado",
+        "description": "Graves dispara una serie de explosivos que infligen daño fisico significativo en un area grande al impactar."
+      }
+    }
+  },
+  {
+    "champion": "Gwen",
+    "abilities": {
+      "P": {
+        "name": "Corte con Tijeras",
+        "description": "Los ataques basicos de Gwen infligen daño magico adicional a los enemigos cercanos."
+      },
+      "Q": {
+        "name": "Corte y Cose",
+        "description": "Gwen realiza una serie de cortes rapidos que infligen daño magico a los enemigos en un area."
+      },
+      "W": {
+        "name": "Niebla Sagrada",
+        "description": "Gwen crea una zona de niebla que le otorga velocidad de movimiento y la hace inmune a los ataques basicos enemigos mientras esta dentro."
+      },
+      "E": {
+        "name": "Salto agil",
+        "description": "Gwen salta hacia una ubicacion objetivo, infligiendo daño magico a los enemigos cercanos al aterrizar."
+      },
+      "R": {
+        "name": "Corte Final",
+        "description": "Gwen desata una serie de cortes en un area grande, infligiendo daño magico significativo a los enemigos alcanzados y ralentizandolos."
+      }
+    }
+  },
+  {
+    "champion": "Hecarim",
+    "abilities": {
+      "P": {
+        "name": "Espiritu de la Guerra",
+        "description": "Hecarim gana velocidad de movimiento adicional basada en su vida maxima."
+      },
+      "Q": {
+        "name": "Arremetida",
+        "description": "Hecarim carga hacia adelante, infligiendo daño fisico a los enemigos en su camino."
+      },
+      "W": {
+        "name": "Sombra Devastadora",
+        "description": "Hecarim crea una zona que ralentiza a los enemigos y les inflige daño magico con el tiempo."
+      },
+      "E": {
+        "name": "Paso Fantasmal",
+        "description": "Hecarim gana velocidad de movimiento y sus ataques basicos infligen daño magico adicional durante unos segundos."
+      },
+      "R": {
+        "name": "Carga del Terror",
+        "description": "Hecarim se lanza hacia una ubicacion objetivo, infligiendo daño fisico y aturdiendo a los enemigos en su camino."
+      }
+    }
+  },
+  {
+    "champion": "Heimerdinger",
+    "abilities": {
+      "P": {
+        "name": "Mejoras de H-28G",
+        "description": "Heimerdinger puede tener hasta tres torretas activas que atacan automaticamente a los enemigos cercanos."
+      },
+      "Q": {
+        "name": "Cohete Hextech",
+        "description": "Heimerdinger lanza un cohete que inflige daño magico al primer enemigo alcanzado y explota, infligiendo daño adicional en un area."
+      },
+      "W": {
+        "name": "Granada Electromagnetica",
+        "description": "Heimerdinger lanza una granada que explota al impactar, aturdiendo y dañando a los enemigos en un area."
+      },
+      "E": {
+        "name": "Tormenta de Energia",
+        "description": "Heimerdinger dispara un rayo de energia que inflige daño magico en linea recta y ralentiza a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Hipercarga de Heimerdinger",
+        "description": "Heimerdinger mejora sus habilidades durante un breve periodo, reduciendo sus enfriamientos y aumentando su efectividad."
+      }
+    }
+  },
+  {
+    "champion": "Hwei",
+    "abilities": {
+      "P": {
+        "name": "Firma del visionario",
+        "description": "",
+        "damage": {
+          "ap": [
+            0.3,
+            0.35,
+            0.4,
+            0.45
+          ]
+        }
+      },
+      "Q": {
+        "name": "",
+        "description": ""
+      },
+      "W": {
+        "name": "",
+        "description": ""
+      },
+      "E": {
+        "name": "",
+        "description": ""
+      },
+      "R": {
+        "name": "",
+        "description": ""
+      }
+    }
+  },
+  {
+    "champion": "Illaoi",
+    "abilities": {
+      "P": {
+        "name": "Profecia de los Nagakabouros",
+        "description": "Illaoi puede invocar tentaculos que atacan a los enemigos cercanos y aplican efectos adicionales con sus habilidades."
+      },
+      "Q": {
+        "name": "Golpe de Tentaculo",
+        "description": "Illaoi golpea con un tentaculo, infligiendo daño fisico al primer enemigo alcanzado. Si golpea a un campeon, invoca un tentaculo adicional."
+      },
+      "W": {
+        "name": "Prueba de Espiritu",
+        "description": "Illaoi lanza un espiritu que inflige daño fisico y ralentiza a los enemigos alcanzados. Si el espiritu es golpeado por un tentaculo, explota y crea un nuevo tentaculo."
+      },
+      "E": {
+        "name": "Desgarro del Alma",
+        "description": "Illaoi lanza un tentaculo hacia un enemigo, infligiendo daño fisico y aplicando efectos adicionales si el objetivo es un campeon."
+      },
+      "R": {
+        "name": "Salto de Fe",
+        "description": "Illaoi invoca varios tentaculos en un area grande, infligiendo daño fisico a los enemigos alcanzados y obligandolos a enfrentarse a sus propios espiritus."
+      }
+    }
+  },
+  {
+    "champion": "Irelia",
+    "abilities": {
+      "P": {
+        "name": "Voto de los Lotos",
+        "description": "Irelia gana velocidad de ataque adicional al usar habilidades y sus ataques basicos infligen daño magico adicional."
+      },
+      "Q": {
+        "name": "Embate de Loto",
+        "description": "Irelia lanza una hoja que inflige daño fisico al primer enemigo alcanzado. Si golpea a un enemigo, puede lanzar un segundo ataque en un cono."
+      },
+      "W": {
+        "name": "Meditacion de Loto",
+        "description": "Irelia se concentra, curandose una parte de su vida maxima durante unos segundos."
+      },
+      "E": {
+        "name": "Danza de Loto",
+        "description": "Irelia salta hacia un enemigo, infligiendo daño fisico y aturdiendolo si tiene marcas de Loto."
+      },
+      "R": {
+        "name": "Loto Despierto",
+        "description": "Irelia desata todo su poder, ganando velocidad de ataque y reduciendo el enfriamiento de sus habilidades durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Ivern",
+    "abilities": {
+      "P": {
+        "name": "Amigo de los arboles",
+        "description": "Ivern no puede atacar ni ser atacado por unidades neutrales. En su lugar, puede liberar a los monstruos neutrales, compartiendo la experiencia con sus aliados cercanos."
+      },
+      "Q": {
+        "name": "Raices Encantadas",
+        "description": "Ivern lanza raices que infligen daño magico y ralentizan a los enemigos alcanzados."
+      },
+      "W": {
+        "name": "Escudo de arbol",
+        "description": "Ivern crea un escudo en un aliado o en si mismo, absorbiendo daño y otorgando velocidad de movimiento."
+      },
+      "E": {
+        "name": "Crecimiento Silvestre",
+        "description": "Ivern planta una semilla que crece con el tiempo. Al activarla, crea un area que otorga vision y ralentiza a los enemigos."
+      },
+      "R": {
+        "name": "Invocacion: Daisy",
+        "description": "Ivern invoca a su amiga Daisy, una gran golem de piedra que ataca a los enemigos cercanos y puede ser controlada para realizar ataques especiales."
+      }
+    }
+  },
+  {
+    "champion": "Janna",
+    "abilities": {
+      "P": {
+        "name": "Viento Favorable",
+        "description": "Janna gana velocidad de movimiento adicional al moverse hacia aliados heridos."
+      },
+      "Q": {
+        "name": "Soplido de Viento",
+        "description": "Janna lanza un proyectil de viento que inflige daño magico al primer enemigo alcanzado y lo lanza por el aire."
+      },
+      "W": {
+        "name": "Cefiro",
+        "description": "Janna invoca un viento que ralentiza a los enemigos y otorga velocidad de movimiento a los aliados cercanos."
+      },
+      "E": {
+        "name": "Ojo de la Tormenta",
+        "description": "Janna crea un escudo alrededor de un aliado, absorbiendo daño y otorgando daño adicional en sus ataques basicos."
+      },
+      "R": {
+        "name": "Monzon",
+        "description": "Janna invoca una poderosa tormenta que cura a los aliados cercanos y repele a los enemigos."
+      }
+    }
+  },
+  {
+    "champion": "Jarvan IV",
+    "abilities": {
+      "P": {
+        "name": "Golpe de Dragon",
+        "description": "Los ataques basicos de Jarvan IV infligen daño fisico adicional basado en la vida maxima del objetivo."
+      },
+      "Q": {
+        "name": "Golpe del Dragon",
+        "description": "Jarvan IV lanza un golpe que inflige daño fisico al primer enemigo alcanzado y reduce su armadura."
+      },
+      "W": {
+        "name": "Estandarte Demaciano",
+        "description": "Jarvan IV coloca un estandarte que otorga velocidad de ataque a los aliados cercanos y crea un area que ralentiza a los enemigos."
+      },
+      "E": {
+        "name": "Demacian Standard",
+        "description": "Jarvan IV se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño fisico a los enemigos en su camino."
+      },
+      "R": {
+        "name": "Cataclismo",
+        "description": "Jarvan IV salta hacia un enemigo, infligiendo daño fisico y creando un circulo de terreno intransitable alrededor de ambos."
+      }
+    }
+  },
+  {
+    "champion": "Jax",
+    "abilities": {
+      "P": {
+        "name": "Guerrero Implacable",
+        "description": "Cada tercer ataque basico de Jax inflige daño magico adicional."
+      },
+      "Q": {
+        "name": "Salto de Poder",
+        "description": "Jax salta hacia un enemigo, infligiendo daño fisico al aterrizar."
+      },
+      "W": {
+        "name": "Contraataque",
+        "description": "Jax bloquea todos los ataques basicos entrantes durante un breve periodo y luego ataca rapidamente, infligiendo daño fisico a los enemigos cercanos."
+      },
+      "E": {
+        "name": "Furia de la Batalla",
+        "description": "Jax gana velocidad de ataque adicional durante unos segundos."
+      },
+      "R": {
+        "name": "Gran Maestria en Armas",
+        "description": "Jax aumenta su daño de ataque y su resistencia a daño magico durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Jayce",
+    "abilities": {
+      "P": {
+        "name": "Transformacion de Mercurio",
+        "description": "Jayce puede cambiar entre su forma de cañon y su forma de martillo, cambiando sus habilidades y ganando nuevas propiedades."
+      },
+      "Q": {
+        "name": "Impacto de Mercurio / Golpe de Martillo",
+        "description": "En forma de cañon, Jayce dispara un proyectil que inflige daño fisico al primer enemigo alcanzado. En forma de martillo, Jayce realiza un golpe poderoso que inflige daño fisico en un area."
+      },
+      "W": {
+        "name": "Campo de Fuerza / Ataque Rapido",
+        "description": "En forma de cañon, Jayce crea un campo de fuerza que ralentiza a los enemigos. En forma de martillo, Jayce gana velocidad de ataque adicional durante unos segundos."
+      },
+      "E": {
+        "name": "Puerta de Mercurio / Salto de Martillo",
+        "description": "En forma de cañon, Jayce se desplaza rapidamente hacia una ubicacion objetivo. En forma de martillo, Jayce salta hacia un enemigo, infligiendo daño fisico al aterrizar."
+      },
+      "R": {
+        "name": "Transformacion",
+        "description": "Jayce cambia entre su forma de cañon y su forma de martillo, adaptandose a la situacion del combate."
+      }
+    }
+  },
+  {
+    "champion": "Jhin",
+    "abilities": {
+      "P": {
+        "name": "Susurros Mortales",
+        "description": "Jhin tiene un cargador de cuatro balas. Cada cuarto ataque basico inflige daño critico y aplica efectos adicionales."
+      },
+      "Q": {
+        "name": "Danza de la Muerte",
+        "description": "Jhin dispara una bala que inflige daño fisico al primer enemigo alcanzado. Si golpea a un campeon, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Floracion Letal",
+        "description": "Jhin lanza una flor que explota al impactar, infligiendo daño fisico en un area y ralentizando a los enemigos."
+      },
+      "E": {
+        "name": "Loto Mortal",
+        "description": "Jhin coloca una trampa que ralentiza a los enemigos y explota al ser activada, infligiendo daño fisico."
+      },
+      "R": {
+        "name": "Gran Final",
+        "description": "Jhin dispara cuatro balas de largo alcance que infligen daño fisico significativo. La cuarta bala siempre es un golpe critico que inflige daño adicional basado en la vida faltante del objetivo."
+      }
+    }
+  },
+  {
+    "champion": "Jinx",
+    "abilities": {
+      "P": {
+        "name": "¡Pum-Pum!",
+        "description": "Jinx gana velocidad de movimiento al eliminar a un campeon o estructura. Sus ataques basicos alternan entre su lanzacohetes y su ametralladora, infligiendo daño adicional con el lanzacohetes."
+      },
+      "Q": {
+        "name": "¡A la Carga!",
+        "description": "Jinx activa su lanzacohetes, ganando alcance y velocidad de ataque adicional. Sus ataques basicos infligen daño en un area."
+      },
+      "W": {
+        "name": "Chispas Locas",
+        "description": "Jinx lanza un cohete que inflige daño fisico al primer enemigo alcanzado y explota, infligiendo daño adicional en un area."
+      },
+      "E": {
+        "name": "Trampa para Pececillos",
+        "description": "Jinx coloca una trampa que inmoviliza y revela a los enemigos que la activan, infligiendo daño magico."
+      },
+      "R": {
+        "name": "Supermegacohete Final",
+        "description": "Jinx dispara un cohete de largo alcance que inflige daño fisico significativo al primer enemigo alcanzado y explota, infligiendo daño adicional en un area."
+      }
+    }
+  },
+  {
+    "champion": "Kaisa",
+    "abilities": {
+      "P": {
+        "name": "Segadora del Vacio",
+        "description": "Los ataques basicos de Kai'Sa aplican efectos adicionales basados en las habilidades que ha evolucionado."
+      },
+      "Q": {
+        "name": "Descarga Icathiana",
+        "description": "Kai'Sa dispara un proyectil que inflige daño magico al primer enemigo alcanzado. Si golpea a un enemigo marcado, inflige daño adicional."
+      },
+      "W": {
+        "name": "Cañones de Plaga",
+        "description": "Kai'Sa lanza una rafaga de misiles que infligen daño magico a los enemigos en un area."
+      },
+      "E": {
+        "name": "Supercarga",
+        "description": "Kai'Sa gana velocidad de movimiento durante unos segundos. Al finalizar, sus ataques basicos infligen daño adicional."
+      },
+      "R": {
+        "name": "Instinto Asesino",
+        "description": "Kai'Sa se teletransporta hacia un campeon enemigo marcado, ganando un escudo y atacando rapidamente al aterrizar."
+      }
+    }
+  },
+  {
+    "champion": "Kalista",
+    "abilities": {
+      "P": {
+        "name": "Juramento de Lanza",
+        "description": "Kalista puede vincularse a un aliado, otorgandole velocidad de ataque y permitiendole saltar hacia el."
+      },
+      "Q": {
+        "name": "Lanza Espectral",
+        "description": "Kalista lanza una lanza que inflige daño fisico al primer enemigo alcanzado. Si el objetivo muere poco despues, Kalista puede lanzar otra lanza rapidamente."
+      },
+      "W": {
+        "name": "Sentencia de Mortalidad",
+        "description": "Kalista marca a un enemigo, ralentizandolo. Si Kalista o su aliado vinculado atacan al objetivo marcado, infligen daño adicional y extienden la ralentizacion."
+      },
+      "E": {
+        "name": "Desgarrar",
+        "description": "Kalista inflige daño fisico en un area alrededor de un enemigo, aplicando efectos adicionales basados en la cantidad de lanzas que lo han golpeado recientemente."
+      },
+      "R": {
+        "name": "Alma Atada",
+        "description": "Kalista arrastra a su aliado vinculado hacia una ubicacion objetivo, otorgandole invulnerabilidad temporal y permitiendole atacar rapidamente al aterrizar."
+      }
+    }
+  },
+  {
+    "champion": "Karma",
+    "abilities": {
+      "P": {
+        "name": "Renovacion Espiritual",
+        "description": "Karma regenera mana al estar fuera de combate durante unos segundos."
+      },
+      "Q": {
+        "name": "Impacto Interior",
+        "description": "Karma lanza un proyectil que inflige daño magico al primer enemigo alcanzado. Si la habilidad esta potenciada, tambien ralentiza al objetivo."
+      },
+      "W": {
+        "name": "Refugio de los Espiritus",
+        "description": "Karma crea un escudo alrededor de un aliado o en si misma, absorbiendo daño y otorgando velocidad de movimiento."
+      },
+      "E": {
+        "name": "Camino de Luz",
+        "description": "Karma lanza una onda de energia que inflige daño magico a los enemigos en su camino. Si la habilidad esta potenciada, tambien cura a los aliados cercanos."
+      },
+      "R": {
+        "name": "Mantra",
+        "description": "Karma potencia su proxima habilidad, otorgandole efectos adicionales."
+      }
+    }
+  },
+  {
+    "champion": "Karthus",
+    "abilities": {
+      "P": {
+        "name": "Requiem",
+        "description": "Despues de morir, Karthus puede lanzar su habilidad definitiva durante unos segundos."
+      },
+      "Q": {
+        "name": "Sembrar la destrucción",
+        "description": "Karthus desata una explosion...",
+        "damage": {
+          "ap": [
+            0.25,
+            0.3,
+            0.35,
+            0.4,
+            0.45
+          ],
+          "singleTargetMultiplier": 2
+        }
+      },
+      "W": {
+        "name": "Maldicion de los Muertos",
+        "description": "Karthus maldice un area, ralentizando a los enemigos y aumentando el daño que reciben de sus habilidades."
+      },
+      "E": {
+        "name": "Muro de Dolor",
+        "description": "Karthus crea un muro de energia que inflige daño magico a los enemigos que lo atraviesan."
+      },
+      "R": {
+        "name": "Requiem",
+        "description": "Karthus canaliza y luego inflige daño magico a todos los enemigos en el mapa, sin importar donde se encuentren."
+      }
+    }
+  },
+  {
+    "champion": "Kassadin",
+    "abilities": {
+      "P": {
+        "name": "Caminante del Vacio",
+        "description": "Kassadin recibe menos daño magico y gana velocidad de movimiento al moverse hacia enemigos magicos."
+      },
+      "Q": {
+        "name": "Lanza del Vacio",
+        "description": "Kassadin lanza una energia del vacio que inflige daño magico al primer enemigo alcanzado."
+      },
+      "W": {
+        "name": "Escudo del Vacio",
+        "description": "Kassadin crea un escudo que absorbe daño magico durante unos segundos."
+      },
+      "E": {
+        "name": "Ruptura del Vacio",
+        "description": "Kassadin inflige daño magico en un area alrededor de un enemigo y ralentiza a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Camino del Vacio",
+        "description": "Kassadin se teletransporta a una ubicacion cercana, infligiendo daño magico a los enemigos cercanos al aterrizar."
+      }
+    }
+  },
+  {
+    "champion": "Katarina",
+    "abilities": {
+      "P": {
+        "name": "Voracidad",
+        "description": "Katarina reduce el enfriamiento de sus habilidades al eliminar a un enemigo o asistir en una eliminacion."
+      },
+      "Q": {
+        "name": "Daga Bumeran",
+        "description": "Katarina lanza una daga que inflige daño fisico al primer enemigo alcanzado y vuelve a ella, infligiendo daño adicional al regresar."
+      },
+      "W": {
+        "name": "Preparacion",
+        "description": "Katarina gana un escudo temporal y arroja una daga al aire que cae en su ubicacion actual."
+      },
+      "E": {
+        "name": "Salto Sigiloso",
+        "description": "Katarina se desplaza rapidamente hacia un enemigo, infligiendo daño fisico al aterrizar y arrojando una daga."
+      },
+      "R": {
+        "name": "Loto Mortal",
+        "description": "Katarina desata una serie de ataques giratorios, infligiendo daño fisico a los enemigos cercanos por cada daga que los golpea."
+      }
+    }
+  },
+  {
+    "champion": "Kayle",
+    "abilities": {
+      "P": {
+        "name": "Justicia Celestial",
+        "description": "Kayle gana velocidad de ataque y sus ataques basicos infligen daño magico adicional a medida que avanza en el juego."
+      },
+      "Q": {
+        "name": "Espada de Fuego Sagrado",
+        "description": "Kayle lanza una espada que inflige daño magico al primer enemigo alcanzado. Si golpea a un campeon, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Bendicion Divina",
+        "description": "Kayle otorga velocidad de movimiento a un aliado y lo cura durante unos segundos."
+      },
+      "E": {
+        "name": "Llama Implacable",
+        "description": "Kayle inflige daño magico en un area alrededor de un enemigo y ralentiza a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Intervencion Divina",
+        "description": "Kayle protege a un aliado, haciendolo invulnerable durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Kayn",
+    "abilities": {
+      "P": {
+        "name": "Asesino de Sombras",
+        "description": "Kayn puede transformarse en dos formas diferentes: el Asesino de las Sombras o el Azote de los No-Muertos, cada una con habilidades y propiedades unicas."
+      },
+      "Q": {
+        "name": "Cuchilla Creciente",
+        "description": "Kayn lanza una cuchilla que inflige daño fisico al primer enemigo alcanzado. Si golpea a un enemigo marcado, inflige daño adicional."
+      },
+      "W": {
+        "name": "Espada del Vacio",
+        "description": "Kayn se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño fisico a los enemigos en su camino."
+      },
+      "E": {
+        "name": "Paso Sombrio",
+        "description": "Kayn se vuelve intangible y gana velocidad de movimiento mientras atraviesa unidades. Al salir de esta forma, inflige daño magico a los enemigos cercanos."
+      },
+      "R": {
+        "name": "Asalto Implacable",
+        "description": "Kayn se lanza hacia una ubicacion objetivo, infligiendo daño fisico a los enemigos en su camino y ralentizandolos."
+      }
+    }
+  },
+  {
+    "champion": "Kennen",
+    "abilities": {
+      "P": {
+        "name": "Furia del Trueno",
+        "description": "Los ataques basicos de Kennen infligen daño magico adicional y aplican cargas de Furia del Trueno."
+      },
+      "Q": {
+        "name": "Shuriken Electrico",
+        "description": "Kennen lanza un shuriken que inflige daño magico al primer enemigo alcanzado y aplica una carga de Furia del Trueno."
+      },
+      "W": {
+        "name": "Tormenta de Rayos",
+        "description": "Kennen invoca una tormenta electrica que inflige daño magico a los enemigos cercanos y aplica cargas de Furia del Trueno."
+      },
+      "E": {
+        "name": "Velocidad del Rayo",
+        "description": "Kennen gana velocidad de movimiento y sus ataques basicos infligen daño magico adicional durante unos segundos."
+      },
+      "R": {
+        "name": "Ojo del Tormenta",
+        "description": "Kennen desata una poderosa tormenta electrica en un area grande, aturdiendo a los enemigos alcanzados y aplicando cargas de Furia del Trueno."
+      }
+    }
+  },
+  {
+    "champion": "Khazix",
+    "abilities": {
+      "P": {
+        "name": "Evolucion del Vacio",
+        "description": "Kha'Zix puede evolucionar sus habilidades al subir de nivel, ganando nuevas propiedades y efectos."
+      },
+      "Q": {
+        "name": "Cuchilla del Vacio",
+        "description": "Kha'Zix lanza una cuchilla que inflige daño fisico al primer enemigo alcanzado. Si el objetivo esta aislado, el daño se incrementa."
+      },
+      "W": {
+        "name": "Salto del Vacio",
+        "description": "Kha'Zix salta hacia una ubicacion objetivo, infligiendo daño fisico a los enemigos cercanos al aterrizar."
+      },
+      "E": {
+        "name": "Espinas del Vacio",
+        "description": "Kha'Zix lanza espinas que infligen daño fisico en un area delante de el y ralentizan a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Asesinato del Vacio",
+        "description": "Kha'Zix se vuelve invisible durante un breve periodo y gana velocidad de movimiento. Al salir de la invisibilidad, su proximo ataque basico inflige daño adicional."
+      }
+    }
+  },
+  {
+    "champion": "Kindred",
+    "abilities": {
+      "P": {
+        "name": "Marca de la Caza",
+        "description": "Kindred puede marcar a un enemigo para cazarlo. Si Kindred o sus aliados eliminan al objetivo marcado, ganan bonificaciones permanentes."
+      },
+      "Q": {
+        "name": "Danza de Flechas",
+        "description": "Kindred dispara varias flechas que infligen daño fisico a los enemigos en linea recta."
+      },
+      "W": {
+        "name": "Lobo Espiritual",
+        "description": "Kindred invoca a su lobo que ataca automaticamente a los enemigos cercanos, infligiendo daño fisico adicional."
+      },
+      "E": {
+        "name": "Paso agil",
+        "description": "Kindred se desplaza rapidamente hacia una ubicacion objetivo, ganando velocidad de ataque durante unos segundos."
+      },
+      "R": {
+        "name": "Último Suspiro",
+        "description": "Kindred crea un area que protege a los aliados dentro de ella, evitando que mueran durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Kled",
+    "abilities": {
+      "P": {
+        "name": "Skaarl, la Montura Cobarde",
+        "description": "Kled lucha junto a su montura, Skaarl. Cuando Skaarl pierde toda su vida, Kled continua luchando solo hasta que recupera a Skaarl."
+      },
+      "Q": {
+        "name": "Cuchillada de Cadencia",
+        "description": "Kled realiza un ataque rapido que inflige daño fisico al primer enemigo alcanzado. Si golpea a un enemigo, puede lanzar un segundo ataque en un cono."
+      },
+      "W": {
+        "name": "Violencia de la Montura",
+        "description": "Kled gana velocidad de movimiento y sus ataques basicos infligen daño fisico adicional durante unos segundos."
+      },
+      "E": {
+        "name": "Cargar",
+        "description": "Kled se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño fisico a los enemigos en su camino y ganando un escudo."
+      },
+      "R": {
+        "name": "¡A la Carga!",
+        "description": "Kled y Skaarl se lanzan hacia una ubicacion objetivo, infligiendo daño fisico y aturdiendo a los enemigos en su camino."
+      }
+    }
+  },
+  {
+    "champion": "Kog'Maw",
+    "abilities": {
+      "P": {
+        "name": "Boca del Vacio",
+        "description": "Los ataques basicos de Kog'Maw infligen daño magico adicional basado en la vida maxima del objetivo."
+      },
+      "Q": {
+        "name": "Lanza del Vacio",
+        "description": "Kog'Maw lanza una lanza que inflige daño magico al primer enemigo alcanzado. Si golpea a un enemigo, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Mucus acido",
+        "description": "Kog'Maw dispara un chorro de acido que inflige daño magico en un area y ralentiza a los enemigos alcanzados."
+      },
+      "E": {
+        "name": "Explosion Biotica",
+        "description": "Kog'Maw inflige daño magico en un area alrededor de un enemigo y aplica efectos adicionales basados en la vida maxima del objetivo."
+      },
+      "R": {
+        "name": "Barrera de Laseres",
+        "description": "Kog'Maw dispara una serie de laseres de largo alcance que infligen daño magico significativo a los enemigos en linea recta."
+      }
+    }
+  },
+  {
+    "champion": "K'sante",
+    "abilities": {
+      "P": {
+        "name": "Fuerza Inquebrantable",
+        "description": "K'Sante gana resistencia adicional basada en su vida maxima y sus ataques basicos infligen daño magico adicional."
+      },
+      "Q": {
+        "name": "Golpe de Escudo",
+        "description": "K'Sante golpea con su escudo, infligiendo daño fisico al primer enemigo alcanzado y aturdiendolo si tiene un escudo activo."
+      },
+      "W": {
+        "name": "Muro de K'Sante",
+        "description": "K'Sante crea un muro que bloquea los proyectiles enemigos y otorga un escudo a los aliados cercanos."
+      },
+      "E": {
+        "name": "Carga Poderosa",
+        "description": "K'Sante se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño fisico a los enemigos en su camino y ganando velocidad de ataque."
+      },
+      "R": {
+        "name": "Furia del Leon",
+        "description": "K'Sante desata todo su poder, ganando vida adicional, resistencia y reduciendo el enfriamiento de sus habilidades durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "LeBlanc",
+    "abilities": {
+      "P": {
+        "name": "Espejismo",
+        "description": "LeBlanc crea un duplicado de si misma al usar una habilidad, que puede lanzar habilidades adicionales."
+      },
+      "Q": {
+        "name": "Fragmento de Cristal",
+        "description": "LeBlanc lanza un fragmento de cristal que inflige daño magico al primer enemigo alcanzado. Si golpea a un enemigo, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Distorsion",
+        "description": "LeBlanc se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño magico a los enemigos cercanos al aterrizar."
+      },
+      "E": {
+        "name": "Cadena de Sigilo",
+        "description": "LeBlanc lanza una cadena que inflige daño magico y ralentiza a los enemigos alcanzados. Si golpea a un enemigo, puede lanzar la habilidad nuevamente para aturdirlo."
+      },
+      "R": {
+        "name": "Mimica",
+        "description": "LeBlanc puede lanzar una copia potenciada de su ultima habilidad utilizada, infligiendo daño adicional."
+      }
+    }
+  },
+  {
+    "champion": "Lee Sin",
+    "abilities": {
+      "P": {
+        "name": "Golpe del Dragon",
+        "description": "Los ataques basicos de Lee Sin infligen daño fisico adicional basado en la vida maxima del objetivo."
+      },
+      "Q": {
+        "name": "Onda Sonica / Golpe Resonante",
+        "description": "Lee Sin lanza una onda sonica que inflige daño fisico al primer enemigo alcanzado. Si golpea a un enemigo, puede activar la habilidad nuevamente para desplazarse hacia el e infligir daño adicional."
+      },
+      "W": {
+        "name": "Proteccion Inquebrantable / Salvaguarda Resonante",
+        "description": "Lee Sin se desplaza hacia un aliado, otorgandole un escudo. Si la habilidad esta activada nuevamente, Lee Sin gana vida basada en la vida maxima del aliado."
+      },
+      "E": {
+        "name": "Tempestad / Golpe Violento",
+        "description": "Lee Sin crea una onda de choque que inflige daño fisico a los enemigos cercanos. Si golpea a un enemigo, puede activar la habilidad nuevamente para ralentizarlos."
+      },
+      "R": {
+        "name": "Dragon Ascendente",
+        "description": "Lee Sin se lanza hacia un enemigo, infligiendo daño fisico y lanzandolo por el aire. Puede volver a activar la habilidad para desplazarse hacia una ubicacion cercana."
+      }
+    }
+  },
+  {
+    "champion": "Leona",
+    "abilities": {
+      "P": {
+        "name": "Luz del Amanecer",
+        "description": "Los ataques basicos de Leona infligen daño magico adicional y aplican efectos adicionales basados en sus habilidades activas."
+      },
+      "Q": {
+        "name": "Escudo del Amanecer",
+        "description": "Leona levanta su escudo, infligiendo daño magico a los enemigos cercanos y aturdiendolos si tiene un escudo activo."
+      },
+      "W": {
+        "name": "Eclipse",
+        "description": "Leona crea un escudo alrededor de si misma, absorbiendo daño y ganando resistencia adicional. Al finalizar, inflige daño magico a los enemigos cercanos."
+      },
+      "E": {
+        "name": "Lazo Solar",
+        "description": "Leona lanza un rayo de luz que inflige daño magico y ralentiza a los enemigos alcanzados. Si golpea a un enemigo, puede activar la habilidad nuevamente para desplazarse hacia el e infligir daño adicional."
+      },
+      "R": {
+        "name": "Llamado del Sol",
+        "description": "Leona invoca un gran sol que inflige daño magico a los enemigos en un area y los aturde."
+      }
+    }
+  },
+  {
+    "champion": "Lillia",
+    "abilities": {
+      "P": {
+        "name": "Sueño de Lillia",
+        "description": "Los ataques basicos de Lillia infligen daño magico adicional basado en la vida maxima del objetivo y aplican marcas de sueño."
+      },
+      "Q": {
+        "name": "Latigazo Floral",
+        "description": "Lillia lanza un latigo de flores que inflige daño magico en un area y aplica marcas de sueño a los enemigos alcanzados."
+      },
+      "W": {
+        "name": "Canto de las Flores",
+        "description": "Lillia crea un area que ralentiza a los enemigos y cura a los aliados cercanos durante unos segundos."
+      },
+      "E": {
+        "name": "Rama Bailarina",
+        "description": "Lillia se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño magico a los enemigos en su camino y aplicando marcas de sueño."
+      },
+      "R": {
+        "name": "Danza Somnolienta",
+        "description": "Lillia crea un gran area que induce el sueño a los enemigos alcanzados, haciendolos caer dormidos durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Lissandra",
+    "abilities": {
+      "P": {
+        "name": "Camino Helado",
+        "description": "Lissandra regenera mana al estar fuera de combate durante unos segundos."
+      },
+      "Q": {
+        "name": "Cuchilla de Hielo",
+        "description": "Lissandra lanza una cuchilla de hielo que inflige daño magico al primer enemigo alcanzado. Si golpea a un enemigo, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Anillo de Hielo",
+        "description": "Lissandra crea un anillo de hielo que ralentiza a los enemigos cercanos y les inflige daño magico."
+      },
+      "E": {
+        "name": "Camino Helado",
+        "description": "Lissandra se desplaza rapidamente hacia una ubicacion objetivo, dejando un rastro de hielo que ralentiza a los enemigos que lo atraviesan."
+      },
+      "R": {
+        "name": "Corona de Hielo",
+        "description": "Lissandra se convierte en un bloque de hielo, volviendose invulnerable durante unos segundos. Al finalizar, inflige daño magico a los enemigos cercanos y los congela en su lugar."
+      }
+    }
+  },
+  {
+    "champion": "Lucian",
+    "abilities": {
+      "P": {
+        "name": "Luz de los Lucian",
+        "description": "Despues de usar una habilidad, el siguiente ataque basico de Lucian dispara una segunda vez."
+      },
+      "Q": {
+        "name": "Luz Perforante",
+        "description": "Lucian dispara un proyectil que inflige daño fisico al primer enemigo alcanzado. Si golpea a un enemigo, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Luz Ardiente",
+        "description": "Lucian dispara dos proyectiles en un cono delante de el, infligiendo daño fisico a los enemigos alcanzados."
+      },
+      "E": {
+        "name": "Paso Relampago",
+        "description": "Lucian se desplaza rapidamente hacia una ubicacion objetivo, ganando un escudo temporal."
+      },
+      "R": {
+        "name": "El Relampago de la Luz",
+        "description": "Lucian dispara una serie de proyectiles en linea recta, infligiendo daño fisico significativo a los enemigos alcanzados."
+      }
+    }
+  },
+  {
+    "champion": "Lulu",
+    "abilities": {
+      "P": {
+        "name": "Pix, el Hada",
+        "description": "Pix acompaña a Lulu, otorgando daño magico adicional a sus ataques basicos y habilidades."
+      },
+      "Q": {
+        "name": "Destello Magico",
+        "description": "Lulu lanza un proyectil que inflige daño magico al primer enemigo alcanzado y ralentiza a los enemigos cercanos."
+      },
+      "W": {
+        "name": "Ayuda, Pix!",
+        "description": "Lulu otorga un escudo a un aliado o en si misma, absorbiendo daño. Si la habilidad esta activada nuevamente, Pix ataca al objetivo enemigo, infligiendo daño magico."
+      },
+      "E": {
+        "name": "Cambio de Tamaño",
+        "description": "Lulu se desplaza rapidamente hacia una ubicacion objetivo. Si la habilidad esta activada nuevamente, puede aumentar el tamaño de un aliado, otorgandole vida adicional y ralentizando a los enemigos cercanos."
+      },
+      "R": {
+        "name": "¡Que Comience la Fiesta!",
+        "description": "Lulu transforma a un enemigo en una criatura inofensiva durante unos segundos, impidiendole atacar o usar habilidades. Al finalizar, inflige daño magico al objetivo."
+      }
+    }
+  },
+  {
+    "champion": "Lux",
+    "abilities": {
+      "P": {
+        "name": "Iluminacion",
+        "description": "Las habilidades de Lux marcan a los enemigos con Iluminacion. El siguiente ataque basico de Lux contra un enemigo marcado inflige daño magico adicional y consume la marca."
+      },
+      "Q": {
+        "name": "Prision Ligera",
+        "description": "Lux lanza una esfera de luz que inflige daño magico al primer enemigo alcanzado y lo inmoviliza. Si golpea a un enemigo, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Barrera de Luz",
+        "description": "Lux crea un escudo alrededor de un aliado o en si misma, absorbiendo daño durante unos segundos."
+      },
+      "E": {
+        "name": "Rayo de Luz",
+        "description": "Lux lanza un rayo de luz que inflige daño magico en un area y ralentiza a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Destello Final",
+        "description": "Lux dispara un poderoso rayo de luz que inflige daño magico significativo a los enemigos en linea recta."
+      }
+    }
+  },
+  {
+    "champion": "Malphite",
+    "abilities": {
+      "P": {
+        "name": "Granito",
+        "description": "Malphite gana armadura adicional basada en su vida maxima."
+      },
+      "Q": {
+        "name": "Golpe Sismico",
+        "description": "Malphite golpea el suelo, infligiendo daño magico a los enemigos cercanos y reduciendo su velocidad de ataque."
+      },
+      "W": {
+        "name": "Escudo de Granito",
+        "description": "Malphite crea un escudo que absorbe daño durante unos segundos. Al romperse, inflige daño magico a los enemigos cercanos."
+      },
+      "E": {
+        "name": "Fragmentos de Roca",
+        "description": "Malphite lanza fragmentos de roca que infligen daño magico en un area y ralentizan a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Fuerza Inquebrantable",
+        "description": "Malphite se lanza hacia una ubicacion objetivo, infligiendo daño magico y lanzando por el aire a los enemigos alcanzados."
+      }
+    }
+  },
+  {
+    "champion": "Malzahar",
+    "abilities": {
+      "P": {
+        "name": "Camino del Vacio",
+        "description": "Malzahar regenera mana al estar fuera de combate durante unos segundos."
+      },
+      "Q": {
+        "name": "Lanza del Vacio",
+        "description": "Malzahar lanza una lanza del vacio que inflige daño magico al primer enemigo alcanzado. Si golpea a un enemigo, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Maldicion del Vacio",
+        "description": "Malzahar maldice un area, ralentizando a los enemigos y aumentando el daño que reciben de sus habilidades."
+      },
+      "E": {
+        "name": "Muro de Insectos",
+        "description": "Malzahar invoca un muro de insectos que inflige daño magico a los enemigos que lo atraviesan y silencia a los campeones enemigos."
+      },
+      "R": {
+        "name": "Nulificacion del Vacio",
+        "description": "Malzahar canaliza y luego inflige daño magico significativo a un enemigo, silenciandolo y aturdiendolo si no se mueve durante la canalizacion."
+      }
+    }
+  },
+  {
+    "champion": "Maokai",
+    "abilities": {
+      "P": {
+        "name": "Regeneracion de la Naturaleza",
+        "description": "Maokai regenera vida con el tiempo y gana vida adicional al estar cerca de arboles."
+      },
+      "Q": {
+        "name": "Golpe de Rama",
+        "description": "Maokai lanza una rama que inflige daño magico al primer enemigo alcanzado y lo ralentiza."
+      },
+      "W": {
+        "name": "Brote Espinoso",
+        "description": "Maokai crea un area de espinas que inflige daño magico a los enemigos cercanos y los ralentiza."
+      },
+      "E": {
+        "name": "Emboscada de los arboles",
+        "description": "Maokai se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño magico a los enemigos en su camino y ganando un escudo."
+      },
+      "R": {
+        "name": "Tormenta de la Naturaleza",
+        "description": "Maokai invoca una tormenta de raices que inflige daño magico a los enemigos en un area grande y los inmoviliza."
+      }
+    }
+  },
+  {
+    "champion": "Master Yi",
+    "abilities": {
+      "P": {
+        "name": "Doble Hoja",
+        "description": "Los ataques basicos de Master Yi infligen daño fisico adicional cada pocos ataques."
+      },
+      "Q": {
+        "name": "Golpe Alfa",
+        "description": "Master Yi se desplaza rapidamente hacia una ubicacion objetivo, infligiendo daño fisico a los enemigos en su camino."
+      },
+      "W": {
+        "name": "Meditacion",
+        "description": "Master Yi canaliza para curarse a si mismo durante unos segundos."
+      },
+      "E": {
+        "name": "Golpe Concentrado",
+        "description": "Master Yi gana velocidad de ataque durante unos segundos. Sus ataques basicos tambien infligen daño magico adicional."
+      },
+      "R": {
+        "name": "Cuchilla del Dragon",
+        "description": "Master Yi entra en un estado de furia, ganando velocidad de movimiento y reduciendo el enfriamiento de sus habilidades durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Mel",
+    "abilities": {}
+  },
+  {
+    "champion": "Milio",
+    "abilities": {}
+  },
+  {
+    "champion": "Miss Fortune",
+    "abilities": {
+      "P": {
+        "name": "Doble Disparo",
+        "description": "Los ataques basicos de Miss Fortune disparan dos balas en lugar de una, infligiendo daño fisico adicional."
+      },
+      "Q": {
+        "name": "Bala de Cañon",
+        "description": "Miss Fortune dispara una bala que inflige daño fisico al primer enemigo alcanzado. Si golpea a un enemigo, el enfriamiento se reduce."
+      },
+      "W": {
+        "name": "Lluvia de Balas",
+        "description": "Miss Fortune crea un area que ralentiza a los enemigos y les inflige daño fisico durante unos segundos."
+      },
+      "E": {
+        "name": "Disparo Rapido",
+        "description": "Miss Fortune se desplaza rapidamente hacia una ubicacion objetivo, ganando velocidad de ataque durante unos segundos."
+      },
+      "R": {
+        "name": "Lluvia de Balas",
+        "description": "Miss Fortune desata una lluvia de balas en un area grande, infligiendo daño fisico significativo a los enemigos alcanzados."
+      }
+    }
+  },
+  {
+    "champion": "Mordekaiser",
+    "abilities": {
+      "P": {
+        "name": "Reino de la Muerte",
+        "description": "Mordekaiser puede atrapar a un enemigo en su Reino de la Muerte durante unos segundos despues de eliminarlo."
+      },
+      "Q": {
+        "name": "Maza de Hierro",
+        "description": "Mordekaiser golpea con su maza, infligiendo daño magico al primer enemigo alcanzado y ralentizandolo."
+      },
+      "W": {
+        "name": "Escudo de Acero",
+        "description": "Mordekaiser crea un escudo que absorbe daño durante unos segundos. Al romperse, inflige daño magico a los enemigos cercanos."
+      },
+      "E": {
+        "name": "Golpe Sismico",
+        "description": "Mordekaiser lanza una onda de choque que inflige daño magico en un area y ralentiza a los enemigos alcanzados."
+      },
+      "R": {
+        "name": "Reino de la Muerte",
+        "description": "Mordekaiser arrastra a un enemigo al Reino de la Muerte, donde luchan uno contra uno durante unos segundos."
+      }
+    }
+  },
+  {
+    "champion": "Morgana",
+    "abilities": {}
+  },
+  {
+    "champion": "Naafiri",
+    "abilities": {}
+  },
+  {
+    "champion": "Nami",
+    "abilities": {}
+  },
+  {
+    "champion": "Nasus",
+    "abilities": {}
+  },
+  {
+    "champion": "Nautilus",
+    "abilities": {}
+  },
+  {
+    "champion": "Neeko",
+    "abilities": {}
+  },
+  {
+    "champion": "Nidalee",
+    "abilities": {}
+  },
+  {
+    "champion": "Nilah",
+    "abilities": {}
+  },
+  {
+    "champion": "Nocturne",
+    "abilities": {}
+  },
+  {
+    "champion": "Nunu & Willump",
+    "abilities": {}
+  },
+  {
+    "champion": "Olaf",
+    "abilities": {}
+  },
+  {
+    "champion": "Orianna",
+    "abilities": {}
+  },
+  {
+    "champion": "Ornn",
+    "abilities": {}
+  },
+  {
+    "champion": "Pantheon",
+    "abilities": {}
+  },
+  {
+    "champion": "Poppy",
+    "abilities": {}
+  },
+  {
+    "champion": "Pyke",
+    "abilities": {}
+  },
+  {
+    "champion": "Qiyana",
+    "abilities": {}
+  },
+  {
+    "champion": "Quinn",
+    "abilities": {}
+  },
+  {
+    "champion": "Rakan",
+    "abilities": {}
+  },
+  {
+    "champion": "Rammus",
+    "abilities": {}
+  },
+  {
+    "champion": "Rek'Sai",
+    "abilities": {}
+  },
+  {
+    "champion": "Rell",
+    "abilities": {}
+  },
+  {
+    "champion": "Renata Glasc",
+    "abilities": {}
+  },
+  {
+    "champion": "Renekton",
+    "abilities": {}
+  },
+  {
+    "champion": "Rengar",
+    "abilities": {}
+  },
+  {
+    "champion": "Riven",
+    "abilities": {}
+  },
+  {
+    "champion": "Rumble",
+    "abilities": {}
+  },
+  {
+    "champion": "Ryze",
+    "abilities": {}
+  },
+  {
+    "champion": "Samira",
+    "abilities": {}
+  },
+  {
+    "champion": "Sejuani",
+    "abilities": {}
+  },
+  {
+    "champion": "Senna",
+    "abilities": {}
+  },
+  {
+    "champion": "Seraphine",
+    "abilities": {}
+  },
+  {
+    "champion": "Sett",
+    "abilities": {}
+  },
+  {
+    "champion": "Shaco",
+    "abilities": {}
+  },
+  {
+    "champion": "Shen",
+    "abilities": {}
+  },
+  {
+    "champion": "Shyvana",
+    "abilities": {}
+  },
+  {
+    "champion": "Singed",
+    "abilities": {}
+  },
+  {
+    "champion": "Sion",
+    "abilities": {}
+  },
+  {
+    "champion": "Sivir",
+    "abilities": {}
+  },
+  {
+    "champion": "Skarner",
+    "abilities": {}
+  },
+  {
+    "champion": "Smolder",
+    "abilities": {}
+  },
+  {
+    "champion": "Sona",
+    "abilities": {}
+  },
+  {
+    "champion": "Soraka",
+    "abilities": {}
+  },
+  {
+    "champion": "Swain",
+    "abilities": {}
+  },
+  {
+    "champion": "Sylas",
+    "abilities": {}
+  },
+  {
+    "champion": "Syndra",
+    "abilities": {}
+  },
+  {
+    "champion": "Tahm Kench",
+    "abilities": {}
+  },
+  {
+    "champion": "Taliyah",
+    "abilities": {}
+  },
+  {
+    "champion": "Talon",
+    "abilities": {}
+  },
+  {
+    "champion": "Taric",
+    "abilities": {}
+  },
+  {
+    "champion": "Teemo",
+    "abilities": {}
+  },
+  {
+    "champion": "Thresh",
+    "abilities": {}
+  },
+  {
+    "champion": "Tristana",
+    "abilities": {}
+  },
+  {
+    "champion": "Trundle",
+    "abilities": {}
+  },
+  {
+    "champion": "Tryndamere",
+    "abilities": {}
+  },
+  {
+    "champion": "Twisted Fate",
+    "abilities": {}
+  },
+  {
+    "champion": "Twitch",
+    "abilities": {}
+  },
+  {
+    "champion": "Udyr",
+    "abilities": {}
+  },
+  {
+    "champion": "Urgot",
+    "abilities": {}
+  },
+  {
+    "champion": "Varus",
+    "abilities": {}
+  },
+  {
+    "champion": "Vayne",
+    "abilities": {}
+  },
+  {
+    "champion": "Veigar",
+    "abilities": {}
+  },
+  {
+    "champion": "Vel'Koz",
+    "abilities": {}
+  },
+  {
+    "champion": "Vex",
+    "abilities": {}
+  },
+  {
+    "champion": "Vi",
+    "abilities": {}
+  },
+  {
+    "champion": "Viego",
+    "abilities": {}
+  },
+  {
+    "champion": "Viktor",
+    "abilities": {}
+  },
+  {
+    "champion": "Vladimir",
+    "abilities": {}
+  },
+  {
+    "champion": "Volibear",
+    "abilities": {}
+  },
+  {
+    "champion": "Warwick",
+    "abilities": {}
+  },
+  {
+    "champion": "Wukong",
+    "abilities": {}
+  },
+  {
+    "champion": "Xayah",
+    "abilities": {}
+  },
+  {
+    "champion": "Xerath",
+    "abilities": {}
+  },
+  {
+    "champion": "Xin Zhao",
+    "abilities": {}
+  },
+  {
+    "champion": "Yasuo",
+    "abilities": {}
+  },
+  {
+    "champion": "Yone",
+    "abilities": {}
+  },
+  {
+    "champion": "Yorick",
+    "abilities": {}
+  },
+  {
+    "champion": "Yuumi",
+    "abilities": {}
+  },
+  {
+    "champion": "Zac",
+    "abilities": {}
+  },
+  {
+    "champion": "Zed",
+    "abilities": {}
+  },
+  {
+    "champion": "Ziggs",
+    "abilities": {}
+  },
+  {
+    "champion": "Zilean",
+    "abilities": {}
+  },
+  {
+    "champion": "Zoe",
+    "abilities": {}
+  },
+  {
+    "champion": "Zyra",
+    "abilities": {}
+  }
+]
