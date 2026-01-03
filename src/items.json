@@ -10,8 +10,9 @@
       "activa": ""
     },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dark_Seal_item_HD.png?4ce67"
-
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dark_Seal_item_HD.png?4ce67",
+    "craftsTo": ["Robaalmas de Mejai"],
+    "craftsFrom": []
   },
   {
     "nombre": "Lagrima de la Diosa",
@@ -24,7 +25,9 @@
       "activa": ""
     },
     "cantidad": 2,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tear_of_the_Goddess_item_HD.png?3e2b7"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tear_of_the_Goddess_item_HD.png?3e2b7",
+    "craftsTo": ["Baston del Arcangel", "Manamune", "Llegada del invierno"],
+    "craftsFrom": []
   },
   {
     "nombre": "Anillo de Doran",
@@ -37,7 +40,9 @@
       "activa": "(Puede recuperar 5 de mana por cada uso de este item. Si no puede restaurar mana recupera 2 de vida. Tiene 4 usos hasta descanso corto.)"
     },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Ring_item_HD.png?a5057"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Ring_item_HD.png?a5057",
+    "craftsTo": [],
+    "craftsFrom": []
 
   },
   {
@@ -51,7 +56,9 @@
       "activa": ""
     },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Blade_item_HD.png?98bb0"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Blade_item_HD.png?98bb0",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Preferencia",
@@ -64,7 +71,9 @@
       "activa": ""
     },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cull_item_HD.png?b357a"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cull_item_HD.png?b357a",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Escudo de Doran",
@@ -77,7 +86,9 @@
       "activa": ""
     },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Shield_item_HD.png?11316"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Shield_item_HD.png?11316",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Amuleto de las Hadas",
@@ -87,7 +98,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Faerie_Charm_item_HD.png?0d640"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Faerie_Charm_item_HD.png?0d640",
+    "craftsTo": ["Idolo prohibido", "Espejo de cristal de Bandle"],
+    "craftsFrom": []
   },
   {
     "nombre": "Daga",
@@ -97,7 +110,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 3,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dagger_item_HD.png?6d6fe"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dagger_item_HD.png?6d6fe",
+    "craftsTo": ["Arco curvo", "Hacha hogareña", "Honda de explorador", "Fervor", "Experimento de hexarmadura", "Cortasendas", "Bailarin espectral", "Filofugaz de Navori", "Grebas de berserker"],
+    "craftsFrom": []
   },
   {
     "nombre": "Mota Brillante",
@@ -107,7 +122,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glowing_Mote_item_HD.png?71565"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glowing_Mote_item_HD.png?71565",
+  "craftsTo": ["Martillo de guerra de Claufield", "Embrutecedor", "Codice diabolico", "Rescoldo de Bami", "Broquel glacial", "Brillo", "Gema avivadora", "Capitulo perdido", "Espejo de cristal de Bandle", "Botas jonias de la lucidez"],  
+    "craftsFrom": []
   },
   {
     "nombre": "Cristal de Zafiro",
@@ -117,7 +134,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 3,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sapphire_Crystal_item_HD.png?96f09"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sapphire_Crystal_item_HD.png?96f09",
+    "craftsTo": ["Catalizador de Eones", "Broquel glacial", "Capitulo perdido"],
+    "craftsFrom": []
   },
   {
     "nombre": "Armadura de Tela",
@@ -127,7 +146,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cloth_Armor_item_HD.png?25257"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cloth_Armor_item_HD.png?25257",
+    "craftsTo": ["Chaleco de cadenas", "Sello de acero", "Malla de guardian", "Brazalete de la buscadora", "Broquel glacial", "Chaleco de Zarzas", "Protector de la legion", "Medallon de los Solari de hierro", "Convergencia de Zeke", "Botas blindadas"],
+    "craftsFrom": []
   },
   {
     "nombre": "Perla de Rejuvenecimiento",
@@ -137,7 +158,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rejuvenation_Bead_item_HD.png?1fc9c"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rejuvenation_Bead_item_HD.png?1fc9c",
+    "craftsTo": ["Habito del espectro", "Brazal cristalino", "Promesa del caballero"],
+    "craftsFrom": []
   },
   {
     "nombre": "Espada Larga",
@@ -147,7 +170,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Long_Sword_item_HD.png?b877f"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Long_Sword_item_HD.png?b877f",
+    "craftsTo": ["Carcaj del mediodia", "Hacha hogareña", "Martillo de guerra de Claufield", "Sello de acero", "Tuneladora", "Llamada del verdugo", "Sorbemalificios", "Ultimas palabras", "Tiamat", "Bacteriofago", "Daga dentada", "Rectrice", "Flechas de los Yun Tal", "Manamune", "Eclipse", "Filo fantasmal de Youmuu", "Espada ciclovoltaica", ""],  
+    "craftsFrom": []
   },
   {
     "nombre": "Tomo Amplificador",
@@ -157,7 +182,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 2,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Amplifying_Tome_item_HD.png?776f8"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Amplifying_Tome_item_HD.png?776f8",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Manto de Anulacion de Magia",
@@ -167,7 +194,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Null-Magic_Mantle_item_old2_HD.png?557d1"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Null-Magic_Mantle_item_old2_HD.png?557d1",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cristal de Rubi",
@@ -177,7 +206,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ruby_Crystal_WR_item.png?c87bc"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ruby_Crystal_WR_item.png?c87bc",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Capa de Agilidad",
@@ -187,7 +218,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cloak_of_Agility_item_HD.png?525db"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cloak_of_Agility_item_HD.png?525db",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Vara Explosiva",
@@ -197,7 +230,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blasting_Wand_item_HD.png?ddd05"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blasting_Wand_item_HD.png?ddd05",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Pico",
@@ -207,7 +242,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Pickaxe_item_HD.png?05cf1"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Pickaxe_item_HD.png?05cf1",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Vara Innecesariamente Grande",
@@ -217,7 +254,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Needlessly_Large_Rod_item_HD.png?b815e"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Needlessly_Large_Rod_item_HD.png?b815e",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Espadon",
@@ -227,7 +266,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/B._F._Sword_item_HD.png?12e17"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/B._F._Sword_item_HD.png?12e17",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Idolo Prohibido",
@@ -237,7 +278,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Forbidden_Idol_item_HD.png?ffd19"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Forbidden_Idol_item_HD.png?ffd19",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Honda de explorador",
@@ -247,7 +290,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Scout%27s_Slingshot_item_HD.png?adc7b"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Scout%27s_Slingshot_item_HD.png?adc7b",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Arco curvo",
@@ -257,7 +302,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Recurve_Bow_item_HD.png?f1452"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Recurve_Bow_item_HD.png?f1452",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Rectrice",
@@ -267,7 +314,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rectrix_item_HD.png?4b29c"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rectrix_item_HD.png?4b29c",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Orbe del olvido",
@@ -277,7 +326,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Oblivion_Orb_item_HD.png?2234a"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Oblivion_Orb_item_HD.png?2234a",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Llamada del verdugo",
@@ -287,7 +338,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Executioner%27s_Calling_item_HD.png?e2848"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Executioner%27s_Calling_item_HD.png?e2848",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Gema avivadora",
@@ -297,7 +350,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kindlegem_item_Unused_HD.png?a878e"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kindlegem_item_Unused_HD.png?a878e",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Chaleco de cadenas",
@@ -307,7 +362,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chain_Vest_item_Unused_HD.png?6c7a7"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chain_Vest_item_Unused_HD.png?6c7a7",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Chaleco de zarzas",
@@ -317,7 +374,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bramble_Vest_item_HD.png?a79df"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bramble_Vest_item_HD.png?a79df",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Brazal cristalino",
@@ -327,7 +386,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Crystalline_Bracer_item_Unused_HD.png?59e49"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Crystalline_Bracer_item_Unused_HD.png?59e49",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Armadura lunar alada",
@@ -337,7 +398,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winged_Moonplate_item_HD.png?71a7e"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winged_Moonplate_item_HD.png?71a7e",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Codice diabolico",
@@ -347,7 +410,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fiendish_Codex_item_HD.png?d144a"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fiendish_Codex_item_HD.png?d144a",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Capa negatron",
@@ -357,7 +422,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Negatron_Cloak_item_HD.png?c9809"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Negatron_Cloak_item_HD.png?c9809",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Broquel glaciar",
@@ -367,7 +434,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glacial_Buckler_item_Unused_HD.png?5e44e"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glacial_Buckler_item_Unused_HD.png?5e44e",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Brisa del eter",
@@ -377,7 +446,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Aether_Wisp_item_HD.png?993ef"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Aether_Wisp_item_HD.png?993ef",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cenizas predestinadas",
@@ -387,7 +458,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fated_Ashes_item_HD.png?b222a"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fated_Ashes_item_HD.png?b222a",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Espejo de cristal de Bandle",
@@ -397,7 +470,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bandleglass_Mirror_item_HD.png?42862"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bandleglass_Mirror_item_HD.png?42862",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cetro vampirico",
@@ -407,7 +482,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Vampiric_Scepter_item_Unused2_HD.png?80dcc"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Vampiric_Scepter_item_Unused2_HD.png?80dcc",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Brillo",
@@ -417,7 +494,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sheen_item_HD.png?6e245"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sheen_item_HD.png?6e245",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Rescoldo de Bami",
@@ -427,7 +506,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bami%27s_Cinder_item_HD.png?5f6ec"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bami%27s_Cinder_item_HD.png?5f6ec",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cinturon de gigante",
@@ -437,7 +518,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Giant%27s_Belt_item_HD.png?b62f9"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Giant%27s_Belt_item_HD.png?b62f9",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Daga dentada",
@@ -447,7 +530,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serrated_Dirk_item_HD.png?cbf82"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serrated_Dirk_item_HD.png?cbf82",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Malla del guardian",
@@ -457,7 +542,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warden%27s_Mail_item_HD.png?475e6"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warden%27s_Mail_item_HD.png?475e6",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Martillo de guerra de Claufield",
@@ -467,7 +554,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Caulfield%27s_Warhammer_item_HD.png?5e566"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Caulfield%27s_Warhammer_item_HD.png?5e566",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Alternador hextech",
@@ -477,7 +566,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Alternator_item_HD.png?b3ba0"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Alternator_item_HD.png?b3ba0",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Joya de la plaga",
@@ -487,7 +578,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blighting_Jewel_item_HD.png?3888c"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blighting_Jewel_item_HD.png?3888c",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Sello de acero",
@@ -497,7 +590,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Steel_Sigil_item_HD.png?b1f6e"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Steel_Sigil_item_HD.png?b1f6e",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Bacteriofago",
@@ -507,7 +602,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phage_item_HD.png?a4bb4"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phage_item_HD.png?a4bb4",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Tuneladora",
@@ -517,7 +614,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tunneler_item_HD.png?44fad"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tunneler_item_HD.png?44fad",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Capitulo perdido",
@@ -527,7 +626,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lost_Chapter_item_HD.png?f5c22"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lost_Chapter_item_HD.png?f5c22",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Fervor",
@@ -537,7 +638,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeal_item_HD.png?e61a6"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeal_item_HD.png?e61a6",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Hacha hogareña",
@@ -547,7 +650,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hearthbound_Axe_item_HD.png?5b2d3"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hearthbound_Axe_item_HD.png?5b2d3",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Tiamat",
@@ -557,7 +662,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tiamat_item_HD.png?d7041"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tiamat_item_HD.png?d7041",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Habito del espectro",
@@ -567,7 +674,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectre%27s_Cowl_item_Unused_HD.png?28289"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectre%27s_Cowl_item_Unused_HD.png?28289",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Catalizador de eones",
@@ -577,7 +686,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Catalyst_of_Aeons_item_HD.png?150b3"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Catalyst_of_Aeons_item_HD.png?150b3",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Disfraz encantado",
@@ -587,7 +698,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Haunting_Guise_item_HD.png?07160"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Haunting_Guise_item_HD.png?07160",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Carcaj de mediodia",
@@ -597,7 +710,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Noonquiver_item_HD.png?17c55"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Noonquiver_item_HD.png?17c55",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Sorbemaleficios",
@@ -607,7 +722,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hexdrinker_item_HD.png?e729d"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hexdrinker_item_HD.png?e729d",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Fajin de mercurio",
@@ -617,7 +734,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Quicksilver_Sash_item_HD.png?1fbb5"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Quicksilver_Sash_item_HD.png?1fbb5",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Embrutecedor",
@@ -627,7 +746,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/The_Brutalizer_item_HD.png?32b72"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/The_Brutalizer_item_HD.png?32b72",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Ultimas palabras",
@@ -637,7 +758,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Last_Whisper_item_HD.png?fa92c"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Last_Whisper_item_HD.png?fa92c",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Robaalmas de Mejai",
@@ -647,7 +770,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mejai%27s_Soulstealer_item_HD.png?21142"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mejai%27s_Soulstealer_item_HD.png?21142",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Barrera frondosa",
@@ -657,7 +782,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Verdant_Barrier_item_HD.png?eb380"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Verdant_Barrier_item_HD.png?eb380",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Salvavidas",
@@ -667,7 +794,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lifeline_item.png?2b8f0"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lifeline_item.png?2b8f0",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Brazalete de la buscadora",
@@ -677,7 +806,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seeker%27s_Armguard_item_HD.png?0a1fc"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seeker%27s_Armguard_item_HD.png?0a1fc",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cancion de batalla de Shurelya",
@@ -687,7 +818,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item_HD.png?139cb"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item_HD.png?139cb",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Incensario Ardiente",
@@ -697,7 +830,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item_HD.png?a5793"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item_HD.png?a5793",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Ecos de helia",
@@ -707,7 +842,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item_HD.png?ebc88"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item_HD.png?ebc88",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Renovacion de piedra lunar",
@@ -717,7 +854,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Moonstone_Renewer_item_HD.png?2e7a2"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Moonstone_Renewer_item_HD.png?2e7a2",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Convergencia de Zeke",
@@ -727,7 +866,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeke%27s_Convergence_item_HD.png?d63f1"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeke%27s_Convergence_item_HD.png?d63f1",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Medallon de los Solari de Hierro",
@@ -737,7 +878,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Locket_of_the_Iron_Solari_item_HD.png?f6a2e"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Locket_of_the_Iron_Solari_item_HD.png?f6a2e",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Mandato imperial",
@@ -747,7 +890,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item_old_HD.png?082b8"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item_old_HD.png?082b8",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Baston de aguas fluidas",
@@ -757,7 +902,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Staff_of_Flowing_Water_item_HD.png?15016"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Staff_of_Flowing_Water_item_HD.png?15016",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Bendicion de Mikael",
@@ -767,7 +914,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mikael%27s_Blessing_item_HD.png?2ac53"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mikael%27s_Blessing_item_HD.png?2ac53",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Redencion",
@@ -777,7 +926,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Redemption_item_HD.png?24e28"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Redemption_item_HD.png?24e28",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Promesa del caballero",
@@ -787,7 +938,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Knight%27s_Vow_item_HD.png?5be23"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Knight%27s_Vow_item_HD.png?5be23",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Llegada del invierno",
@@ -797,7 +950,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winter%27s_Approach_item_HD.png?d872e"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winter%27s_Approach_item_HD.png?d872e",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "El gran invierno",
@@ -807,7 +962,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fimbulwinter_item_HD.png?aa009"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fimbulwinter_item_HD.png?aa009",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Marcasendas",
@@ -817,7 +974,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trailblazer_item_HD.png?5b38f"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trailblazer_item_HD.png?5b38f",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Malla de espinas",
@@ -827,7 +986,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Thornmail_item_HD.png?9a105"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Thornmail_item_HD.png?9a105",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Corazon de hielo",
@@ -837,7 +998,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Frozen_Heart_item_HD.png?db166"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Frozen_Heart_item_HD.png?db166",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Nucleo albar",
@@ -847,7 +1010,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item_HD.png?47cdc"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item_HD.png?47cdc",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Colmillo de serpiente",
@@ -857,7 +1022,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serpent%27s_Fang_item_HD.png?4c722"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serpent%27s_Fang_item_HD.png?4c722",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Vara de los edades",
@@ -867,7 +1034,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rod_of_Ages_item_HD.png?32e97"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rod_of_Ages_item_HD.png?32e97",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cetro de cristal de Rylai",
@@ -877,7 +1046,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rylai%27s_Crystal_Scepter_item_HD.png?46b75"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rylai%27s_Crystal_Scepter_item_HD.png?46b75",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cintomisil hextech",
@@ -887,7 +1058,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item_HD.png?02607"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item_HD.png?02607",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Bailarin espectral",
@@ -897,7 +1070,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phantom_Dancer_item_HD.png?64a8b"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phantom_Dancer_item_HD.png?64a8b",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Huracan de runaan",
@@ -907,7 +1082,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Runaan%27s_Hurricane_item_HD.png?436be"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Runaan%27s_Hurricane_item_HD.png?436be",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Filofugaz de Navori",
@@ -917,7 +1094,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Navori_Flickerblade_item_HD.png?03bb2"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Navori_Flickerblade_item_HD.png?03bb2",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cañon de fuego rapido",
@@ -927,7 +1106,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rapid_Firecannon_item_HD.png?b9f6f"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rapid_Firecannon_item_HD.png?b9f6f",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Mascara Abisal",
@@ -937,7 +1118,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Abyssal_Mask_item_HD.png?d5b47"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Abyssal_Mask_item_HD.png?d5b47",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Malignidad",
@@ -947,7 +1130,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Malignance_item_HD.png?985a3"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Malignance_item_HD.png?985a3",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Precision infalible",
@@ -957,7 +1142,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item_HD.png?04ad1"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item_HD.png?04ad1",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Oportunidades",
@@ -967,7 +1154,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Opportunity_item_HD.png?0d845"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Opportunity_item_HD.png?0d845",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Puñal de Statikk",
@@ -977,7 +1166,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Statikk_Shiv_item_HD.png?605f8"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Statikk_Shiv_item_HD.png?605f8",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Rostro espiritual",
@@ -987,7 +1178,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spirit_Visage_item_HD.png?e33fe"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spirit_Visage_item_HD.png?e33fe",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Egida de Fuego Solar",
@@ -997,7 +1190,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sunfire_Aegis_item_HD.png?5f709"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sunfire_Aegis_item_HD.png?5f709",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Presagio de Randuin",
@@ -1007,7 +1202,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Randuin%27s_Omen_item_HD.png?393f0"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Randuin%27s_Omen_item_HD.png?393f0",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Antorcha de fuego negro",
@@ -1017,7 +1214,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blackfire_Torch_item_HD.png?ab1e3"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blackfire_Torch_item_HD.png?ab1e3",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Filo fantasmal de Youmuu",
@@ -1027,7 +1226,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Youmuu%27s_Ghostblade_item_HD.png?b4a89"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Youmuu%27s_Ghostblade_item_HD.png?b4a89",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Final del ingenio",
@@ -1037,7 +1238,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Wit%27s_End_item_HD.png?6dbcd"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Wit%27s_End_item_HD.png?6dbcd",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Fulgor vano",
@@ -1047,7 +1250,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hollow_Radiance_item_HD.png?a1abd"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hollow_Radiance_item_HD.png?a1abd",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Desesperanza eterna",
@@ -1057,7 +1262,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Unending_Despair_item_HD.png?da251"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Unending_Despair_item_HD.png?da251",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Fuerza de la naturaleza",
@@ -1067,7 +1274,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Force_of_Nature_item_HD.png?8749b"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Force_of_Nature_item_HD.png?8749b",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Compañera de Luden",
@@ -1077,7 +1286,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item_HD.png?17780"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item_HD.png?17780",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Florescencia sepulcral",
@@ -1087,7 +1298,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cryptbloom_item_HD.png?9c1ec"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cryptbloom_item_HD.png?9c1ec",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Baston del Arcangel",
@@ -1097,7 +1310,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item_HD.png?4be7f"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item_HD.png?4be7f",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Abrazo del serafin",
@@ -1107,7 +1322,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seraph%27s_Embrace_item_HD.png?811fa"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seraph%27s_Embrace_item_HD.png?811fa",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Manamune",
@@ -1117,7 +1334,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Manamune_item_HD.png?6c325"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Manamune_item_HD.png?6c325",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Muramana",
@@ -1127,7 +1346,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Muramana_item_HD.png?08cde"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Muramana_item_HD.png?08cde",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Sobrecarga tormentosa",
@@ -1137,7 +1358,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item_HD.png?e7adb"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item_HD.png?e7adb",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Segador de esencia",
@@ -1147,7 +1370,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Essence_Reaver_item_HD.png?c4393"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Essence_Reaver_item_HD.png?c4393",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Eclipse",
@@ -1157,7 +1382,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Eclipse_item_HD.png?a4729"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Eclipse_item_HD.png?a4729",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Guantelete de hielo",
@@ -1167,7 +1394,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Iceborn_Gauntlet_item_HD.png?1ff32"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Iceborn_Gauntlet_item_HD.png?1ff32",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Rookern kaenico",
@@ -1177,7 +1406,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kaenic_Rookern_item_HD.png?392b5"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kaenic_Rookern_item_HD.png?392b5",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Coraza del muerto",
@@ -1187,7 +1418,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dead_Man%27s_Plate_item_HD.png?1fb1b"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dead_Man%27s_Plate_item_HD.png?1fb1b",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Maldiion sanguinolenta",
@@ -1197,7 +1430,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodletter%27s_Curse_item_HD.png?91ec3"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodletter%27s_Curse_item_HD.png?91ec3",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Morellonomicon",
@@ -1207,7 +1442,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Morellonomicon_item_HD.png?1eca4"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Morellonomicon_item_HD.png?1eca4",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Recaudadora",
@@ -1217,7 +1454,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/The_Collector_item_HD.png?85e92"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/The_Collector_item_HD.png?85e92",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Velo del hada de la muerte",
@@ -1227,7 +1466,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Banshee%27s_Veil_item_HD.png?9484c"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Banshee%27s_Veil_item_HD.png?9484c",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Baston del vacio",
@@ -1237,7 +1478,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Void_Staff_item_HD.png?6ad88"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Void_Staff_item_HD.png?6ad88",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Diente de Nashor",
@@ -1247,7 +1490,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Nashor%27s_Tooth_item_HD.png?a3dca"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Nashor%27s_Tooth_item_HD.png?a3dca",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Impulso cosmico",
@@ -1257,7 +1502,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cosmic_Drive_item_HD.png?486be"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cosmic_Drive_item_HD.png?486be",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Tormento de liandry",
@@ -1267,7 +1514,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Liandry%27s_Torment_item_HD.png?b42e8"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Liandry%27s_Torment_item_HD.png?b42e8",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Hoja de furia de Guinsoo",
@@ -1277,7 +1526,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guinsoo%27s_Rageblade_item_HD.png?23c5a"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guinsoo%27s_Rageblade_item_HD.png?23c5a",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Soberbia",
@@ -1287,7 +1538,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hubris_item_HD.png?b4418"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hubris_item_HD.png?b4418",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Arco Axiomatico",
@@ -1297,7 +1550,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Axiom_Arc_item_HD.png?996d1"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Axiom_Arc_item_HD.png?996d1",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Espada ciclovoltaica",
@@ -1307,7 +1562,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Voltaic_Cyclosword_item_HD.png?692d3"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Voltaic_Cyclosword_item_HD.png?692d3",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Filo de la noche",
@@ -1317,7 +1574,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Edge_of_Night_item_HD.png?3529c"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Edge_of_Night_item_HD.png?3529c",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Sable espectral",
@@ -1327,7 +1586,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectral_Cutlass_item.png?f1c9e"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectral_Cutlass_item.png?f1c9e",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Arcoescudo inmortal",
@@ -1337,7 +1598,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Immortal_Shieldbow_item_HD.png?ae143"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Immortal_Shieldbow_item_HD.png?ae143",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Recuerdos de lord dominik",
@@ -1347,7 +1610,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lord_Dominik%27s_Regards_item_HD.png?f2a7a"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lord_Dominik%27s_Regards_item_HD.png?f2a7a",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "El final",
@@ -1357,7 +1622,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Terminus_item_HD.png?84cb9"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Terminus_item_HD.png?84cb9",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Flechas de los Yun Tal",
@@ -1367,7 +1634,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Yun_Tal_Wildarrows_item_HD.png?cceb4"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Yun_Tal_Wildarrows_item_HD.png?cceb4",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Experimento de hexarmadura",
@@ -1377,7 +1646,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Experimental_Hexplate_item_HD.png?56811"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Experimental_Hexplate_item_HD.png?56811",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Rencor de Serylda",
@@ -1387,7 +1658,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serylda%27s_Grudge_item_HD.png?66f33"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serylda%27s_Grudge_item_HD.png?66f33",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cuchilla negra",
@@ -1397,7 +1670,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Black_Cleaver_item_HD.png?3df06"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Black_Cleaver_item_HD.png?3df06",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Rompecascos",
@@ -1407,7 +1682,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hullbreaker_item_HD.png?1b941"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hullbreaker_item_HD.png?1b941",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Corazon de acero",
@@ -1417,7 +1694,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Heartsteel_item_HD.png?788a3"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Heartsteel_item_HD.png?788a3",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Creagrietas",
@@ -1427,7 +1706,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Riftmaker_item_HD.png?7236d"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Riftmaker_item_HD.png?7236d",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Verdugo de Krakens",
@@ -1437,7 +1718,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kraken_Slayer_item_HD.png?1b4a5"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kraken_Slayer_item_HD.png?1b4a5",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Fauces de Malmortius",
@@ -1447,7 +1730,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Maw_of_Malmortius_item_HD.png?901a6"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Maw_of_Malmortius_item_HD.png?901a6",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Mecanoespada punki",
@@ -1457,7 +1742,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chempunk_Chainsword_item_HD.png?2a7e1"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chempunk_Chainsword_item_HD.png?2a7e1",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Lanza de Shojin",
@@ -1467,7 +1754,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spear_of_Shojin_item_HD.png?111a2"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spear_of_Shojin_item_HD.png?111a2",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Firmamento desgarrado",
@@ -1477,7 +1766,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sundered_Sky_item_HD.png?26bfd"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sundered_Sky_item_HD.png?26bfd",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Perdicion de liche",
@@ -1487,7 +1778,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item_HD.png?37a26"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item_HD.png?37a26",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Llamasombria",
@@ -1497,7 +1790,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shadowflame_item_HD.png?8f301"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shadowflame_item_HD.png?8f301",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Hidra profana",
@@ -1507,7 +1802,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Profane_Hydra_item_HD.png?a6f1e"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Profane_Hydra_item_HD.png?a6f1e",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Recordatorio letal",
@@ -1517,7 +1814,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mortal_Reminder_item_HD.png?cc922"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mortal_Reminder_item_HD.png?cc922",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Hoja del rey arruinado",
@@ -1527,7 +1826,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blade_of_the_Ruined_King_item_HD.png?33292"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blade_of_the_Ruined_King_item_HD.png?33292",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Angel de la guarda",
@@ -1537,7 +1838,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guardian_Angel_item_HD.png?a4f20"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guardian_Angel_item_HD.png?a4f20",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cimitarra mercurial",
@@ -1547,7 +1850,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mercurial_Scimitar_item_HD.png?76847"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mercurial_Scimitar_item_HD.png?76847",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Jak'sho el proteico",
@@ -1557,7 +1862,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Jak%27Sho%2C_The_Protean_item_HD.png?2ebc2"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Jak%27Sho%2C_The_Protean_item_HD.png?2ebc2",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Calibrador de Sterak",
@@ -1567,7 +1874,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sterak%27s_Gage_item_HD.png?f2129"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sterak%27s_Gage_item_HD.png?f2129",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Reloj de arena de Zhonya",
@@ -1577,7 +1886,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 1,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zhonya%27s_Hourglass_item_HD.png?98c3c"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zhonya%27s_Hourglass_item_HD.png?98c3c",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Cortasendas",
@@ -1587,7 +1898,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stridebreaker_item_HD.png?715c3"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stridebreaker_item_HD.png?715c3",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Hidra voraz",
@@ -1597,7 +1910,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ravenous_Hydra_item_HD.png?6ec25"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ravenous_Hydra_item_HD.png?6ec25",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Baile de la muerte",
@@ -1607,7 +1922,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Death%27s_Dance_item_HD.png?4688b"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Death%27s_Dance_item_HD.png?4688b",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Hidra titanica",
@@ -1617,7 +1934,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Titanic_Hydra_item_HD.png?a4a79"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Titanic_Hydra_item_HD.png?a4a79",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Sangria del soverano",
@@ -1627,7 +1946,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Overlord%27s_Bloodmail_item_HD.png?19287"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Overlord%27s_Bloodmail_item_HD.png?19287",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Armadura de Warmog",
@@ -1637,7 +1958,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warmog%27s_Armor_item_HD.png?5bed4"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warmog%27s_Armor_item_HD.png?5bed4",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Fuerza de la trinidad",
@@ -1647,7 +1970,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trinity_Force_item_HD.png?fb053"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trinity_Force_item_HD.png?fb053",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Sanguinaria",
@@ -1657,7 +1982,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodthirster_item_HD.png?9476d"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodthirster_item_HD.png?9476d",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Filo infinito",
@@ -1667,7 +1994,9 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Infinity_Edge_item_HD.png?a5e3f"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Infinity_Edge_item_HD.png?a5e3f",
+    "craftsTo": [],
+    "craftsFrom": []
   },
   {
     "nombre": "Sombrero mortal de Rabadon",
@@ -1677,6 +2006,8 @@
     },
     "efecto": { "pasiva": "", "activa": "" },
     "cantidad": 0,
-    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rabadon%27s_Deathcap_item_HD.png?4d31a"
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rabadon%27s_Deathcap_item_HD.png?4d31a",
+    "craftsTo": [],
+    "craftsFrom": []
   }
 ]
