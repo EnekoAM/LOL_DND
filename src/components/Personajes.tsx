@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import playersData from '../players.json';
 import habilidadesData from '../habilidades.json';
+import ItemsData from '../items.json';
 
 /* ================= TIPOS ================= */
 
@@ -162,6 +163,56 @@ const Calculos = () => {
           </div>
         </div>
       )}
+
+      {/* ================= EQUIPAMIENTO Y BUILD ================= */}
+{selectedPlayer && !selectedAbility && (
+  <>
+    {/* Equipamiento actual */}
+    <h3 style={{ marginTop: '2rem', marginBottom: '0.5rem', color: '#c084fc' }}>
+      Equipamiento actual
+    </h3>
+    <div style={grid}>
+      {selectedPlayer.equipamiento.map((itemName: string, index: number) => {
+        const itemData = ItemsData.find((i) => i.nombre === itemName);
+        return (
+          <div key={index} style={abilityCard}>
+            <div>{itemName}</div>
+            {itemData?.imagen && (
+              <img
+                src={itemData.imagen}
+                alt={itemName}
+                style={{ width: '100%', borderRadius: '8px', marginBottom: '0.5rem' }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+
+    {/* Build deseada */}
+    <h3 style={{ marginTop: '2rem', marginBottom: '0.5rem', color: '#c084fc' }}>
+      Build deseada
+    </h3>
+    <div style={grid}>
+      {selectedPlayer.build.map((itemName: string, index: number) => {
+        const itemData = ItemsData.find((i) => i.nombre === itemName);
+        return (
+          <div key={index} style={abilityCard}>
+            <div>{itemName}</div>
+            {itemData?.imagen && (
+              <img
+                src={itemData.imagen}
+                alt={itemName}
+                style={{ width: '100%', borderRadius: '8px', marginBottom: '0.5rem' }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </>
+)}
+
 
       {/* ================= DM – CHAMPIONS ================= */}
       {!selectedAbility && (
