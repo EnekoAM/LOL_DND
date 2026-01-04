@@ -2709,7 +2709,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Thornmail_item_HD.png?9a105",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Chaleco de zarzas", "Chaleco de cadenas", "Cristal de rubi"]
   },
   {
     "nombre": "Corazon de hielo",
@@ -2736,7 +2736,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Frozen_Heart_item_HD.png?db166",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Malla del guardian", "Broquel glacial"]
   },
   {
     "nombre": "Nucleo albar",
@@ -2763,7 +2763,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item_HD.png?47cdc",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Vara explosiva", "Idolo prohibido", "Idolo prohibido"]
   },
   {
     "nombre": "Colmillo de serpiente",
@@ -2790,7 +2790,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serpent%27s_Fang_item_HD.png?4c722",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Daga dentada", "Pico"]
   },
   {
     "nombre": "Vara de los edades",
@@ -2817,7 +2817,7 @@
     "cantidad": 1,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rod_of_Ages_item_HD.png?32e97",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Vara explosiva", "Catalizador de eones"]
   },
   {
     "nombre": "Cetro de cristal de Rylai",
@@ -2844,7 +2844,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rylai%27s_Crystal_Scepter_item_HD.png?46b75",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Vara explosiva", "Cinturon de gigante", "Tomo amplificador"]
   },
   {
     "nombre": "Cintomisil hextech",
@@ -2871,7 +2871,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item_HD.png?02607",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Alternador hextech", "Codice diabolico", "Cristal de rubi"]
   },
   {
     "nombre": "Bailarin espectral",
@@ -2898,7 +2898,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phantom_Dancer_item_HD.png?64a8b",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Daga", "Fervor", "Daga"]
   },
   {
     "nombre": "Huracan de runaan",
