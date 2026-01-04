@@ -2331,7 +2331,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item_HD.png?139cb",
     "craftsTo": [],
-    "craftsFrom": ["Brisa"]
+    "craftsFrom": ["Brisa de eter", "Espejo de cristal de bandle"]
   },
   {
     "nombre": "Incensario Ardiente",
@@ -2358,7 +2358,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item_HD.png?a5793",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Brisa de eter", "Idolo prohibido"]
   },
   {
     "nombre": "Ecos de helia",
@@ -2385,7 +2385,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item_HD.png?ebc88",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Gema avivadora", "Espejo de cristal de bandle"]
   },
   {
     "nombre": "Renovacion de piedra lunar",
@@ -2412,7 +2412,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Moonstone_Renewer_item_HD.png?2e7a2",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Gema avivadora", "Espejo de cristal de bandle"]
   },
   {
     "nombre": "Convergencia de Zeke",
@@ -2439,7 +2439,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeke%27s_Convergence_item_HD.png?d63f1",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Gema avivadora", "Armadura de Tela", "Manto de Anulacion de Magia"]
   },
   {
     "nombre": "Medallon de los Solari de Hierro",
@@ -2466,7 +2466,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Locket_of_the_Iron_Solari_item_HD.png?f6a2e",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Gema avivadora", "Armadura de Tela", "Manto de Anulacion de Magia"]
   },
   {
     "nombre": "Mandato imperial",
@@ -2493,7 +2493,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item_old_HD.png?082b8",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Codice diabolico", "Espejo de cristal de bandle"]
   },
   {
     "nombre": "Baston de aguas fluidas",
@@ -2520,7 +2520,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Staff_of_Flowing_Water_item_HD.png?15016",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Tomo Amplificador", "Idolo prohibido"]
   },
   {
     "nombre": "Bendicion de Mikael",
@@ -2547,7 +2547,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mikael%27s_Blessing_item_HD.png?2ac53",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Gema avivadora", "Idolo prohibido"]
   },
   {
     "nombre": "Redencion",
@@ -2574,7 +2574,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Redemption_item_HD.png?24e28",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Gema avivadora", "Idolo prohibido"]
   },
   {
     "nombre": "Promesa del caballero",
@@ -2601,7 +2601,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Knight%27s_Vow_item_HD.png?5be23",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Gema avivadora", "Chaleco de cadenas", "Perla de rejuvenecimiento"]
   },
   {
     "nombre": "Llegada del invierno",
@@ -2627,8 +2627,8 @@
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winter%27s_Approach_item_HD.png?d872e",
-    "craftsTo": [],
-    "craftsFrom": []
+    "craftsTo": ["El gran invierno"],
+    "craftsFrom": ["Lagrima de la diosa", "Cinturon de gigante", "Gema avivadora"]
   },
   {
     "nombre": "El gran invierno",
@@ -2655,7 +2655,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fimbulwinter_item_HD.png?aa009",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Llegada del invierno"]
   },
   {
     "nombre": "Marcasendas",
@@ -2682,7 +2682,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trailblazer_item_HD.png?5b38f",
     "craftsTo": [],
-    "craftsFrom": []
+    "craftsFrom": ["Armadura lunar alada", "Chaleco de cadenas"]
   },
   {
     "nombre": "Malla de espinas",
