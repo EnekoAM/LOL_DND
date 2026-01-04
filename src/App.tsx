@@ -5,7 +5,7 @@ import Habilidades from './components/Habilidades';
 
 function App() {
   const [screen, setScreen] = useState<'items' | 'personajes' | 'habilidades'>('items');
-  const [gold, setGold] = useState<number>(4306); // oro actual (ejemplo)
+  const [gold, setGold] = useState<number>(3906); // oro actual (ejemplo)
 
   const handleScreenChange = (newScreen: 'items' | 'personajes' | 'habilidades') => {
     setScreen(newScreen);
