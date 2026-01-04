@@ -2854,7 +2854,7 @@
     ]
   },
   {
-    "nombre": "Vara de los edades",
+    "nombre": "Vara de las edades",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -3613,7 +3613,7 @@
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seraph%27s_Embrace_item_HD.png?811fa",
     "craftsTo": [],
     "craftsFrom": [
-      "Baston del arcangel"
+      "Baston del Arcangel"
     ]
   },
   {
@@ -4077,7 +4077,7 @@
     ]
   },
   {
-    "nombre": "Tormento de liandry",
+    "nombre": "Tormento de Liandry",
     "rareza": "Legendario",
     "stats": {
       "HP": 3,
