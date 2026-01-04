@@ -5008,5 +5008,464 @@
       "Vara innecesariamente grande",
       "Vara innecesariamente grande"
     ]
+  },
+  {
+    "nombre": "Botas",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Boots_item_Unused_HD.png?bc3a4",
+    "craftsTo": ["Suelas simbioticas", "Botas jonias de lucidez", "Botas de rapidez", "Botas de hechicero", "Grebas de berserker", "Botas blindadas", "Botas de mercurio"],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Suelas simbioticas",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Symbiotic_Soles_item_HD.png?4bfac",
+    "craftsTo": ["Almas en sincronia"],
+    "craftsFrom": ["Botas"]
+  },
+  {
+    "nombre": "Almas en sincronia",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Synchronized_Souls_item_HD.png?6181a",
+    "craftsTo": ["Avance eterno"],
+    "craftsFrom": ["Suelas simbioticas"]
+  },
+  {
+    "nombre": "Avance eterno",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Forever_Forward_item_HD.png?e7101",
+    "craftsTo": [],
+    "craftsFrom": ["Almas en sincronia"]
+  },
+  {
+    "nombre": "Botas jonias de lucidez",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ionian_Boots_of_Lucidity_item_HD.png?a4476",
+    "craftsTo": ["Lucidez carmesi"],
+    "craftsFrom": ["Botas", "Mota brillante"]
+  },
+  {
+    "nombre": "Lucidez carmesi",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Crimson_Lucidity_item_HD.png?60d79",
+    "craftsTo": [],
+    "craftsFrom": ["Botas jonias de lucidez"]
+  },
+  {
+    "nombre": "Botas de rapidez",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Boots_of_Swiftness_item_HD.png?e78f2",
+    "craftsTo": ["Marcha veloz"],
+    "craftsFrom": ["Botas"]
+  },
+  {
+    "nombre": "Marcha veloz",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Swiftmarch_item_HD.png?91103",
+    "craftsTo": [],
+    "craftsFrom": ["Botas de rapidez"]
+  },
+  {
+    "nombre": "Botas de hechicero",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sorcerer%27s_Shoes_item_HD.png?86f92",
+    "craftsTo": ["Botas de lanza hechizos"],
+    "craftsFrom": ["Botas"]
+  } ,
+  {
+    "nombre": "Botas de lanza hechizos",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spellslinger%27s_Shoes_item_HD.png?863a6",
+    "craftsTo": [],
+    "craftsFrom": ["Botas de hechicero"]
+  },
+  {
+    "nombre": "Grebas de berserker",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Berserker%27s_Greaves_item_HD.png?0b20d",
+    "craftsTo": ["Grebas de metal", "Cefiro"],
+    "craftsFrom": ["Botas", "Daga"]
+  },
+  {
+    "nombre": "Grebas de metal",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Gunmetal_Greaves_item_HD.png?72e55",
+    "craftsTo": [],
+    "craftsFrom": ["Grebas de berserker"]
+  },
+  {
+    "nombre": "Cefiro",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zephyr_item.png?6194a",
+    "craftsTo": [],
+    "craftsFrom": ["Grebas de berserker"]
+  },
+  {
+    "nombre": "Botas blindadas",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Plated_Steelcaps_item_HD.png?a2156",
+    "craftsTo": ["Avance blindado"],
+    "craftsFrom": ["Botas", "Armadura de Tela"]
+  },
+  {
+    "nombre": "Avance blindado",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Armored_Advance_item_HD.png?6be36",
+    "craftsTo": [],
+    "craftsFrom": ["Botas blindadas"]
+  },
+  {
+    "nombre": "Botas de mercurio",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mercury%27s_Treads_item_HD.png?00690",
+    "craftsTo": ["Trituradoras encadenadas"],
+    "craftsFrom": ["Botas", "Manto de Anulacion de Magia"]
+  },
+  {
+    "nombre": "Trituradoras encadenadas",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chainlaced_Crushers_item_HD.png?c164d",
+    "craftsTo": [],
+    "craftsFrom": ["Botas de mercurio"]
   }
 ]

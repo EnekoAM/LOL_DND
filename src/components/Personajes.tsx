@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import playersData from '../players.json';
-import habilidadesData from '../habilidades.json';
-import ItemsData from '../items.json';
+import playersData from '../json/players.json';
+import habilidadesData from '../json/habilidades.json';
+import ItemsData from '../json/items.json';
 
 /* ================= TIPOS ================= */
 

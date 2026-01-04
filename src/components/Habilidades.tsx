@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import championsData from '../habilidades.json';
+import championsData from '../json/habilidades.json';
 
 const Habilidades = () => {
   const [searchChampion, setSearchChampion] = useState<string>('');

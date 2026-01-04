@@ -443,7 +443,6 @@
     "cantidad": 2,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Amplifying_Tome_item_HD.png?776f8",
     "craftsTo": [
-      "Vara explosiva",
       "Barrera frondosa",
       "Orbe del olvido",
       "Alternador hextech",
@@ -607,7 +606,6 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blasting_Wand_item_HD.png?ddd05",
     "craftsTo": [
-      "Vara innecesariamente grande",
       "Diente de nashor",
       "Perdicion del liche",
       "Cetro de cristal de Rylai",
@@ -675,7 +673,7 @@
     ]
   },
   {
-    "nombre": "Vara innecesariamente grande",
+    "nombre": "Vara Innecesariamente Grande",
     "rareza": "Basico",
     "stats": {
       "HP": 0,
@@ -2859,12 +2857,12 @@
     "nombre": "Vara de las edades",
     "rareza": "Legendario",
     "stats": {
-      "HP": 0,
+      "HP": 4,
       "AC": 0,
       "MR": 0,
-      "MANA": 0,
+      "MANA": 10,
       "AD": 0,
-      "AP": 0,
+      "AP": "2d2",
       "CRIT_CHANCE": 0,
       "CRIT_DAMAGE": 0,
       "SPE": 0,
@@ -2874,8 +2872,8 @@
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "(Cada combate ganado contra campeones obtiene 1 carga hasta un máximo de 10 cargas. Este objeto obtiene 1 de vida, 5 de maná y 1 de AP por cada 2 cargas. Al alcanzar 10 cargas tu personaje obtiene un nivel que se suma al base PERMANENTEMENTE [las cargas se mantienen en tu personaje, pero si este ítem se le cambia a otro personaje, este tendrá las cargas acumuladas por ese personaje, y ese personaje también puede subir de nivel al conseguir las cargas] [Puedes poner en tus ítems VARA DE LAS EDADES (COMPLETO), que es lo mismo que esto, pero con las estadísticas sumadas]) (Recupera un 10% del daño que hayas recibido desde tu último turno como maná. Este número se redondea hacia abajo y como múltiplo de 5 [Mínimo 5 de maná si has recibido daño]) (Te curas 1 de vida por cada 5 de maná gastado al echar una habilidad) (Solo puedes tener 1 item que tenga relación entre los siguientes: Catalizador de eones, Vara de las edades)",
+      "activa": "-"
     },
     "cantidad": 1,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rod_of_Ages_item_HD.png?32e97",
@@ -4757,18 +4755,18 @@
       "MR": 0,
       "MANA": 0,
       "AD": 0,
-      "AP": 0,
+      "AP": "7d4",
       "CRIT_CHANCE": 0,
       "CRIT_DAMAGE": 0,
-      "SPE": 0,
+      "SPE": 1,
       "ATK_SPE_PCT": 0,
-      "AB_SPE_PCT": 0,
+      "AB_SPE_PCT": 10,
       "LETHALITY": 0,
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "(Después de usar una habilidad, tu próximo ataque básico dentro de 10 segundos gana un 50% de velocidad de ataque adicional y aplica X de daño mágico adicional al golpear [X = 75% de tu AD base + 40% de tu AP] (1.5 segundos de enfriamiento, que comienza después de usar el ataque mejorado).)",
+      "activa": "-"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item_HD.png?37a26",
@@ -5360,6 +5358,526 @@
     "craftsFrom": [
       "Vara innecesariamente grande",
       "Vara innecesariamente grande"
+    ]
+  },
+  {
+    "nombre": "Botas",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 1,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Boots_item_Unused_HD.png?bc3a4",
+    "craftsTo": [
+      "Suelas simbioticas",
+      "Botas jonias de lucidez",
+      "Botas de rapidez",
+      "Botas de hechicero",
+      "Grebas de berserker",
+      "Botas blindadas",
+      "Botas de mercurio"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Suelas simbioticas",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Obtienes la habilidad \"Retirada Potenciada\" [Explicado en el documento del funcionamiento -> Otros]) (Obtienes 1 carga por cada misión (principal o secundaria) que completes con estas botas equipadas. Cuando tengas 5 cargas, estas botas se mejoran a \"Almas en Sincronía\") (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Symbiotic_Soles_item_HD.png?4bfac",
+    "craftsTo": [
+      "Almas en sincronia"
+    ],
+    "craftsFrom": [
+      "Botas"
+    ]
+  },
+  {
+    "nombre": "Almas en sincronia",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Obtienes la habilidad \"Retirada Potenciada\" [Explicado en el documento del funcionamiento -> HABILIDADES EXTRA]) (Obtienes 2 de SPE al estar fuera de combate) (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Synchronized_Souls_item_HD.png?6181a",
+    "craftsTo": [
+      "Avance eterno"
+    ],
+    "craftsFrom": [
+      "Suelas simbioticas"
+    ]
+  },
+  {
+    "nombre": "Avance eterno",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Obtienes la habilidad \"Retirada Potenciada\" [Explicado en el documento del funcionamiento -> Otros]) (Obtienes 2 de SPE +10% de SPE [Cálculo en el documento del funcionamiento] al estar fuera de combate) (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Forever_Forward_item_HD.png?e7101",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Almas en sincronia"
+    ]
+  },
+  {
+    "nombre": "Botas jonias de lucidez",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 20,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ionian_Boots_of_Lucidity_item_HD.png?a4476",
+    "craftsTo": [
+      "Lucidez carmesi"
+    ],
+    "craftsFrom": [
+      "Botas",
+      "Mota brillante"
+    ]
+  },
+  {
+    "nombre": "Lucidez carmesi",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 35,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Infligir daño a enemigos con habilidades o potenciar o proteger a aliados con habilidades, otorgan 1 de SPE para ese turno [NO acumulable]) (Puedes superar el límite de +100% de AB_SPE_% hasta un 200%. Si te pasas del 100%, tienes una habilidad extra, y después se hará [100 - AB_SPE_%], y se echará un dado con ese resultado para determinar si tienes otra habilidad extra) (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Crimson_Lucidity_item_HD.png?60d79",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Botas jonias de lucidez"
+    ]
+  },
+  {
+    "nombre": "Botas de rapidez",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 3,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(La eficacioa de las ralentizaciones se reduce un 25%) (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Boots_of_Swiftness_item_HD.png?e78f2",
+    "craftsTo": [
+      "Marcha veloz"
+    ],
+    "craftsFrom": [
+      "Botas"
+    ]
+  },
+  {
+    "nombre": "Marcha veloz",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 4,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(La eficacioa de las ralentizaciones se reduce un 25%) (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Swiftmarch_item_HD.png?91103",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Botas de rapidez"
+    ]
+  },
+  {
+    "nombre": "Botas de hechicero",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sorcerer%27s_Shoes_item_HD.png?86f92",
+    "craftsTo": [
+      "Botas de lanza hechizos"
+    ],
+    "craftsFrom": [
+      "Botas"
+    ]
+  },
+  {
+    "nombre": "Botas de lanza hechizos",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 4
+    },
+    "efecto": {
+      "pasiva": "(Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spellslinger%27s_Shoes_item_HD.png?863a6",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Botas de hechicero"
+    ]
+  },
+  {
+    "nombre": "Grebas de berserker",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 25,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Berserker%27s_Greaves_item_HD.png?0b20d",
+    "craftsTo": [
+      "Grebas de metal",
+      "Cefiro"
+    ],
+    "craftsFrom": [
+      "Botas",
+      "Daga"
+    ]
+  },
+  {
+    "nombre": "Grebas de metal",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 40,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques contra enemigos otorgan X [] de SPE para ese turno [NO acumulable]) (Puedes superar el límite de +100% de ATK_SPE_% hasta un 200%. Si te pasas del 100%, tienes una habilidad extra, y después se hará [100 - ATK_SPE_%], y se echará un dado con ese resultado para determinar si tienes otro ATAQUE CUERPO A CUERPO) (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Gunmetal_Greaves_item_HD.png?72e55",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Grebas de berserker"
+    ]
+  },
+  {
+    "nombre": "Cefiro",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 45,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques básicos al golpear otorgan una acumulación durante 2 turnos, renovándose con ataques posteriores. Cuando tienes 3 cargas, obtienes 1 de SPE) (Puedes superar el límite de +100% de ATK_SPE_% hasta un 200%. Si te pasas del 100%, tienes una habilidad extra, y después se hará [100 - ATK_SPE_%], y se echará un dado con ese resultado para determinar si tienes otro ATAQUE CUERPO A CUERPO) (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zephyr_item.png?6194a",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Grebas de berserker"
+    ]
+  },
+  {
+    "nombre": "Botas blindadas",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 1,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Plated_Steelcaps_item_HD.png?a2156",
+    "craftsTo": [
+      "Avance blindado"
+    ],
+    "craftsFrom": [
+      "Botas",
+      "Armadura de Tela"
+    ]
+  },
+  {
+    "nombre": "Avance blindado",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 1,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Reduce un 10% del daño sufrido por ataques CUERPO A CUERPO) (Tras recibir daño físico de un enemigo, otorga un escudo físico de 2 + X [X = 10% de tu HP máxima (X es mínimo 1)] durante 4 turnos. Se activa una vez cada 15 turnos) (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Armored_Advance_item_HD.png?6be36",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Botas blindadas"
+    ]
+  },
+  {
+    "nombre": "Botas de mercurio",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 1,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mercury%27s_Treads_item_HD.png?00690",
+    "craftsTo": [
+      "Trituradoras encadenadas"
+    ],
+    "craftsFrom": [
+      "Botas",
+      "Manto de Anulacion de Magia"
+    ]
+  },
+  {
+    "nombre": "Trituradoras encadenadas",
+    "rareza": "Botas",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 1,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 2,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "(Obtienes 30 de TENACIDAD) (Tras recibir daño mágico de un enemigo, otorga un escudo mágico de 2 + X [X = 10% de tu HP máxima (X es mínimo 1)] durante 4 turnos. Se activa una vez cada 15 turnos) (Este ítem se considera como \"Bota\". Solo puedes tener 1 ítem de \"Bota\" equipado)",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chainlaced_Crushers_item_HD.png?c164d",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Botas de mercurio"
     ]
   }
 ]

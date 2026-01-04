@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import ItemsData from '../items_actualizados.json';
+import ItemsData from '../json/items_actualizados.json';
 
 const rarityOptions = ['Inicial', 'Basico', 'Epico', 'Legendario', 'Prismatico'];
 
