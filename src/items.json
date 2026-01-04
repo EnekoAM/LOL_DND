@@ -744,7 +744,7 @@
   },
   {
     "nombre": "Idolo Prohibido",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -780,7 +780,7 @@
   },
   {
     "nombre": "Honda de explorador",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -815,7 +815,7 @@
   },
   {
     "nombre": "Arco curvo",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -851,7 +851,7 @@
   },
   {
     "nombre": "Rectrice",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -884,7 +884,7 @@
   },
   {
     "nombre": "Orbe del olvido",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -915,7 +915,7 @@
   },
   {
     "nombre": "Llamada del verdugo",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -947,7 +947,7 @@
   },
   {
     "nombre": "Gema avivadora",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -985,13 +985,13 @@
       "Mascara abisal"
     ],
     "craftsFrom": [
-      "Cristal de rubí",
+      "Cristal de rubi",
       "Mota brillante"
     ]
   },
   {
     "nombre": "Chaleco de cadenas",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1029,7 +1029,7 @@
   },
   {
     "nombre": "Chaleco de zarzas",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1061,7 +1061,7 @@
   },
   {
     "nombre": "Brazal cristalino",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1088,13 +1088,13 @@
       "Corazon de acero"
     ],
     "craftsFrom": [
-      "Cristal de rubí",
+      "Cristal de rubi",
       "Perla de rejuvenecimiento"
     ]
   },
   {
     "nombre": "Armadura lunar alada",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1123,12 +1123,12 @@
       "Coraza del muerto"
     ],
     "craftsFrom": [
-      "Cristal de rubí"
+      "Cristal de rubi"
     ]
   },
   {
     "nombre": "Codice diabolico",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1170,7 +1170,7 @@
   },
   {
     "nombre": "Capa negatron",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1206,7 +1206,7 @@
   },
   {
     "nombre": "Broquel glaciar",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1239,7 +1239,7 @@
   },
   {
     "nombre": "Brisa de eter",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1276,7 +1276,7 @@
   },
   {
     "nombre": "Cenizas predestinadas",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1309,7 +1309,7 @@
   },
   {
     "nombre": "Espejo de cristal de Bandle",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1345,7 +1345,7 @@
   },
   {
     "nombre": "Cetro vampirico",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1379,7 +1379,7 @@
   },
   {
     "nombre": "Brillo",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1412,7 +1412,7 @@
   },
   {
     "nombre": "Rescoldo de Bami",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1439,13 +1439,13 @@
       "Fulgor vano"
     ],
     "craftsFrom": [
-      "Cristal de rubí",
+      "Cristal de rubi",
       "Mota brillante"
     ]
   },
   {
     "nombre": "Cinturon de gigante",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1485,7 +1485,7 @@
   },
   {
     "nombre": "Daga dentada",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1523,7 +1523,7 @@
   },
   {
     "nombre": "Malla del guardian",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1556,7 +1556,7 @@
   },
   {
     "nombre": "Martillo de guerra de Claufield",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1595,7 +1595,7 @@
   },
   {
     "nombre": "Alternador hextech",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1630,7 +1630,7 @@
   },
   {
     "nombre": "Joya de la plaga",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1663,7 +1663,7 @@
   },
   {
     "nombre": "Sello de acero",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1697,7 +1697,7 @@
   },
   {
     "nombre": "Bacteriofago",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1726,14 +1726,14 @@
       "Fuerza de trinidad"
     ],
     "craftsFrom": [
-      "Cristal de rubí",
+      "Cristal de rubi",
       "Espada larga",
       "Espada larga"
     ]
   },
   {
     "nombre": "Tuneladora",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1767,12 +1767,12 @@
     ],
     "craftsFrom": [
       "Espada larga",
-      "Cristal de rubí"
+      "Cristal de rubi"
     ]
   },
   {
     "nombre": "Capitulo perdido",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1808,7 +1808,7 @@
   },
   {
     "nombre": "Fervor",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1843,7 +1843,7 @@
   },
   {
     "nombre": "Hacha hogareña",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1878,7 +1878,7 @@
   },
   {
     "nombre": "Tiamat",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1913,7 +1913,7 @@
   },
   {
     "nombre": "Habito del espectro",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1941,14 +1941,14 @@
       "Fulgor vano"
     ],
     "craftsFrom": [
-      "Cristal de rubí",
+      "Cristal de rubi",
       "Manto de Anulacion de Magia",
       "Perla de rejuvenecimiento"
     ]
   },
   {
     "nombre": "Catalizador de eones",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -1974,14 +1974,14 @@
       "Vara de las edades"
     ],
     "craftsFrom": [
-      "Cristal de rubí",
-      "Cristal de rubí",
+      "Cristal de rubi",
+      "Cristal de rubi",
       "Cristal de zafiro"
     ]
   },
   {
     "nombre": "Disfraz encantado",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -2010,12 +2010,12 @@
     ],
     "craftsFrom": [
       "Tomo Amplificador",
-      "Cristal de rubí"
+      "Cristal de rubi"
     ]
   },
   {
     "nombre": "Carcaj de mediodia",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -2048,7 +2048,7 @@
   },
   {
     "nombre": "Sorbemaleficios",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -2081,7 +2081,7 @@
   },
   {
     "nombre": "Fajin de mercurio",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -2113,7 +2113,7 @@
   },
   {
     "nombre": "Embrutecedor",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -2147,7 +2147,7 @@
   },
   {
     "nombre": "Ultimas palabras",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -2181,7 +2181,7 @@
   },
   {
     "nombre": "Robaalmas de Mejai",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -2210,7 +2210,7 @@
   },
   {
     "nombre": "Barrera frondosa",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -2243,7 +2243,7 @@
   },
   {
     "nombre": "Salvavidas",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
@@ -2275,7 +2275,7 @@
   },
   {
     "nombre": "Brazalete de la buscadora",
-    "rareza": "Épico",
+    "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,

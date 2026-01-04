@@ -1,0 +1,5363 @@
+[
+  {
+    "nombre": "Sello Oscuro",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 1.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 1.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Consigues 1 carga por cada campeón que hayas matado hasta un máximo de 10 cargas) (Cada carga te da +1 de AP) (Solo puedes tener 1 item que tenga relación entre los siguientes: Sello oscuro, Robaalmas de Mejai)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dark_Seal_item_HD.png?4ce67",
+    "craftsTo": [
+      "Robaalmas de Mejai"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Lagrima de la Diosa",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 5.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+5 de maná cada 10 cargas hasta un máximo de 100 cargas. Consigues 2 cargas por combate como máximo y las cargas se consiguen si en el combate has matado a alguien. Si el enemigo es un campeón, te da 4 cargas) (Solo puedes tener 1 item que tenga relación entre los siguientes: Lágrima de la diosa, Llegada del invierno, Bastón del Arcangel, El gran invierno, Abrazo del serafín, Muramana)",
+      "activa": "-"
+    },
+    "cantidad": 2,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tear_of_the_Goddess_item_HD.png?3e2b7",
+    "craftsTo": [
+      "Baston del Arcangel",
+      "Manamune",
+      "Llegada del invierno"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Anillo de Doran",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 1.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+1d2 de daño fisico a enemigos basicos) (Solo puedes tener 1 item que tenga relación entre los siguientes: Anillo de Doran, Espada de Doran, Escudo de Doran)",
+      "activa": "(Puede recuperar 5 de mana por cada uso de este ítem. Si no puede restaurar maná recupera 2 de vida. Tiene 4 usos hasta descanso corto.)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Ring_item_HD.png?a5057",
+    "craftsTo": [],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Espada de Doran",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Te curas un 3% de vida del daño total que hayas hecho en ese turno con ataques CUERPO A CUERPO [Si has hecho un ataque CUERPO A CUERPO, mínimo te da 1 de vida]) (Solo puedes tener 1 item que tenga relación entre los siguientes: Anillo de Doran, Espada de Doran, Escudo de Doran)",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Blade_item_HD.png?98bb0",
+    "craftsTo": [],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Preferencia",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 1.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Te curas 1 de vida por cada ataque CUERPO A CUERPO que hayas hecho)(Por cada enemigo básico que mates te da 1 de oro hasta un máximo de 100. Al llegar al máximo de cargas te da 350 de oro)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cull_item_HD.png?b357a",
+    "craftsTo": [],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Escudo de Doran",
+    "rareza": "Inicial",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Restaura 1 de HP por turno) (Si has recibido daño de alguna fuente desde tu último turno, recuperas 1 de HP) (+1d2 de daño fisico a enemigos basicos) (Solo puedes tener 1 item que tenga relación entre los siguientes: Anillo de Doran, Espada de Doran, Escudo de Doran)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Shield_item_HD.png?11316",
+    "craftsTo": [],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Amuleto de las Hadas",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "(Puede recuperar 5 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto.)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Faerie_Charm_item_HD.png?0d640",
+    "craftsTo": [
+      "Idolo prohibido",
+      "Espejo de cristal de Bandle"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Daga",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 10.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dagger_item_HD.png?6d6fe",
+    "craftsTo": [
+      "Arco curvo",
+      "Hacha hogareña",
+      "Honda de explorador",
+      "Fervor",
+      "Experimento de hexarmadura",
+      "Cortasendas",
+      "Bailarin espectral",
+      "Filofugaz de Navori",
+      "Grebas de berserker"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Mota Brillante",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 5.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glowing_Mote_item_HD.png?71565",
+    "craftsTo": [
+      "Martillo de guerra de Claufield",
+      "Embrutecedor",
+      "Codice diabolico",
+      "Rescoldo de Bami",
+      "Broquel glacial",
+      "Brillo",
+      "Gema avivadora",
+      "Capitulo perdido",
+      "Espejo de cristal de Bandle",
+      "Botas jonias de la lucidez"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Cristal de Zafiro",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 5.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 3,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sapphire_Crystal_item_HD.png?96f09",
+    "craftsTo": [
+      "Catalizador de Eones",
+      "Broquel glacial",
+      "Capitulo perdido"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Armadura de Tela",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cloth_Armor_item_HD.png?25257",
+    "craftsTo": [
+      "Chaleco de cadenas",
+      "Sello de acero",
+      "Malla de guardian",
+      "Brazalete de la buscadora",
+      "Broquel glacial",
+      "Chaleco de Zarzas",
+      "Protector de la legion",
+      "Medallon de los Solari de hierro",
+      "Convergencia de Zeke",
+      "Botas blindadas"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Perla de Rejuvenecimiento",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "(Puede recuperar x de vida [x=LVL de ese personaje]. Tiene 2 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rejuvenation_Bead_item_HD.png?1fc9c",
+    "craftsTo": [
+      "Habito del espectro",
+      "Brazal cristalino",
+      "Promesa del caballero"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Espada Larga",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 1.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Long_Sword_item_HD.png?b877f",
+    "craftsTo": [
+      "Carcaj del mediodia",
+      "Hacha hogareña",
+      "Martillo de guerra de Claufield",
+      "Sello de acero",
+      "Tuneladora",
+      "Llamada del verdugo",
+      "Sorbemalificios",
+      "Ultimas palabras",
+      "Tiamat",
+      "Bacteriofago",
+      "Daga dentada",
+      "Rectrice",
+      "Flechas de los Yun Tal",
+      "Manamune",
+      "Eclipse",
+      "Filo fantasmal de Youmuu",
+      "Espada ciclovoltaica",
+      "Oportunidades"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Tomo Amplificador",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 1.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 2,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Amplifying_Tome_item_HD.png?776f8",
+    "craftsTo": [
+      "Barrera frondosa",
+      "Orbe del olvido",
+      "Alternador hextech",
+      "Codice diabolico",
+      "Cenizas predestinadas",
+      "Brazalete de la buscadora",
+      "Joya de la plaga",
+      "Brisa de eter",
+      "Disfraz encantado",
+      "Capitulo perdido",
+      "Espejo de cristal de Bandle",
+      "Cetro de cristal de Rylai",
+      "Hoja de furia de Guinsoo"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Manto de Anulacion de Magia",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Null-Magic_Mantle_item_old2_HD.png?557d1",
+    "craftsTo": [
+      "Capa negatron",
+      "Barrera frondosa",
+      "Habito del espectro",
+      "Sorbemalificios",
+      "Protector de la legion",
+      "Fajin de mercurio",
+      "Medallon de los Solari de hierro",
+      "",
+      "Convergencia de Zeke",
+      "Botas de mercurio"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Cristal de Rubi",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ruby_Crystal_WR_item.png?c87bc",
+    "craftsTo": [
+      "Armadura lunar alada",
+      "Rescoldo de Bami",
+      "Gema avivadora",
+      "Cinturon de gigante",
+      "Bacteriofago",
+      "Tuneladora",
+      "Habito del espectro",
+      "Disfraz encantado",
+      "Catalizador de Eones",
+      "Brazal cristalino",
+      "Malla de espinas",
+      "Cintomisil hextech",
+      "Fuerza de la naturaleza",
+      "Coraza del muerto",
+      "Guantelete de hielo",
+      "Renovacion de piedra lunar",
+      "Lanza de Shojin",
+      "Firmamento desgarrado",
+      "Calibrador de Sterak"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Capa de Agilidad",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 1.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cloak_of_Agility_item_HD.png?525db",
+    "craftsTo": [
+      "Fervor",
+      "Carcaj del mediodia",
+      "Recaudadora",
+      "Bailarin espectral",
+      "Filo infinito",
+      "Recordatorio letal",
+      "Segador de esencia",
+      "Grebas de berserker",
+      "Rito de la ruina"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Vara Explosiva",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blasting_Wand_item_HD.png?ddd05",
+    "craftsTo": [
+      "Diente de nashor",
+      "Perdicion del liche",
+      "Cetro de cristal de Rylai",
+      "Baston del vacio",
+      "Malignidad",
+      "Precision infalible",
+      "Morellonomicon",
+      "Nucleo albar",
+      "Vara de las edades"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Tomo Amplificador",
+      "Tomo Amplificador"
+    ]
+  },
+  {
+    "nombre": "Pico",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Pickaxe_item_HD.png?05cf1",
+    "craftsTo": [
+      "Embrutecedor",
+      "Cimitarra mercurial",
+      "Eclipse",
+      "Cuchilla negra",
+      "Sanguinaria",
+      "Arcoescudo inmortal",
+      "Lanza de Shojin",
+      "Rompecascos",
+      "Recaudadora",
+      "Filo infinito",
+      "Calibrador de Sterak",
+      "Segador de esencia",
+      "Puñal de Statikk",
+      "Hoja de furia de Guinsoo",
+      "Hoja del rey arruinado",
+      "Colmillo de serpiente",
+      "Baile de la muerte",
+      "Oportunidades"
+    ],
+    "craftsFrom": [
+      "Espada larga",
+      "Espada larga",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Vara Innecesariamente Grande",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Needlessly_Large_Rod_item_HD.png?b815e",
+    "craftsTo": [
+      "Velo del hada de la muerte",
+      "Reloj de arena de Zhonya",
+      "Llamasombria",
+      "Sombrero mortal de Rabadon"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Vara explosiva"
+    ]
+  },
+  {
+    "nombre": "Espadon",
+    "rareza": "Basico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/B._F._Sword_item_HD.png?12e17",
+    "craftsTo": [
+      "Flechas de los Yun Tal",
+      "Sanguinaria",
+      "Filo infinito",
+      "Angel de la guarda"
+    ],
+    "craftsFrom": [
+      "Pico",
+      "Pico"
+    ]
+  },
+  {
+    "nombre": "Idolo Prohibido",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+8% de curaciones y escudos)",
+      "activa": "(Puede recuperar 10 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto.)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Forbidden_Idol_item_HD.png?ffd19",
+    "craftsTo": [
+      "Incensario ardiente",
+      "Redencion",
+      "Bendicion de Mikael",
+      "Baston de aguas fluidas",
+      "Nucleo albar"
+    ],
+    "craftsFrom": [
+      "Amuleto de las hadas",
+      "Amuleto de las hadas"
+    ]
+  },
+  {
+    "nombre": "Honda de explorador",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 20.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Dañar a un campeón con una HABILIDAD o un ataque CUERPO A CUERPO hace 1d2 de AP más de daño. Esto aplica cada 10 turnos. Cada ataque CUERPO A CUERPO que hagas, se reduce 1 turno de espera. El ataque con el que aplicas el daño extra de esta pasiva no reduce el turno de espera)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Scout%27s_Slingshot_item_HD.png?adc7b",
+    "craftsTo": [
+      "Flechas de los Yun Tal",
+      "Puñal de Statikk",
+      "Huracan de Runaan",
+      "Cañon de fuego rapido"
+    ],
+    "craftsFrom": [
+      "Daga",
+      "Daga"
+    ]
+  },
+  {
+    "nombre": "Arco curvo",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 15.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cada turno haces 1d2 de AD más de daño con el primer ataque CUERPO A CUERPO que hagas)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Recurve_Bow_item_HD.png?f1452",
+    "craftsTo": [
+      "Diente de nashor",
+      "El final",
+      "Final del ingenio",
+      "Hoja de furia de Guinsoo",
+      "Hoja del rey arruinado",
+      "Vergugo de krakens"
+    ],
+    "craftsFrom": [
+      "Daga"
+    ]
+  },
+  {
+    "nombre": "Rectrice",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rectrix_item_HD.png?4b29c",
+    "craftsTo": [
+      "Puñal de Statikk",
+      "Filo fantasmal de Youmuu",
+      "Vergugo de krakens"
+    ],
+    "craftsFrom": [
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Orbe del olvido",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cuando hagas daño AP a un enemigo, durante un turno [hasta que te vuelva a tocar a tí], este va a recibir un 40% menos de curaciones de todas las fuentes)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Oblivion_Orb_item_HD.png?2234a",
+    "craftsTo": [
+      "Morellonomicon"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador"
+    ]
+  },
+  {
+    "nombre": "Llamada del verdugo",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cuando hagas daño AD a un enemigo, durante un turno [hasta que te vuelva a tocar a tí], este va a recibir un 40% menos de curaciones de todas las fuentes)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Executioner%27s_Calling_item_HD.png?e2848",
+    "craftsTo": [
+      "Recordatorio letal",
+      "Mecanoespada punki"
+    ],
+    "craftsFrom": [
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Gema avivadora",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kindlegem_item_Unused_HD.png?a878e",
+    "craftsTo": [
+      "Llegada del invierno",
+      "Cuchilla negra",
+      "Medallon de los Solari de hierro",
+      "Ecos de helia",
+      "Convergencia de Zeke",
+      "Rostro espiritual",
+      "Redencion",
+      "Promesa del caballero",
+      "Renovacion de piedra lunar",
+      "Morellonomicon",
+      "Bendicion de Mikael",
+      "Impulso cosmico",
+      "Mascara abisal"
+    ],
+    "craftsFrom": [
+      "Cristal de rubi",
+      "Mota brillante"
+    ]
+  },
+  {
+    "nombre": "Chaleco de cadenas",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chain_Vest_item_Unused_HD.png?6c7a7",
+    "craftsTo": [
+      "Guantelete de hielo",
+      "Egida de fuego solar",
+      "Coraza del muerto",
+      "Marcasendas",
+      "Malla de espinas",
+      "Promesa del caballero",
+      "Jak'sho el proteico"
+    ],
+    "craftsFrom": [
+      "Armadura de Tela",
+      "Armadura de Tela"
+    ]
+  },
+  {
+    "nombre": "Chaleco de zarzas",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cuando recibas un ataque de CONTACTO, le infliges 1 de AP al que te haya golpeado [una vez por ataque recibido] y este va a recibir un 40% menos de curaciones de todas las fuentes durante 2 turnos)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bramble_Vest_item_HD.png?a79df",
+    "craftsTo": [
+      "Malla de espinas"
+    ],
+    "craftsFrom": [
+      "Armadura de Tela",
+      "Armadura de Tela"
+    ]
+  },
+  {
+    "nombre": "Brazal cristalino",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "(Puede recuperar x de vida [x=LVL de ese personaje]. Tiene 2 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Crystalline_Bracer_item_Unused_HD.png?59e49",
+    "craftsTo": [
+      "Armadura de warmog",
+      "Corazon de acero"
+    ],
+    "craftsFrom": [
+      "Cristal de rubi",
+      "Perla de rejuvenecimiento"
+    ]
+  },
+  {
+    "nombre": "Armadura lunar alada",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winged_Moonplate_item_HD.png?71a7e",
+    "craftsTo": [
+      "Fuerza de la naturaleza",
+      "Rompecascos",
+      "Marcasendas",
+      "Coraza del muerto"
+    ],
+    "craftsFrom": [
+      "Cristal de rubi"
+    ]
+  },
+  {
+    "nombre": "Codice diabolico",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fiendish_Codex_item_HD.png?d144a",
+    "craftsTo": [
+      "Diente de nashor",
+      "Rito de la ruina",
+      "Baston del Arcangel",
+      "Precision infalible",
+      "Florescencia sepulcral",
+      "Cintomisil hextech",
+      "Mandato imperial",
+      "Impulso cosmico",
+      "Creagrietas",
+      "Baston de aguas fluidas",
+      "Maldicion sanguinolenta"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Mota brillante"
+    ]
+  },
+  {
+    "nombre": "Capa negatron",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Negatron_Cloak_item_HD.png?c9809",
+    "craftsTo": [
+      "Fuerza de la naturaleza",
+      "Rookern kaenico",
+      "Final del ingenio",
+      "Jak'sho el proteico",
+      "Mascara abisal"
+    ],
+    "craftsFrom": [
+      "Manto de Anulacion de Magia",
+      "Manto de Anulacion de Magia"
+    ]
+  },
+  {
+    "nombre": "Broquel glaciar",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glacial_Buckler_item_Unused_HD.png?5e44e",
+    "craftsTo": [
+      "Corazon de hielo"
+    ],
+    "craftsFrom": [
+      "Armadura de Tela",
+      "Cristal de zafiro",
+      "Mota brillante"
+    ]
+  },
+  {
+    "nombre": "Brisa de eter",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Aether_Wisp_item_HD.png?993ef",
+    "craftsTo": [
+      "Rito de la ruina",
+      "Sobrecarga tormentosa",
+      "Incensario ardiente",
+      "Cancion de batalla de Shurelya",
+      "Perdicion del liche",
+      "Impulso cosmico"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Tomo Amplificador"
+    ]
+  },
+  {
+    "nombre": "Cenizas predestinadas",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Las habilidades le hacen 1d2 de AP de daño de quemadura a enemigos basicos y 1 de AP al resto de enemigos por 3 turnos. Cada habilidad que impacte en un enemigo con la quemadura que este item haya provocado, se le reinician los 3 turnos de quemadura. Si tienes 2 items iguales, aplicas 2 quemaduras.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fated_Ashes_item_HD.png?b222a",
+    "craftsTo": [
+      "Tormento de Liandry",
+      "Antorcha de fuego negro"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Tomo Amplificador"
+    ]
+  },
+  {
+    "nombre": "Espejo de cristal de Bandle",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "(Puede recuperar 10 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto.)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bandleglass_Mirror_item_HD.png?42862",
+    "craftsTo": [
+      "Cancion de batalla de Shurelya",
+      "Ecos de helia",
+      "Renovacion de piedra lunar",
+      "Mandato imperial"
+    ],
+    "craftsFrom": [
+      "Amuleto de las hadas",
+      "Tomo Amplificador",
+      "Mota brillante"
+    ]
+  },
+  {
+    "nombre": "Cetro vampirico",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Te curas un 7% de vida del daño total que hayas hecho en ese turno con ataques CUERPO A CUERPO [Si has hecho un ataque CUERPO A CUERPO, mínimo te da 1 de vida])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Vampiric_Scepter_item_Unused2_HD.png?80dcc",
+    "craftsTo": [
+      "Cimitarra mercurial",
+      "Sanguinaria",
+      "Hidra voraz",
+      "Hoja del rey arruinado"
+    ],
+    "craftsFrom": [
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Brillo",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Una vez por turno si usas una HABILIDAD, a tu siguiente ataque CUERPO A CUERPO se le sumará un +10% de tu AD [base+items] que tengas en ese ataque de AD. Si has usado una HABILIDAD pero NO un ataque CUERPO A CUERPO después, el siguiente turno tendrás que volver a usar una HABILIDAD para aplicar el daño extra.) (Solo puedes tener 1 item que tenga relación entre los siguientes: Brillo, Guantelete de hielo, Fuerza de trinidad, Perdición del liche)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sheen_item_HD.png?6e245",
+    "craftsTo": [
+      "Perdicion del liche",
+      "Guantelete de hielo",
+      "Fuerza de trinidad"
+    ],
+    "craftsFrom": [
+      "Mota brillante"
+    ]
+  },
+  {
+    "nombre": "Rescoldo de Bami",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 5.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Tras recibir o infligir daño, obtienes un área de daño de 1 de AP a los enemigos que estén a 1 de distancia de tí. En tu turno, vas a hacer daño a todos los que metas en ese área 1 vez, y en el turno del enemigo, si empieza o se mete en ese área, va a volver a recibir daño. Si tienes a alguien a 1 de distancia al terminar el turno, vas a mantener ese área. Si no tienes a nadie a 1 de distancia al terminar el turno, este efecto desaparece) (Solo puedes tener 1 item que tenga relación entre los siguientes: Rescoldo de Bami, Égida de fuego solar, Fulgor vano)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bami%27s_Cinder_item_HD.png?5f6ec",
+    "craftsTo": [
+      "Egida de fuego solar",
+      "Fulgor vano"
+    ],
+    "craftsFrom": [
+      "Cristal de rubi",
+      "Mota brillante"
+    ]
+  },
+  {
+    "nombre": "Cinturon de gigante",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Giant%27s_Belt_item_HD.png?b62f9",
+    "craftsTo": [
+      "Llegada del invierno",
+      "Armadura de warmog",
+      "Corazon de acero",
+      "Desesperanza eterna",
+      "Hidra titanica",
+      "Cetro de cristal de Rylai",
+      "Presagio de randuin",
+      "Mecanoespada punki",
+      "Jak'sho el proteico"
+    ],
+    "craftsFrom": [
+      "Cinturon de gigante",
+      "Cinturon de gigante"
+    ]
+  },
+  {
+    "nombre": "Daga dentada",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serrated_Dirk_item_HD.png?cbf82",
+    "craftsTo": [
+      "Filo fantasmal de Youmuu",
+      "Soberbia",
+      "Filo de la noche",
+      "Recaudadora",
+      "Colmillo de serpiente",
+      "Colmillo de serpiente",
+      "Oportunidades"
+    ],
+    "craftsFrom": [
+      "Espada larga",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Malla del guardian",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Reduce el daño que recibe en 1d2 de ataques CUERPO A CUERPO. No bloquea más del 20% del daño de los ataques)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warden%27s_Mail_item_HD.png?475e6",
+    "craftsTo": [
+      "Corazon de hielo",
+      "Presagio de randuin"
+    ],
+    "craftsFrom": [
+      "Armadura de Tela",
+      "Armadura de Tela"
+    ]
+  },
+  {
+    "nombre": "Martillo de guerra de Claufield",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Caulfield%27s_Warhammer_item_HD.png?5e566",
+    "craftsTo": [
+      "Soberbia",
+      "Manamune",
+      "Fauces de malmortius",
+      "Eclipse",
+      "Hidra voraz",
+      "Rencor de Serylda",
+      "Segador de esencia",
+      "Baile de la muerte",
+      "Mecanoespada punki",
+      "Firmamento desgarrado",
+      "Arco axiomatico"
+    ],
+    "craftsFrom": []
+  },
+  {
+    "nombre": "Alternador hextech",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al hacer daño a un enemigo, este recibe 2d4 de AP extra. Solo aplica 1 vez cada 4 turnos)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Alternator_item_HD.png?b3ba0",
+    "craftsTo": [
+      "Sobrecarga tormentosa",
+      "Cintomisil hextech",
+      "Llamasombria",
+      "Compañera de luden"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Tomo Amplificador"
+    ]
+  },
+  {
+    "nombre": "Joya de la plaga",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 1.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blighting_Jewel_item_HD.png?3888c",
+    "craftsTo": [
+      "Florescencia sepulcral",
+      "Baston del vacio"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Tomo Amplificador"
+    ]
+  },
+  {
+    "nombre": "Sello de acero",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Steel_Sigil_item_HD.png?b1f6e",
+    "craftsTo": [
+      "Angel de la guarda",
+      "Baile de la muerte"
+    ],
+    "craftsFrom": [
+      "Armadura de Tela",
+      "Espada larga",
+      "Armadura de Tela"
+    ]
+  },
+  {
+    "nombre": "Bacteriofago",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+1 SPE en ese turno si atacas a un enemigo con un ataque CUERPO A CUERPO. Máximo +1 SPE por turno)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phage_item_HD.png?a4bb4",
+    "craftsTo": [
+      "Cortasendas",
+      "Cuchilla negra",
+      "Experimento de hexarmadura",
+      "Fuerza de trinidad"
+    ],
+    "craftsFrom": [
+      "Cristal de rubi",
+      "Espada larga",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Tuneladora",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 3.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tunneler_item_HD.png?44fad",
+    "craftsTo": [
+      "Hidra titanica",
+      "Lanza de Shojin",
+      "Filo de la noche",
+      "Rompecascos",
+      "Sangria del soberano",
+      "Calibrador de Sterak",
+      "Experimento de hexarmadura",
+      "Firmamento desgarrado"
+    ],
+    "craftsFrom": [
+      "Espada larga",
+      "Cristal de rubi"
+    ]
+  },
+  {
+    "nombre": "Capitulo perdido",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 10.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al subir de nivel, recuperas un 20% de tu maná máximo)  (Solo puedes tener 1 item que tenga relación entre los siguientes: Capitulo perdido [Si lo mejoras, puedes volver a tener este objeto])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lost_Chapter_item_HD.png?f5c22",
+    "craftsTo": [
+      "Baston del Arcangel",
+      "Compañera de luden",
+      "Malignidad",
+      "Antorcha de fuego negro"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Cristal de zafiro",
+      "Mota brillante"
+    ]
+  },
+  {
+    "nombre": "Fervor",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 1.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 15.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeal_item_HD.png?e61a6",
+    "craftsTo": [
+      "Bailarin espectral",
+      "Filofugaz de Navori",
+      "Huracan de Runaan",
+      "Cañon de fuego rapido"
+    ],
+    "craftsFrom": [
+      "Capa de agilidad",
+      "Daga"
+    ]
+  },
+  {
+    "nombre": "Hacha hogareña",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 20.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hearthbound_Axe_item_HD.png?5b2d3",
+    "craftsTo": [
+      "El final",
+      "Fuerza de trinidad",
+      "Vergugo de krakens"
+    ],
+    "craftsFrom": [
+      "Espada larga",
+      "Daga",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Tiamat",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al hacerle daño de CONTACTO al enemigo, haces 1d2 de AD en el area 3x3 del enemigo [el enemigo estando en el centro del 3x3]. Excepción: si eres tirador haces 1 de AD en vez de 1d2 de AD) (Solo puedes tener 1 item que tenga relación entre los siguientes: Tiamat, Hidra voraz, Hidra titánica, Hidra prifana, Cortasendas)",
+      "activa": "(Haces un 75% del daño que ibas a hacer en el ataque CUERPO A CUERPO en un área 3x3 estando tú en el centro de ese área)"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Tiamat_item_HD.png?d7041",
+    "craftsTo": [
+      "Hidra titanica",
+      "Hidra voraz",
+      "Hidra profana",
+      "Cortasendas"
+    ],
+    "craftsFrom": [
+      "Espada larga",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Habito del espectro",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "(Puede recuperar x de vida [x=LVL de ese personaje]. Tiene 2 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectre%27s_Cowl_item_Unused_HD.png?28289",
+    "craftsTo": [
+      "Rookern kaenico",
+      "Rostro espiritual",
+      "Fulgor vano"
+    ],
+    "craftsFrom": [
+      "Cristal de rubi",
+      "Manto de Anulacion de Magia",
+      "Perla de rejuvenecimiento"
+    ]
+  },
+  {
+    "nombre": "Catalizador de eones",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 10.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Recupera un 10% del daño que hayas recibido desde tu último turno como maná. Este número se redondea hacia abajo y como múltiplo de 5 [Mínimo 5 de maná si has recibido daño]) (Te curas 1 de vida por cada 5 de maná gastado al echar una habilidad) (Solo puedes tener 1 item que tenga relación entre los siguientes: Catalizador de eones, Vara de las edades)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Catalyst_of_Aeons_item_HD.png?150b3",
+    "craftsTo": [
+      "Vara de las edades"
+    ],
+    "craftsFrom": [
+      "Cristal de rubi",
+      "Cristal de rubi",
+      "Cristal de zafiro"
+    ]
+  },
+  {
+    "nombre": "Disfraz encantado",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Aumenta el daño que infliges al enemigo un 2% por turno [En el primer turno empiezas con ese 2%]. Se acumula hasta un máximo de 6%)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Haunting_Guise_item_HD.png?07160",
+    "craftsTo": [
+      "Tormento de Liandry",
+      "Creagrietas",
+      "Maldicion sanguinolenta"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Cristal de rubi"
+    ]
+  },
+  {
+    "nombre": "Carcaj de mediodia",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Noonquiver_item_HD.png?17c55",
+    "craftsTo": [
+      "Arcoescudo inmortal",
+      "Recuerdos de lord Dominik"
+    ],
+    "craftsFrom": [
+      "Espada larga",
+      "Capa de agilidad"
+    ]
+  },
+  {
+    "nombre": "Sorbemaleficios",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al recibir daño AP que te reduzca la vida a menos del 30%, te da un escudo para el daño AP de 2 de HP * LVL de ese personaje. Excepción: si eres tirador te da un escudo de 1 de HP * LVL de ese personaje. Se puede activar una vez cada 9 turnos) (Solo puedes tener 1 item que tenga relación entre los siguientes: Sobremaleficios, Fauces de Malmortius, Bastón del arcangel, Arcoescudo inmortal, Calibrador de Sterak, Abrazo del serafín)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hexdrinker_item_HD.png?e729d",
+    "craftsTo": [
+      "Fauces de malmortius"
+    ],
+    "craftsFrom": [
+      "Espada larga",
+      "Manto de Anulacion de Magia",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Fajin de mercurio",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 2.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Solo puedes tener 1 item que tenga relación entre los siguientes: Fajin de mercurio, Cimitarra mercurial)",
+      "activa": "([REACCION - Cuando llegue tu turno] Elimina el CC menos los levantamientos en el aire [En el aire]. Se puede usar una vez cada 9 turnos)"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Quicksilver_Sash_item_HD.png?1fbb5",
+    "craftsTo": [
+      "Cimitarra mercurial"
+    ],
+    "craftsFrom": [
+      "Manto de Anulacion de Magia",
+      "Manto de Anulacion de Magia"
+    ]
+  },
+  {
+    "nombre": "Embrutecedor",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/The_Brutalizer_item_HD.png?32b72",
+    "craftsTo": [
+      "Hidra profana",
+      "Arco axiomatico",
+      "Espada ciclovoltaica"
+    ],
+    "craftsFrom": [
+      "Mota brillante",
+      "Pico"
+    ]
+  },
+  {
+    "nombre": "Ultimas palabras",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Last_Whisper_item_HD.png?fa92c",
+    "craftsTo": [
+      "Rencor de Serylda",
+      "Recordatorio letal",
+      "Recuerdos de lord Dominik"
+    ],
+    "craftsFrom": [
+      "Espada larga",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Robaalmas de Mejai",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 1.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 1.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Consigues 1 carga por cada campeón que hayas matado hasta un máximo de 20 cargas) (Cada carga te da +1d2 de AP) (Si tienes 10 cargas o más, obtienes +10% de SPE [Cálculo en el documento del funcionamiento]) (Solo puedes tener 1 item que tenga relación entre los siguientes: Sello oscuro, Robaalmas de Mejai)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mejai%27s_Soulstealer_item_HD.png?21142",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Sello oscuro"
+    ]
+  },
+  {
+    "nombre": "Barrera frondosa",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Otorga un escudo que bloquea la siguiente habilidad enemiga. Se activa una vez cada 6 turnos [los turnos pasan en tu turno y el escudo se activa en tu turno]) (Solo puedes tener 1 item que tenga relación entre los siguientes: Barrera frondosa, Velo del hada de la muerte, Filo de la Noche)",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Verdant_Barrier_item_HD.png?eb380",
+    "craftsTo": [
+      "Velo del hada de la muerte"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Manto de Anulacion de Magia",
+      "Tomo Amplificador"
+    ]
+  },
+  {
+    "nombre": "Salvavidas",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Solo puedes tener 1 item que tenga relación entre los siguientes: Salvavidas, Sable espectral)",
+      "activa": "(Marca tu ubicación actual. Puedes volver a lanzar esta activa en cualquier momento para volver a la ubicación marcada. Si al comienzo de tu siguiente turno no has activado esto otra vez, vuelves a la ubicación marcada)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lifeline_item.png?2b8f0",
+    "craftsTo": [
+      "Sable espectral"
+    ],
+    "craftsFrom": [
+      "Rectrice",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Brazalete de la buscadora",
+    "rareza": "Epico",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "([REACCIÓN - Cuando te ataquen los enemigos] Cuando uses este objeto, vas a entrar en estasis por 2 turnos. El efecto termina cuando llegue tu turno, una vez hayan pasado 2 turnos en estasis en tu mismo turno. Solo tiene 1 uso)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seeker%27s_Armguard_item_HD.png?0a1fc",
+    "craftsTo": [
+      "Reloj de arena de Zhonya"
+    ],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Armadura de Tela",
+      "Tomo Amplificador"
+    ]
+  },
+  {
+    "nombre": "Cancion de batalla de Shurelya",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item_HD.png?139cb",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Brisa de eter",
+      "Espejo de cristal de bandle"
+    ]
+  },
+  {
+    "nombre": "Incensario Ardiente",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+10% de curaciones y escudos) (Cuando usas tus curaciones o escudos sobre un aliado, ámbos obteneis durante 1 turno 25 de ATK_SPE_% y 1 de AP al atacar CUERPO A CUERPO)",
+      "activa": "(Puede recuperar 15 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item_HD.png?a5793",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Brisa de eter",
+      "Idolo prohibido"
+    ]
+  },
+  {
+    "nombre": "Ecos de helia",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 20.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Infligir daño a un enemigo otorga un fragmento de alma hasta un máximo de 2. Curar u otorgar un escudo a un aliado consume todos los fragmentos. Te restaura 1 de vida e inflinge 2d2 de AP al enemigo más cercano por fragmento)",
+      "activa": "(Puede recuperar 15 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item_HD.png?ebc88",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Gema avivadora",
+      "Espejo de cristal de bandle"
+    ]
+  },
+  {
+    "nombre": "Renovacion de piedra lunar",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 1.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 20.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al curar u otorgar un escudo a un aliado, el efecto se transmite a otro aliado [al más cercano al que se le haya otorgado la curación o escudo, excluyendote a tí] y lo cura un 30% o le otorga un escudo del 35% de la cantidad original)",
+      "activa": "(Puede recuperar 15 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Moonstone_Renewer_item_HD.png?2e7a2",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Gema avivadora",
+      "Espejo de cristal de bandle"
+    ]
+  },
+  {
+    "nombre": "Convergencia de Zeke",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 3.0,
+      "AC": 1.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al lanzar tu habilidad definitiva, se desata una tormenta a tu alrededor [3x3 y tú en el medio] durante 1 turno. La tormenta inflige 1d2 de AP a los enemigos impactados y los ralentiza un 30% [-30% SPE]. Se puede usar una vez cada 5 turnos desde que lo activas)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeke%27s_Convergence_item_HD.png?d63f1",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Gema avivadora",
+      "Armadura de Tela",
+      "Manto de Anulacion de Magia"
+    ]
+  },
+  {
+    "nombre": "Medallon de los Solari de Hierro",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "([REACCIÓN - Cuando va a atacar a un aliado o a tí] Os pone un escudo a tí y a los aliados cercanos [5x5 y tú en el medio] de 2HP * LVL del personaje aplicado durante 2 turnos [Desde que lo usas hasta que te llegue el turno otra vez]. Cuando pase un turno, este escudo se reduce a la mitad del inicial [-1HP * LVL del personaje aplicado]. Se puede usar 1 vez cada 9 turnos)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Locket_of_the_Iron_Solari_item_HD.png?f6a2e",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Gema avivadora",
+      "Armadura de Tela",
+      "Manto de Anulacion de Magia"
+    ]
+  },
+  {
+    "nombre": "Mandato imperial",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 20.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Ralentizar o inmovilizar a un enemigo lo marca durante 1 turno. El daño de los aliados detona la marca, lo que inflige el AP equivalente al 10% de la vida actual. Se puede usar cada 2 turnos)",
+      "activa": "(Puede recuperar 15 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item_old_HD.png?082b8",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Codice diabolico",
+      "Espejo de cristal de bandle"
+    ]
+  },
+  {
+    "nombre": "Baston de aguas fluidas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+10% de curaciones y escudos) (Al curar u otorgar un escudo a un aliado, ámbos obteneis 2d2 de AP durante 1 turno [NO acumulable con el mismo personaje])",
+      "activa": "(Puede recuperar 15 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Staff_of_Flowing_Water_item_HD.png?15016",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Idolo prohibido"
+    ]
+  },
+  {
+    "nombre": "Bendicion de Mikael",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 3.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+12% de curaciones y escudos)",
+      "activa": "(Puede recuperar 10 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto.) ([REACCIÓN - Cuando llegue el turno del aliado] Elimina todos los efectos de control de adversario [excepto en el aire y supresión] de un aliado y restaura 1 de HP * LVL del aliado)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mikael%27s_Blessing_item_HD.png?2ac53",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Gema avivadora",
+      "Idolo prohibido"
+    ]
+  },
+  {
+    "nombre": "Redencion",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 2.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+10% de curaciones y escudos)",
+      "activa": "(Puede recuperar 10 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto) (Restaura 2 de HP * LVL del aliado y quita un 10% de la vida máxima de los enemigos que estén dentro del área [3x3 y puedes elegir el centro en cualquier punto del mapa]. Esta activa se puede estar una vez muerto, pero reduce un 50% los efectos del mismo si se usa en este estado [si se ha activado antes de morir aplica el 100%]. El primer turno se prepara el área y el segundo aplica el efecto [no se puede cancelar]. Se puede usar 1 vez cada 9 turnos [los turnos empiezan desde que se activa])"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Redemption_item_HD.png?24e28",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Gema avivadora",
+      "Idolo prohibido"
+    ]
+  },
+  {
+    "nombre": "Promesa del caballero",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Knight%27s_Vow_item_HD.png?5be23",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Gema avivadora",
+      "Chaleco de cadenas",
+      "Perla de rejuvenecimiento"
+    ]
+  },
+  {
+    "nombre": "Llegada del invierno",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 6.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 15.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Obtienes un 15% de vida dependiendo del maná adicional [quitas el maná base y el 15% de lo que quede]) (+5 de maná cada 10 cargas hasta un máximo de 100 cargas. Consigues 2 cargas por combate como máximo y las cargas se consiguen si en el combate has matado a alguien. Si el enemigo es un campeón, te da 4 cargas) (Si llegas al máximo de cargas se transforma en \"El gran invierno\") (Solo puedes tener 1 item que tenga relación entre los siguientes: Lágrima de la diosa, Llegada del invierno, Bastón del Arcangel, El gran invierno, Abrazo del serafín, Muramana)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winter%27s_Approach_item_HD.png?d872e",
+    "craftsTo": [
+      "El gran invierno"
+    ],
+    "craftsFrom": [
+      "Lagrima de la diosa",
+      "Cinturon de gigante",
+      "Gema avivadora"
+    ]
+  },
+  {
+    "nombre": "El gran invierno",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 6.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 65.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Obtienes un 15% de vida dependiendo del maná adicional [quitas el maná base y el 15% de lo que quede]) (Inmovilizar o Ralentizar con ataques de CONTACTO a un enemigo otorga un escudo de 1 de HP * LVL + 15% del maná actual durante 3 turnos. El escudo aumenta un 80% si hay más de un enemigo cerca [7x7 y tú en el medio]. Se puede usar una vez cada 8 turnos)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fimbulwinter_item_HD.png?aa009",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Llegada del invierno"
+    ]
+  },
+  {
+    "nombre": "Marcasendas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 3.0,
+      "AC": 1.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 2.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Consigues 1 carga de movimiento cada casilla que te muevas [Usar 1 de SPE] hasta un máximo de 10 cargas) (Si tienes todas las cargas de movimiento, crea un rastro en las casillas en las que te muevas en ese turno que otorga +15% de SPE [Cálculo en el documento del funcionamiento] a los aliados que pasen por el rastro) (Si tienes todas las cargas de movimiento y tu personaje no es tirador, tu siguiente ataque CUERPO A CUERPO ralentiza un 50% [-50% SPE] al enemigo [Cálculo en el documento del funcionamiento]. Esto reinicia las cargas de movimiento) (Solo puedes tener 1 item que tenga relación entre los siguientes: Marcasendas, Coraza del muerto)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trailblazer_item_HD.png?5b38f",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Armadura lunar alada",
+      "Chaleco de cadenas"
+    ]
+  },
+  {
+    "nombre": "Malla de espinas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 2.0,
+      "AC": 2.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cuando recibas un ataque de CONTACTO, le infliges 2d2 AP al que te haya golpeado [una vez por ataque recibido] y este va a recibir un 40% menos de curaciones de todas las fuentes durante 2 turnos)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Thornmail_item_HD.png?9a105",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Chaleco de zarzas",
+      "Chaleco de cadenas",
+      "Cristal de rubi"
+    ]
+  },
+  {
+    "nombre": "Corazon de hielo",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 2.0,
+      "MR": 0.0,
+      "MANA": 10.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 20.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Reduce un 20% de ATK_SPE de los enemigos cercanos [5x5 y tú en medio]. Reduce mínimo 1 de ATK_SPE. Si entre su ATK_SPE y ATK_SPE_% en ese turno solo ha tenido 1 ataque CUERPO A CUERPO en total, este no se le reduce. Si el enemigo sale de ese área, si ha perdido algún ataque en ese turno lo recupera hasta que vuelva a entrar. Si ha gastado ya los ataques no le afecta)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Frozen_Heart_item_HD.png?db166",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Malla del guardian",
+      "Broquel glacial"
+    ]
+  },
+  {
+    "nombre": "Nucleo albar",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+20% de curaciones y escudos)",
+      "activa": "(Puede recuperar 15 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item_HD.png?47cdc",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Vara explosiva",
+      "Idolo prohibido",
+      "Idolo prohibido"
+    ]
+  },
+  {
+    "nombre": "Colmillo de serpiente",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(X = 50 si el personaje que tiene este ítem no es un tirador y X = 35 si es un tirador.Infligir daño a un enemigo, reduce los escudos que obtiene un X% durante 1 turno. Si no está afectado por esta pasiva, se le reducen los escudos que tiene al X% [esto aplica antes del daño que le fueras a hacer con el daño del ataque])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serpent%27s_Fang_item_HD.png?4c722",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Daga dentada",
+      "Pico"
+    ]
+  },
+  {
+    "nombre": "Vara de los edades",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rod_of_Ages_item_HD.png?32e97",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Vara explosiva",
+      "Catalizador de eones"
+    ]
+  },
+  {
+    "nombre": "Cetro de cristal de Rylai",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Las HABILIDADES ralentizan un 30% [-30% SPE] a los enemigos golpeados durante 1 turno. Reduce mínimo 1 de SPE)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rylai%27s_Crystal_Scepter_item_HD.png?46b75",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Vara explosiva",
+      "Cinturon de gigante",
+      "Tomo amplificador"
+    ]
+  },
+  {
+    "nombre": "Cintomisil hextech",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "([REACCIÓN - Cuando vaya a recibir un ataque] Te deslizas hacia la dirección seleccionada 1 casilla y lanzas 5 proyectiles mágicos desde la casilla que hayas avanzado [1 izquierda, 1 derecha, 1 adelante y 2 en los diagonales entre los demás proyectiles] que infligen 4d4 AP + 10% de tu AP en línea recta por 2 casillas [el proyectil se rompe al golpear a un enemigo])"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item_HD.png?02607",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Alternador hextech",
+      "Codice diabolico",
+      "Cristal de rubi"
+    ]
+  },
+  {
+    "nombre": "Bailarin espectral",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 2.0,
+      "ATK_SPE_PCT": 60.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Te vuelve Fantasmal)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phantom_Dancer_item_HD.png?64a8b",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Daga",
+      "Fervor",
+      "Daga"
+    ]
+  },
+  {
+    "nombre": "Huracan de runaan",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 40.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Solo puedes tener este objeto si el personaje que lleva este ítem es un tirador) (Los ataques CUERPO A CUERPO disparan proyectiles a 2 enemigos adicionales cerca del objetivo [3x3 en el medio el que haya recibido el ataque CUERPO A CUERPO]. Cada proyectil inflige un 55% de tu AD y aplica efectos de \"al golpear\". Las tiradas de AD en los proyectiles extra, son los mismos que los que se han tirado en ese ataque CUERPO A CUERPO. Si el ataque CUERPO A CUERPO ha sido crítico, los proyectiles también lo serán)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Runaan%27s_Hurricane_item_HD.png?436be",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Fervor",
+      "Honda de explorador"
+    ]
+  },
+  {
+    "nombre": "Filofugaz de Navori",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 40.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Por cada ataques CUERPO A CUERPO consigues 1 carga hasta un máximo de 7. Al llegar a las 7 cargas, estas se reinician a 0 y puedes echar una habilidad básica más en ese turno. Al terminar y empezar un combate, las cargas se reinician a 0)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Navori_Flickerblade_item_HD.png?03bb2",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Daga",
+      "Fervor",
+      "Daga"
+    ]
+  },
+  {
+    "nombre": "Cañon de fuego rapido",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 35.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Puedes acumular hasta 20 cargas. Al moverte 1 casilla, consigues 1 carga, y al atacar CUERPO A CUERPO 1 vez consigues 2 cargas. Cuando tengas 20 cargas, tu siguiente ataque CUERPO A CUERPO será con \"vigor\") (Tus ataques con \"vigor\" infligen 2d2 de AP adicional y obtienes un 35% de alcance de ataque adicional [mínimo 1 casilla])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rapid_Firecannon_item_HD.png?b9f6f",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Fervor",
+      "Honda de explorador"
+    ]
+  },
+  {
+    "nombre": "Mascara Abisal",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 3.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Reduce 1 de MR de los enemigos cercanos [3x3 y tú en medio])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Abyssal_Mask_item_HD.png?d5b47",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Gema avivadora",
+      "Capa negatron"
+    ]
+  },
+  {
+    "nombre": "Malignidad",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 20.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Una vez cada 2 turnos [turno sí, turno no] puedes echar una últi extra [No te gasta AB_SPE pero sí maná]) (Al inflijir daño a los enemigos con tu últi, a los pies de cada enemigo impactado haces un charco [Si la últi es de nivel 1, hará un charco de 1x1. Si es de nivel 2, de 3x3. Si es de nivel 3, de 5x5 estando en el medio el enemigo impactado por el daño de la ulti] durante 2 turnos, que inflige una quemadura de 2d4 de AP + 5% de tu AP [mínimo 1 de AP] y reduce su MR en 1 mientras siga en el charco [el daño de la quemadura se aplica al inicio del turno del enemigo])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Malignance_item_HD.png?985a3",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Capitulo perdido",
+      "Vara explosiva"
+    ]
+  },
+  {
+    "nombre": "Precision infalible",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 25.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Inflijir daño con HABILIDADES a enemigos a 3 casillas los revela durante 2 turnos. inflige un 10% de daño adicional a los enemigos revelados por este objeto [Solo tú]) (Cuando se activa la otra pasiva, revela a los demás enemigos a 6 casillas [desde el enemigo impactado] durante 1 turno. Esto se activa una vez cada 3 turnos)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item_HD.png?04ad1",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Codice diabolico",
+      "Codice diabolico",
+      "Vara explosiva"
+    ]
+  },
+  {
+    "nombre": "Oportunidades",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Estando fuera de combate obtienes 1 de letalidad. Esta letalidad extra dura ese turno tras inflijir daño a campeones) (Cuando un enemigo muere en menos de un turno después de inflijirle daño obtienes 10 de SPE [no acumulable] en ese turno [Si lo has matado en tu turno lo obtienes al momento, y si ha muerto en el turno de otro personaje, lo obtienes en el turno en el que te toque atacar otra vez])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Opportunity_item_HD.png?0d845",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Pico",
+      "Daga dentada",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Puñal de Statikk",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 30.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Tus primeros 3 ataques CUERPO A CUERPO en 2 turnos emiten rayos que rebotan al impactar lo que inflige 2d4 de AP hasta 5 objetivos [en una distancia de 3x3 y en el medio el enemigo que ha recibido el daño. Esto va en cadena] y aumenta a 4d4 de AP contra súbditos y monstruos. Si solo hay 1 objetivo también se aplica el daño y gasta ataques cargados. Se puede usar una vez cada 4 turnos [El enfriamiento empieza desde el primer ataque CUERPO A CUERPO]) (Los asesinatos y asistencias conseguidos tras inflijir daño al objetivo en ese turno reinician el enfriamiento de la otra pasiva)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Statikk_Shiv_item_HD.png?605f8",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Honda de explorador",
+      "Rectrice",
+      "Pico"
+    ]
+  },
+  {
+    "nombre": "Rostro espiritual",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Aumenta las curaciones y escudos que recibes un 25%)",
+      "activa": "(Puede recuperar x de vida [x=LVL de ese personaje]. Tiene 2 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spirit_Visage_item_HD.png?e33fe",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Habito del espectro",
+      "Gema avivadora"
+    ]
+  },
+  {
+    "nombre": "Egida de Fuego Solar",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 1.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Tras recibir o infligir daño, obtienes un área de daño de 1 de AP + 5% de tu vida adicional [mínimo 1 si tiene vida adicional] de AP a los enemigos que estén a 1 de distancia de tí. En tu turno, vas a hacer daño a todos los que metas en ese área 1 vez, y en el turno del enemigo, si empieza o se mete en ese área, va a volver a recibir daño. Si tienes a alguien a 1 de distancia al terminar el turno, vas a mantener ese área. Si no tienes a nadie a 1 de distancia al terminar el turno, este efecto desaparece. Hace un 50% más de daño a los súbditos y monstruos) (Solo puedes tener 1 item que tenga relación entre los siguientes: Rescoldo de Bami, Égida de fuego solar, Fulgor vano)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sunfire_Aegis_item_HD.png?5f709",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Rescoldo de Bami",
+      "Chaleco de cadenas"
+    ]
+  },
+  {
+    "nombre": "Presagio de Randuin",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 2.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Recibes un 30% menos de daño de los ataques críticos)",
+      "activa": "(Ralentiza a los enemigos cercanos [3x3 y tú en el medio] un 70% durante 1 turno. Se puede usar una vez cada 9 turnos)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Randuin%27s_Omen_item_HD.png?393f0",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Malla del guardian",
+      "Cinturon de gigante"
+    ]
+  },
+  {
+    "nombre": "Antorcha de fuego negro",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 20.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 20.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Lanzar HABILIDADES de daño inflige una quemadura de 1 de AP + 2% de tu AP [mínimo 1] por 3 turnos. Si el enemigo es un monstruo, esta quemadura hará 2d4 de AP más de daño por golpe de quemadura) (Por cada enemigo que se vea afectado por la otra pasiva, obtienes un 4% de tu AP total [Este cambiará cada turno, dependiendo de las tiradas para calcular el AP en cada turno])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blackfire_Torch_item_HD.png?ab1e3",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Capitulo perdido",
+      "Cenizas predestinadas"
+    ]
+  },
+  {
+    "nombre": "Filo fantasmal de Youmuu",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Otorga 1 de SPE fuera de combate)",
+      "activa": "(Otorga +20% de SPE [Cálculo en el documento del funcionamiento] y te vuelve Fantasmal por 1 turno. Se puede usar 1 vez cada 5 turnos)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Youmuu%27s_Ghostblade_item_HD.png?b4a89",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Daga dentada",
+      "Rectrice",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Final del ingenio",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 50.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques CUERPO A CUERPO infligen 2d2 de AP adicional) (Obtienes 20 de TENACIDAD)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Wit%27s_End_item_HD.png?6dbcd",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Arco curvo",
+      "Capa negatron",
+      "Arco curvo"
+    ]
+  },
+  {
+    "nombre": "Fulgor vano",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Tras recibir o infligir daño, obtienes un área de daño de 1 de AP + 5% de tu vida adicional [mínimo 1 si tiene vida adicional] de AP a los enemigos que estén a 1 de distancia de tí. En tu turno, vas a hacer daño a todos los que metas en ese área 1 vez, y en el turno del enemigo, si empieza o se mete en ese área, va a volver a recibir daño. Si tienes a alguien a 1 de distancia al terminar el turno, vas a mantener ese área. Si no tienes a nadie a 1 de distancia al terminar el turno, este efecto desaparece. Hace un 25% más de daño a los súbditos y monstruos) (Al asesinar a un enemigo inflige 1d2 de AP + 10% de tu vida adicional [mínimo 1 si tiene vida adicional] de AP a los enemigos cercanos [3x3 y el enemigo asesinado en medio]) (Solo puedes tener 1 item que tenga relación entre los siguientes: Rescoldo de Bami, Égida de fuego solar, Fulgor vano)",
+      "activa": "(Puede recuperar x de vida [x=LVL de ese personaje]. Tiene 2 usos hasta descanso corto)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hollow_Radiance_item_HD.png?a1abd",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Rescoldo de Bami",
+      "Habito del espectro"
+    ]
+  },
+  {
+    "nombre": "Desesperanza eterna",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 2.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cada 5 turnos [al entrar en combate la primera vez ya está activo] y mientras estés en combate [si has atacado o te han atacado durante ese turno] infliges 3% de HP adicional [mínimo 1 si tienes algo de vida adicional] + 1d2 de AP en área [5x5 y tú en medio] al final de tu turno y te curas un 250% del daño infligido)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Unending_Despair_item_HD.png?da251",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Proteccion de la legion",
+      "Cinturon de gigante"
+    ]
+  },
+  {
+    "nombre": "Fuerza de la naturaleza",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 2.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Obtienes 2 de MR y +6% de SPE [Cálculo en el documento del funcionamiento] al recibir daño mágico 8 veces durante 1 turno [el turno empieza desde que se activa hasta que pasen todos y el turno del que te ha activado la habilidad]. Se puede usar una vez cada 7 turnos, es decir, cuando pasen 7 turnos desde que se te pase el efecto vas a empezar las 8 cargas. Los efectos de Inmovilizar cuentan como 2 ataques de daño. Cuando empieza y acaba un combate se reinician las cargas que tengas de haber recibido daño)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Force_of_Nature_item_HD.png?8749b",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Capa negatron",
+      "Cristal de rubi",
+      "Armadura lunar alada"
+    ]
+  },
+  {
+    "nombre": "Compañera de Luden",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 20.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Las HABILIDADES que infligen daño realizan 6 disparos que infligen 3d4 de AP + 5% de tu AP total [mínimo 1] al objetivo y enemigos cercanos [5x5 y el enemigo principal en medio y 1 disparo por objetivo]. Los disparos restantes se asestan al objetivo principal, lo que inflige un 20% del daño mencionado anteriormente. Se puede usar cada 4 turnos)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item_HD.png?17780",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Capitulo perdido",
+      "Alternador hextech"
+    ]
+  },
+  {
+    "nombre": "Florescencia sepulcral",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 1.0
+    },
+    "efecto": {
+      "pasiva": "(Cuando muere un enemigo al que hayas dañado en el último turno, su cuerpo libera un área [9x9 y el enemigo muerto en medio] que cura 1 de HP + 20% de tu AP total como HP. Esto no se activa si tu personaje está muerto. Se puede usar una vez cada 6 turnos)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cryptbloom_item_HD.png?9c1ec",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Joya de la plaga",
+      "Codice diabolico",
+      "Codice diabolico"
+    ]
+  },
+  {
+    "nombre": "Baston del Arcangel",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 20.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 25.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+5 de maná cada 10 cargas hasta un máximo de 100 cargas. Consigues 2 cargas por combate como máximo y las cargas se consiguen si en el combate has matado a alguien. Si el enemigo es un campeón, te da 4 cargas) (Si llegas al máximo de cargas se transforma en \"Abrazo del serafin\") (Otorga AP equivalente al 10% del maná adicional) (Solo puedes tener 1 item que tenga relación entre los siguientes: Lágrima de la diosa, Llegada del invierno, Bastón del Arcangel, El gran invierno, Abrazo del serafín, Muramana)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item_HD.png?4be7f",
+    "craftsTo": [
+      "Abrazo del serafin"
+    ],
+    "craftsFrom": [
+      "Lagrima de la diosa",
+      "Capitulo perdido",
+      "Codice diabolico"
+    ]
+  },
+  {
+    "nombre": "Abrazo del serafin",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 70.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 25.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Otorga AP equivalente al 20% del maná adicional) (Al recibir daño que haga que tu vida baje del 30% obtienes un escudo equivalente a 2 de HP + 20% del maná total [mínimo 1] como HP duante 3 turnos. Se puede usar una vez cada 9 turnos) (Solo puedes tener 1 item que tenga relación entre los siguientes: Lágrima de la diosa, Llegada del invierno, Bastón del Arcangel, El gran invierno, Abrazo del serafín, Muramana) (Solo puedes tener 1 item que tenga relación entre los siguientes: Sobremaleficios, Fauces de Malmortius, Bastón del arcangel, Arcoescudo inmortal, Calibrador de Sterak, Abrazo del serafín)",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seraph%27s_Embrace_item_HD.png?811fa",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Baston del arcangel"
+    ]
+  },
+  {
+    "nombre": "Manamune",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 15.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(+5 de maná cada 10 cargas hasta un máximo de 100 cargas. Consigues 2 cargas por combate como máximo y las cargas se consiguen si en el combate has matado a alguien. Si el enemigo es un campeón, te da 4 cargas) (Si llegas al máximo de cargas se transforma en \"Muramana\") (Otorga AD equivalente al 20% del maná adicional) (Solo puedes tener 1 item que tenga relación entre los siguientes: Lágrima de la diosa, Llegada del invierno, Bastón del Arcangel, El gran invierno, Abrazo del serafín, Muramana)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Manamune_item_HD.png?6c325",
+    "craftsTo": [
+      "Muramana"
+    ],
+    "craftsFrom": [
+      "Lagrima de la diosa",
+      "Martillo de guerra de Caulfield",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Muramana",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 65.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Otorga AD equivalente al 20% del maná adicional) (Los ataques CUERPO A CUERPO a enemigos infligen 1,2% del maná total como AD [mínimo 1]. Las HABILIDADES de daño contra enemigos infligen X% [Si no eres tirador, X=3. Si eres tirador, X=4] de tu maná total como AD [mínimo 1]) (Solo puedes tener 1 item que tenga relación entre los siguientes: Lágrima de la diosa, Llegada del invierno, Bastón del Arcangel, El gran invierno, Abrazo del serafín, Muramana)",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Muramana_item_HD.png?08cde",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Manamune"
+    ]
+  },
+  {
+    "nombre": "Sobrecarga tormentosa",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 1.0
+    },
+    "efecto": {
+      "pasiva": "(Tras inflijir un 25% de la vida máxima a un enemigo en un turno, le aplica Alarido [la otra pasiva] y obtienes +25% de SPE [Cálculo en el documento del funcionamiento] durante ese mismo turno. Se puede usar una vez cada ) (Alarido: Cuando le llegue el turno al objetivo [al inicio], le inflige 8d4 de AP + 10% de tu AP total como AP. Si el objetivo muere antes de que se active, inflige ese daño a los enemigos cercanos [5x5 y el objetivo en medio] y otorga 30 de oro)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item_HD.png?e7adb",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Alternador hextech",
+      "Brisa de eter"
+    ]
+  },
+  {
+    "nombre": "Segador de esencia",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques otorgan 5 + 10% de tu AD adicional [Redondeado a la baja a un múltiplo de 5. Si tiene AD adicional, mínimo será 5] como maná al golpear)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Essence_Reaver_item_HD.png?c4393",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Pico",
+      "Martillo de guerra de Caulfield",
+      "Capa de agilidad"
+    ]
+  },
+  {
+    "nombre": "Eclipse",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Golpear a un enemigo con 2 ataques CUERPO A CUERPO o HABILIDADES diferentes/independientes seguidas en un mismo turno, inflige un X% [Si no eres tirador, X=6. Si eres tirador, X=4] de AD [mínimo 1] según el HP máximo del rival y te otorga un escudo de Y [Y = 16 si tu personaje no es un tirador. Y = 8 si tu personaje es un tirador] + 40% de AD adicional [mínimo 1 si tiene algo de AD adicional] durante 2 turnos (Ninguno acumulable). Se puede usar 1 vez cada 6 turnos)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Eclipse_item_HD.png?a4729",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Martillo de guerra de Caulfield",
+      "Pico",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Guantelete de hielo",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 3.0,
+      "AC": 1.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Tras usar una HABILIDAD, tu siguiente ataque CUERPO A CUERPO inflige 150% de AD base [mínimo 1] y crea un campo de escarcha [3x3 y el enemigo al que se le aplica en medio] durante 2 turnos que ralentiza un X% [Si no eres tirador, X=25. Si eres tirador, X=13]. Se puede usar una vez cada 2 turnos) (Solo puedes tener 1 item que tenga relación entre los siguientes: Brillo, Guantelete de hielo, Fuerza de trinidad, Perdición del liche)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Iceborn_Gauntlet_item_HD.png?1ff32",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Brillo",
+      "Cristal de rubi",
+      "Chaleco de cadenas"
+    ]
+  },
+  {
+    "nombre": "Rookern kaenico",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kaenic_Rookern_item_HD.png?392b5",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Habito del espectro",
+      "Capa negatron"
+    ]
+  },
+  {
+    "nombre": "Coraza del muerto",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 2.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Mientras te mueves, generas 1 carga por cada casilla que te muevas hasta un máximo de 10. Cuando tengas el máximo de cargas, obtienes 1 de SPE adicional. Si tienes todas las cargas, tu siguiente ataque CUERPO A CUERPO inflige un 100% de AD base [mínimo 1] + 2d4 de AD como AD adicional (Tras aplicar esto pierdes todas las cargas) (La eficacia de las ralentizaciones se reduce un 20% [Funciona como la tenacidad, pero solo para ralentizaciones]) (Solo puedes tener 1 item que tenga relación entre los siguientes: Marcasendas, Coraza del muerto)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dead_Man%27s_Plate_item_HD.png?1fb1b",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Armadura lunar alada",
+      "Cristal de rubi",
+      "Chaleco de cadenas"
+    ]
+  },
+  {
+    "nombre": "Maldicion sanguinolenta",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al dañar 2 veces a un enemigo con AP, le reduce en 1 el MR [NO acumulable] durante 1 turno)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodletter%27s_Curse_item_HD.png?91ec3",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Disfraz encantado",
+      "Codice diabolico"
+    ]
+  },
+  {
+    "nombre": "Morellonomicon",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cuando hagas daño AP a un enemigo, durante un turno [hasta que te vuelva a tocar a tí], este va a recibir un 40% menos de curaciones de todas las fuentes)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Morellonomicon_item_HD.png?1eca4",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Orbe del olvido",
+      "Vara explosiva",
+      "Gema avivadora"
+    ]
+  },
+  {
+    "nombre": "Recaudadora",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Tu daño ejecuta a los enemigos con menos del 5% de la vida. Los asesinatos de campeones otorgan 25 de oro adicional)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/The_Collector_item_HD.png?85e92",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Pico",
+      "Daga dentada",
+      "Capa de agilidad"
+    ]
+  },
+  {
+    "nombre": "Velo del hada de la muerte",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Otorga un escudo que bloquea la siguiente habilidad enemiga. Se puede usar una vez cada 4 turnos) (Solo puedes tener 1 item que tenga relación entre los siguientes: Barrera frondosa, Velo del hada de la muerte, Filo de la Noche)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Banshee%27s_Veil_item_HD.png?9484c",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Vara innecesariamente grande",
+      "Barrera frondosa"
+    ]
+  },
+  {
+    "nombre": "Baston del vacio",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 2.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Void_Staff_item_HD.png?6ad88",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Joya de la plaga",
+      "Vara explosiva"
+    ]
+  },
+  {
+    "nombre": "Diente de Nashor",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 50.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques CUERPO A CUERPO infligen 1 de AP + 15% de tu AP total como AP adicional)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Nashor%27s_Tooth_item_HD.png?a3dca",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Arco curvo",
+      "Vara explosiva",
+      "Codice diabolico"
+    ]
+  },
+  {
+    "nombre": "Impulso cosmico",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 25.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Infligir daño AP o daño VERDADERO a enemigos, te otorga 1 de SPE adicional durante 4 turnos. No se suma, es decir, si vuelves a aplicar esta pasiva, se reinician los turnos necesarios para que se acabe el efecto, pero no te da más SPE)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cosmic_Drive_item_HD.png?486be",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Gema avivadora",
+      "Brisa de eter",
+      "Codice diabolico"
+    ]
+  },
+  {
+    "nombre": "Tormento de liandry",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 3.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Lanzar HABILIDADES de daño, quema a los enemigos, lo que inflige 2% de AP dependiendo del HP máximo del enemigo durante 3 turnos. No se suma, es decir, si vuelves a aplicar esta pasiva, se reinician los turnos necesarios para que se acabe el efecto, pero hace más daño [siempre 2%] a menos que le ataque otro personaje con este objeto) (Por cada turno en combate infliges 2% de daño más hasta un máxmo de 6%. Si estás 3 turnos sin atacar, pierdes el X% extra de daño)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Liandry%27s_Torment_item_HD.png?b42e8",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Disfraz encantado",
+      "Cenizas predestinadas"
+    ]
+  },
+  {
+    "nombre": "Hoja de furia de Guinsoo",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 25.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques CUERPO A CUERPO infligen 1d2 de AP adicional al golpear) (Los ataques CUERPO A CUERPO otorgan un 8% [mínimo 1 del % total otorgado] de ATK_SPE_% durante 3 turnos. Se acumula hasta 4 veces. Con el máximo de las acumulaciones cada tercer ataque CUERPO A CUERPO, aplica 2 veces los efectos de \"al golpear\"/efectos de impacto)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guinsoo%27s_Rageblade_item_HD.png?23c5a",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tomo amplificador",
+      "Arco curvo",
+      "Pico"
+    ]
+  },
+  {
+    "nombre": "Soberbia",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 2.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cuando muere un campeón al que le has dañado el último turno, obtienes una carga. Los siguientes 9 turnos después de obtener una carga o derrotar a un enemigo épico o legendario [fuera de combate no pasan estos turnos, pero si obtienes otra carga o derrotas a un enemigo épico o legendario, se vuelven a poner los 9 turnos], obtienes 1 de AD + X [1 de AD por cada 5 cargas y mínimo 1] de AD. Las cargas se acumulan infinitamente y no se gastan)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hubris_item_HD.png?b4418",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Daga dentada",
+      "Martillo de guerra de Caulfield"
+    ]
+  },
+  {
+    "nombre": "Arco Axiomatico",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 20.0,
+      "LETHALITY": 2.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cuando muere un enemigo al que has dañado en el último turno [si has matado a alguien en el turno anterior cuenta también], tienes una probabilidad del 18% de echar otra ulti al llegar tu turno. Es acumulable con más muertes hasta un máximo del 100%)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Axiom_Arc_item_HD.png?996d1",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Embrutecedor",
+      "Martillo de guerra de Caulfield"
+    ]
+  },
+  {
+    "nombre": "Espada ciclovoltaica",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 2.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Puedes acumular hasta 20 cargas. Al moverte 1 casilla, consigues 1 carga, y al atacar CUERPO A CUERPO 1 vez consigues 2 cargas. Cuando tengas 20 cargas, tu siguiente ataque CUERPO A CUERPO será con \"vigor\") (Al usar habilidades de desplazamiento y sigilo te dan el doble de cargas) (Tus ataques CUERPO A CUERPO con \"vigor\" infligen 3d4 de AD adicional y ralentizan un X% [Si no eres tirador, X=99. Si eres tirador, X=20] durante 1 turno)",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Voltaic_Cyclosword_item_HD.png?692d3",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Embrutecedor",
+      "Espada larga",
+      "Espada larga"
+    ]
+  },
+  {
+    "nombre": "Filo de la noche",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 3.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Otorga un escudo que bloquea la siguiente habilidad enemiga. Se activa una vez cada 6 turnos [los turnos pasan en tu turno y el escudo se activa en tu turno]) (Solo puedes tener 1 item que tenga relación entre los siguientes: Barrera frondosa, Velo del hada de la muerte, Filo de la Noche)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Edge_of_Night_item_HD.png?3529c",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Daga dentada",
+      "Tuneladora"
+    ]
+  },
+  {
+    "nombre": "Sable espectral",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 1.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Solo puedes tener 1 item que tenga relación entre los siguientes: Salvavidas, Sable espectral)",
+      "activa": "(Marca tu ubicación actual. Puedes volver a lanzar esta activa en cualquier momento para volver a la ubicación marcada. Si al comienzo de tu siguiente turno no has activado esto otra vez, vuelves a la ubicación marcada)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectral_Cutlass_item.png?f1c9e",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Daga dentada",
+      "Salvavidas"
+    ]
+  },
+  {
+    "nombre": "Arcoescudo inmortal",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al recibir daño que te reduzca la vida a menos del 30%, te da un escudo de 2 de HP * LVL de ese personaje. Excepción: si eres tirador te da un escudo de 1 de HP * LVL de ese personaje. Se puede activar una vez cada 9 turnos) (Solo puedes tener 1 item que tenga relación entre los siguientes: Sobremaleficios, Fauces de Malmortius, Bastón del arcangel, Arcoescudo inmortal, Calibrador de Sterak, Abrazo del serafín)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Immortal_Shieldbow_item_HD.png?ae143",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Pico",
+      "Carcaj del mediodia"
+    ]
+  },
+  {
+    "nombre": "Recuerdos de lord dominik",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 2.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lord_Dominik%27s_Regards_item_HD.png?f2a7a",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Ultimas palabras",
+      "Carcaj del mediodia"
+    ]
+  },
+  {
+    "nombre": "El final",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 35.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques CUERPO A CUERPO infligen 1d2 de AP adicional al golpear) (Cuando hayas hecho 2 ataques CUERPO A CUERPO en un turno, obtienes 1 de AC, MR, letalidad y penetración mágica [NO acumulable] hasta tu siguiente turno [cuando llega tu turno se reinicia])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Terminus_item_HD.png?84cb9",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Hacha hogareña",
+      "Arco curvo"
+    ]
+  },
+  {
+    "nombre": "Flechas de los Yun Tal",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 25.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al atacar a un enemigo, otorga 30 de ATK_SPE_% durante 1 turno)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Yun_Tal_Wildarrows_item_HD.png?cceb4",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Espadon",
+      "Honda de explorador"
+    ]
+  },
+  {
+    "nombre": "Experimento de hexarmadura",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 5.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 20.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Una vez cada 2 turnos [turno sí, turno no] puedes echar una últi extra [No te gasta AB_SPE pero sí maná]) (Tras lanzar tu habilidad definitiva, obtienes 30 de ATK_SPE_% y +15% de SPE [Cálculo en el documento del funcionamiento]. Se puede usar una vez cada 3 turnos)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Experimental_Hexplate_item_HD.png?56811",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tuneladora",
+      "Bacteriofago",
+      "Daga"
+    ]
+  },
+  {
+    "nombre": "Rencor de Serylda",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serylda%27s_Grudge_item_HD.png?66f33",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Martillo de guerra de Caulfield",
+      "Ultimas palabras"
+    ]
+  },
+  {
+    "nombre": "Cuchilla negra",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 20.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al atacar con un ataque AD a un enemigo, le reduce en 1 el AC [NO acumulable] durante 1 turno) (Al atacar con un ataque AD a un enemigo, te sube en 1 el SPE [No acumulable y 1 por turno])",
+      "activa": "-"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Black_Cleaver_item_HD.png?3df06",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Bacteriofago",
+      "Gema avivadora",
+      "Pico"
+    ]
+  },
+  {
+    "nombre": "Rompecascos",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 5.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Cada quinto ataque a un enemigo, este inflige X% [Si no eres tirador, X=120. Si eres tirador, X=84] de AD base como AD adicional)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hullbreaker_item_HD.png?1b941",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tuneladora",
+      "Armadura lunar alada",
+      "Pico"
+    ]
+  },
+  {
+    "nombre": "Corazon de acero",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 9.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(50 cargas max -> 1 carga 1HP -> 1 carga por combate)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Heartsteel_item_HD.png?788a3",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Cinturon de gigante",
+      "Brazal cristalino",
+      "Cinturon de gigante"
+    ]
+  },
+  {
+    "nombre": "Creagrietas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Por cada segundo en combate con campeones, inflige un 2% más de daño, acumulándose hasta 4 veces para un total de un 8% de daño adicional. Con el máximo de acumulaciones, obtén (10% / 6%) de omnisucción.) (Gana poder de habilidad equivalente al 2% de la vida adicional.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Riftmaker_item_HD.png?7236d",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Disfraz encantado",
+      "Codice diabolico"
+    ]
+  },
+  {
+    "nombre": "Verdugo de Krakens",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 1.0,
+      "ATK_SPE_PCT": 40.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques básicos al golpear otorgan una acumulación durante 3 segundos, hasta un máximo de 2 acumulaciones. Con 2 acumulaciones, el siguiente ataque básico las consume todas para infligir X [Si no eres tirador, X=150−200. Si eres tirador, X=120−160] (según el nivel) de daño físico adicional al golpear, aumentado entre un 0% y 50% según la vida faltante del objetivo, hasta un máximo de Y [Si no eres tirador, Y=225−300. Si eres tirador, Y=180−240] (según el nivel) de daño físico adicional.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kraken_Slayer_item_HD.png?1b4a5",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Rectrice",
+      "Hacha hogareña",
+      "Arco curvo"
+    ]
+  },
+  {
+    "nombre": "Fauces de Malmortius",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Si fueras a recibir daño mágico que te reduciría por debajo del 30% de tu vida máxima, primero obtienes un escudo que absorbe X [Si no eres tirador, X=200 + 150% del AD adicional. Si eres tirador, X=150 + 112.5% del AD adicional] de daño mágico durante 3 segundos. Además, al activarse este efecto, ganas un 10% de omnisucción hasta el final del combate (enfriamiento de 90 segundos).) (Solo puedes tener 1 item que tenga relación entre los siguientes: Sobremaleficios, Fauces de Malmortius, Bastón del arcangel, Arcoescudo inmortal, Calibrador de Sterak, Abrazo del serafín)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Maw_of_Malmortius_item_HD.png?901a6",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Sobremaleficios",
+      "Martillo de guerra de Caulfield"
+    ]
+  },
+  {
+    "nombre": "Mecanoespada punki",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 5.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al infligir daño físico a campeones enemigos, les aplicas Heridas Graves durante 3 segundos.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chempunk_Chainsword_item_HD.png?2a7e1",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Llamada del verdugo",
+      "Cinturon de gigante",
+      "Martillo de guerra de Caulfield"
+    ]
+  },
+  {
+    "nombre": "Lanza de Shojin",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 5.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Ganas 25 de aceleración de habilidad básica.) (Al infligir daño con una habilidad de campeón, obtienes una acumulación durante 6 segundos, acumulándose hasta 4 veces (máximo 1 acumulación por instancia de lanzamiento por segundo y 1 por segundo en habilidades de daño prolongado). Por cada acumulación, el daño de tus habilidades y efectos de impacto de habilidades aumenta en un 3%, hasta un máximo del 12% con todas las acumulaciones.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spear_of_Shojin_item_HD.png?111a2",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Pico",
+      "Tuneladora",
+      "Cristal de rubi"
+    ]
+  },
+  {
+    "nombre": "Firmamento desgarrado",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Tu próximo ataque básico contra un campeón será un golpe crítico, infligiendo un 175% de daño. Además, te curará por X [Si no eres tirador, X=100% de tu AD base + 6% de tu vida faltante. Si eres tirador, X=50% de tu AD base + 6% de tu vida faltante]. El exceso de curación más allá de tu vida máxima se convierte en vida adicional durante 8 segundos (8 segundos de enfriamiento por objetivo).)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sundered_Sky_item_HD.png?26bfd",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tuneladora",
+      "Martillo de guerra de Caulfield",
+      "Cristal de rubi"
+    ]
+  },
+  {
+    "nombre": "Perdicion de liche",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item_HD.png?37a26",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Brillo",
+      "Brisa de eter",
+      "Vara explosiva"
+    ]
+  },
+  {
+    "nombre": "Llamasombria",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 1.0
+    },
+    "efecto": {
+      "pasiva": "(El daño mágico y verdadero golpea críticamente a los enemigos con menos del 40% de su vida máxima, infligiendo un 120% de daño.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shadowflame_item_HD.png?8f301",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Alternador hextech",
+      "Vara innecesariamente grande"
+    ]
+  },
+  {
+    "nombre": "Hidra profana",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 10.0,
+      "LETHALITY": 2.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Inflige daño físico equivalente al 80% de tu AD a los enemigos en un radio de 450 unidades (10 segundos de enfriamiento).) (Solo puedes tener 1 item que tenga relación entre los siguientes: Tiamat, Hidra voraz, Hidra titánica, Hidra prifana, Cortasendas)",
+      "activa": "(Los ataques básicos que infligen daño causan X% [Si no eres tirador, X=40. Si eres tirador, X=20] de tu AD como daño físico a otros enemigos en un radio de 350 unidades alrededor del objetivo.)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Profane_Hydra_item_HD.png?a6f1e",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tiamat",
+      "Embrutecedor"
+    ]
+  },
+  {
+    "nombre": "Recordatorio letal",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 2.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al infligir daño físico a campeones enemigos, les aplicas Heridas Graves durante 3 segundos.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mortal_Reminder_item_HD.png?cc922",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Llamada del verdugo",
+      "Ultimas palabras",
+      "Capa de agilidad"
+    ]
+  },
+  {
+    "nombre": "Hoja del rey arruinado",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 25.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques básicos infligen daño físico adicional al golpear equivalente a X% [Si no eres tirador, X=8. Si eres tirador, X=5] de la vida actual del objetivo, con un máximo de 100 contra súbditos y monstruos.) (Los ataques básicos al golpear a campeones enemigos aplican una acumulación durante 6 segundos, acumulándose hasta 3 veces. La tercera acumulación las consume todas para ralentizar al objetivo un 30% durante 1 segundo (15 segundos de enfriamiento).) (Te curas un 10% de vida del daño total que hayas hecho en ese turno con ataques CUERPO A CUERPO [Si has hecho un ataque CUERPO A CUERPO, mínimo te da 1 de vida])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blade_of_the_Ruined_King_item_HD.png?33292",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Cetro vampirico",
+      "Arco curvo",
+      "Pico"
+    ]
+  },
+  {
+    "nombre": "Angel de la guarda",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 1.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Al recibir daño letal, entras en resurrección durante 4 segundos, durante los cuales eres invulnerable, inalcanzable y no puedes actuar. Después, te curas un 50% de tu vida base y restauras el 100% de tu maná máximo (300 segundos de enfriamiento, que comienza tras resucitar).)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guardian_Angel_item_HD.png?a4f20",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Sello de acero",
+      "Espadon"
+    ]
+  },
+  {
+    "nombre": "Cimitarra mercurial",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Te curas un 10% de vida del daño total que hayas hecho en ese turno con ataques CUERPO A CUERPO [Si has hecho un ataque CUERPO A CUERPO, mínimo te da 1 de vida])",
+      "activa": "(Elimina todos los efectos de control de masas de tu campeón, excepto los efectos de en el aire, y otorga 50% de velocidad de movimiento adicional y la capacidad de atravesar unidades durante 1.5 segundos (90 segundos de enfriamiento).)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mercurial_Scimitar_item_HD.png?76847",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Fajin de mercurio",
+      "Pico",
+      "Cetro vampirico"
+    ]
+  },
+  {
+    "nombre": "Jak'sho el proteico",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 1.0,
+      "MR": 1.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Ganas una acumulación por cada segundo en combate con campeones enemigos, hasta un máximo de 5 acumulaciones. Con el máximo de acumulaciones, tu armadura y resistencia mágica adicionales aumentan un 30% hasta el final del combate.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Jak%27Sho%2C_The_Protean_item_HD.png?2ebc2",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Cinturon de gigante",
+      "Chaleco de cadenas",
+      "Capa negatron"
+    ]
+  },
+  {
+    "nombre": "Calibrador de Sterak",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 4.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Ganas daño de ataque adicional equivalente al 45% de tu AD base.) (Si fueras a recibir daño que te reduciría por debajo del 30% de tu vida máxima, primero obtienes un escudo que absorbe daño equivalente al 60% de tu vida adicional, el cual se desvanece en 4.5 segundos (90 segundos de enfriamiento).) (Obtienes 20 de TENACIDAD)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sterak%27s_Gage_item_HD.png?f2129",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Pico",
+      "Tuneladora",
+      "Cristal de rubi"
+    ]
+  },
+  {
+    "nombre": "Reloj de arena de Zhonya",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 1.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "(Te colocas en estasis durante 1 turno (Si lo usas como reacción, tu turno lo pasas en éxtasis y en tu siguiente turno se te elimina), volviéndote inalcanzable e invulnerable durante ese tiempo, pero también incapaz de moverte, realizar ataques básicos, lanzar habilidades, usar hechizos de invocador o activar objetos (12 turnos de enfriamiento).)"
+    },
+    "cantidad": 1,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zhonya%27s_Hourglass_item_HD.png?98c3c",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Vara innecesariamente grande",
+      "Brazalete de la buscadora"
+    ]
+  },
+  {
+    "nombre": "Cortasendas",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 5.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 25.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques básicos al golpear infligen daño físico adicional a otros enemigos en un radio de 350 unidades alrededor del objetivo, equivalente a X% [Si no eres tirador, X=40. Si eres tirador, X=20] de tu AD.) (Solo puedes tener 1 item que tenga relación entre los siguientes: Tiamat, Hidra voraz, Hidra titánica, Hidra prifana, Cortasendas)",
+      "activa": "(Infliges 80% de tu AD como daño físico a los enemigos en un radio de 450 unidades alrededor de ti y los ralentizas un 35% durante 3 segundos. Por cada campeón golpeado, ganas 35% de velocidad de movimiento adicional, la cual se desvanece en 3 segundos. Puedes moverte mientras lanzas la habilidad (15 segundos de enfriamiento).)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stridebreaker_item_HD.png?715c3",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tiamat",
+      "Bacteriofago",
+      "Daga"
+    ]
+  },
+  {
+    "nombre": "Hidra voraz",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques básicos al golpear infligen daño físico adicional a otros enemigos en un radio de 350 unidades alrededor del objetivo, equivalente a X% [Si no eres tirador, X=40. Si eres tirador, X=20] de tu AD.) (Te curas un 12% de vida del daño total que hayas hecho en ese turno con ataques CUERPO A CUERPO [Si has hecho un ataque CUERPO A CUERPO, mínimo te da 1 de vida]) (Solo puedes tener 1 item que tenga relación entre los siguientes: Tiamat, Hidra voraz, Hidra titánica, Hidra prifana, Cortasendas)",
+      "activa": "(Infliges 80% de tu AD como daño físico a los enemigos en un radio de 450 unidades frente a ti (10 segundos de enfriamiento).)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ravenous_Hydra_item_HD.png?6ec25",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tiamat",
+      "Cetro vampirico",
+      "Martillo de guerra de Caulfield"
+    ]
+  },
+  {
+    "nombre": "Baile de la muerte",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 1.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 15.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Reduce X% [Si no eres tirador, X=30. Si eres tirador, X=10] de todo el daño físico y mágico recibido después de mitigaciones, almacenándolo en su lugar para recibirlo como daño verdadero durante 3 segundos, tomando un tercio del daño almacenado cada segundo.) (Si un campeón enemigo muere dentro de los 3 segundos posteriores a que lo dañes, se elimina el daño almacenado restante y te curas por 75% de tu AD adicional durante 2 segundos.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Death%27s_Dance_item_HD.png?4688b",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Sello de acero",
+      "Pico",
+      "Martillo de guerra de Caulfield"
+    ]
+  },
+  {
+    "nombre": "Hidra titanica",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 6.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Los ataques básicos al golpear infligen X% [Si no eres tirador, X=1. Si eres tirador, X=0.5] de la vida máxima como daño físico adicional al objetivo y Y% [Si no eres tirador, Y=3. Si eres tirador, Y=1.5] de la vida máxima como daño físico a otros enemigos en un cono en la dirección del objetivo principal.) (Solo puedes tener 1 item que tenga relación entre los siguientes: Tiamat, Hidra voraz, Hidra titánica, Hidra prifana, Cortasendas)",
+      "activa": "(Tu próximo ataque básico dentro de 10 segundos potencia Cleave para infligir X% [Si no eres tirador, X=4. Si eres tirador, X=2] de la vida máxima como daño físico adicional al objetivo principal y Y% [Si no eres tirador, Y=9. Si eres tirador, Y=4.5] de la vida máxima como daño físico a los objetivos secundarios (10 segundos de enfriamiento, que comienza después de usar el ataque potenciado).) (Restablece el temporizador de tu ataque básico.)"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Titanic_Hydra_item_HD.png?a4a79",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tiamat",
+      "Tuneladora",
+      "Cinturon de gigante"
+    ]
+  },
+  {
+    "nombre": "Sangria del soverano",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Overlord%27s_Bloodmail_item_HD.png?19287",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Tuneladora",
+      "Tuneladora"
+    ]
+  },
+  {
+    "nombre": "Armadura de Warmog",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warmog%27s_Armor_item_HD.png?5bed4",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Cinturon de gigante",
+      "Cinturon de gigante",
+      "Brazal cristalino"
+    ]
+  },
+  {
+    "nombre": "Fuerza de la trinidad",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0,
+      "AC": 0,
+      "MR": 0,
+      "MANA": 0,
+      "AD": 0,
+      "AP": 0,
+      "CRIT_CHANCE": 0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0,
+      "ATK_SPE_PCT": 0,
+      "AB_SPE_PCT": 0,
+      "LETHALITY": 0,
+      "MAGIC_PEN": 0
+    },
+    "efecto": {
+      "pasiva": "",
+      "activa": ""
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trinity_Force_item_HD.png?fb053",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Brillo",
+      "Bacteriofago",
+      "Hacha hogareña"
+    ]
+  },
+  {
+    "nombre": "Sanguinaria",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Convierte la curación recibida por robo de vida que exceda tu vida máxima en un escudo de hasta X [X=165−315 según el nivel], el cual permanece hasta ser destruido.) (Te curas un 15% de vida del daño total que hayas hecho en ese turno con ataques CUERPO A CUERPO [Si has hecho un ataque CUERPO A CUERPO, mínimo te da 1 de vida])",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodthirster_item_HD.png?9476d",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Espadon",
+      "Pico",
+      "Cetro vampirico"
+    ]
+  },
+  {
+    "nombre": "Filo infinito",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0,
+      "AP": 0.0,
+      "CRIT_CHANCE": 4.0,
+      "CRIT_DAMAGE": 0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "-",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Infinity_Edge_item_HD.png?a5e3f",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Espadon",
+      "Pico",
+      "Capa de agilidad"
+    ]
+  },
+  {
+    "nombre": "Sombrero mortal de Rabadon",
+    "rareza": "Legendario",
+    "stats": {
+      "HP": 0.0,
+      "AC": 0.0,
+      "MR": 0.0,
+      "MANA": 0.0,
+      "AD": 0.0,
+      "AP": 0,
+      "CRIT_CHANCE": 0.0,
+      "CRIT_DAMAGE": 0.0,
+      "SPE": 0.0,
+      "ATK_SPE_PCT": 0.0,
+      "AB_SPE_PCT": 0.0,
+      "LETHALITY": 0.0,
+      "MAGIC_PEN": 0.0
+    },
+    "efecto": {
+      "pasiva": "(Aumenta tu AP en un 30%.)",
+      "activa": "-"
+    },
+    "cantidad": 0,
+    "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rabadon%27s_Deathcap_item_HD.png?4d31a",
+    "craftsTo": [],
+    "craftsFrom": [
+      "Vara innecesariamente grande",
+      "Vara innecesariamente grande"
+    ]
+  }
+]
