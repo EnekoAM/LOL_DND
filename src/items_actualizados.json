@@ -443,6 +443,7 @@
     "cantidad": 2,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Amplifying_Tome_item_HD.png?776f8",
     "craftsTo": [
+      "Vara explosiva",
       "Barrera frondosa",
       "Orbe del olvido",
       "Alternador hextech",
@@ -606,6 +607,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blasting_Wand_item_HD.png?ddd05",
     "craftsTo": [
+      "Vara innecesariamente grande",
       "Diente de nashor",
       "Perdicion del liche",
       "Cetro de cristal de Rylai",
@@ -673,7 +675,7 @@
     ]
   },
   {
-    "nombre": "Vara Innecesariamente Grande",
+    "nombre": "Vara innecesariamente grande",
     "rareza": "Basico",
     "stats": {
       "HP": 0,
@@ -4168,7 +4170,7 @@
     ]
   },
   {
-    "nombre": "Arco Axiomatico",
+    "nombre": "Arco axiomatico",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -4319,7 +4321,7 @@
     ]
   },
   {
-    "nombre": "Recuerdos de lord dominik",
+    "nombre": "Recuerdos de lord Dominik",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -4747,7 +4749,7 @@
     ]
   },
   {
-    "nombre": "Perdicion de liche",
+    "nombre": "Perdicion del liche",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,

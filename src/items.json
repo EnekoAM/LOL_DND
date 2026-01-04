@@ -3954,7 +3954,7 @@
     "craftsFrom": ["Daga dentada", "Martillo de guerra de Caulfield"]
   },
   {
-    "nombre": "Arco Axiomatico",
+    "nombre": "Arco axiomatico",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -4089,7 +4089,7 @@
     "craftsFrom": ["Pico", "Carcaj del mediodia"]
   },
   {
-    "nombre": "Recuerdos de lord dominik",
+    "nombre": "Recuerdos de lord Dominik",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -4467,7 +4467,7 @@
     "craftsFrom": ["Tuneladora", "Martillo de guerra de Caulfield", "Cristal de rubi"]
   },
   {
-    "nombre": "Perdicion de liche",
+    "nombre": "Perdicion del liche",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,

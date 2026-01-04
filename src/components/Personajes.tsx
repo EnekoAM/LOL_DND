@@ -47,17 +47,20 @@ const findAbility = (name: string | null): AbilityData | null => {
   return null;
 };
 
-const getCraftTree = (item: typeof ItemsData[0]) => {
-  const fromItems = item.craftsFrom
-    .map(name => ItemsData.find(i => i.nombre.toLowerCase().trim() === name.toLowerCase().trim()))
-    .filter(Boolean); // eliminamos null
 
-  const toItems = item.craftsTo
-    .map(name => ItemsData.find(i => i.nombre.toLowerCase().trim() === name.toLowerCase().trim()))
-    .filter(Boolean);
 
-  return { fromItems, toItems };
-};
+  const getCraftTree = (item: typeof ItemsData[0]) => {
+    const fromItems = item.craftsFrom
+    .map(name => ItemsData.find(i => i.nombre.toLowerCase().trim() === name.toLowerCase().trim()))
+    .filter(Boolean) as typeof ItemsData; // solo items válidos
+
+    const toItems = item.craftsTo
+    .map(name => ItemsData.find(i => i.nombre.toLowerCase().trim() === name.toLowerCase().trim()))
+    .filter(Boolean) as typeof ItemsData;
+
+    return { fromItems, toItems };
+  };
+
 
 
 /* ================= COMPONENTE ================= */
@@ -287,20 +290,21 @@ const Calculos = () => {
               <div style={{ width: '100%' }}>
                 <h3 style={{ color: '#a5f3fc', marginBottom: '0.5rem' }}>Se crafteó desde:</h3>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {fromItems.map(i => (
-                    <div
-                      key={i!.nombre}
-                      title={i!.nombre} // hover muestra nombre
-                      style={{ width: '80px', position: 'relative' }}
-                    >
-                      <img
-                        src={i!.imagen}
-                        alt={i!.nombre}
-                        style={{ width: '100%', borderRadius: '6px', cursor: 'pointer' }}
-                        onClick={() => setSelectedCraftItem(i!)} // abrir modal del item anterior
-                      />
-                    </div>
-                  ))}
+                {fromItems.map((i, index) => (
+  <div
+    key={`${i.nombre}-${index}`} // <- clave única, incluso si se repite
+    title={i.nombre}
+    style={{ width: '80px', position: 'relative' }}
+  >
+    <img
+      src={i.imagen}
+      alt={i.nombre}
+      style={{ width: '100%', borderRadius: '6px', cursor: 'pointer' }}
+      onClick={() => setSelectedCraftItem(i)}
+    />
+  </div>
+))}
+
                 </div>
               </div>
             )}
