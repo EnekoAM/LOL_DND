@@ -48,7 +48,30 @@
       "H2": "Golpes Penetrantes",
       "H3": "Estandarte demaciano",
       "R": null
-    }
+    },
+    "equipamiento": [
+      "Lagrima de la diosa",
+      "Vara de las edades",
+      "Reloj de arena de Zhonya",
+      "Vara innecesariamente grande",
+      "Tomo amplificador",
+      "Barrera frondosa",
+      "Botas"
+    ],
+    "build": [
+      "Botas",
+      "Botas",
+      "Muramana",
+      "Espada ciclovoltaica",
+      "Recordatorio letal",
+      "Filo infinito",
+      "Recaudadora",
+      "Recuerdos de lord Dominik",
+      "Oportunidades",
+      "Filo de la noche",
+      "Hidra profana",
+      "Arco axiomatico"
+    ]
   },
   {
     "name": "Zeraf",
@@ -58,6 +81,29 @@
       "H2": "Saltamuros",
       "H3": "Corte de sombra",
       "R": null
-    }
+    },
+    "equipamiento": [
+      "Lagrima de la diosa",
+      "Vara de las edades",
+      "Reloj de arena de Zhonya",
+      "Vara innecesariamente grande",
+      "Tomo amplificador",
+      "Barrera frondosa",
+      "Botas"
+    ],
+    "build": [
+      "Botas",
+      "Botas",
+      "Muramana",
+      "Espada ciclovoltaica",
+      "Recordatorio letal",
+      "Filo infinito",
+      "Recaudadora",
+      "Recuerdos de lord Dominik",
+      "Oportunidades",
+      "Filo de la noche",
+      "Hidra profana",
+      "Arco axiomatico"
+    ]
   }
 ]
