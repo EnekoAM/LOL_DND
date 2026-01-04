@@ -7,6 +7,10 @@ function App() {
   const [screen, setScreen] = useState<'items' | 'personajes' | 'habilidades'>('items');
   const [gold, setGold] = useState<number>(3906); // oro actual (ejemplo)
 
+  const level = 3; 
+  const expCurrent = 124;
+  const expNext = 600;
+
   const handleScreenChange = (newScreen: 'items' | 'personajes' | 'habilidades') => {
     setScreen(newScreen);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -22,59 +26,80 @@ function App() {
         color: '#fff',
       }}
     >
-      {/* Header */}
-      <header
+  {/* Header */}
+  <header
+    style={{
+      backgroundColor: '#1a1a1a',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      padding: '1rem 2rem',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderBottom: '1px solid #222',
+      zIndex: 9999,
+    }}
+  >
+    {/* ORO + EXP */}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+      {/* Oro */}
+      <div
         style={{
-          backgroundColor: '#1a1a1a',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          padding: '1rem 2rem',
           display: 'flex',
-          justifyContent: 'space-between', // 👈 clave
           alignItems: 'center',
-          borderBottom: '1px solid #222',
-          zIndex: 9999,
+          gap: '0.5rem',
+          fontWeight: 600,
+          fontSize: '1.1rem',
+          color: '#facc15', // dorado
         }}
       >
-        {/* ORO */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontWeight: 600,
-            fontSize: '1.1rem',
-            color: '#facc15', // dorado
-          }}
-        >
-          <span style={{ fontSize: '1.3rem' }}>💰</span>
-          {gold.toLocaleString()}
-        </div>
+        <span style={{ fontSize: '1.3rem' }}>💰</span>
+        {gold.toLocaleString()}
+      </div>
 
-        {/* Navegación */}
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            style={{ ...btnStyle, ...(screen === 'items' ? activeBtnStyle : {}) }}
-            onClick={() => handleScreenChange('items')}
-          >
-            Items
-          </button>
-          <button
-            style={{ ...btnStyle, ...(screen === 'habilidades' ? activeBtnStyle : {}) }}
-            onClick={() => handleScreenChange('habilidades')}
-          >
-            Habilidades
-          </button>
-          <button
-            style={{ ...btnStyle, ...(screen === 'personajes' ? activeBtnStyle : {}) }}
-            onClick={() => handleScreenChange('personajes')}
-          >
-            Personajes
-          </button>
+      {/* EXP */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px' }}>
+        <span style={{ color: '#38bdf8', fontWeight: 600, fontSize: '0.95rem' }}>
+          Nivel {level} ({expCurrent}/{expNext})
+        </span>
+        <div style={{ width: '100%', height: '8px', backgroundColor: '#333', borderRadius: '4px', marginTop: '2px' }}>
+          <div
+            style={{
+              width: `${(expCurrent / expNext) * 100}%`,
+              height: '100%',
+              backgroundColor: '#0ea5e9',
+              borderRadius: '4px',
+              transition: 'width 0.3s ease',
+            }}
+          />
         </div>
-      </header>
+      </div>
+    </div>
+
+    {/* Navegación */}
+    <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <button
+        style={{ ...btnStyle, ...(screen === 'items' ? activeBtnStyle : {}) }}
+        onClick={() => handleScreenChange('items')}
+      >
+        Items
+      </button>
+      <button
+        style={{ ...btnStyle, ...(screen === 'habilidades' ? activeBtnStyle : {}) }}
+        onClick={() => handleScreenChange('habilidades')}
+      >
+        Habilidades
+      </button>
+      <button
+        style={{ ...btnStyle, ...(screen === 'personajes' ? activeBtnStyle : {}) }}
+        onClick={() => handleScreenChange('personajes')}
+      >
+        Personajes
+      </button>
+    </div>
+  </header>
 
       {/* Contenido */}
       <main style={{ padding: '2rem' }}>
