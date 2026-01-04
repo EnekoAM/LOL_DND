@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import ItemsData from '../items.json';
+import ItemsData from '../items_actualizados.json';
 
-const rarityOptions = ['Inicial', 'Basico', 'Épico', 'Legendario', 'Prismatico'];
+const rarityOptions = ['Inicial', 'Basico', 'Epico', 'Legendario', 'Prismatico'];
 
 const Items = () => {
   const [filterStat, setFilterStat] = useState<'all' | string>('all');

@@ -23,40 +23,66 @@ STAT_MAPPING = {
     "PEN. MÁG.": "MAGIC_PEN"
 }
 
-# 1️⃣ Leer TSV y guardarlo en un diccionario por nombre (lower)
-tsv_items = {}
+STRING_STATS = {"AD", "AP"}  # Solo estos serán strings
 
+# 1️⃣ Leer TSV y guardarlo en un diccionario por nombre (lowercase)
+tsv_items = {}
 with open(TSV_FILE, encoding="utf-8") as f:
     reader = csv.DictReader(f, delimiter="\t")
     for row in reader:
         item_name = row["ITEMS"].strip().lower()
         tsv_items[item_name] = row
 
-# 2️⃣ Leer JSON
+# 2️⃣ Leer JSON (lista de items)
 with open(JSON_FILE, encoding="utf-8") as f:
     json_items = json.load(f)
 
-# 3️⃣ Actualizar JSON con datos del TSV
+# 3️⃣ Fusionar TSV con JSON
 for item in json_items:
     nombre = item.get("nombre", "").strip().lower()
+    if not nombre or nombre not in tsv_items:
+        continue
 
-    if nombre in tsv_items:
-        tsv_row = tsv_items[nombre]
+    tsv_row = tsv_items[nombre]
 
-        # Stats
-        for tsv_col, json_stat in STAT_MAPPING.items():
-            value = tsv_row.get(tsv_col, 0)
+    # Asegurarse de que existan las claves
+    item.setdefault("stats", {})
+    item.setdefault("efecto", {})
+
+    # Fusionar stats
+    for tsv_col, json_stat in STAT_MAPPING.items():
+        raw = tsv_row.get(tsv_col, "").strip()
+        if not raw:
+            continue
+
+        # Reemplazar coma por punto para decimales
+        raw_num = raw.replace(",", ".")
+
+        if json_stat in STRING_STATS:
+            # AD y AP: 0 → número, otro → string
             try:
-                item["stats"][json_stat] = float(value)
+                val = float(raw_num)
+                item["stats"][json_stat] = 0 if val == 0 else raw
+            except ValueError:
+                item["stats"][json_stat] = raw
+        else:
+            # Stats numéricas
+            try:
+                val = float(raw_num)
+                item["stats"][json_stat] = int(val) if val.is_integer() else val
             except ValueError:
                 item["stats"][json_stat] = 0
 
-        # Pasiva / Activa
-        item["efecto"]["pasiva"] = tsv_row.get("PASIVA(S)", "").strip()
-        item["efecto"]["activa"] = tsv_row.get("ACTIVA(S)", "").strip()
+    # Fusionar pasiva/activa
+    pasiva = tsv_row.get("PASIVA(S)", "").strip()
+    activa = tsv_row.get("ACTIVA(S)", "").strip()
 
-# 4️⃣ Guardar JSON actualizado
+    # Guardar "-" si viene "-", "" si está vacío, sino el valor
+    item["efecto"]["pasiva"] = "-" if pasiva == "-" else pasiva
+    item["efecto"]["activa"] = "-" if activa == "-" else activa
+
+# 4️⃣ Guardar JSON fusionado
 with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
     json.dump(json_items, f, indent=2, ensure_ascii=False)
 
-print("✅ JSON actualizado correctamente")
+print(f"✅ JSON fusionado guardado en '{OUTPUT_FILE}'")
