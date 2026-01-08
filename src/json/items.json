@@ -259,7 +259,7 @@
     "cantidad": 1,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glowing_Mote_item_HD.png?71565",
     "craftsTo": [
-      "Martillo de guerra de Claufield",
+      "Martillo de guerra de Caulfield",
       "Embrutecedor",
       "Codice diabolico",
       "Rescoldo de Bami",
@@ -368,7 +368,7 @@
     "craftsTo": [
       "Habito del espectro",
       "Brazal cristalino",
-      "Promesa del caballero"
+      "Promesa de caballero"
     ],
     "craftsFrom": []
   },
@@ -399,7 +399,7 @@
     "craftsTo": [
       "Carcaj del mediodia",
       "Hacha hogareña",
-      "Martillo de guerra de Claufield",
+      "Martillo de guerra de Caulfield",
       "Sello de acero",
       "Tuneladora",
       "Llamada del verdugo",
@@ -450,7 +450,7 @@
       "Cenizas predestinadas",
       "Brazalete de la buscadora",
       "Joya de la plaga",
-      "Brisa de eter",
+      "Brisa del eter",
       "Disfraz encantado",
       "Capitulo perdido",
       "Espejo de cristal de Bandle",
@@ -977,7 +977,7 @@
       "Convergencia de Zeke",
       "Rostro espiritual",
       "Redencion",
-      "Promesa del caballero",
+      "Promesa de caballero",
       "Renovacion de piedra lunar",
       "Morellonomicon",
       "Bendicion de Mikael",
@@ -1019,7 +1019,7 @@
       "Coraza del muerto",
       "Marcasendas",
       "Malla de espinas",
-      "Promesa del caballero",
+      "Promesa de caballero",
       "Jak'sho el proteico"
     ],
     "craftsFrom": [
@@ -1194,7 +1194,7 @@
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Negatron_Cloak_item_HD.png?c9809",
     "craftsTo": [
       "Fuerza de la naturaleza",
-      "Rookern kaenico",
+      "Rookern kaeniko",
       "Final del ingenio",
       "Jak'sho el proteico",
       "Mascara abisal"
@@ -1205,7 +1205,7 @@
     ]
   },
   {
-    "nombre": "Broquel glaciar",
+    "nombre": "Broquel glacial",
     "rareza": "Epico",
     "stats": {
       "HP": 0,
@@ -1238,7 +1238,7 @@
     ]
   },
   {
-    "nombre": "Brisa de eter",
+    "nombre": "Brisa del eter",
     "rareza": "Epico",
     "stats": {
       "HP": 0,
@@ -1265,7 +1265,7 @@
       "Rito de la ruina",
       "Sobrecarga tormentosa",
       "Incensario ardiente",
-      "Cancion de batalla de Shurelya",
+      "Cancion de la batalla de Shurelya",
       "Perdicion del liche",
       "Impulso cosmico"
     ],
@@ -1332,7 +1332,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bandleglass_Mirror_item_HD.png?42862",
     "craftsTo": [
-      "Cancion de batalla de Shurelya",
+      "Cancion de la batalla de Shurelya",
       "Ecos de helia",
       "Renovacion de piedra lunar",
       "Mandato imperial"
@@ -1555,7 +1555,7 @@
     ]
   },
   {
-    "nombre": "Martillo de guerra de Claufield",
+    "nombre": "Martillo de guerra de Caulfield",
     "rareza": "Epico",
     "stats": {
       "HP": 0,
@@ -1584,7 +1584,7 @@
       "Fauces de malmortius",
       "Eclipse",
       "Hidra voraz",
-      "Rencor de Serylda",
+      "Rencor de Sherilda",
       "Segador de esencia",
       "Baile de la muerte",
       "Mecanoespada punki",
@@ -1936,7 +1936,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectre%27s_Cowl_item_Unused_HD.png?28289",
     "craftsTo": [
-      "Rookern kaenico",
+      "Rookern kaeniko",
       "Rostro espiritual",
       "Fulgor vano"
     ],
@@ -2014,7 +2014,7 @@
     ]
   },
   {
-    "nombre": "Carcaj de mediodia",
+    "nombre": "Carcaj del mediodia",
     "rareza": "Epico",
     "stats": {
       "HP": 0,
@@ -2170,7 +2170,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Last_Whisper_item_HD.png?fa92c",
     "craftsTo": [
-      "Rencor de Serylda",
+      "Rencor de Sherilda",
       "Recordatorio letal",
       "Recuerdos de lord Dominik"
     ],
@@ -2307,7 +2307,7 @@
     ]
   },
   {
-    "nombre": "Cancion de batalla de Shurelya",
+    "nombre": "Cancion de la batalla de Shurelya",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -2331,7 +2331,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item_HD.png?139cb",
     "craftsTo": [],
-    "craftsFrom": ["Brisa de eter", "Espejo de cristal de bandle"]
+    "craftsFrom": [
+      "Brisa del eter",
+      "Espejo de cristal de bandle"
+    ]
   },
   {
     "nombre": "Incensario Ardiente",
@@ -2358,7 +2361,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item_HD.png?a5793",
     "craftsTo": [],
-    "craftsFrom": ["Brisa de eter", "Idolo prohibido"]
+    "craftsFrom": [
+      "Brisa del eter",
+      "Idolo prohibido"
+    ]
   },
   {
     "nombre": "Ecos de helia",
@@ -2385,7 +2391,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item_HD.png?ebc88",
     "craftsTo": [],
-    "craftsFrom": ["Gema avivadora", "Espejo de cristal de bandle"]
+    "craftsFrom": [
+      "Gema avivadora",
+      "Espejo de cristal de bandle"
+    ]
   },
   {
     "nombre": "Renovacion de piedra lunar",
@@ -2412,7 +2421,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Moonstone_Renewer_item_HD.png?2e7a2",
     "craftsTo": [],
-    "craftsFrom": ["Gema avivadora", "Espejo de cristal de bandle"]
+    "craftsFrom": [
+      "Gema avivadora",
+      "Espejo de cristal de bandle"
+    ]
   },
   {
     "nombre": "Convergencia de Zeke",
@@ -2439,7 +2451,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zeke%27s_Convergence_item_HD.png?d63f1",
     "craftsTo": [],
-    "craftsFrom": ["Gema avivadora", "Armadura de Tela", "Manto de Anulacion de Magia"]
+    "craftsFrom": [
+      "Gema avivadora",
+      "Armadura de Tela",
+      "Manto de Anulacion de Magia"
+    ]
   },
   {
     "nombre": "Medallon de los Solari de Hierro",
@@ -2466,7 +2482,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Locket_of_the_Iron_Solari_item_HD.png?f6a2e",
     "craftsTo": [],
-    "craftsFrom": ["Gema avivadora", "Armadura de Tela", "Manto de Anulacion de Magia"]
+    "craftsFrom": [
+      "Gema avivadora",
+      "Armadura de Tela",
+      "Manto de Anulacion de Magia"
+    ]
   },
   {
     "nombre": "Mandato imperial",
@@ -2493,7 +2513,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item_old_HD.png?082b8",
     "craftsTo": [],
-    "craftsFrom": ["Codice diabolico", "Espejo de cristal de bandle"]
+    "craftsFrom": [
+      "Codice diabolico",
+      "Espejo de cristal de bandle"
+    ]
   },
   {
     "nombre": "Baston de aguas fluidas",
@@ -2520,7 +2543,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Staff_of_Flowing_Water_item_HD.png?15016",
     "craftsTo": [],
-    "craftsFrom": ["Tomo Amplificador", "Idolo prohibido"]
+    "craftsFrom": [
+      "Tomo Amplificador",
+      "Idolo prohibido"
+    ]
   },
   {
     "nombre": "Bendicion de Mikael",
@@ -2547,7 +2573,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mikael%27s_Blessing_item_HD.png?2ac53",
     "craftsTo": [],
-    "craftsFrom": ["Gema avivadora", "Idolo prohibido"]
+    "craftsFrom": [
+      "Gema avivadora",
+      "Idolo prohibido"
+    ]
   },
   {
     "nombre": "Redencion",
@@ -2574,10 +2603,13 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Redemption_item_HD.png?24e28",
     "craftsTo": [],
-    "craftsFrom": ["Gema avivadora", "Idolo prohibido"]
+    "craftsFrom": [
+      "Gema avivadora",
+      "Idolo prohibido"
+    ]
   },
   {
-    "nombre": "Promesa del caballero",
+    "nombre": "Promesa de caballero",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -2601,7 +2633,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Knight%27s_Vow_item_HD.png?5be23",
     "craftsTo": [],
-    "craftsFrom": ["Gema avivadora", "Chaleco de cadenas", "Perla de rejuvenecimiento"]
+    "craftsFrom": [
+      "Gema avivadora",
+      "Chaleco de cadenas",
+      "Perla de rejuvenecimiento"
+    ]
   },
   {
     "nombre": "Llegada del invierno",
@@ -2627,8 +2663,14 @@
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Winter%27s_Approach_item_HD.png?d872e",
-    "craftsTo": ["El gran invierno"],
-    "craftsFrom": ["Lagrima de la diosa", "Cinturon de gigante", "Gema avivadora"]
+    "craftsTo": [
+      "El gran invierno"
+    ],
+    "craftsFrom": [
+      "Lagrima de la diosa",
+      "Cinturon de gigante",
+      "Gema avivadora"
+    ]
   },
   {
     "nombre": "El gran invierno",
@@ -2655,7 +2697,9 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Fimbulwinter_item_HD.png?aa009",
     "craftsTo": [],
-    "craftsFrom": ["Llegada del invierno"]
+    "craftsFrom": [
+      "Llegada del invierno"
+    ]
   },
   {
     "nombre": "Marcasendas",
@@ -2682,7 +2726,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trailblazer_item_HD.png?5b38f",
     "craftsTo": [],
-    "craftsFrom": ["Armadura lunar alada", "Chaleco de cadenas"]
+    "craftsFrom": [
+      "Armadura lunar alada",
+      "Chaleco de cadenas"
+    ]
   },
   {
     "nombre": "Malla de espinas",
@@ -2709,7 +2756,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Thornmail_item_HD.png?9a105",
     "craftsTo": [],
-    "craftsFrom": ["Chaleco de zarzas", "Chaleco de cadenas", "Cristal de rubi"]
+    "craftsFrom": [
+      "Chaleco de zarzas",
+      "Chaleco de cadenas",
+      "Cristal de rubi"
+    ]
   },
   {
     "nombre": "Corazon de hielo",
@@ -2736,7 +2787,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Frozen_Heart_item_HD.png?db166",
     "craftsTo": [],
-    "craftsFrom": ["Malla del guardian", "Broquel glacial"]
+    "craftsFrom": [
+      "Malla del guardian",
+      "Broquel glacial"
+    ]
   },
   {
     "nombre": "Nucleo albar",
@@ -2763,7 +2817,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item_HD.png?47cdc",
     "craftsTo": [],
-    "craftsFrom": ["Vara explosiva", "Idolo prohibido", "Idolo prohibido"]
+    "craftsFrom": [
+      "Vara explosiva",
+      "Idolo prohibido",
+      "Idolo prohibido"
+    ]
   },
   {
     "nombre": "Colmillo de serpiente",
@@ -2790,7 +2848,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serpent%27s_Fang_item_HD.png?4c722",
     "craftsTo": [],
-    "craftsFrom": ["Daga dentada", "Pico"]
+    "craftsFrom": [
+      "Daga dentada",
+      "Pico"
+    ]
   },
   {
     "nombre": "Vara de las edades",
@@ -2817,7 +2878,10 @@
     "cantidad": 1,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rod_of_Ages_item_HD.png?32e97",
     "craftsTo": [],
-    "craftsFrom": ["Vara explosiva", "Catalizador de eones"]
+    "craftsFrom": [
+      "Vara explosiva",
+      "Catalizador de eones"
+    ]
   },
   {
     "nombre": "Cetro de cristal de Rylai",
@@ -2844,7 +2908,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rylai%27s_Crystal_Scepter_item_HD.png?46b75",
     "craftsTo": [],
-    "craftsFrom": ["Vara explosiva", "Cinturon de gigante", "Tomo amplificador"]
+    "craftsFrom": [
+      "Vara explosiva",
+      "Cinturon de gigante",
+      "Tomo amplificador"
+    ]
   },
   {
     "nombre": "Cintomisil hextech",
@@ -2871,7 +2939,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item_HD.png?02607",
     "craftsTo": [],
-    "craftsFrom": ["Alternador hextech", "Codice diabolico", "Cristal de rubi"]
+    "craftsFrom": [
+      "Alternador hextech",
+      "Codice diabolico",
+      "Cristal de rubi"
+    ]
   },
   {
     "nombre": "Bailarin espectral",
@@ -2898,7 +2970,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Phantom_Dancer_item_HD.png?64a8b",
     "craftsTo": [],
-    "craftsFrom": ["Daga", "Fervor", "Daga"]
+    "craftsFrom": [
+      "Daga",
+      "Fervor",
+      "Daga"
+    ]
   },
   {
     "nombre": "Huracan de runaan",
@@ -2925,7 +3001,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Runaan%27s_Hurricane_item_HD.png?436be",
     "craftsTo": [],
-    "craftsFrom": ["Fervor", "Honda de explorador"]
+    "craftsFrom": [
+      "Fervor",
+      "Honda de explorador"
+    ]
   },
   {
     "nombre": "Filofugaz de Navori",
@@ -2952,7 +3031,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Navori_Flickerblade_item_HD.png?03bb2",
     "craftsTo": [],
-    "craftsFrom": ["Daga", "Fervor", "Daga"]
+    "craftsFrom": [
+      "Daga",
+      "Fervor",
+      "Daga"
+    ]
   },
   {
     "nombre": "Cañon de fuego rapido",
@@ -2979,7 +3062,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Rapid_Firecannon_item_HD.png?b9f6f",
     "craftsTo": [],
-    "craftsFrom": ["Fervor", "Honda de explorador"]
+    "craftsFrom": [
+      "Fervor",
+      "Honda de explorador"
+    ]
   },
   {
     "nombre": "Mascara Abisal",
@@ -3006,7 +3092,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Abyssal_Mask_item_HD.png?d5b47",
     "craftsTo": [],
-    "craftsFrom": ["Gema avivadora", "Capa negatron"]
+    "craftsFrom": [
+      "Gema avivadora",
+      "Capa negatron"
+    ]
   },
   {
     "nombre": "Malignidad",
@@ -3033,7 +3122,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Malignance_item_HD.png?985a3",
     "craftsTo": [],
-    "craftsFrom": ["Capitulo perdido", "Vara explosiva"]
+    "craftsFrom": [
+      "Capitulo perdido",
+      "Vara explosiva"
+    ]
   },
   {
     "nombre": "Precision infalible",
@@ -3060,7 +3152,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item_HD.png?04ad1",
     "craftsTo": [],
-    "craftsFrom": ["Codice diabolico", "Codice diabolico", "Vara explosiva"]
+    "craftsFrom": [
+      "Codice diabolico",
+      "Codice diabolico",
+      "Vara explosiva"
+    ]
   },
   {
     "nombre": "Oportunidades",
@@ -3087,7 +3183,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Opportunity_item_HD.png?0d845",
     "craftsTo": [],
-    "craftsFrom": ["Pico", "Daga dentada", "Espada larga"]
+    "craftsFrom": [
+      "Pico",
+      "Daga dentada",
+      "Espada larga"
+    ]
   },
   {
     "nombre": "Puñal de Statikk",
@@ -3114,7 +3214,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Statikk_Shiv_item_HD.png?605f8",
     "craftsTo": [],
-    "craftsFrom": ["Honda de explorador", "Rectrice", "Pico"]
+    "craftsFrom": [
+      "Honda de explorador",
+      "Rectrice",
+      "Pico"
+    ]
   },
   {
     "nombre": "Rostro espiritual",
@@ -3141,7 +3245,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spirit_Visage_item_HD.png?e33fe",
     "craftsTo": [],
-    "craftsFrom": ["Habito del espectro", "Gema avivadora"]
+    "craftsFrom": [
+      "Habito del espectro",
+      "Gema avivadora"
+    ]
   },
   {
     "nombre": "Egida de Fuego Solar",
@@ -3168,7 +3275,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sunfire_Aegis_item_HD.png?5f709",
     "craftsTo": [],
-    "craftsFrom": ["Rescoldo de Bami", "Chaleco de cadenas"]
+    "craftsFrom": [
+      "Rescoldo de Bami",
+      "Chaleco de cadenas"
+    ]
   },
   {
     "nombre": "Presagio de Randuin",
@@ -3195,7 +3305,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Randuin%27s_Omen_item_HD.png?393f0",
     "craftsTo": [],
-    "craftsFrom": ["Malla del guardian", "Cinturon de gigante"]
+    "craftsFrom": [
+      "Malla del guardian",
+      "Cinturon de gigante"
+    ]
   },
   {
     "nombre": "Antorcha de fuego negro",
@@ -3222,7 +3335,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blackfire_Torch_item_HD.png?ab1e3",
     "craftsTo": [],
-    "craftsFrom": ["Capitulo perdido", "Cenizas predestinadas"]
+    "craftsFrom": [
+      "Capitulo perdido",
+      "Cenizas predestinadas"
+    ]
   },
   {
     "nombre": "Filo fantasmal de Youmuu",
@@ -3249,7 +3365,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Youmuu%27s_Ghostblade_item_HD.png?b4a89",
     "craftsTo": [],
-    "craftsFrom": ["Daga dentada", "Rectrice", "Espada larga"]
+    "craftsFrom": [
+      "Daga dentada",
+      "Rectrice",
+      "Espada larga"
+    ]
   },
   {
     "nombre": "Final del ingenio",
@@ -3276,7 +3396,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Wit%27s_End_item_HD.png?6dbcd",
     "craftsTo": [],
-    "craftsFrom": ["Arco curvo", "Capa negatron", "Arco curvo"]
+    "craftsFrom": [
+      "Arco curvo",
+      "Capa negatron",
+      "Arco curvo"
+    ]
   },
   {
     "nombre": "Fulgor vano",
@@ -3303,7 +3427,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hollow_Radiance_item_HD.png?a1abd",
     "craftsTo": [],
-    "craftsFrom": ["Rescoldo de Bami", "Habito del espectro"]
+    "craftsFrom": [
+      "Rescoldo de Bami",
+      "Habito del espectro"
+    ]
   },
   {
     "nombre": "Desesperanza eterna",
@@ -3330,7 +3457,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Unending_Despair_item_HD.png?da251",
     "craftsTo": [],
-    "craftsFrom": ["Proteccion de la legion", "Cinturon de gigante"]
+    "craftsFrom": [
+      "Proteccion de la legion",
+      "Cinturon de gigante"
+    ]
   },
   {
     "nombre": "Fuerza de la naturaleza",
@@ -3357,7 +3487,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Force_of_Nature_item_HD.png?8749b",
     "craftsTo": [],
-    "craftsFrom": ["Capa negatron", "Cristal de rubi", "Armadura lunar alada"]
+    "craftsFrom": [
+      "Capa negatron",
+      "Cristal de rubi",
+      "Armadura lunar alada"
+    ]
   },
   {
     "nombre": "Compañera de Luden",
@@ -3384,7 +3518,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item_HD.png?17780",
     "craftsTo": [],
-    "craftsFrom": ["Capitulo perdido", "Alternador hextech"]
+    "craftsFrom": [
+      "Capitulo perdido",
+      "Alternador hextech"
+    ]
   },
   {
     "nombre": "Florescencia sepulcral",
@@ -3411,7 +3548,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cryptbloom_item_HD.png?9c1ec",
     "craftsTo": [],
-    "craftsFrom": ["Joya de la plaga", "Codice diabolico", "Codice diabolico"]
+    "craftsFrom": [
+      "Joya de la plaga",
+      "Codice diabolico",
+      "Codice diabolico"
+    ]
   },
   {
     "nombre": "Baston del Arcangel",
@@ -3437,8 +3578,14 @@
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item_HD.png?4be7f",
-    "craftsTo": ["Abrazo del serafin"],
-    "craftsFrom": ["Lagrima de la diosa", "Capitulo perdido", "Codice diabolico"]
+    "craftsTo": [
+      "Abrazo del serafin"
+    ],
+    "craftsFrom": [
+      "Lagrima de la diosa",
+      "Capitulo perdido",
+      "Codice diabolico"
+    ]
   },
   {
     "nombre": "Abrazo del serafin",
@@ -3465,7 +3612,9 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Seraph%27s_Embrace_item_HD.png?811fa",
     "craftsTo": [],
-    "craftsFrom": ["Baston del Arcangel"]
+    "craftsFrom": [
+      "Baston del Arcangel"
+    ]
   },
   {
     "nombre": "Manamune",
@@ -3491,8 +3640,14 @@
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Manamune_item_HD.png?6c325",
-    "craftsTo": ["Muramana"],
-    "craftsFrom": ["Lagrima de la diosa", "Martillo de guerra de Caulfield", "Espada larga"]
+    "craftsTo": [
+      "Muramana"
+    ],
+    "craftsFrom": [
+      "Lagrima de la diosa",
+      "Martillo de guerra de Caulfield",
+      "Espada larga"
+    ]
   },
   {
     "nombre": "Muramana",
@@ -3519,7 +3674,9 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Muramana_item_HD.png?08cde",
     "craftsTo": [],
-    "craftsFrom": ["Manamune"]
+    "craftsFrom": [
+      "Manamune"
+    ]
   },
   {
     "nombre": "Sobrecarga tormentosa",
@@ -3546,7 +3703,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item_HD.png?e7adb",
     "craftsTo": [],
-    "craftsFrom": ["Alternador hextech", "Brisa de eter"]
+    "craftsFrom": [
+      "Alternador hextech",
+      "Brisa del eter"
+    ]
   },
   {
     "nombre": "Segador de esencia",
@@ -3573,7 +3733,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Essence_Reaver_item_HD.png?c4393",
     "craftsTo": [],
-    "craftsFrom": ["Pico", "Martillo de guerra de Caulfield", "Capa de agilidad"]
+    "craftsFrom": [
+      "Pico",
+      "Martillo de guerra de Caulfield",
+      "Capa de agilidad"
+    ]
   },
   {
     "nombre": "Eclipse",
@@ -3600,7 +3764,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Eclipse_item_HD.png?a4729",
     "craftsTo": [],
-    "craftsFrom": ["Martillo de guerra de Caulfield", "Pico", "Espada larga"]
+    "craftsFrom": [
+      "Martillo de guerra de Caulfield",
+      "Pico",
+      "Espada larga"
+    ]
   },
   {
     "nombre": "Guantelete de hielo",
@@ -3627,10 +3795,14 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Iceborn_Gauntlet_item_HD.png?1ff32",
     "craftsTo": [],
-    "craftsFrom": ["Brillo", "Cristal de rubi", "Chaleco de cadenas"]
+    "craftsFrom": [
+      "Brillo",
+      "Cristal de rubi",
+      "Chaleco de cadenas"
+    ]
   },
   {
-    "nombre": "Rookern kaenico",
+    "nombre": "Rookern kaeniko",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -3654,7 +3826,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kaenic_Rookern_item_HD.png?392b5",
     "craftsTo": [],
-    "craftsFrom": ["Habito del espectro", "Capa negatron"]
+    "craftsFrom": [
+      "Habito del espectro",
+      "Capa negatron"
+    ]
   },
   {
     "nombre": "Coraza del muerto",
@@ -3681,7 +3856,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Dead_Man%27s_Plate_item_HD.png?1fb1b",
     "craftsTo": [],
-    "craftsFrom": ["Armadura lunar alada", "Cristal de rubi", "Chaleco de cadenas"]
+    "craftsFrom": [
+      "Armadura lunar alada",
+      "Cristal de rubi",
+      "Chaleco de cadenas"
+    ]
   },
   {
     "nombre": "Maldicion sanguinolenta",
@@ -3708,7 +3887,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodletter%27s_Curse_item_HD.png?91ec3",
     "craftsTo": [],
-    "craftsFrom": ["Disfraz encantado", "Codice diabolico"]
+    "craftsFrom": [
+      "Disfraz encantado",
+      "Codice diabolico"
+    ]
   },
   {
     "nombre": "Morellonomicon",
@@ -3735,7 +3917,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Morellonomicon_item_HD.png?1eca4",
     "craftsTo": [],
-    "craftsFrom": ["Orbe del olvido", "Vara explosiva", "Gema avivadora"]
+    "craftsFrom": [
+      "Orbe del olvido",
+      "Vara explosiva",
+      "Gema avivadora"
+    ]
   },
   {
     "nombre": "Recaudadora",
@@ -3762,7 +3948,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/The_Collector_item_HD.png?85e92",
     "craftsTo": [],
-    "craftsFrom": ["Pico", "Daga dentada", "Capa de agilidad"]
+    "craftsFrom": [
+      "Pico",
+      "Daga dentada",
+      "Capa de agilidad"
+    ]
   },
   {
     "nombre": "Velo del hada de la muerte",
@@ -3789,7 +3979,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Banshee%27s_Veil_item_HD.png?9484c",
     "craftsTo": [],
-    "craftsFrom": ["Vara innecesariamente grande", "Barrera frondosa"]
+    "craftsFrom": [
+      "Vara innecesariamente grande",
+      "Barrera frondosa"
+    ]
   },
   {
     "nombre": "Baston del vacio",
@@ -3816,7 +4009,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Void_Staff_item_HD.png?6ad88",
     "craftsTo": [],
-    "craftsFrom": ["Joya de la plaga", "Vara explosiva"]
+    "craftsFrom": [
+      "Joya de la plaga",
+      "Vara explosiva"
+    ]
   },
   {
     "nombre": "Diente de Nashor",
@@ -3843,7 +4039,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Nashor%27s_Tooth_item_HD.png?a3dca",
     "craftsTo": [],
-    "craftsFrom": ["Arco curvo", "Vara explosiva", "Codice diabolico"]
+    "craftsFrom": [
+      "Arco curvo",
+      "Vara explosiva",
+      "Codice diabolico"
+    ]
   },
   {
     "nombre": "Impulso cosmico",
@@ -3870,7 +4070,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Cosmic_Drive_item_HD.png?486be",
     "craftsTo": [],
-    "craftsFrom": ["Gema avivadora", "Brisa de eter", "Codice diabolico"]
+    "craftsFrom": [
+      "Gema avivadora",
+      "Brisa del eter",
+      "Codice diabolico"
+    ]
   },
   {
     "nombre": "Tormento de Liandry",
@@ -3897,7 +4101,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Liandry%27s_Torment_item_HD.png?b42e8",
     "craftsTo": [],
-    "craftsFrom": ["Disfraz encantado", "Cenizas predestinadas"]
+    "craftsFrom": [
+      "Disfraz encantado",
+      "Cenizas predestinadas"
+    ]
   },
   {
     "nombre": "Hoja de furia de Guinsoo",
@@ -3924,7 +4131,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guinsoo%27s_Rageblade_item_HD.png?23c5a",
     "craftsTo": [],
-    "craftsFrom": ["Tomo amplificador", "Arco curvo", "Pico"]
+    "craftsFrom": [
+      "Tomo amplificador",
+      "Arco curvo",
+      "Pico"
+    ]
   },
   {
     "nombre": "Soberbia",
@@ -3951,7 +4162,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hubris_item_HD.png?b4418",
     "craftsTo": [],
-    "craftsFrom": ["Daga dentada", "Martillo de guerra de Caulfield"]
+    "craftsFrom": [
+      "Daga dentada",
+      "Martillo de guerra de Caulfield"
+    ]
   },
   {
     "nombre": "Arco axiomatico",
@@ -3978,7 +4192,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Axiom_Arc_item_HD.png?996d1",
     "craftsTo": [],
-    "craftsFrom": ["Embrutecedor", "Martillo de guerra de Caulfield"]
+    "craftsFrom": [
+      "Embrutecedor",
+      "Martillo de guerra de Caulfield"
+    ]
   },
   {
     "nombre": "Espada ciclovoltaica",
@@ -4005,7 +4222,11 @@
     "cantidad": 1,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Voltaic_Cyclosword_item_HD.png?692d3",
     "craftsTo": [],
-    "craftsFrom": ["Embrutecedor", "Espada larga", "Espada larga"]
+    "craftsFrom": [
+      "Embrutecedor",
+      "Espada larga",
+      "Espada larga"
+    ]
   },
   {
     "nombre": "Filo de la noche",
@@ -4032,7 +4253,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Edge_of_Night_item_HD.png?3529c",
     "craftsTo": [],
-    "craftsFrom": ["Daga dentada", "Tuneladora"]
+    "craftsFrom": [
+      "Daga dentada",
+      "Tuneladora"
+    ]
   },
   {
     "nombre": "Sable espectral",
@@ -4059,7 +4283,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectral_Cutlass_item.png?f1c9e",
     "craftsTo": [],
-    "craftsFrom": ["Daga dentada", "Salvavidas"]
+    "craftsFrom": [
+      "Daga dentada",
+      "Salvavidas"
+    ]
   },
   {
     "nombre": "Arcoescudo inmortal",
@@ -4086,7 +4313,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Immortal_Shieldbow_item_HD.png?ae143",
     "craftsTo": [],
-    "craftsFrom": ["Pico", "Carcaj del mediodia"]
+    "craftsFrom": [
+      "Pico",
+      "Carcaj del mediodia"
+    ]
   },
   {
     "nombre": "Recuerdos de lord Dominik",
@@ -4113,7 +4343,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lord_Dominik%27s_Regards_item_HD.png?f2a7a",
     "craftsTo": [],
-    "craftsFrom": ["Ultimas palabras", "Carcaj del mediodia"]
+    "craftsFrom": [
+      "Ultimas palabras",
+      "Carcaj del mediodia"
+    ]
   },
   {
     "nombre": "El final",
@@ -4140,7 +4373,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Terminus_item_HD.png?84cb9",
     "craftsTo": [],
-    "craftsFrom": ["Hacha hogareña", "Arco curvo"]
+    "craftsFrom": [
+      "Hacha hogareña",
+      "Arco curvo"
+    ]
   },
   {
     "nombre": "Flechas de los Yun Tal",
@@ -4167,7 +4403,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Yun_Tal_Wildarrows_item_HD.png?cceb4",
     "craftsTo": [],
-    "craftsFrom": ["Espadon", "Honda de explorador"]
+    "craftsFrom": [
+      "Espadon",
+      "Honda de explorador"
+    ]
   },
   {
     "nombre": "Experimento de hexarmadura",
@@ -4194,10 +4433,14 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Experimental_Hexplate_item_HD.png?56811",
     "craftsTo": [],
-    "craftsFrom": ["Tuneladora", "Bacteriofago", "Daga"]
+    "craftsFrom": [
+      "Tuneladora",
+      "Bacteriofago",
+      "Daga"
+    ]
   },
   {
-    "nombre": "Rencor de Serylda",
+    "nombre": "Rencor de Sherilda",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -4221,7 +4464,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serylda%27s_Grudge_item_HD.png?66f33",
     "craftsTo": [],
-    "craftsFrom": ["Martillo de guerra de Caulfield", "Ultimas palabras"]
+    "craftsFrom": [
+      "Martillo de guerra de Caulfield",
+      "Ultimas palabras"
+    ]
   },
   {
     "nombre": "Cuchilla negra",
@@ -4248,7 +4494,11 @@
     "cantidad": 1,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Black_Cleaver_item_HD.png?3df06",
     "craftsTo": [],
-    "craftsFrom": ["Bacteriofago", "Gema avivadora", "Pico"]
+    "craftsFrom": [
+      "Bacteriofago",
+      "Gema avivadora",
+      "Pico"
+    ]
   },
   {
     "nombre": "Rompecascos",
@@ -4275,7 +4525,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Hullbreaker_item_HD.png?1b941",
     "craftsTo": [],
-    "craftsFrom": ["Tuneladora", "Armadura lunar alada", "Pico"]
+    "craftsFrom": [
+      "Tuneladora",
+      "Armadura lunar alada",
+      "Pico"
+    ]
   },
   {
     "nombre": "Corazon de acero",
@@ -4302,7 +4556,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Heartsteel_item_HD.png?788a3",
     "craftsTo": [],
-    "craftsFrom": ["Cinturon de gigante", "Brazal cristalino", "Cinturon de gigante"]
+    "craftsFrom": [
+      "Cinturon de gigante",
+      "Brazal cristalino",
+      "Cinturon de gigante"
+    ]
   },
   {
     "nombre": "Creagrietas",
@@ -4329,7 +4587,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Riftmaker_item_HD.png?7236d",
     "craftsTo": [],
-    "craftsFrom": ["Disfraz encantado", "Codice diabolico"]
+    "craftsFrom": [
+      "Disfraz encantado",
+      "Codice diabolico"
+    ]
   },
   {
     "nombre": "Verdugo de Krakens",
@@ -4356,7 +4617,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kraken_Slayer_item_HD.png?1b4a5",
     "craftsTo": [],
-    "craftsFrom": ["Rectrice", "Hacha hogareña", "Arco curvo"]
+    "craftsFrom": [
+      "Rectrice",
+      "Hacha hogareña",
+      "Arco curvo"
+    ]
   },
   {
     "nombre": "Fauces de Malmortius",
@@ -4383,7 +4648,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Maw_of_Malmortius_item_HD.png?901a6",
     "craftsTo": [],
-    "craftsFrom": ["Sobremaleficios", "Martillo de guerra de Caulfield"]
+    "craftsFrom": [
+      "Sobremaleficios",
+      "Martillo de guerra de Caulfield"
+    ]
   },
   {
     "nombre": "Mecanoespada punki",
@@ -4410,7 +4678,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chempunk_Chainsword_item_HD.png?2a7e1",
     "craftsTo": [],
-    "craftsFrom": ["Llamada del verdugo", "Cinturon de gigante", "Martillo de guerra de Caulfield"]
+    "craftsFrom": [
+      "Llamada del verdugo",
+      "Cinturon de gigante",
+      "Martillo de guerra de Caulfield"
+    ]
   },
   {
     "nombre": "Lanza de Shojin",
@@ -4437,7 +4709,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spear_of_Shojin_item_HD.png?111a2",
     "craftsTo": [],
-    "craftsFrom": ["Pico", "Tuneladora", "Cristal de rubi"]
+    "craftsFrom": [
+      "Pico",
+      "Tuneladora",
+      "Cristal de rubi"
+    ]
   },
   {
     "nombre": "Firmamento desgarrado",
@@ -4464,7 +4740,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sundered_Sky_item_HD.png?26bfd",
     "craftsTo": [],
-    "craftsFrom": ["Tuneladora", "Martillo de guerra de Caulfield", "Cristal de rubi"]
+    "craftsFrom": [
+      "Tuneladora",
+      "Martillo de guerra de Caulfield",
+      "Cristal de rubi"
+    ]
   },
   {
     "nombre": "Perdicion del liche",
@@ -4491,7 +4771,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item_HD.png?37a26",
     "craftsTo": [],
-    "craftsFrom": ["Brillo", "Brisa de eter", "Vara explosiva"]
+    "craftsFrom": [
+      "Brillo",
+      "Brisa del eter",
+      "Vara explosiva"
+    ]
   },
   {
     "nombre": "Llamasombria",
@@ -4518,7 +4802,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shadowflame_item_HD.png?8f301",
     "craftsTo": [],
-    "craftsFrom": ["Alternador hextech", "Vara innecesariamente grande"]
+    "craftsFrom": [
+      "Alternador hextech",
+      "Vara innecesariamente grande"
+    ]
   },
   {
     "nombre": "Hidra profana",
@@ -4545,7 +4832,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Profane_Hydra_item_HD.png?a6f1e",
     "craftsTo": [],
-    "craftsFrom": ["Tiamat", "Embrutecedor"]
+    "craftsFrom": [
+      "Tiamat",
+      "Embrutecedor"
+    ]
   },
   {
     "nombre": "Recordatorio letal",
@@ -4572,7 +4862,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mortal_Reminder_item_HD.png?cc922",
     "craftsTo": [],
-    "craftsFrom": ["Llamada del verdugo", "Ultimas palabras", "Capa de agilidad"]
+    "craftsFrom": [
+      "Llamada del verdugo",
+      "Ultimas palabras",
+      "Capa de agilidad"
+    ]
   },
   {
     "nombre": "Hoja del rey arruinado",
@@ -4599,7 +4893,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Blade_of_the_Ruined_King_item_HD.png?33292",
     "craftsTo": [],
-    "craftsFrom": ["Cetro vampirico", "Arco curvo", "Pico"]
+    "craftsFrom": [
+      "Cetro vampirico",
+      "Arco curvo",
+      "Pico"
+    ]
   },
   {
     "nombre": "Angel de la guarda",
@@ -4626,7 +4924,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Guardian_Angel_item_HD.png?a4f20",
     "craftsTo": [],
-    "craftsFrom": ["Sello de acero", "Espadon"]
+    "craftsFrom": [
+      "Sello de acero",
+      "Espadon"
+    ]
   },
   {
     "nombre": "Cimitarra mercurial",
@@ -4653,7 +4954,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mercurial_Scimitar_item_HD.png?76847",
     "craftsTo": [],
-    "craftsFrom": ["Fajin de mercurio", "Pico", "Cetro vampirico"]
+    "craftsFrom": [
+      "Fajin de mercurio",
+      "Pico",
+      "Cetro vampirico"
+    ]
   },
   {
     "nombre": "Jak'sho el proteico",
@@ -4680,7 +4985,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Jak%27Sho%2C_The_Protean_item_HD.png?2ebc2",
     "craftsTo": [],
-    "craftsFrom": ["Cinturon de gigante", "Chaleco de cadenas", "Capa negatron"]
+    "craftsFrom": [
+      "Cinturon de gigante",
+      "Chaleco de cadenas",
+      "Capa negatron"
+    ]
   },
   {
     "nombre": "Calibrador de Sterak",
@@ -4707,7 +5016,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sterak%27s_Gage_item_HD.png?f2129",
     "craftsTo": [],
-    "craftsFrom": ["Pico", "Tuneladora", "Cristal de rubi"]
+    "craftsFrom": [
+      "Pico",
+      "Tuneladora",
+      "Cristal de rubi"
+    ]
   },
   {
     "nombre": "Reloj de arena de Zhonya",
@@ -4734,7 +5047,10 @@
     "cantidad": 1,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zhonya%27s_Hourglass_item_HD.png?98c3c",
     "craftsTo": [],
-    "craftsFrom": ["Vara innecesariamente grande", "Brazalete de la buscadora"]
+    "craftsFrom": [
+      "Vara innecesariamente grande",
+      "Brazalete de la buscadora"
+    ]
   },
   {
     "nombre": "Cortasendas",
@@ -4761,7 +5077,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Stridebreaker_item_HD.png?715c3",
     "craftsTo": [],
-    "craftsFrom": ["Tiamat", "Bacteriofago", "Daga"]
+    "craftsFrom": [
+      "Tiamat",
+      "Bacteriofago",
+      "Daga"
+    ]
   },
   {
     "nombre": "Hidra voraz",
@@ -4788,7 +5108,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ravenous_Hydra_item_HD.png?6ec25",
     "craftsTo": [],
-    "craftsFrom": ["Tiamat", "Cetro vampirico", "Martillo de guerra de Caulfield"]
+    "craftsFrom": [
+      "Tiamat",
+      "Cetro vampirico",
+      "Martillo de guerra de Caulfield"
+    ]
   },
   {
     "nombre": "Baile de la muerte",
@@ -4815,7 +5139,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Death%27s_Dance_item_HD.png?4688b",
     "craftsTo": [],
-    "craftsFrom": ["Sello de acero", "Pico", "Martillo de guerra de Caulfield"]
+    "craftsFrom": [
+      "Sello de acero",
+      "Pico",
+      "Martillo de guerra de Caulfield"
+    ]
   },
   {
     "nombre": "Hidra titanica",
@@ -4842,10 +5170,14 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Titanic_Hydra_item_HD.png?a4a79",
     "craftsTo": [],
-    "craftsFrom": ["Tiamat", "Tuneladora", "Cinturon de gigante"]
+    "craftsFrom": [
+      "Tiamat",
+      "Tuneladora",
+      "Cinturon de gigante"
+    ]
   },
   {
-    "nombre": "Sangria del soverano",
+    "nombre": "Sangria del soberano",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -4869,7 +5201,10 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Overlord%27s_Bloodmail_item_HD.png?19287",
     "craftsTo": [],
-    "craftsFrom": ["Tuneladora", "Tuneladora"]
+    "craftsFrom": [
+      "Tuneladora",
+      "Tuneladora"
+    ]
   },
   {
     "nombre": "Armadura de Warmog",
@@ -4896,10 +5231,14 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warmog%27s_Armor_item_HD.png?5bed4",
     "craftsTo": [],
-    "craftsFrom": ["Cinturon de gigante", "Cinturon de gigante", "Brazal cristalino"]
+    "craftsFrom": [
+      "Cinturon de gigante",
+      "Cinturon de gigante",
+      "Brazal cristalino"
+    ]
   },
   {
-    "nombre": "Fuerza de la trinidad",
+    "nombre": "Fuerza de trinidad",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -4923,7 +5262,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trinity_Force_item_HD.png?fb053",
     "craftsTo": [],
-    "craftsFrom": ["Brillo", "Bacteriofago", "Hacha hogareña"]
+    "craftsFrom": [
+      "Brillo",
+      "Bacteriofago",
+      "Hacha hogareña"
+    ]
   },
   {
     "nombre": "Sanguinaria",
@@ -4950,7 +5293,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bloodthirster_item_HD.png?9476d",
     "craftsTo": [],
-    "craftsFrom": ["Espadon", "Pico", "Cetro vampirico"]
+    "craftsFrom": [
+      "Espadon",
+      "Pico",
+      "Cetro vampirico"
+    ]
   },
   {
     "nombre": "Filo infinito",
@@ -4977,7 +5324,11 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Infinity_Edge_item_HD.png?a5e3f",
     "craftsTo": [],
-    "craftsFrom": ["Espadon", "Pico", "Capa de agilidad"]
+    "craftsFrom": [
+      "Espadon",
+      "Pico",
+      "Capa de agilidad"
+    ]
   },
   {
     "nombre": "Sombrero mortal de Rabadon",
@@ -5033,7 +5384,15 @@
     },
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Boots_item_Unused_HD.png?bc3a4",
-    "craftsTo": ["Suelas simbioticas", "Botas jonias de lucidez", "Botas de rapidez", "Botas de hechicero", "Grebas de berserker", "Botas blindadas", "Botas de mercurio"],
+    "craftsTo": [
+      "Suelas simbioticas",
+      "Botas jonias de lucidez",
+      "Botas de rapidez",
+      "Botas de hechicero",
+      "Grebas de berserker",
+      "Botas blindadas",
+      "Botas de mercurio"
+    ],
     "craftsFrom": []
   },
   {
@@ -5060,8 +5419,12 @@
     },
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Symbiotic_Soles_item_HD.png?4bfac",
-    "craftsTo": ["Almas en sincronia"],
-    "craftsFrom": ["Botas"]
+    "craftsTo": [
+      "Almas en sincronia"
+    ],
+    "craftsFrom": [
+      "Botas"
+    ]
   },
   {
     "nombre": "Almas en sincronia",
@@ -5087,8 +5450,12 @@
     },
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Synchronized_Souls_item_HD.png?6181a",
-    "craftsTo": ["Avance eterno"],
-    "craftsFrom": ["Suelas simbioticas"]
+    "craftsTo": [
+      "Avance eterno"
+    ],
+    "craftsFrom": [
+      "Suelas simbioticas"
+    ]
   },
   {
     "nombre": "Avance eterno",
@@ -5115,7 +5482,9 @@
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Forever_Forward_item_HD.png?e7101",
     "craftsTo": [],
-    "craftsFrom": ["Almas en sincronia"]
+    "craftsFrom": [
+      "Almas en sincronia"
+    ]
   },
   {
     "nombre": "Botas jonias de lucidez",
@@ -5141,8 +5510,13 @@
     },
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ionian_Boots_of_Lucidity_item_HD.png?a4476",
-    "craftsTo": ["Lucidez carmesi"],
-    "craftsFrom": ["Botas", "Mota brillante"]
+    "craftsTo": [
+      "Lucidez carmesi"
+    ],
+    "craftsFrom": [
+      "Botas",
+      "Mota brillante"
+    ]
   },
   {
     "nombre": "Lucidez carmesi",
@@ -5169,7 +5543,9 @@
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Crimson_Lucidity_item_HD.png?60d79",
     "craftsTo": [],
-    "craftsFrom": ["Botas jonias de lucidez"]
+    "craftsFrom": [
+      "Botas jonias de lucidez"
+    ]
   },
   {
     "nombre": "Botas de rapidez",
@@ -5195,8 +5571,12 @@
     },
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Boots_of_Swiftness_item_HD.png?e78f2",
-    "craftsTo": ["Marcha veloz"],
-    "craftsFrom": ["Botas"]
+    "craftsTo": [
+      "Marcha veloz"
+    ],
+    "craftsFrom": [
+      "Botas"
+    ]
   },
   {
     "nombre": "Marcha veloz",
@@ -5223,7 +5603,9 @@
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Swiftmarch_item_HD.png?91103",
     "craftsTo": [],
-    "craftsFrom": ["Botas de rapidez"]
+    "craftsFrom": [
+      "Botas de rapidez"
+    ]
   },
   {
     "nombre": "Botas de hechicero",
@@ -5249,9 +5631,13 @@
     },
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Sorcerer%27s_Shoes_item_HD.png?86f92",
-    "craftsTo": ["Botas de lanza hechizos"],
-    "craftsFrom": ["Botas"]
-  } ,
+    "craftsTo": [
+      "Botas de lanza hechizos"
+    ],
+    "craftsFrom": [
+      "Botas"
+    ]
+  },
   {
     "nombre": "Botas de lanza hechizos",
     "rareza": "Botas",
@@ -5277,7 +5663,9 @@
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spellslinger%27s_Shoes_item_HD.png?863a6",
     "craftsTo": [],
-    "craftsFrom": ["Botas de hechicero"]
+    "craftsFrom": [
+      "Botas de hechicero"
+    ]
   },
   {
     "nombre": "Grebas de berserker",
@@ -5303,8 +5691,14 @@
     },
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Berserker%27s_Greaves_item_HD.png?0b20d",
-    "craftsTo": ["Grebas de metal", "Cefiro"],
-    "craftsFrom": ["Botas", "Daga"]
+    "craftsTo": [
+      "Grebas de metal",
+      "Cefiro"
+    ],
+    "craftsFrom": [
+      "Botas",
+      "Daga"
+    ]
   },
   {
     "nombre": "Grebas de metal",
@@ -5331,7 +5725,9 @@
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Gunmetal_Greaves_item_HD.png?72e55",
     "craftsTo": [],
-    "craftsFrom": ["Grebas de berserker"]
+    "craftsFrom": [
+      "Grebas de berserker"
+    ]
   },
   {
     "nombre": "Cefiro",
@@ -5358,7 +5754,9 @@
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Zephyr_item.png?6194a",
     "craftsTo": [],
-    "craftsFrom": ["Grebas de berserker"]
+    "craftsFrom": [
+      "Grebas de berserker"
+    ]
   },
   {
     "nombre": "Botas blindadas",
@@ -5384,8 +5782,13 @@
     },
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Plated_Steelcaps_item_HD.png?a2156",
-    "craftsTo": ["Avance blindado"],
-    "craftsFrom": ["Botas", "Armadura de Tela"]
+    "craftsTo": [
+      "Avance blindado"
+    ],
+    "craftsFrom": [
+      "Botas",
+      "Armadura de Tela"
+    ]
   },
   {
     "nombre": "Avance blindado",
@@ -5412,7 +5815,9 @@
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Armored_Advance_item_HD.png?6be36",
     "craftsTo": [],
-    "craftsFrom": ["Botas blindadas"]
+    "craftsFrom": [
+      "Botas blindadas"
+    ]
   },
   {
     "nombre": "Botas de mercurio",
@@ -5438,8 +5843,13 @@
     },
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Mercury%27s_Treads_item_HD.png?00690",
-    "craftsTo": ["Trituradoras encadenadas"],
-    "craftsFrom": ["Botas", "Manto de Anulacion de Magia"]
+    "craftsTo": [
+      "Trituradoras encadenadas"
+    ],
+    "craftsFrom": [
+      "Botas",
+      "Manto de Anulacion de Magia"
+    ]
   },
   {
     "nombre": "Trituradoras encadenadas",
@@ -5466,6 +5876,8 @@
     "cantidad": 3,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Chainlaced_Crushers_item_HD.png?c164d",
     "craftsTo": [],
-    "craftsFrom": ["Botas de mercurio"]
+    "craftsFrom": [
+      "Botas de mercurio"
+    ]
   }
 ]

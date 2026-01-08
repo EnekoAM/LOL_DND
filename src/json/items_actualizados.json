@@ -259,7 +259,7 @@
     "cantidad": 1,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glowing_Mote_item_HD.png?71565",
     "craftsTo": [
-      "Martillo de guerra de Claufield",
+      "Martillo de guerra de Caulfield",
       "Embrutecedor",
       "Codice diabolico",
       "Rescoldo de Bami",
@@ -368,7 +368,7 @@
     "craftsTo": [
       "Habito del espectro",
       "Brazal cristalino",
-      "Promesa del caballero"
+      "Promesa de caballero"
     ],
     "craftsFrom": []
   },
@@ -399,7 +399,7 @@
     "craftsTo": [
       "Carcaj del mediodia",
       "Hacha hogareña",
-      "Martillo de guerra de Claufield",
+      "Martillo de guerra de Caulfield",
       "Sello de acero",
       "Tuneladora",
       "Llamada del verdugo",
@@ -450,7 +450,7 @@
       "Cenizas predestinadas",
       "Brazalete de la buscadora",
       "Joya de la plaga",
-      "Brisa de eter",
+      "Brisa del eter",
       "Disfraz encantado",
       "Capitulo perdido",
       "Espejo de cristal de Bandle",
@@ -977,7 +977,7 @@
       "Convergencia de Zeke",
       "Rostro espiritual",
       "Redencion",
-      "Promesa del caballero",
+      "Promesa de caballero",
       "Renovacion de piedra lunar",
       "Morellonomicon",
       "Bendicion de Mikael",
@@ -1019,7 +1019,7 @@
       "Coraza del muerto",
       "Marcasendas",
       "Malla de espinas",
-      "Promesa del caballero",
+      "Promesa de caballero",
       "Jak'sho el proteico"
     ],
     "craftsFrom": [
@@ -1194,7 +1194,7 @@
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Negatron_Cloak_item_HD.png?c9809",
     "craftsTo": [
       "Fuerza de la naturaleza",
-      "Rookern kaenico",
+      "Rookern kaeniko",
       "Final del ingenio",
       "Jak'sho el proteico",
       "Mascara abisal"
@@ -1205,26 +1205,26 @@
     ]
   },
   {
-    "nombre": "Broquel glaciar",
+    "nombre": "Broquel glacial",
     "rareza": "Epico",
     "stats": {
       "HP": 0,
-      "AC": 0,
+      "AC": 0.25,
       "MR": 0,
-      "MANA": 0,
+      "MANA": 10,
       "AD": 0,
       "AP": 0,
       "CRIT_CHANCE": 0,
       "CRIT_DAMAGE": 0,
       "SPE": 0,
       "ATK_SPE_PCT": 0,
-      "AB_SPE_PCT": 0,
+      "AB_SPE_PCT": 10,
       "LETHALITY": 0,
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "-",
+      "activa": "-"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Glacial_Buckler_item_Unused_HD.png?5e44e",
@@ -1238,7 +1238,7 @@
     ]
   },
   {
-    "nombre": "Brisa de eter",
+    "nombre": "Brisa del eter",
     "rareza": "Epico",
     "stats": {
       "HP": 0,
@@ -1246,18 +1246,18 @@
       "MR": 0,
       "MANA": 0,
       "AD": 0,
-      "AP": 0,
+      "AP": "1d2",
       "CRIT_CHANCE": 0,
       "CRIT_DAMAGE": 0,
-      "SPE": 0,
+      "SPE": 1,
       "ATK_SPE_PCT": 0,
       "AB_SPE_PCT": 0,
       "LETHALITY": 0,
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "-",
+      "activa": "-"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Aether_Wisp_item_HD.png?993ef",
@@ -1265,7 +1265,7 @@
       "Rito de la ruina",
       "Sobrecarga tormentosa",
       "Incensario ardiente",
-      "Cancion de batalla de Shurelya",
+      "Cancion de la batalla de Shurelya",
       "Perdicion del liche",
       "Impulso cosmico"
     ],
@@ -1332,7 +1332,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Bandleglass_Mirror_item_HD.png?42862",
     "craftsTo": [
-      "Cancion de batalla de Shurelya",
+      "Cancion de la batalla de Shurelya",
       "Ecos de helia",
       "Renovacion de piedra lunar",
       "Mandato imperial"
@@ -1555,26 +1555,26 @@
     ]
   },
   {
-    "nombre": "Martillo de guerra de Claufield",
+    "nombre": "Martillo de guerra de Caulfield",
     "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
       "MR": 0,
       "MANA": 0,
-      "AD": 0,
+      "AD": "1d4",
       "AP": 0,
       "CRIT_CHANCE": 0,
       "CRIT_DAMAGE": 0,
       "SPE": 0,
       "ATK_SPE_PCT": 0,
-      "AB_SPE_PCT": 0,
+      "AB_SPE_PCT": 10,
       "LETHALITY": 0,
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "-",
+      "activa": "-"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Caulfield%27s_Warhammer_item_HD.png?5e566",
@@ -1584,7 +1584,7 @@
       "Fauces de malmortius",
       "Eclipse",
       "Hidra voraz",
-      "Rencor de Serylda",
+      "Rencor de Sherilda",
       "Segador de esencia",
       "Baile de la muerte",
       "Mecanoespada punki",
@@ -1936,7 +1936,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Spectre%27s_Cowl_item_Unused_HD.png?28289",
     "craftsTo": [
-      "Rookern kaenico",
+      "Rookern kaeniko",
       "Rostro espiritual",
       "Fulgor vano"
     ],
@@ -2014,16 +2014,16 @@
     ]
   },
   {
-    "nombre": "Carcaj de mediodia",
+    "nombre": "Carcaj del mediodia",
     "rareza": "Epico",
     "stats": {
       "HP": 0,
       "AC": 0,
       "MR": 0,
       "MANA": 0,
-      "AD": 0,
+      "AD": "1d2",
       "AP": 0,
-      "CRIT_CHANCE": 0,
+      "CRIT_CHANCE": 2,
       "CRIT_DAMAGE": 0,
       "SPE": 0,
       "ATK_SPE_PCT": 0,
@@ -2032,8 +2032,8 @@
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "-",
+      "activa": "-"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Noonquiver_item_HD.png?17c55",
@@ -2170,7 +2170,7 @@
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Last_Whisper_item_HD.png?fa92c",
     "craftsTo": [
-      "Rencor de Serylda",
+      "Rencor de Sherilda",
       "Recordatorio letal",
       "Recuerdos de lord Dominik"
     ],
@@ -2307,7 +2307,7 @@
     ]
   },
   {
-    "nombre": "Cancion de batalla de Shurelya",
+    "nombre": "Cancion de la batalla de Shurelya",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
@@ -2315,24 +2315,24 @@
       "MR": 0,
       "MANA": 0,
       "AD": 0,
-      "AP": 0,
+      "AP": "2d2",
       "CRIT_CHANCE": 0,
       "CRIT_DAMAGE": 0,
-      "SPE": 0,
+      "SPE": 1,
       "ATK_SPE_PCT": 0,
-      "AB_SPE_PCT": 0,
+      "AB_SPE_PCT": 15,
       "LETHALITY": 0,
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "-",
+      "activa": "(Puede recuperar 15 de mana por cada uso de este ítem. Tiene 3 usos hasta descanso corto) (+30% de SPE [Cálculo en el documento del funcionamiento] a tí y a los aliados cercanos [5x5 y tú en el medio] durante 1 turno [Desde que lo usas hasta que te llegue el turno otra vez]. Se puede usar 1 vez cada 8 turnos)"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item_HD.png?139cb",
     "craftsTo": [],
     "craftsFrom": [
-      "Brisa de eter",
+      "Brisa del eter",
       "Espejo de cristal de bandle"
     ]
   },
@@ -2362,7 +2362,7 @@
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item_HD.png?a5793",
     "craftsTo": [],
     "craftsFrom": [
-      "Brisa de eter",
+      "Brisa del eter",
       "Idolo prohibido"
     ]
   },
@@ -2609,11 +2609,11 @@
     ]
   },
   {
-    "nombre": "Promesa del caballero",
+    "nombre": "Promesa de caballero",
     "rareza": "Legendario",
     "stats": {
-      "HP": 0,
-      "AC": 0,
+      "HP": 2,
+      "AC": 1,
       "MR": 0,
       "MANA": 0,
       "AD": 0,
@@ -2622,13 +2622,13 @@
       "CRIT_DAMAGE": 0,
       "SPE": 0,
       "ATK_SPE_PCT": 0,
-      "AB_SPE_PCT": 0,
+      "AB_SPE_PCT": 10,
       "LETHALITY": 0,
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "(Mientras estás cerca [5x5 y tú en el medio] de tu aliado \"DIGNO\", recibes un 12% del daño que reciba y te curas un 10% del daño que inflija a enemigos)",
+      "activa": "(Puede recuperar x de vida [x=LVL de ese personaje]. Tiene 2 usos hasta descanso corto) (Designas a un aliado como \"DIGNO\" [sólo 1]. Se puede cambiar a otro aliado una vez cada 6 turnos)"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Knight%27s_Vow_item_HD.png?5be23",
@@ -3705,7 +3705,7 @@
     "craftsTo": [],
     "craftsFrom": [
       "Alternador hextech",
-      "Brisa de eter"
+      "Brisa del eter"
     ]
   },
   {
@@ -3802,12 +3802,12 @@
     ]
   },
   {
-    "nombre": "Rookern kaenico",
+    "nombre": "Rookern kaeniko",
     "rareza": "Legendario",
     "stats": {
-      "HP": 0,
+      "HP": 4,
       "AC": 0,
-      "MR": 0,
+      "MR": 2,
       "MANA": 0,
       "AD": 0,
       "AP": 0,
@@ -3820,8 +3820,8 @@
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "(Tras 15 turnos sin recibir AP obtienes un escudo para el daño AP del 15% de tu HP total)",
+      "activa": "(Puede recuperar x de vida [x=LVL de ese personaje]. Tiene 2 usos hasta descanso corto)"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Kaenic_Rookern_item_HD.png?392b5",
@@ -4072,7 +4072,7 @@
     "craftsTo": [],
     "craftsFrom": [
       "Gema avivadora",
-      "Brisa de eter",
+      "Brisa del eter",
       "Codice diabolico"
     ]
   },
@@ -4440,26 +4440,26 @@
     ]
   },
   {
-    "nombre": "Rencor de Serylda",
+    "nombre": "Rencor de Sherilda",
     "rareza": "Legendario",
     "stats": {
       "HP": 0,
       "AC": 0,
       "MR": 0,
       "MANA": 0,
-      "AD": 0,
+      "AD": "2d4",
       "AP": 0,
       "CRIT_CHANCE": 0,
       "CRIT_DAMAGE": 0,
       "SPE": 0,
       "ATK_SPE_PCT": 0,
-      "AB_SPE_PCT": 0,
-      "LETHALITY": 0,
+      "AB_SPE_PCT": 20,
+      "LETHALITY": 2,
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "(Las HABILIDADES de daño ralentizan a los enemigos con menos del 50% de vida un 30% durante 1 turno)",
+      "activa": "-"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Serylda%27s_Grudge_item_HD.png?66f33",
@@ -4773,7 +4773,7 @@
     "craftsTo": [],
     "craftsFrom": [
       "Brillo",
-      "Brisa de eter",
+      "Brisa del eter",
       "Vara explosiva"
     ]
   },
@@ -5177,14 +5177,14 @@
     ]
   },
   {
-    "nombre": "Sangria del soverano",
+    "nombre": "Sangria del soberano",
     "rareza": "Legendario",
     "stats": {
-      "HP": 0,
+      "HP": 6,
       "AC": 0,
       "MR": 0,
       "MANA": 0,
-      "AD": 0,
+      "AD": "1d2",
       "AP": 0,
       "CRIT_CHANCE": 0,
       "CRIT_DAMAGE": 0,
@@ -5195,8 +5195,8 @@
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "(Ganas daño de ataque adicional equivalente al 2% de tu vida adicional.) (Ganas X% de daño de ataque adicional según tu vida faltante [X=0−10].)",
+      "activa": "-"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Overlord%27s_Bloodmail_item_HD.png?19287",
@@ -5210,7 +5210,7 @@
     "nombre": "Armadura de Warmog",
     "rareza": "Legendario",
     "stats": {
-      "HP": 0,
+      "HP": 10,
       "AC": 0,
       "MR": 0,
       "MANA": 0,
@@ -5225,8 +5225,8 @@
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "(Otorga Corazón de Warmog si tienes al menos 1500 de vida adicional.) (Regeneras 2.5% de tu vida máxima cada 0.5 segundos y ganas un 4% de velocidad de movimiento adicional si no has recibido daño en los últimos 6 segundos (3 segundos si el daño proviene de no campeones).)",
+      "activa": "(Puede recuperar x de vida [x=LVL de ese personaje]. Tiene 2 usos hasta descanso corto)"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Warmog%27s_Armor_item_HD.png?5bed4",
@@ -5238,26 +5238,26 @@
     ]
   },
   {
-    "nombre": "Fuerza de la trinidad",
+    "nombre": "Fuerza de trinidad",
     "rareza": "Legendario",
     "stats": {
-      "HP": 0,
+      "HP": 4,
       "AC": 0,
       "MR": 0,
       "MANA": 0,
-      "AD": 0,
+      "AD": "2d4",
       "AP": 0,
       "CRIT_CHANCE": 0,
       "CRIT_DAMAGE": 0,
       "SPE": 0,
-      "ATK_SPE_PCT": 0,
-      "AB_SPE_PCT": 0,
+      "ATK_SPE_PCT": 30,
+      "AB_SPE_PCT": 15,
       "LETHALITY": 0,
       "MAGIC_PEN": 0
     },
     "efecto": {
-      "pasiva": "",
-      "activa": ""
+      "pasiva": "(Después de usar una habilidad, tu próximo ataque básico dentro de 10 segundos inflige 200% de tu AD base como daño físico adicional al golpear (1.5 segundos de enfriamiento, que comienza después de usar el ataque mejorado).) (Los ataques básicos al golpear otorgan 20 de velocidad de movimiento adicional durante 2 segundos.) (Solo puedes tener 1 item que tenga relación entre los siguientes: Brillo, Guantelete de hielo, Fuerza de trinidad, Perdición del liche)",
+      "activa": "-"
     },
     "cantidad": 0,
     "imagen": "https://wiki.leagueoflegends.com/en-us/images/Trinity_Force_item_HD.png?fb053",

@@ -1,0 +1,1149 @@
+{
+  "rolls": [
+    { "type": "Basico", "prob": 50 },
+    { "type": "Epico", "prob": 75 }
+  ],
+  "Drop basico": [
+    { "item": "Prob. basico", "prob": 92 },
+    { "item": "Prob. epico", "prob": 7 },
+    { "item": "Prob. legendario", "prob": 1 }
+  ],
+  "Drop epico": [
+    { "item": "Prob. basico", "prob": 33 },
+    { "item": "Prob. epico", "prob": 62 },
+    { "item": "Prob. legendario", "prob": 5 }
+  ],
+  "Drop legendario": [
+    { "item": "Prob. basico", "prob": 0 },
+    { "item": "Prob. epico", "prob": 30 },
+    { "item": "Prob. legendario", "prob": 70 }
+  ],
+  "items": {
+    "basico": [
+      {
+        "name": "Amuleto de las hadas",
+        "coste": 200,
+        "normalizado": 0.005,
+        "Probabilidad(0,1)": 0.1264581155,
+        "Probabilidad(acumulada)": 0.0000000000
+      },
+      {
+        "name": "Daga",
+        "coste": 250,
+        "normalizado": 0.004,
+        "Probabilidad(0,1)": 0.1011664924,
+        "Probabilidad(acumulada)": 0.1264581155
+      },
+      {
+        "name": "Mota brillante",
+        "coste": 250,
+        "normalizado": 0.004,
+        "Probabilidad(0,1)": 0.1011664924,
+        "Probabilidad(acumulada)": 0.2276246079
+      },
+      {
+        "name": "Cristal de zafiro",
+        "coste": 300,
+        "normalizado": 0.003333333333,
+        "Probabilidad(0,1)": 0.08430541032,
+        "Probabilidad(acumulada)": 0.3287911003
+      },
+      {
+        "name": "Armadura de tela",
+        "coste": 300,
+        "normalizado": 0.003333333333,
+        "Probabilidad(0,1)": 0.08430541032,
+        "Probabilidad(acumulada)": 0.4130965106
+      },
+      {
+        "name": "Perla de rejuvenecimiento",
+        "coste": 300,
+        "normalizado": 0.003333333333,
+        "Probabilidad(0,1)": 0.08430541032,
+        "Probabilidad(acumulada)": 0.4974019209
+      },
+      {
+        "name": "Espada larga",
+        "coste": 350,
+        "normalizado": 0.002857142857,
+        "Probabilidad(0,1)": 0.07226178028,
+        "Probabilidad(acumulada)": 0.5817073312
+      },
+      {
+        "name": "Tomo amplificador",
+        "coste": 400,
+        "normalizado": 0.0025,
+        "Probabilidad(0,1)": 0.06322905774,
+        "Probabilidad(acumulada)": 0.6539691115
+      },
+      {
+        "name": "Manto de anulacion de magia",
+        "coste": 400,
+        "normalizado": 0.0025,
+        "Probabilidad(0,1)": 0.06322905774,
+        "Probabilidad(acumulada)": 0.7171981693
+      },
+      {
+        "name": "Cristal de rubi",
+        "coste": 400,
+        "normalizado": 0.0025,
+        "Probabilidad(0,1)": 0.06322905774,
+        "Probabilidad(acumulada)": 0.7804272270
+      },
+      {
+        "name": "Capa de agilidad",
+        "coste": 600,
+        "normalizado": 0.001666666667,
+        "Probabilidad(0,1)": 0.04215270516,
+        "Probabilidad(acumulada)": 0.8436562848
+      },
+      {
+        "name": "Vara explosiva",
+        "coste": 850,
+        "normalizado": 0.001176470588,
+        "Probabilidad(0,1)": 0.0297548507,
+        "Probabilidad(acumulada)": 0.8858089899
+      },
+      {
+        "name": "Pico",
+        "coste": 875,
+        "normalizado": 0.001142857143,
+        "Probabilidad(0,1)": 0.02890471211,
+        "Probabilidad(acumulada)": 0.9155638406
+      },
+      {
+        "name": "Vara innecesariamente grande",
+        "coste": 1200,
+        "normalizado": 0.0008333333333,
+        "Probabilidad(0,1)": 0.02107635258,
+        "Probabilidad(acumulada)": 0.9444685527
+      },
+      {
+        "name": "Espadon",
+        "coste": 1300,
+        "normalizado": 0.0007692307692,
+        "Probabilidad(0,1)": 0.01945509469,
+        "Probabilidad(acumulada)": 0.9655449053
+      },
+      {
+        "name": "Lo que quieras",
+        "coste": 0,
+        "normalizado": 0,
+        "Probabilidad(0,1)": 0.015,
+        "Probabilidad(acumulada)": 0.985
+      }
+    ],
+    "epico": [
+      {
+        "name": "idolo prohibido",
+        "coste": 600,
+        "normalizado": 0.001666666667,
+        "Probabilidad(0,1)": 0.03629475082,
+        "Probabilidad(acumulada)": 0
+      },
+      {
+        "name": "Honda de explorador",
+        "coste": 600,
+        "normalizado": 0.001666666667,
+        "Probabilidad(0,1)": 0.03629475082,
+        "Probabilidad(acumulada)": 0.0362947508
+      },
+      {
+        "name": "Arco curvo",
+        "coste": 700,
+        "normalizado": 0.001428571429,
+        "Probabilidad(0,1)": 0.03110978641,
+        "Probabilidad(acumulada)": 0.0725895016
+      },
+      {
+        "name": "Rectrice",
+        "coste": 775,
+        "normalizado": 0.001290322581,
+        "Probabilidad(0,1)": 0.02809916192,
+        "Probabilidad(acumulada)": 0.1036992880
+      },
+      {
+        "name": "Orbe del olvido",
+        "coste": 800,
+        "normalizado": 0.00125,
+        "Probabilidad(0,1)": 0.02722106311,
+        "Probabilidad(acumulada)": 0.1317984500
+      },
+      {
+        "name": "Llamada del verdugo",
+        "coste": 800,
+        "normalizado": 0.00125,
+        "Probabilidad(0,1)": 0.02722106311,
+        "Probabilidad(acumulada)": 0.1590195131
+      },
+      {
+        "name": "Gema avivadora",
+        "coste": 800,
+        "normalizado": 0.00125,
+        "Probabilidad(0,1)": 0.02722106311,
+        "Probabilidad(acumulada)": 0.1862405762
+      },
+      {
+        "name": "Chaleco de cadenas",
+        "coste": 800,
+        "normalizado": 0.00125,
+        "Probabilidad(0,1)": 0.02722106311,
+        "Probabilidad(acumulada)": 0.2134616393
+      },
+      {
+        "name": "Chaleco de zarzas",
+        "coste": 800,
+        "normalizado": 0.00125,
+        "Probabilidad(0,1)": 0.02722106311,
+        "Probabilidad(acumulada)": 0.2406827024
+      },
+      {
+        "name": "Brazal cristalino",
+        "coste": 800,
+        "normalizado": 0.00125,
+        "Probabilidad(0,1)": 0.02722106311,
+        "Probabilidad(acumulada)": 0.2679037655
+      },
+      {
+        "name": "Armadura lunar alada",
+        "coste": 800,
+        "normalizado": 0.00125,
+        "Probabilidad(0,1)": 0.02722106311,
+        "Probabilidad(acumulada)": 0.2951248286
+      },
+      {
+        "name": "Codice diabolico",
+        "coste": 850,
+        "normalizado": 0.001176470588,
+        "Probabilidad(0,1)": 0.0256198241,
+        "Probabilidad(acumulada)": 0.3223458917
+      },
+      {
+        "name": "Capa negatron",
+        "coste": 850,
+        "normalizado": 0.001176470588,
+        "Probabilidad(0,1)": 0.0256198241,
+        "Probabilidad(acumulada)": 0.3479657158
+      },
+      {
+        "name": "Broquel glacial",
+        "coste": 900,
+        "normalizado": 0.001111111111,
+        "Probabilidad(0,1)": 0.02419650054,
+        "Probabilidad(acumulada)": 0.3735855400
+      },
+      {
+        "name": "Brisa del eter",
+        "coste": 900,
+        "normalizado": 0.001111111111,
+        "Probabilidad(0,1)": 0.02419650054,
+        "Probabilidad(acumulada)": 0.3977820405
+      },
+      {
+        "name": "Cenizas predestinadas",
+        "coste": 900,
+        "normalizado": 0.001111111111,
+        "Probabilidad(0,1)": 0.02419650054,
+        "Probabilidad(acumulada)": 0.4219785410
+      },
+      {
+        "name": "Espejo de cristal de Bandle",
+        "coste": 900,
+        "normalizado": 0.001111111111,
+        "Probabilidad(0,1)": 0.02419650054,
+        "Probabilidad(acumulada)": 0.4461750416
+      },
+      {
+        "name": "Cetro vampirico",
+        "coste": 900,
+        "normalizado": 0.001111111111,
+        "Probabilidad(0,1)": 0.02419650054,
+        "Probabilidad(acumulada)": 0.4703715421
+      },
+      {
+        "name": "Brillo",
+        "coste": 900,
+        "normalizado": 0.001111111111,
+        "Probabilidad(0,1)": 0.02419650054,
+        "Probabilidad(acumulada)": 0.4945680427
+      },
+      {
+        "name": "Rescoldo de Bami",
+        "coste": 900,
+        "normalizado": 0.001111111111,
+        "Probabilidad(0,1)": 0.02419650054,
+        "Probabilidad(acumulada)": 0.5187645432
+      },
+      {
+        "name": "Cinturon de gigante",
+        "coste": 900,
+        "normalizado": 0.001111111111,
+        "Probabilidad(0,1)": 0.02419650054,
+        "Probabilidad(acumulada)": 0.5429610438
+      },
+      {
+        "name": "Daga dentada",
+        "coste": 1000,
+        "normalizado": 0.001,
+        "Probabilidad(0,1)": 0.02177685049,
+        "Probabilidad(acumulada)": 0.5671575443
+      },
+      {
+        "name": "Malla del guardian",
+        "coste": 1000,
+        "normalizado": 0.001,
+        "Probabilidad(0,1)": 0.02177685049,
+        "Probabilidad(acumulada)": 0.5889343948
+      },
+      {
+        "name": "Martillo de guerra de Caulfield",
+        "coste": 1050,
+        "normalizado": 0.0009523809524,
+        "Probabilidad(0,1)": 0.02073985761,
+        "Probabilidad(acumulada)": 0.6107112453
+      },
+      {
+        "name": "Alternador hextech",
+        "coste": 1100,
+        "normalizado": 0.0009090909091,
+        "Probabilidad(0,1)": 0.01979713681,
+        "Probabilidad(acumulada)": 0.6314511029
+      },
+      {
+        "name": "Joya de la plaga",
+        "coste": 1100,
+        "normalizado": 0.0009090909091,
+        "Probabilidad(0,1)": 0.01979713681,
+        "Probabilidad(acumulada)": 0.6512482397
+      },
+      {
+        "name": "Sello de acero",
+        "coste": 1100,
+        "normalizado": 0.0009090909091,
+        "Probabilidad(0,1)": 0.01979713681,
+        "Probabilidad(acumulada)": 0.6710453765
+      },
+      {
+        "name": "Bacteriofago",
+        "coste": 1100,
+        "normalizado": 0.0009090909091,
+        "Probabilidad(0,1)": 0.01979713681,
+        "Probabilidad(acumulada)": 0.6908425133
+      },
+      {
+        "name": "Tuneladora",
+        "coste": 1150,
+        "normalizado": 0.0008695652174,
+        "Probabilidad(0,1)": 0.01893639173,
+        "Probabilidad(acumulada)": 0.7106396501
+      },
+      {
+        "name": "Capitulo perdido",
+        "coste": 1200,
+        "normalizado": 0.0008333333333,
+        "Probabilidad(0,1)": 0.01814737541,
+        "Probabilidad(acumulada)": 0.7295760419
+      },
+      {
+        "name": "Fervor",
+        "coste": 1200,
+        "normalizado": 0.0008333333333,
+        "Probabilidad(0,1)": 0.01814737541,
+        "Probabilidad(acumulada)": 0.7477234173
+      },
+      {
+        "name": "Hacha hogareña",
+        "coste": 1200,
+        "normalizado": 0.0008333333333,
+        "Probabilidad(0,1)": 0.01814737541,
+        "Probabilidad(acumulada)": 0.7658707927
+      },
+      {
+        "name": "Tiamat",
+        "coste": 1200,
+        "normalizado": 0.0008333333333,
+        "Probabilidad(0,1)": 0.01814737541,
+        "Probabilidad(acumulada)": 0.7840181681
+      },
+      {
+        "name": "Habito del espectro",
+        "coste": 1250,
+        "normalizado": 0.0008,
+        "Probabilidad(0,1)": 0.01742148039,
+        "Probabilidad(acumulada)": 0.8021655435
+      },
+      {
+        "name": "Catalizador de eones",
+        "coste": 1300,
+        "normalizado": 0.0007692307692,
+        "Probabilidad(0,1)": 0.01675142345,
+        "Probabilidad(acumulada)": 0.8195870239
+      },
+      {
+        "name": "Disfraz encantado",
+        "coste": 1300,
+        "normalizado": 0.0007692307692,
+        "Probabilidad(0,1)": 0.01675142345,
+        "Probabilidad(acumulada)": 0.8363384473
+      },
+      {
+        "name": "Carcaj del mediodia",
+        "coste": 1300,
+        "normalizado": 0.0007692307692,
+        "Probabilidad(0,1)": 0.01675142345,
+        "Probabilidad(acumulada)": 0.8530898708
+      },
+      {
+        "name": "Sorbemaleficios",
+        "coste": 1300,
+        "normalizado": 0.0007692307692,
+        "Probabilidad(0,1)": 0.01675142345,
+        "Probabilidad(acumulada)": 0.8698412942
+      },
+      {
+        "name": "Fajin de mercurio",
+        "coste": 1300,
+        "normalizado": 0.0007692307692,
+        "Probabilidad(0,1)": 0.01675142345,
+        "Probabilidad(acumulada)": 0.8865927177
+      },
+      {
+        "name": "Embrutecedor",
+        "coste": 1337,
+        "normalizado": 0.0007479431563,
+        "Probabilidad(0,1)": 0.01628784629,
+        "Probabilidad(acumulada)": 0.9033441411
+      },
+      {
+        "name": "ultimas palabras",
+        "coste": 1450,
+        "normalizado": 0.0006896551724,
+        "Probabilidad(0,1)": 0.01501851758,
+        "Probabilidad(acumulada)": 0.9196319874
+      },
+      {
+        "name": "Robaalmas de Mejai",
+        "coste": 1500,
+        "normalizado": 0.0006666666667,
+        "Probabilidad(0,1)": 0.01451790033,
+        "Probabilidad(acumulada)": 0.9346505050
+      },
+      {
+        "name": "Barrera frondosa",
+        "coste": 1600,
+        "normalizado": 0.000625,
+        "Probabilidad(0,1)": 0.01361053156,
+        "Probabilidad(acumulada)": 0.9491684053
+      },
+      {
+        "name": "Salvavidas",
+        "coste": 1600,
+        "normalizado": 0.000625,
+        "Probabilidad(0,1)": 0.01361053156,
+        "Probabilidad(acumulada)": 0.9627789369
+      },
+      {
+        "name": "Brazalete de la buscadora",
+        "coste": 1600,
+        "normalizado": 0.000625,
+        "Probabilidad(0,1)": 0.01361053156,
+        "Probabilidad(acumulada)": 0.9763894684
+      },
+      {
+        "name": "Lo que quieras",
+        "coste": 0,
+        "normalizado": 0,
+        "Probabilidad(0,1)": 0.04629475082,
+        "Probabilidad(acumulada)": 0.99
+      }
+    ],
+    "legendario": [
+      {
+        "name": "Cancion de la batalla de Shurelya",
+        "coste": 2200,
+        "normalizado": 0.0004545454545,
+        "Probabilidad(0,1)": 0.01314601954,
+        "Probabilidad(acumulada)": 0
+      },
+      {
+        "name": "Incensario ardiente",
+        "coste": 2200,
+        "normalizado": 0.0004545454545,
+        "Probabilidad(0,1)": 0.01314601954,
+        "Probabilidad(acumulada)": 0.0131460195
+      },
+      {
+        "name": "Ecos de Helia",
+        "coste": 2200,
+        "normalizado": 0.0004545454545,
+        "Probabilidad(0,1)": 0.01314601954,
+        "Probabilidad(acumulada)": 0.0262920391
+      },
+      {
+        "name": "Renovacion de piedra lunar",
+        "coste": 2200,
+        "normalizado": 0.0004545454545,
+        "Probabilidad(0,1)": 0.01314601954,
+        "Probabilidad(acumulada)": 0.0394380586
+      },
+      {
+        "name": "Convergencia de Zeke",
+        "coste": 2200,
+        "normalizado": 0.0004545454545,
+        "Probabilidad(0,1)": 0.01314601954,
+        "Probabilidad(acumulada)": 0.0525840782
+      },
+      {
+        "name": "Medallon de los Solari de Hierro",
+        "coste": 2200,
+        "normalizado": 0.0004545454545,
+        "Probabilidad(0,1)": 0.01314601954,
+        "Probabilidad(acumulada)": 0.0657300977
+      },
+      {
+        "name": "Mandato imperial",
+        "coste": 2250,
+        "normalizado": 0.0004444444444,
+        "Probabilidad(0,1)": 0.01285388577,
+        "Probabilidad(acumulada)": 0.0788761172
+      },
+      {
+        "name": "Baston de aguas fluidas",
+        "coste": 2250,
+        "normalizado": 0.0004444444444,
+        "Probabilidad(0,1)": 0.01285388577,
+        "Probabilidad(acumulada)": 0.0917300030
+      },
+      {
+        "name": "Bendicion de Mikael",
+        "coste": 2300,
+        "normalizado": 0.0004347826087,
+        "Probabilidad(0,1)": 0.01257445347,
+        "Probabilidad(acumulada)": 0.1045838888
+      },
+      {
+        "name": "Redencion",
+        "coste": 2300,
+        "normalizado": 0.0004347826087,
+        "Probabilidad(0,1)": 0.01257445347,
+        "Probabilidad(acumulada)": 0.1171583422
+      },
+      {
+        "name": "Promesa de caballero",
+        "coste": 2300,
+        "normalizado": 0.0004347826087,
+        "Probabilidad(0,1)": 0.01257445347,
+        "Probabilidad(acumulada)": 0.1297327957
+      },
+      {
+        "name": "Llegada del invierno",
+        "coste": 2400,
+        "normalizado": 0.0004166666667,
+        "Probabilidad(0,1)": 0.01205051791,
+        "Probabilidad(acumulada)": 0.1423072492
+      },
+      {
+        "name": "Marcasendas",
+        "coste": 2400,
+        "normalizado": 0.0004166666667,
+        "Probabilidad(0,1)": 0.01205051791,
+        "Probabilidad(acumulada)": 0.1543577671
+      },
+      {
+        "name": "Malla de espinas",
+        "coste": 2450,
+        "normalizado": 0.0004081632653,
+        "Probabilidad(0,1)": 0.01180458897,
+        "Probabilidad(acumulada)": 0.1664082850
+      },
+      {
+        "name": "Corazon de hielo",
+        "coste": 2500,
+        "normalizado": 0.0004,
+        "Probabilidad(0,1)": 0.01156849719,
+        "Probabilidad(acumulada)": 0.1782128740
+      },
+      {
+        "name": "Nucleo albar",
+        "coste": 2500,
+        "normalizado": 0.0004,
+        "Probabilidad(0,1)": 0.01156849719,
+        "Probabilidad(acumulada)": 0.1897813712
+      },
+      {
+        "name": "Colmillo de serpiente",
+        "coste": 2500,
+        "normalizado": 0.0004,
+        "Probabilidad(0,1)": 0.01156849719,
+        "Probabilidad(acumulada)": 0.2013498684
+      },
+      {
+        "name": "Vara de las edades",
+        "coste": 2600,
+        "normalizado": 0.0003846153846,
+        "Probabilidad(0,1)": 0.01112355499,
+        "Probabilidad(acumulada)": 0.2129183656
+      },
+      {
+        "name": "Cetro de cristal de Rylai",
+        "coste": 2600,
+        "normalizado": 0.0003846153846,
+        "Probabilidad(0,1)": 0.01112355499,
+        "Probabilidad(acumulada)": 0.2240419205
+      },
+      {
+        "name": "Cintomisil Hextech",
+        "coste": 2600,
+        "normalizado": 0.0003846153846,
+        "Probabilidad(0,1)": 0.01112355499,
+        "Probabilidad(acumulada)": 0.2351654755
+      },
+      {
+        "name": "Bailarin espectral",
+        "coste": 2650,
+        "normalizado": 0.0003773584906,
+        "Probabilidad(0,1)": 0.0109136766,
+        "Probabilidad(acumulada)": 0.2462890305
+      },
+      {
+        "name": "Huracan de Runaan",
+        "coste": 2650,
+        "normalizado": 0.0003773584906,
+        "Probabilidad(0,1)": 0.0109136766,
+        "Probabilidad(acumulada)": 0.2572027071
+      },
+      {
+        "name": "Filofugaz de Navori",
+        "coste": 2650,
+        "normalizado": 0.0003773584906,
+        "Probabilidad(0,1)": 0.0109136766,
+        "Probabilidad(acumulada)": 0.2681163837
+      },
+      {
+        "name": "Cañon de fuego rapido",
+        "coste": 2650,
+        "normalizado": 0.0003773584906,
+        "Probabilidad(0,1)": 0.0109136766,
+        "Probabilidad(acumulada)": 0.2790300603
+      },
+      {
+        "name": "Mascara abisal",
+        "coste": 2650,
+        "normalizado": 0.0003773584906,
+        "Probabilidad(0,1)": 0.0109136766,
+        "Probabilidad(acumulada)": 0.2899437369
+      },
+      {
+        "name": "Malignidad",
+        "coste": 2700,
+        "normalizado": 0.0003703703704,
+        "Probabilidad(0,1)": 0.01071157148,
+        "Probabilidad(acumulada)": 0.3008574135
+      },
+      {
+        "name": "Precision infalible",
+        "coste": 2700,
+        "normalizado": 0.0003703703704,
+        "Probabilidad(0,1)": 0.01071157148,
+        "Probabilidad(acumulada)": 0.3115689850
+      },
+      {
+        "name": "Oportunidades",
+        "coste": 2700,
+        "normalizado": 0.0003703703704,
+        "Probabilidad(0,1)": 0.01071157148,
+        "Probabilidad(acumulada)": 0.3222805565
+      },
+      {
+        "name": "Puñal de Statikk",
+        "coste": 2700,
+        "normalizado": 0.0003703703704,
+        "Probabilidad(0,1)": 0.01071157148,
+        "Probabilidad(acumulada)": 0.3329921279
+      },
+      {
+        "name": "Rostro espiritual",
+        "coste": 2700,
+        "normalizado": 0.0003703703704,
+        "Probabilidad(0,1)": 0.01071157148,
+        "Probabilidad(acumulada)": 0.3437036994
+      },
+      {
+        "name": "Egida de fuego solar",
+        "coste": 2700,
+        "normalizado": 0.0003703703704,
+        "Probabilidad(0,1)": 0.01071157148,
+        "Probabilidad(acumulada)": 0.3544152709
+      },
+      {
+        "name": "Presagio de Randuin",
+        "coste": 2700,
+        "normalizado": 0.0003703703704,
+        "Probabilidad(0,1)": 0.01071157148,
+        "Probabilidad(acumulada)": 0.3651268424
+      },
+      {
+        "name": "Antorcha de fuego negro",
+        "coste": 2800,
+        "normalizado": 0.0003571428571,
+        "Probabilidad(0,1)": 0.01032901535,
+        "Probabilidad(acumulada)": 0.3758384138
+      },
+      {
+        "name": "Filo fantasmal de Youmuu",
+        "coste": 2800,
+        "normalizado": 0.0003571428571,
+        "Probabilidad(0,1)": 0.01032901535,
+        "Probabilidad(acumulada)": 0.3861674292
+      },
+      {
+        "name": "Final del ingenio",
+        "coste": 2800,
+        "normalizado": 0.0003571428571,
+        "Probabilidad(0,1)": 0.01032901535,
+        "Probabilidad(acumulada)": 0.3964964445
+      },
+      {
+        "name": "Fulgor vano",
+        "coste": 2800,
+        "normalizado": 0.0003571428571,
+        "Probabilidad(0,1)": 0.01032901535,
+        "Probabilidad(acumulada)": 0.4068254599
+      },
+      {
+        "name": "Desesperanza eterna",
+        "coste": 2800,
+        "normalizado": 0.0003571428571,
+        "Probabilidad(0,1)": 0.01032901535,
+        "Probabilidad(acumulada)": 0.4171544752
+      },
+      {
+        "name": "Fuerza de la naturaleza",
+        "coste": 2800,
+        "normalizado": 0.0003571428571,
+        "Probabilidad(0,1)": 0.01032901535,
+        "Probabilidad(acumulada)": 0.4274834906
+      },
+      {
+        "name": "Compañera de Luden",
+        "coste": 2850,
+        "normalizado": 0.000350877193,
+        "Probabilidad(0,1)": 0.01014780456,
+        "Probabilidad(acumulada)": 0.4378125060
+      },
+      {
+        "name": "Florescencia sepulcral",
+        "coste": 2850,
+        "normalizado": 0.000350877193,
+        "Probabilidad(0,1)": 0.01014780456,
+        "Probabilidad(acumulada)": 0.4479603105
+      },
+      {
+        "name": "Baston del arcangel",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.4581081151
+      },
+      {
+        "name": "Manamune",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.4680809575
+      },
+      {
+        "name": "Sobrecarga tormentosa",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.4780537999
+      },
+      {
+        "name": "Segador de esencia",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.4880266423
+      },
+      {
+        "name": "Eclipse",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.4979994847
+      },
+      {
+        "name": "Guantelete de hielo",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.5079723271
+      },
+      {
+        "name": "Rookern Kaeniko",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.5179451695
+      },
+      {
+        "name": "Coraza del muerto",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.5279180119
+      },
+      {
+        "name": "Maldicion sanguinolenta",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.5378908543
+      },
+      {
+        "name": "Flechas de los Yun Tal",
+        "coste": 2900,
+        "normalizado": 0.0003448275862,
+        "Probabilidad(0,1)": 0.009972842408,
+        "Probabilidad(acumulada)": 0.5478636967
+      },
+      {
+        "name": "Morellonomicon",
+        "coste": 2950,
+        "normalizado": 0.0003389830508,
+        "Probabilidad(0,1)": 0.009803811181,
+        "Probabilidad(acumulada)": 0.5578365391
+      },
+      {
+        "name": "Recaudadora",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.5676403503
+      },
+      {
+        "name": "Velo del hada de la muerte",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.5772807646
+      },
+      {
+        "name": "Baston del vacio",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.5869211790
+      },
+      {
+        "name": "Diente de Nashor",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.5965615933
+      },
+      {
+        "name": "Impulso cosmico",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6062020076
+      },
+      {
+        "name": "Tormento de Liandry",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6158424220
+      },
+      {
+        "name": "Hoja de furia de Guinsoo",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6254828363
+      },
+      {
+        "name": "Soberbia",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6351232506
+      },
+      {
+        "name": "Arco axiomatico",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6447636649
+      },
+      {
+        "name": "Espada ciclovoltaica",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6544040793
+      },
+      {
+        "name": "Filo de la noche",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6640444936
+      },
+      {
+        "name": "Sable espectral",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6736849079
+      },
+      {
+        "name": "Arcoescudo inmortal",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6833253223
+      },
+      {
+        "name": "Recuerdos de Lord Dominik",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.6929657366
+      },
+      {
+        "name": "El final",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.7026061509
+      },
+      {
+        "name": "Experimento de hexarmadura",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.7122465652
+      },
+      {
+        "name": "Rencor de Sherilda",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.7218869796
+      },
+      {
+        "name": "Cuchilla negra",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.7315273939
+      },
+      {
+        "name": "Rompecascos",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.7411678082
+      },
+      {
+        "name": "Corazon de acero",
+        "coste": 3000,
+        "normalizado": 0.0003333333333,
+        "Probabilidad(0,1)": 0.009640414328,
+        "Probabilidad(acumulada)": 0.7508082225
+      },
+      {
+        "name": "Creagrietas",
+        "coste": 3100,
+        "normalizado": 0.0003225806452,
+        "Probabilidad(0,1)": 0.00932943322,
+        "Probabilidad(acumulada)": 0.7604486369
+      },
+      {
+        "name": "Verdugo de Krakens",
+        "coste": 3100,
+        "normalizado": 0.0003225806452,
+        "Probabilidad(0,1)": 0.00932943322,
+        "Probabilidad(acumulada)": 0.7697780701
+      },
+      {
+        "name": "Fauces de Malmortius",
+        "coste": 3100,
+        "normalizado": 0.0003225806452,
+        "Probabilidad(0,1)": 0.00932943322,
+        "Probabilidad(acumulada)": 0.7791075033
+      },
+      {
+        "name": "Mecanoespada punki",
+        "coste": 3100,
+        "normalizado": 0.0003225806452,
+        "Probabilidad(0,1)": 0.00932943322,
+        "Probabilidad(acumulada)": 0.7884369365
+      },
+      {
+        "name": "Lanza de Shojin",
+        "coste": 3100,
+        "normalizado": 0.0003225806452,
+        "Probabilidad(0,1)": 0.00932943322,
+        "Probabilidad(acumulada)": 0.7977663698
+      },
+      {
+        "name": "Firmamento desgarrado",
+        "coste": 3100,
+        "normalizado": 0.0003225806452,
+        "Probabilidad(0,1)": 0.00932943322,
+        "Probabilidad(acumulada)": 0.8070958030
+      },
+      {
+        "name": "Perdicion del Liche",
+        "coste": 3200,
+        "normalizado": 0.0003125,
+        "Probabilidad(0,1)": 0.009037888432,
+        "Probabilidad(acumulada)": 0.8164252362
+      },
+      {
+        "name": "Llamasombria",
+        "coste": 3200,
+        "normalizado": 0.0003125,
+        "Probabilidad(0,1)": 0.009037888432,
+        "Probabilidad(acumulada)": 0.8254631246
+      },
+      {
+        "name": "Hidra profana",
+        "coste": 3200,
+        "normalizado": 0.0003125,
+        "Probabilidad(0,1)": 0.009037888432,
+        "Probabilidad(acumulada)": 0.8345010131
+      },
+      {
+        "name": "Recordatorio letal",
+        "coste": 3200,
+        "normalizado": 0.0003125,
+        "Probabilidad(0,1)": 0.009037888432,
+        "Probabilidad(acumulada)": 0.8435389015
+      },
+      {
+        "name": "Hoja del rey arruinado",
+        "coste": 3200,
+        "normalizado": 0.0003125,
+        "Probabilidad(0,1)": 0.009037888432,
+        "Probabilidad(acumulada)": 0.8525767899
+      },
+      {
+        "name": "angel de la guarda",
+        "coste": 3200,
+        "normalizado": 0.0003125,
+        "Probabilidad(0,1)": 0.009037888432,
+        "Probabilidad(acumulada)": 0.8616146784
+      },
+      {
+        "name": "Cimitarra mercurial",
+        "coste": 3200,
+        "normalizado": 0.0003125,
+        "Probabilidad(0,1)": 0.009037888432,
+        "Probabilidad(acumulada)": 0.8706525668
+      },
+      {
+        "name": "Jak'Sho el proteico",
+        "coste": 3200,
+        "normalizado": 0.0003125,
+        "Probabilidad(0,1)": 0.009037888432,
+        "Probabilidad(acumulada)": 0.8796904552
+      },
+      {
+        "name": "Calibrador de Sterak",
+        "coste": 3200,
+        "normalizado": 0.0003125,
+        "Probabilidad(0,1)": 0.009037888432,
+        "Probabilidad(acumulada)": 0.8887283437
+      },
+      {
+        "name": "Reloj de arena de Zhonya",
+        "coste": 3250,
+        "normalizado": 0.0003076923077,
+        "Probabilidad(0,1)": 0.008898843995,
+        "Probabilidad(acumulada)": 0.8977662321
+      },
+      {
+        "name": "Cortasendas",
+        "coste": 3300,
+        "normalizado": 0.000303030303,
+        "Probabilidad(0,1)": 0.008764013025,
+        "Probabilidad(acumulada)": 0.9066650761
+      },
+      {
+        "name": "Hidra voraz",
+        "coste": 3300,
+        "normalizado": 0.000303030303,
+        "Probabilidad(0,1)": 0.008764013025,
+        "Probabilidad(acumulada)": 0.9154290891
+      },
+      {
+        "name": "Baile de la muerte",
+        "coste": 3300,
+        "normalizado": 0.000303030303,
+        "Probabilidad(0,1)": 0.008764013025,
+        "Probabilidad(acumulada)": 0.9241931021
+      },
+      {
+        "name": "Hidra titanica",
+        "coste": 3300,
+        "normalizado": 0.000303030303,
+        "Probabilidad(0,1)": 0.008764013025,
+        "Probabilidad(acumulada)": 0.9329571152
+      },
+      {
+        "name": "Sangria del soberano",
+        "coste": 3300,
+        "normalizado": 0.000303030303,
+        "Probabilidad(0,1)": 0.008764013025,
+        "Probabilidad(acumulada)": 0.9417211282
+      },
+      {
+        "name": "Armadura de Warmog",
+        "coste": 3300,
+        "normalizado": 0.000303030303,
+        "Probabilidad(0,1)": 0.008764013025,
+        "Probabilidad(acumulada)": 0.9504851412
+      },
+      {
+        "name": "Fuerza de Trinidad",
+        "coste": 3333,
+        "normalizado": 0.000300030003,
+        "Probabilidad(0,1)": 0.008677240619,
+        "Probabilidad(acumulada)": 0.9592491542
+      },
+      {
+        "name": "Sanguinaria",
+        "coste": 3400,
+        "normalizado": 0.0002941176471,
+        "Probabilidad(0,1)": 0.008506247936,
+        "Probabilidad(acumulada)": 0.9679263949
+      },
+      {
+        "name": "Filo infinito",
+        "coste": 3600,
+        "normalizado": 0.0002777777778,
+        "Probabilidad(0,1)": 0.008033678606,
+        "Probabilidad(acumulada)": 0.9764326428
+      },
+      {
+        "name": "Sombrero mortal de Rabadon",
+        "coste": 3600,
+        "normalizado": 0.0002777777778,
+        "Probabilidad(0,1)": 0.008033678606,
+        "Probabilidad(acumulada)": 0.9844663214
+      },
+      {
+        "name": "Lo que quieras",
+        "coste": 0,
+        "normalizado": 0,
+        "Probabilidad(0,1)": 0.0075,
+        "Probabilidad(acumulada)": 0.9925
+      }
+    ]
+  }
+}

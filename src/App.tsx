@@ -2,16 +2,17 @@ import { useState } from 'react';
 import Items from './components/Items';
 import Personajes from './components/Personajes';
 import Habilidades from './components/Habilidades';
+import ItemRoll from './components/ItemRoll';
 
 function App() {
-  const [screen, setScreen] = useState<'items' | 'personajes' | 'habilidades'>('items');
+  const [screen, setScreen] = useState<'items' | 'personajes' | 'habilidades' | 'item roll'>('items');
   const [gold, setGold] = useState<number>(3906); // oro actual (ejemplo)
 
   const level = 3; 
   const expCurrent = 124;
   const expNext = 600;
 
-  const handleScreenChange = (newScreen: 'items' | 'personajes' | 'habilidades') => {
+  const handleScreenChange = (newScreen: 'items' | 'personajes' | 'habilidades' | 'item roll') => {
     setScreen(newScreen);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -98,6 +99,12 @@ function App() {
       >
         Personajes
       </button>
+      <button
+        style={{ ...btnStyle, ...(screen === 'item roll' ? activeBtnStyle : {}) }}
+        onClick={() => handleScreenChange('item roll')}
+      >
+        Item Roll
+      </button>
     </div>
   </header>
 
@@ -106,6 +113,7 @@ function App() {
         {screen === 'items' && <Items />}
         {screen === 'habilidades' && <Habilidades />}
         {screen === 'personajes' && <Personajes />}
+        {screen === 'item roll' && <ItemRoll />}
       </main>
     </div>
   );
