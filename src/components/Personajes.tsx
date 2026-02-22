@@ -35,10 +35,10 @@ const abilityOrder = [
 ];
 
 const findAbility = (name: string | null): AbilityData | null => {
-  
-  
+
+
   if (!name) return null;
-  
+
   for (const champ of habilidadesData as any[]) {
     for (const ability of Object.values(champ.abilities) as any[]) {
       if (ability.name === name) return ability as AbilityData;
@@ -49,17 +49,17 @@ const findAbility = (name: string | null): AbilityData | null => {
 
 
 
-  const getCraftTree = (item: typeof ItemsData[0]) => {
-    const fromItems = item.craftsFrom
+const getCraftTree = (item: typeof ItemsData[0]) => {
+  const fromItems = item.craftsFrom
     .map(name => ItemsData.find(i => i.nombre.toLowerCase().trim() === name.toLowerCase().trim()))
     .filter(Boolean) as typeof ItemsData; // solo items válidos
 
-    const toItems = item.craftsTo
+  const toItems = item.craftsTo
     .map(name => ItemsData.find(i => i.nombre.toLowerCase().trim() === name.toLowerCase().trim()))
     .filter(Boolean) as typeof ItemsData;
 
-    return { fromItems, toItems };
-  };
+  return { fromItems, toItems };
+};
 
 
 
@@ -71,7 +71,7 @@ const Calculos = () => {
   const [selectedChampion, setSelectedChampion] = useState<any>(null);
   const [champSearch, setChampSearch] = useState('');
   const [selectedCraftItem, setSelectedCraftItem] = useState<typeof ItemsData[0] | null>(null);
-  
+
 
 
   const [ap, setAp] = useState(0);
@@ -90,6 +90,26 @@ const Calculos = () => {
 
   const dañoFinal =
     objetivoUnico ? dañoBase * singleTargetMultiplier : dañoBase;
+
+    const getItemState = (itemName: string) => {
+
+      const itemJson = ItemsData.find(
+        i => {i.nombre === itemName}
+      );
+      console.log("Buscando estado de item:", itemName, "Encontrado en JSON:", !!itemJson);
+      const cantidad = itemJson?.cantidad ?? 0;
+      console.log("Cantidad encontrada:", cantidad);
+      const equipped = selectedPlayer.equipamiento.some(
+        (eq: string) =>
+          eq.toLowerCase().trim() === itemName.toLowerCase().trim()
+      );
+    
+      if (equipped) return "equipped";
+    
+      if (cantidad > 0) return "owned";
+    
+      return "none";
+    };
 
 
   return (
@@ -184,180 +204,238 @@ const Calculos = () => {
       )}
 
 
-{/* ================= EQUIPAMIENTO Y BUILD ================= */
-}{selectedPlayer && !selectedAbility && (
-  <>
-    {/* Equipamiento actual */}
-    <h3 style={{ marginTop: '2rem', marginBottom: '0.5rem', color: '#c084fc' }}>
-      Equipamiento actual
-    </h3>
-    <div style={grid}>
-      {selectedPlayer.equipamiento.map((itemName: string, index: number) => {
-        const itemData = ItemsData.find(
-          (i) => i.nombre.toLowerCase().trim() === itemName.toLowerCase().trim()
-        );
-        return (
-          <div
-            key={index}
-            style={abilityCard}
-            onClick={() => itemData && setSelectedCraftItem(itemData)}
-          >
-            {itemData?.imagen && (
-              <img
-                src={itemData.imagen}
-                alt={itemName}
-                style={{ width: '100%', borderRadius: '8px', marginBottom: '0.5rem' }}
-              />
-            )}
-            <div>{itemName}</div>
-          </div>
-        );
-      })}
-    </div>
-
-    {/* Build deseada */}
-    <h3 style={{ marginTop: '2rem', marginBottom: '0.5rem', color: '#c084fc' }}>
-      Build deseada
-    </h3>
-    <div style={grid}>
-      {selectedPlayer.build.map((itemName: string, index: number) => {
-        const itemData = ItemsData.find((i) => i.nombre === itemName);
-        return (
-          <div
-            key={index}
-            style={abilityCard}
-            onClick={() => itemData && setSelectedCraftItem(itemData)}
-          >
-            {itemData?.imagen && (
-              <img
-                src={itemData.imagen}
-                alt={itemName}
-                style={{ width: '100%', borderRadius: '8px', marginBottom: '0.5rem' }}
-              />
-            )}
-            <div>{itemName}</div>
-          </div>
-        );
-      })}
-    </div>
-
-  {/* Modal de crafteos */}
-  {selectedCraftItem && (
-  <div
-    onClick={() => setSelectedCraftItem(null)}
-    style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'rgba(0,0,0,0.7)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 9999,
-    }}
-  >
-    <div
-      onClick={e => e.stopPropagation()}
-      style={{
-        backgroundColor: '#1e1e1e',
-        color: '#fff',
-        padding: '2rem',
-        borderRadius: '12px',
-        maxWidth: '600px',
-        width: '90%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.5rem',
-        alignItems: 'center',
-      }}
-    >
-      <h2 style={{ color: '#c084fc' }}>{selectedCraftItem.nombre}</h2>
-      <img
-        src={selectedCraftItem.imagen}
-        alt={selectedCraftItem.nombre}
-        style={{ width: '120px', borderRadius: '8px', marginBottom: '1rem' }}
-      />
-
-      {/* Árbol genealógico */}
-      {(() => {
-        const { fromItems, toItems } = getCraftTree(selectedCraftItem);
-
-        return (
-          <>
-            {fromItems.length > 0 && (
-              <div style={{ width: '100%' }}>
-                <h3 style={{ color: '#a5f3fc', marginBottom: '0.5rem' }}>Se crafteó desde:</h3>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {fromItems.map((i, index) => (
-  <div
-    key={`${i.nombre}-${index}`} // <- clave única, incluso si se repite
-    title={i.nombre}
-    style={{ width: '80px', position: 'relative' }}
-  >
-    <img
-      src={i.imagen}
-      alt={i.nombre}
-      style={{ width: '100%', borderRadius: '6px', cursor: 'pointer' }}
-      onClick={() => setSelectedCraftItem(i)}
-    />
-  </div>
-))}
-
+      {/* ================= EQUIPAMIENTO Y BUILD ================= */}
+      {selectedPlayer && !selectedAbility && (
+        <>
+          {/* Equipamiento actual */}
+          <h3 style={{ marginTop: '2rem', marginBottom: '0.5rem', color: '#c084fc' }}>
+            Equipamiento actual
+          </h3>
+          <div style={equipmentGrid}>
+            {selectedPlayer.equipamiento.map((itemName: string, index: number) => {
+              const itemData = ItemsData.find(
+                (i) => i.nombre.toLowerCase().trim() === itemName.toLowerCase().trim()
+              );
+              return (
+                <div
+                  key={index}
+                  style={equipmentCard}
+                  onClick={() => itemData && setSelectedCraftItem(itemData)}
+                >
+                  {itemData?.imagen && (
+                    <img
+                      src={itemData.imagen}
+                      alt={itemName}
+                      style={{
+                        width: '100%',
+                        objectFit: 'contain',
+                        borderRadius: '8px',
+                        marginBottom: '0.5rem',
+                      }}
+                    />
+                  )}
+                  <div
+                    title={itemName} // hover muestra el nombre completo
+                    style={{
+                      width: '100%',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      textAlign: 'center',
+                      color: '#e5e7eb',
+                    }}
+                  >
+                    {itemName}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })}
+          </div>
 
-            {toItems.length > 0 && (
-              <div style={{ width: '100%' }}>
-                <h3 style={{ color: '#c084fc', marginBottom: '0.5rem' }}>Se puede craftear en:</h3>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {toItems.map(i => (
-                    <div
-                      key={i!.nombre}
-                      title={i!.nombre} // hover muestra nombre
-                      style={{ width: '80px', position: 'relative' }}
-                    >
-                      <img
-                        src={i!.imagen}
-                        alt={i!.nombre}
-                        style={{ width: '100%', borderRadius: '6px', cursor: 'pointer' }}
-                        onClick={() => setSelectedCraftItem(i!)} // abrir modal del item siguiente
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        );
-      })()}
+          {/* Build deseada */}
+          <h3 style={{ marginTop: '2rem', marginBottom: '0.5rem', color: '#c084fc' }}>
+            Build deseada
+          </h3>
+          <div style={grid}>
+  {selectedPlayer.build.map((itemName: string, index: number) => {
 
-      <button
-        onClick={() => setSelectedCraftItem(null)}
+    const itemData = ItemsData.find(
+      (i) => i.nombre.toLowerCase().trim() === itemName.toLowerCase().trim()
+    );
+
+    const state = getItemState(itemName);
+
+    return (
+      <div
+        key={index}
         style={{
-          marginTop: '1rem',
-          padding: '0.5rem 1rem',
-          borderRadius: '8px',
-          border: 'none',
-          backgroundColor: '#c084fc',
-          color: '#fff',
-          cursor: 'pointer',
+          ...equipmentCard,
+          position: 'relative',
         }}
+        onClick={() => itemData && setSelectedCraftItem(itemData)}
       >
-        Cerrar
-      </button>
-    </div>
-  </div>
-)}
 
+        {/* imagen */}
+        {itemData?.imagen && (
+          <img
+            src={itemData.imagen}
+            alt={itemName}
+            style={{
+              width: '100%',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              marginBottom: '0.5rem',
 
+              filter:
+                state === "equipped"
+                  ? "brightness(0.25)"
+                  : state === "owned"
+                  ? "brightness(0.6)"
+                  : "none"
+            }}
+          />
+        )}
 
-  </>
-)}
+        {/* nombre */}
+        <div >
+          {itemName}
+        </div>
 
+        {/* ICONOS */}
 
+        {state === "equipped" && (
+
+          <div style={checkStyle}>
+            ✓
+          </div>
+
+        )}
+
+        {state === "owned" && (
+
+          <div style={bagStyle}>
+            🎒
+          </div>
+
+        )}
+
+      </div>
+    );
+  })}
+</div>
+
+          {/* Modal de crafteos */}
+          {selectedCraftItem && (
+            <div
+              onClick={() => setSelectedCraftItem(null)}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 9999,
+              }}
+            >
+              <div
+                onClick={e => e.stopPropagation()}
+                style={{
+                  backgroundColor: '#1e1e1e',
+                  color: '#fff',
+                  padding: '2rem',
+                  borderRadius: '12px',
+                  maxWidth: '600px',
+                  width: '90%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1.5rem',
+                  alignItems: 'center',
+                }}
+              >
+                <h2 style={{ color: '#c084fc' }}>{selectedCraftItem.nombre}</h2>
+                <img
+                  src={selectedCraftItem.imagen}
+                  alt={selectedCraftItem.nombre}
+                  style={{ width: '120px', borderRadius: '8px', marginBottom: '1rem' }}
+                />
+
+                {/* Árbol genealógico */}
+                {(() => {
+                  const { fromItems, toItems } = getCraftTree(selectedCraftItem);
+
+                  return (
+                    <>
+                      {fromItems.length > 0 && (
+                        <div style={{ width: '100%' }}>
+                          <h3 style={{ color: '#a5f3fc', marginBottom: '0.5rem' }}>Se craftea desde:</h3>
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            {fromItems.map((i, index) => (
+                              <div
+                                key={`${i.nombre}-${index}`} // <- clave única, incluso si se repite
+                                title={i.nombre}
+                                style={{ width: '80px', position: 'relative' }}
+                              >
+                                <img
+                                  src={i.imagen}
+                                  alt={i.nombre}
+                                  style={{ width: '100%', borderRadius: '6px', cursor: 'pointer' }}
+                                  onClick={() => setSelectedCraftItem(i)}
+                                />
+                              </div>
+                            ))}
+
+                          </div>
+                        </div>
+                      )}
+
+                      {toItems.length > 0 && (
+                        <div style={{ width: '100%' }}>
+                          <h3 style={{ color: '#c084fc', marginBottom: '0.5rem' }}>Se puede craftear en:</h3>
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            {toItems.map(i => (
+                              <div
+                                key={i!.nombre}
+                                title={i!.nombre} // hover muestra nombre
+                                style={{ width: '80px', position: 'relative' }}
+                              >
+                                <img
+                                  src={i!.imagen}
+                                  alt={i!.nombre}
+                                  style={{ width: '100%', borderRadius: '6px', cursor: 'pointer' }}
+                                  onClick={() => setSelectedCraftItem(i!)} // abrir modal del item siguiente
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+
+                <button
+                  onClick={() => setSelectedCraftItem(null)}
+                  style={{
+                    marginTop: '1rem',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: '#c084fc',
+                    color: '#fff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* ================= DM – CHAMPIONS ================= */}
       {!selectedAbility && (
@@ -507,7 +585,7 @@ export default Calculos;
 /* ================= ESTILOS ================= */
 
 const container: React.CSSProperties = {
-  maxWidth: '1100px',
+  maxWidth: '1500px',
   margin: '0 auto',
   padding: '2rem',
   color: '#fff',
@@ -522,6 +600,15 @@ const grid = {
   gap: '1rem',
 };
 
+const equipmentGrid = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(7, 1fr)', // 7 columnas fijas
+  gap: '1rem',
+  justifyItems: 'center', // centra horizontalmente cada card
+  alignItems: 'center',
+  padding: '0.5rem 0',
+};
+
 const playerCard = {
   backgroundColor: '#1e1e1e',
   padding: '1.5rem',
@@ -534,6 +621,18 @@ const abilityCard = {
   padding: '1rem',
   borderRadius: '10px',
   cursor: 'pointer',
+};
+
+const equipmentCard: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column', // ya es compatible con FlexDirection
+  alignItems: 'center',
+  backgroundColor: '#262626',
+  padding: '0.5rem',
+  borderRadius: '10px',
+  cursor: 'pointer',
+  width: '100%',
+  minWidth: 100, // se puede pasar como number
 };
 
 const abilityKey = { color: '#a3e635', fontWeight: 'bold' };
@@ -586,4 +685,30 @@ const backBtn = {
   border: 'none',
   color: '#93c5fd',
   cursor: 'pointer',
+};
+
+const checkStyle: React.CSSProperties = {
+
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+
+  fontSize: '3rem',
+  color: '#22c55e',
+  fontWeight: 'bold',
+
+};
+
+const bagStyle: React.CSSProperties = {
+
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+
+  fontSize: '2.5rem',
+
 };
