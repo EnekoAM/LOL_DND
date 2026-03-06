@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './ItemRoll.css';
+import './itemRoll.css';
 import ItemsData from '../json/item_roll.json';
 import Items from '../json/items_actualizados.json';
 import MedievalWheel from './MedievalWheel';
