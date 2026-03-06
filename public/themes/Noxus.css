@@ -1,0 +1,44 @@
+/* ═══════════════════════════════════════════════════════════
+   TEMA: NOXUS
+   Piedra oscura. Acero carmesí. Sangre y conquista.
+   "Strength Above All"
+   ═══════════════════════════════════════════════════════════ */
+
+   :root {
+    /* Paleta base — piedra oscura, casi negra */
+    --page-bg:        #1a1210;
+    --page-bg-mid:    #251815;
+    --page-bg-dark:   #0e0908;
+  
+    /* Color de región — rojo carmesí Noxiano */
+    --region-color:       #8a1a1a;
+    --region-color-light: #b02020;
+    --region-color-dark:  #5a0e0e;
+  
+    /* Acento — hierro oxidado / bronce */
+    --accent:         #a06030;
+    --accent-bright:  #c07840;
+    --accent-dark:    #6a3a18;
+  
+    /* Texto */
+    --ink:            #e8ddd8;
+    --ink-mid:        rgba(232,221,216,0.6);
+    --ink-dim:        rgba(232,221,216,0.35);
+    --text-on-header: rgba(240,200,190,0.6);
+    --text-on-header-muted: rgba(240,200,190,0.4);
+  
+    /* Header */
+    --header-bg:      linear-gradient(180deg, #6a1010 0%, #4a0c0c 55%, #2e0808 100%);
+    --header-shadow:
+      0 0 0 1px rgba(138,26,26,0.5),
+      0 6px 40px rgba(80,10,10,0.6),
+      inset 0 1px 0 rgba(200,80,80,0.15);
+  
+    /* Fondo de página */
+    --bg-gradient:
+      radial-gradient(ellipse 120% 55% at 50% 0%,   rgba(100,20,20,0.15) 0%, transparent 65%),
+      radial-gradient(ellipse 60%  70% at 0%   60%,  rgba(138,26,26,0.08) 0%, transparent 55%),
+      radial-gradient(ellipse 50%  50% at 100% 30%,  rgba(80,20,10,0.06)  0%, transparent 50%),
+      radial-gradient(ellipse 80%  40% at 50% 100%,  rgba(160,96,48,0.04) 0%, transparent 60%);
+    --bg-lines: rgba(138,26,26,0.04);
+  }

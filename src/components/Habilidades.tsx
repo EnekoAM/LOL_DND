@@ -1,106 +1,183 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
 import championsData from '../json/habilidades.json';
+import './Habilidades.css';
+
+const KEYS = ['P', 'Q', 'W', 'E', 'R'] as const;
+
+const keyLabel: Record<string, string> = {
+  P: 'Pasiva', Q: 'Q', W: 'W', E: 'E', R: 'Ultimate',
+};
+
+const REGION_COLORS: Record<string, string> = {
+  'Demacia':      '#2a4a8a',
+  'Noxus':        '#8a1a1a',
+  'Freljord':     '#2a7aaa',
+  'Ionia':        '#9a3a6a',
+  'Shurima':      '#c97a1a',
+  'Zaun':         '#2a8a5a',
+  'Piltover':     '#c9a84c',
+  'Void':         '#7a2a9a',
+  'Shadow Isles': '#2a6a4a',
+  'Bilgewater':   '#1a6a8a',
+  'Bandle City':  '#8a6a1a',
+  'Ixtal':        '#3a7a2a',
+  'Mount Targon': '#6a5a8a',
+  'Runeterra':    '#6a5a3a',
+};
+
+const ROLE_COLORS: Record<string, string> = {
+  'Luchador': '#c97a1a',
+  'Mago':     '#7a2a9a',
+  'Tirador':  '#2a7aaa',
+  'Tanque':   '#4a6a2a',
+  'Asesino':  '#8a1a1a',
+  'Soporte':  '#c9a84c',
+};
+
+const ROLE_ICONS: Record<string, string> = {
+  'Luchador': '⚔',
+  'Mago':     '✦',
+  'Tirador':  '◎',
+  'Tanque':   '🛡',
+  'Asesino':  '☽',
+  'Soporte':  '❂',
+};
+
+const ALL_REGIONS = Array.from(
+  new Set(championsData.map(c => (c as any).region).filter(Boolean))
+).sort() as string[];
+
+const ALL_ROLES = ['Luchador', 'Mago', 'Tirador', 'Tanque', 'Asesino', 'Soporte'];
 
 const Habilidades = () => {
-  const [searchChampion, setSearchChampion] = useState<string>('');
+  const [search, setSearch]     = useState('');
+  const [region, setRegion]     = useState<string | null>(null);
+  const [role, setRole]         = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
-  // Filtrar campeones por busqueda
-  const filteredChampions = championsData.filter((champion) =>
-    champion.champion.toLowerCase().includes(searchChampion.toLowerCase())
+  const filtered = useMemo(() =>
+    championsData.filter(c => {
+      const matchSearch = c.champion.toLowerCase().includes(search.toLowerCase());
+      const matchRegion = !region || (c as any).region === region;
+      const matchRole   = !role   || (c as any).role   === role;
+      return matchSearch && matchRegion && matchRole;
+    }),
+    [search, region, role]
   );
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Buscador */}
-      <div style={{ marginBottom: '1.5rem' }}>
+    <div className="hab-root">
+
+      {/* ── SEARCH + FILTERS ── */}
+      <div className="hab-search-wrap">
+        <span className="hab-search__icon">⚔</span>
         <input
+          className="hab-search"
           type="text"
-          placeholder="Buscar por campeon..."
-          value={searchChampion}
-          onChange={(e) => setSearchChampion(e.target.value)}
-          style={{
-            padding: '0.5rem',
-            borderRadius: '8px',
-            border: '1px solid #444',
-            backgroundColor: '#1e1e1e',
-            color: '#fff',
-            width: '100%',
-            maxWidth: '400px',
-          }}
+          placeholder="Buscar campeón..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
         />
+        <select
+          className="hab-select"
+          value={region ?? ''}
+          onChange={e => setRegion(e.target.value || null)}
+        >
+          <option value="">Región</option>
+          {ALL_REGIONS.map(r => (
+            <option key={r} value={r}>{r}</option>
+          ))}
+        </select>
+        <select
+          className="hab-select"
+          value={role ?? ''}
+          onChange={e => setRole(e.target.value || null)}
+        >
+          <option value="">Rol</option>
+          {ALL_ROLES.map(r => (
+            <option key={r} value={r}>{ROLE_ICONS[r]} {r}</option>
+          ))}
+        </select>
+        <span className="hab-search__count">{filtered.length}</span>
       </div>
 
-      {/* Grid de campeones */}
-      {filteredChampions.map((champion) => (
-        <div
-          key={champion.champion}
-          style={{
-            marginBottom: '2rem',
-            padding: '1rem',
-            borderRadius: '12px',
-            backgroundColor: '#1e1e1e',
-            color: '#fff',
-          }}
-        >
-          <h2 style={{ marginBottom: '1rem', color: '#c084fc' }}>
-            {champion.champion}
-          </h2>
-
-          {/* Grid de habilidades */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(5, 1fr)',
-              gap: '1rem',
-            }}
-          >
-            {['P', 'Q', 'W', 'E', 'R'].map((key) => {
-              const ability =
-                champion.abilities[key as keyof typeof champion.abilities];
-              return (
-                <div
-                  key={key}
-                  style={{
-                    backgroundColor: '#2a2a2a',
-                    padding: '1rem',
-                    borderRadius: '8px',
-                    textAlign: 'center',
-                  }}
+      {/* ── LIST ── */}
+      <div className="hab-list">
+        {filtered.map(champion => {
+          const isOpen      = expanded === champion.champion;
+          const champRegion = (champion as any).region as string;
+          const champRole   = (champion as any).role   as string;
+          const regionColor = REGION_COLORS[champRegion] ?? '#c9a84c';
+          return (
+            <div
+              key={champion.champion}
+              className={`hab-champion ${isOpen ? 'hab-champion--open' : ''}`}
+              style={{ '--champ-color': regionColor } as React.CSSProperties}
+            >
+              <button
+                className="hab-champion__header"
+                onClick={() => setExpanded(isOpen ? null : champion.champion)}
+              >
+                <span className="hab-champion__ornament">✦</span>
+                {(champion as any).image ? (
+                  <img
+                    className="hab-champion__avatar"
+                    src={(champion as any).image}
+                    alt={champion.champion}
+                  />
+                ) : (
+                  <span className="hab-champion__avatar hab-champion__avatar--empty">
+                    {champion.champion.charAt(0)}
+                  </span>
+                )}
+                <span className="hab-champion__name">{champion.champion}</span>
+                <span className="hab-champion__region">{champRegion}</span>
+                <span
+                  className="hab-champion__role"
+                  style={{ '--role-color': ROLE_COLORS[champRole] ?? '#c9a84c' } as React.CSSProperties}
                 >
-                  <div
-                    style={{
-                      fontWeight: 'bold',
-                      marginBottom: '0.5rem',
-                      fontSize: '1.1rem',
-                      color: '#a3e635',
-                    }}
-                  >
-                    [{key}]
-                  </div>
-                  {ability ? (
-                    <>
-                      <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
-                        {ability.name}
-                      </div>
-                      <div style={{ fontSize: '0.85rem', color: '#ccc' }}>
-                        {ability.description}
-                      </div>
-                    </>
-                  ) : (
-                    <div style={{ color: '#666' }}>No disponible</div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+                  {ROLE_ICONS[champRole]} {champRole}
+                </span>
+                <span className="hab-champion__keys">
+                  {KEYS.map(k => (
+                    <span key={k} className={`hab-key-pip ${champion.abilities[k] ? 'hab-key-pip--active' : ''}`}>{k}</span>
+                  ))}
+                </span>
+                <span className="hab-champion__arrow">{isOpen ? '▲' : '▼'}</span>
+              </button>
 
-      {filteredChampions.length === 0 && (
-        <p style={{ color: '#ccc', textAlign: 'center', marginTop: '2rem' }}>
-          No se encontro ningun campeon.
-        </p>
-      )}
+              {isOpen && (
+                <div className="hab-abilities">
+                  {KEYS.map(k => {
+                    const ability = champion.abilities[k as keyof typeof champion.abilities];
+                    return (
+                      <div key={k} className={`hab-ability ${ability ? 'hab-ability--filled' : 'hab-ability--empty'}`}>
+                        <div className="hab-ability__key">{k}</div>
+                        <div className="hab-ability__label">{keyLabel[k]}</div>
+                        {ability ? (
+                          <>
+                            <div className="hab-ability__name">{(ability as any).name}</div>
+                            <div className="hab-ability__desc">{(ability as any).description}</div>
+                          </>
+                        ) : (
+                          <div className="hab-ability__none">— No disponible —</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {filtered.length === 0 && (
+          <div className="hab-empty">
+            <span className="hab-empty__icon">✦</span>
+            <p>Ningún campeón encontrado</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

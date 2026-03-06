@@ -1,142 +1,110 @@
 import { useState } from 'react';
 import Items from './components/Items';
-import Personajes from './components/Personajes';
+import Calculos from './components/Calculos';
 import Habilidades from './components/Habilidades';
 import ItemRoll from './components/ItemRoll';
+import './App.css';
 
+// ─── TYPES ───────────────────────────────────────────────────────────────────
+type Screen = 'items' | 'calculos' | 'habilidades' | 'item roll';
+
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
 function App() {
-  const [screen, setScreen] = useState<'items' | 'personajes' | 'habilidades' | 'item roll'>('items');
-  const [gold, setGold] = useState<number>(3906); // oro actual (ejemplo)
+  const [screen, setScreen] = useState<Screen>('items');
+  const [gold]              = useState<number>(3906);
 
-  const level = 3; 
+  const level      = 3;
   const expCurrent = 124;
-  const expNext = 600;
+  const expNext    = 600;
+  const expPct     = (expCurrent / expNext) * 100;
 
-  const handleScreenChange = (newScreen: 'items' | 'personajes' | 'habilidades' | 'item roll') => {
-    setScreen(newScreen);
+  const handleScreenChange = (s: Screen) => {
+    setScreen(s);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#111111',
-        fontFamily: "'Montserrat', sans-serif",
-        paddingTop: '80px',
-        color: '#fff',
-      }}
-    >
-  {/* Header */}
-  <header
-    style={{
-      backgroundColor: '#1a1a1a',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100%',
-      padding: '1rem 2rem',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      borderBottom: '1px solid #222',
-      zIndex: 9999,
-    }}
-  >
-    {/* ORO + EXP */}
-    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-      {/* Oro */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          fontWeight: 600,
-          fontSize: '1.1rem',
-          color: '#facc15', // dorado
-        }}
-      >
-        <span style={{ fontSize: '1.3rem' }}>💰</span>
-        {gold.toLocaleString()}
+    <>
+<div className="app-root">
+
+        {/* ── HEADER ─────────────────────────────────────────────────── */}
+        <header className="app-header">
+
+          {/* Left: gold + exp */}
+          <div className="header-stats">
+
+            {/* Gold */}
+            <div className="stat-gold">
+              <span className="stat-gold__coin">⚜</span>
+              <span className="stat-gold__amount">{gold.toLocaleString()}</span>
+              <span className="stat-gold__label">oro</span>
+            </div>
+
+            {/* Divider */}
+            <div className="header-divider" />
+
+            {/* Exp */}
+            <div className="stat-exp">
+              <div className="stat-exp__label">
+                <span className="stat-exp__nivel">Nivel {level}</span>
+                <span className="stat-exp__values">{expCurrent} / {expNext} exp</span>
+              </div>
+              <div className="stat-exp__track">
+                <div
+                  className="stat-exp__fill"
+                  style={{ width: `${expPct}%` }}
+                />
+                <div
+                  className="stat-exp__glow"
+                  style={{ width: `${expPct}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Right: nav */}
+          <nav className="header-nav">
+            {(['items', 'habilidades', 'calculos', 'item roll'] as Screen[]).map(s => (
+              <button
+                key={s}
+                className={`nav-btn ${screen === s ? 'nav-btn--active' : ''}`}
+                onClick={() => handleScreenChange(s)}
+              >
+                <span className="nav-btn__icon">{navIcon[s]}</span>
+                <span className="nav-btn__label">{navLabel[s]}</span>
+              </button>
+            ))}
+          </nav>
+        </header>
+
+        {/* ── MAIN ───────────────────────────────────────────────────── */}
+        <main className="app-main">
+          {screen === 'items'      && <Items />}
+          {screen === 'habilidades'&& <Habilidades />}
+          {screen === 'calculos' && <Calculos />}
+          {screen === 'item roll'  && <ItemRoll />}
+        </main>
+
+        {/* ── BACKGROUND LAYER ───────────────────────────────────────── */}
+        <div className="app-bg" aria-hidden="true" />
       </div>
-
-      {/* EXP */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: '180px' }}>
-        <span style={{ color: '#38bdf8', fontWeight: 600, fontSize: '0.95rem' }}>
-          Nivel {level} ({expCurrent}/{expNext})
-        </span>
-        <div style={{ width: '100%', height: '8px', backgroundColor: '#333', borderRadius: '4px', marginTop: '2px' }}>
-          <div
-            style={{
-              width: `${(expCurrent / expNext) * 100}%`,
-              height: '100%',
-              backgroundColor: '#0ea5e9',
-              borderRadius: '4px',
-              transition: 'width 0.3s ease',
-            }}
-          />
-        </div>
-      </div>
-    </div>
-
-    {/* Navegación */}
-    <div style={{ display: 'flex', gap: '0.5rem' }}>
-      <button
-        style={{ ...btnStyle, ...(screen === 'items' ? activeBtnStyle : {}) }}
-        onClick={() => handleScreenChange('items')}
-      >
-        Items
-      </button>
-      <button
-        style={{ ...btnStyle, ...(screen === 'habilidades' ? activeBtnStyle : {}) }}
-        onClick={() => handleScreenChange('habilidades')}
-      >
-        Habilidades
-      </button>
-      <button
-        style={{ ...btnStyle, ...(screen === 'personajes' ? activeBtnStyle : {}) }}
-        onClick={() => handleScreenChange('personajes')}
-      >
-        Personajes
-      </button>
-      <button
-        style={{ ...btnStyle, ...(screen === 'item roll' ? activeBtnStyle : {}) }}
-        onClick={() => handleScreenChange('item roll')}
-      >
-        Item Roll
-      </button>
-    </div>
-  </header>
-
-      {/* Contenido */}
-      <main style={{ padding: '2rem' }}>
-        {screen === 'items' && <Items />}
-        {screen === 'habilidades' && <Habilidades />}
-        {screen === 'personajes' && <Personajes />}
-        {screen === 'item roll' && <ItemRoll />}
-      </main>
-    </div>
+    </>
   );
 }
 
-// Botón estándar
-const btnStyle: React.CSSProperties = {
-  padding: '0.6rem 1.2rem',
-  borderRadius: '8px',
-  border: '1px solid #444',
-  backgroundColor: '#222',
-  color: '#fff',
-  cursor: 'pointer',
-  fontWeight: 500,
-  transition: 'all 0.2s ease',
+// ─── METADATA ────────────────────────────────────────────────────────────────
+const navIcon: Record<Screen, string> = {
+  'items':      '⚔',
+  'habilidades':'✦',
+  'calculos': '👤',
+  'item roll':  '🎲',
 };
 
-const activeBtnStyle: React.CSSProperties = {
-  backgroundColor: '#c084fc',
-  color: '#000',
-  borderColor: '#c084fc',
-  fontWeight: 600,
-  transform: 'scale(1.05)',
+const navLabel: Record<Screen, string> = {
+  'items':      'Items',
+  'habilidades':'Habilidades',
+  'calculos': 'calculos',
+  'item roll':  'Item Roll',
 };
 
 export default App;

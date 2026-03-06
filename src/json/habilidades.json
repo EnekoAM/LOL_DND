@@ -22,7 +22,10 @@
         "name": "El aniquilador de mundos",
         "description": ""
       }
-    }
+    },
+    "region": "Runeterra",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Aatrox_OriginalSquare.png?c0f58"
   },
   {
     "champion": "Ahri",
@@ -47,7 +50,10 @@
         "name": "Impulso Espiritual",
         "description": ""
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Ahri_OriginalSquare.png?d60a2"
   },
   {
     "champion": "Akali",
@@ -72,7 +78,10 @@
         "name": "Ejecucion perfecta",
         "description": ""
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Akali_OriginalSquare.png?55774"
   },
   {
     "champion": "Akshan",
@@ -97,7 +106,10 @@
         "name": "Disparo Final",
         "description": "Akshan apunta a un enemigo, infligiendo daño significativo y aplicando efectos adicionales si el objetivo esta marcado."
       }
-    }
+    },
+    "region": "Shurima",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Akshan_OriginalSquare.png?f8657"
   },
   {
     "champion": "Alistar",
@@ -122,11 +134,17 @@
         "name": "Último Suspiro",
         "description": "Alistar gana resistencia adicional y lanza a los enemigos cercanos al aire varias veces, causando daño."
       }
-    }
+    },
+    "region": "Runeterra",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Alistar_OriginalSquare.png?12536"
   },
   {
     "champion": "Ambessa",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Ambessa_OriginalSquare.png?6798d"
   },
   {
     "champion": "Amumu",
@@ -151,7 +169,10 @@
         "name": "Maldicion de la Momia Triste",
         "description": "Amumu se lanza al aire y aterriza, aturdiendo a los enemigos cercanos y causando daño magico."
       }
-    }
+    },
+    "region": "Shurima",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Amumu_OriginalSquare.png?3fa85"
   },
   {
     "champion": "Anivia",
@@ -176,7 +197,10 @@
         "name": "Tempestad Glacial",
         "description": "Anivia invoca una tormenta de hielo en una zona, infligiendo daño continuo y ralentizando a los enemigos dentro del area."
       }
-    }
+    },
+    "region": "Freljord",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Anivia_OriginalSquare.png?dda87"
   },
   {
     "champion": "Annie",
@@ -201,7 +225,10 @@
         "name": "Invocar: Tibbers",
         "description": "Annie invoca a su oso de peluche, Tibbers, que inflige daño magico al aparecer y puede atacar a los enemigos cercanos."
       }
-    }
+    },
+    "region": "Noxus",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Annie_OriginalSquare.png?5e95f"
   },
   {
     "champion": "Ashe",
@@ -226,7 +253,10 @@
         "name": "Flecha de Cristal Encantada",
         "description": "Ashe dispara una flecha gigante que aturde al primer enemigo que golpea y causa daño significativo."
       }
-    }
+    },
+    "region": "Freljord",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Ashe_OriginalSquare.png?55e1d"
   },
   {
     "champion": "Aurelion Sol",
@@ -251,11 +281,17 @@
         "name": "Explosion Estelar",
         "description": "Aurelion Sol libera una explosion de energia estelar que inflige daño magico masivo a los enemigos en un area grande."
       }
-    }
+    },
+    "region": "Mount Targon",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Aurelion_Sol_OriginalSquare.png?98383"
   },
   {
     "champion": "Aurora",
-    "abilities": {}
+    "abilities": {},
+    "region": "Freljord",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Aurora_OriginalSquare.png?5dac9"
   },
   {
     "champion": "Azir",
@@ -280,7 +316,10 @@
         "name": "Emperador de las Arenas",
         "description": "Azir invoca una gran muralla de soldados de arena que avanza hacia adelante, empujando y dañando a los enemigos en su camino."
       }
-    }
+    },
+    "region": "Shurima",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Azir_OriginalSquare.png?95417"
   },
   {
     "champion": "Bard",
@@ -305,7 +344,10 @@
         "name": "Temporizador Cosmico",
         "description": "Bard invoca una zona que suspende en el tiempo a todos los campeones, tanto aliados como enemigos, durante unos segundos."
       }
-    }
+    },
+    "region": "Runeterra",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Bard_OriginalSquare.png?d0233"
   },
   {
     "champion": "Bel'Veth",
@@ -330,7 +372,10 @@
         "name": "Reina del Vacio",
         "description": "Bel'Veth se transforma, ganando vida adicional y aumentando su tamaño. Durante esta forma, sus ataques basicos infligen daño adicional y aplican efectos adicionales."
       }
-    }
+    },
+    "region": "Void",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Bel%27Veth_OriginalSquare.png?88288"
   },
   {
     "champion": "Blitzcrank",
@@ -355,7 +400,10 @@
         "name": "Carga Estatica",
         "description": "Blitzcrank se carga de energia, ralentizando a los enemigos cercanos y aturdiendolos si permanecen cerca al final de la duracion."
       }
-    }
+    },
+    "region": "Zaun",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Blitzcrank_OriginalSquare.png?af7dd"
   },
   {
     "champion": "Brand",
@@ -380,7 +428,10 @@
         "name": "Incendio Abrasador",
         "description": "Brand desata una ola de fuego que inflige daño magico masivo a todos los enemigos en un area grande, aplicando efectos adicionales si estan encendidos."
       }
-    }
+    },
+    "region": "Freljord",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Brand_OriginalSquare.png?336d6"
   },
   {
     "champion": "Braum",
@@ -405,11 +456,17 @@
         "name": "Gran Entrada",
         "description": "Braum salta al aire y aterriza en una ubicacion objetivo, lanzando por el aire a los enemigos cercanos y causando daño magico."
       }
-    }
+    },
+    "region": "Freljord",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Braum_OriginalSquare.png?96d05"
   },
   {
     "champion": "Briar",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Briar_OriginalSquare.png?37f17"
   },
   {
     "champion": "Caitlyn",
@@ -434,7 +491,10 @@
         "name": "Disparo de Último Recurso",
         "description": "Caitlyn dispara un disparo de largo alcance que inflige daño fisico significativo al primer enemigo alcanzado, con daño adicional basado en la vida faltante del objetivo."
       }
-    }
+    },
+    "region": "Piltover",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Caitlyn_ArcaneEnforcerSquare.png?c2e4c"
   },
   {
     "champion": "Camille",
@@ -459,7 +519,10 @@
         "name": "Ultimatum Hextech",
         "description": "Camille se lanza hacia un campeon enemigo, atrapandolo en una zona donde solo ella puede moverse libremente durante unos segundos."
       }
-    }
+    },
+    "region": "Piltover",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Camille_OriginalSquare.png?aba4a"
   },
   {
     "champion": "Cassiopeia",
@@ -484,10 +547,13 @@
         "name": "Gran Marea de Veneno",
         "description": "Cassiopeia desata una ola de veneno en un area grande, infligiendo daño magico continuo y aturdiendo a los enemigos que miran hacia ella."
       }
-    }
+    },
+    "region": "Noxus",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Cassiopeia_OriginalSquare.png?56ef7"
   },
   {
-    "champion": "Chogath",
+    "champion": "Cho'Gath",
     "abilities": {
       "P": {
         "name": "Voracidad",
@@ -509,7 +575,10 @@
         "name": "Festin",
         "description": "Chogath devora a un enemigo, infligiendo daño verdadero. Si el objetivo es un campeon o una unidad grande, Chogath gana un aumento permanente en su tamaño y vida maxima."
       }
-    }
+    },
+    "region": "Void",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Cho%27Gath_OriginalSquare.png?70f42"
   },
   {
     "champion": "Corki",
@@ -534,7 +603,10 @@
         "name": "Misil Definitivo",
         "description": "Corki dispara un misil que inflige daño magico significativo en un area grande al impactar."
       }
-    }
+    },
+    "region": "Bandle City",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Corki_OriginalSquare.png?8bc1a"
   },
   {
     "champion": "Darius",
@@ -559,7 +631,10 @@
         "name": "Noxian Guillotine",
         "description": "Darius salta sobre un campeon enemigo, infligiendo daño verdadero. Si el objetivo muere, el enfriamiento se reinicia y Darius puede usar la habilidad nuevamente."
       }
-    }
+    },
+    "region": "Noxus",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Darius_OriginalSquare.png?aca4c"
   },
   {
     "champion": "Diana",
@@ -584,7 +659,10 @@
         "name": "Ascenso Lunar",
         "description": "Diana se lanza hacia un area objetivo, infligiendo daño magico a los enemigos cercanos y ganando un escudo."
       }
-    }
+    },
+    "region": "Mount Targon",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Diana_OriginalSquare.png?d5d54"
   },
   {
     "champion": "Dr. Mundo",
@@ -609,7 +687,10 @@
         "name": "Masacre de Mundo",
         "description": "Dr. Mundo aumenta su vida maxima y regenera una gran cantidad de vida durante unos segundos."
       }
-    }
+    },
+    "region": "Zaun",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Dr._Mundo_OriginalSquare.png?5756a"
   },
   {
     "champion": "Draven",
@@ -634,7 +715,10 @@
         "name": "Ejecutar",
         "description": "Draven lanza un gran hacha que inflige daño fisico significativo a todos los enemigos en su camino, con daño adicional basado en la vida faltante del objetivo."
       }
-    }
+    },
+    "region": "Noxus",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Draven_OriginalSquare.png?63957"
   },
   {
     "champion": "Ekko",
@@ -659,7 +743,10 @@
         "name": "Chronobreak",
         "description": "Ekko rewinds time, returning to a previous location and healing for a portion of the damage taken in the last few seconds. He also deals massive magic damage to nearby enemies upon arrival."
       }
-    }
+    },
+    "region": "Zaun",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Ekko_ArcaneFirelightSquare.png?e49d6"
   },
   {
     "champion": "Elise",
@@ -684,7 +771,10 @@
         "name": "Transformacion",
         "description": "Elise se transforma entre su forma humana y su forma de araña, cambiando sus habilidades y ganando nuevas propiedades."
       }
-    }
+    },
+    "region": "Shadow Isles",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Elise_OriginalSquare.png?b97b0"
   },
   {
     "champion": "Evelynn",
@@ -709,7 +799,10 @@
         "name": "Último Beso",
         "description": "Evelynn se lanza hacia un enemigo, infligiendo daño magico significativo y curandose por una parte del daño infligido."
       }
-    }
+    },
+    "region": "Runeterra",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Evelynn_OriginalSquare.png?1ed7f"
   },
   {
     "champion": "Ezreal",
@@ -734,7 +827,10 @@
         "name": "Trueno del Vacio",
         "description": "Ezreal dispara un poderoso rayo de energia que inflige daño magico a todos los enemigos en su camino."
       }
-    }
+    },
+    "region": "Piltover",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Ezreal_OriginalSquare.png?fc667"
   },
   {
     "champion": "Fiddlesticks",
@@ -759,7 +855,10 @@
         "name": "Tormenta de Cuervos",
         "description": "Fiddlesticks invoca una tormenta de cuervos en una ubicacion objetivo, infligiendo daño magico continuo a los enemigos dentro del area."
       }
-    }
+    },
+    "region": "Runeterra",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Fiddlesticks_OriginalSquare.png?1082b"
   },
   {
     "champion": "Fiora",
@@ -784,7 +883,10 @@
         "name": "Gran Duelo",
         "description": "Fiora desafia a un campeon enemigo, revelando puntos vitales adicionales. Si derrota al objetivo durante la duracion, obtiene un aumento significativo en su velocidad de movimiento y curacion."
       }
-    }
+    },
+    "region": "Demacia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Fiora_OriginalSquare.png?0b643"
   },
   {
     "champion": "Fizz",
@@ -809,7 +911,10 @@
         "name": "¡A Comer!",
         "description": "Fizz invoca un tiburon gigante que emerge del suelo, persiguiendo a un enemigo y causando una explosion que inflige daño magico significativo."
       }
-    }
+    },
+    "region": "Bilgewater",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Fizz_OriginalSquare.png?44c3d"
   },
   {
     "champion": "Galio",
@@ -834,7 +939,10 @@
         "name": "Juicio de los Colosos",
         "description": "Galio se lanza hacia una ubicacion objetivo, otorgando un escudo a los aliados cercanos y ralentizando a los enemigos al aterrizar."
       }
-    }
+    },
+    "region": "Demacia",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Galio_OriginalSquare.png?698b3"
   },
   {
     "champion": "Gangplank",
@@ -859,7 +967,10 @@
         "name": "Lluvia de Cañones",
         "description": "Gangplank llama a una lluvia de cañones en un area objetivo, infligiendo daño fisico continuo a los enemigos dentro del area."
       }
-    }
+    },
+    "region": "Bilgewater",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Gangplank_OriginalSquare.png?6b5cf"
   },
   {
     "champion": "Garen",
@@ -884,7 +995,10 @@
         "name": "Justicia Demaciana",
         "description": "Garen ejecuta a un enemigo, infligiendo daño verdadero basado en la vida faltante del objetivo."
       }
-    }
+    },
+    "region": "Demacia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Garen_OriginalSquare.png?37153"
   },
   {
     "champion": "Gnar",
@@ -909,7 +1023,10 @@
         "name": "GNAR!",
         "description": "Gnar se transforma en Mega Gnar si no lo esta ya, lanzandose hacia una ubicacion objetivo y aturdiendo a los enemigos en el area al aterrizar."
       }
-    }
+    },
+    "region": "Freljord",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Gnar_OriginalSquare.png?11c50"
   },
   {
     "champion": "Gragas",
@@ -934,7 +1051,10 @@
         "name": "Explosion Etilica",
         "description": "Gragas lanza una gran explosion de cerveza que inflige daño magico y aleja a los enemigos en un area grande."
       }
-    }
+    },
+    "region": "Freljord",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Gragas_OriginalSquare.png?41e2d"
   },
   {
     "champion": "Graves",
@@ -959,7 +1079,10 @@
         "name": "Cargamento Pesado",
         "description": "Graves dispara una serie de explosivos que infligen daño fisico significativo en un area grande al impactar."
       }
-    }
+    },
+    "region": "Bilgewater",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Graves_OriginalSquare.png?1d234"
   },
   {
     "champion": "Gwen",
@@ -984,7 +1107,10 @@
         "name": "Corte Final",
         "description": "Gwen desata una serie de cortes en un area grande, infligiendo daño magico significativo a los enemigos alcanzados y ralentizandolos."
       }
-    }
+    },
+    "region": "Shadow Isles",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Gwen_OriginalSquare.png?794a1"
   },
   {
     "champion": "Hecarim",
@@ -1009,7 +1135,10 @@
         "name": "Carga del Terror",
         "description": "Hecarim se lanza hacia una ubicacion objetivo, infligiendo daño fisico y aturdiendo a los enemigos en su camino."
       }
-    }
+    },
+    "region": "Shadow Isles",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Hecarim_OriginalSquare.png?89760"
   },
   {
     "champion": "Heimerdinger",
@@ -1034,7 +1163,10 @@
         "name": "Hipercarga de Heimerdinger",
         "description": "Heimerdinger mejora sus habilidades durante un breve periodo, reduciendo sus enfriamientos y aumentando su efectividad."
       }
-    }
+    },
+    "region": "Piltover",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Heimerdinger_ArcaneProfessorSquare.png?5cd4a"
   },
   {
     "champion": "Hwei",
@@ -1067,7 +1199,10 @@
         "name": "",
         "description": ""
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Hwei_OriginalSquare.png?0c03b"
   },
   {
     "champion": "Illaoi",
@@ -1092,7 +1227,10 @@
         "name": "Salto de Fe",
         "description": "Illaoi invoca varios tentaculos en un area grande, infligiendo daño fisico a los enemigos alcanzados y obligandolos a enfrentarse a sus propios espiritus."
       }
-    }
+    },
+    "region": "Bilgewater",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Illaoi_OriginalSquare.png?37418"
   },
   {
     "champion": "Irelia",
@@ -1117,7 +1255,10 @@
         "name": "Loto Despierto",
         "description": "Irelia desata todo su poder, ganando velocidad de ataque y reduciendo el enfriamiento de sus habilidades durante unos segundos."
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Irelia_OriginalSquare.png?fad5e"
   },
   {
     "champion": "Ivern",
@@ -1142,7 +1283,10 @@
         "name": "Invocacion: Daisy",
         "description": "Ivern invoca a su amiga Daisy, una gran golem de piedra que ataca a los enemigos cercanos y puede ser controlada para realizar ataques especiales."
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Ivern_OriginalSquare.png?e28f2"
   },
   {
     "champion": "Janna",
@@ -1167,7 +1311,10 @@
         "name": "Monzon",
         "description": "Janna invoca una poderosa tormenta que cura a los aliados cercanos y repele a los enemigos."
       }
-    }
+    },
+    "region": "Zaun",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Janna_OriginalSquare.png?ec2a0"
   },
   {
     "champion": "Jarvan IV",
@@ -1192,7 +1339,10 @@
         "name": "Cataclismo",
         "description": "Jarvan IV salta hacia un enemigo, infligiendo daño fisico y creando un circulo de terreno intransitable alrededor de ambos."
       }
-    }
+    },
+    "region": "Demacia",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Jarvan_IV_OriginalSquare.png?74a73"
   },
   {
     "champion": "Jax",
@@ -1217,7 +1367,10 @@
         "name": "Gran Maestria en Armas",
         "description": "Jax aumenta su daño de ataque y su resistencia a daño magico durante unos segundos."
       }
-    }
+    },
+    "region": "Runeterra",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Jax_OriginalSquare.png?6209d"
   },
   {
     "champion": "Jayce",
@@ -1242,7 +1395,10 @@
         "name": "Transformacion",
         "description": "Jayce cambia entre su forma de cañon y su forma de martillo, adaptandose a la situacion del combate."
       }
-    }
+    },
+    "region": "Piltover",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Jayce_ArcaneInventorSquare.png?c23bb"
   },
   {
     "champion": "Jhin",
@@ -1267,7 +1423,10 @@
         "name": "Gran Final",
         "description": "Jhin dispara cuatro balas de largo alcance que infligen daño fisico significativo. La cuarta bala siempre es un golpe critico que inflige daño adicional basado en la vida faltante del objetivo."
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Jhin_OriginalSquare.png?893f1"
   },
   {
     "champion": "Jinx",
@@ -1292,10 +1451,13 @@
         "name": "Supermegacohete Final",
         "description": "Jinx dispara un cohete de largo alcance que inflige daño fisico significativo al primer enemigo alcanzado y explota, infligiendo daño adicional en un area."
       }
-    }
+    },
+    "region": "Zaun",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Jinx_OriginalSquare.png?95e74"
   },
   {
-    "champion": "Kaisa",
+    "champion": "Kai'Sa",
     "abilities": {
       "P": {
         "name": "Segadora del Vacio",
@@ -1317,7 +1479,10 @@
         "name": "Instinto Asesino",
         "description": "Kai'Sa se teletransporta hacia un campeon enemigo marcado, ganando un escudo y atacando rapidamente al aterrizar."
       }
-    }
+    },
+    "region": "Void",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kai%27Sa_OriginalSquare.png?3d567"
   },
   {
     "champion": "Kalista",
@@ -1342,7 +1507,10 @@
         "name": "Alma Atada",
         "description": "Kalista arrastra a su aliado vinculado hacia una ubicacion objetivo, otorgandole invulnerabilidad temporal y permitiendole atacar rapidamente al aterrizar."
       }
-    }
+    },
+    "region": "Shadow Isles",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kalista_OriginalSquare.png?e5c71"
   },
   {
     "champion": "Karma",
@@ -1367,7 +1535,10 @@
         "name": "Mantra",
         "description": "Karma potencia su proxima habilidad, otorgandole efectos adicionales."
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Karma_OriginalSquare.png?46695"
   },
   {
     "champion": "Karthus",
@@ -1402,7 +1573,10 @@
         "name": "Requiem",
         "description": "Karthus canaliza y luego inflige daño magico a todos los enemigos en el mapa, sin importar donde se encuentren."
       }
-    }
+    },
+    "region": "Shadow Isles",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Karthus_OriginalSquare.png?46df2"
   },
   {
     "champion": "Kassadin",
@@ -1427,7 +1601,10 @@
         "name": "Camino del Vacio",
         "description": "Kassadin se teletransporta a una ubicacion cercana, infligiendo daño magico a los enemigos cercanos al aterrizar."
       }
-    }
+    },
+    "region": "Void",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kassadin_OriginalSquare.png?d6b88"
   },
   {
     "champion": "Katarina",
@@ -1452,7 +1629,10 @@
         "name": "Loto Mortal",
         "description": "Katarina desata una serie de ataques giratorios, infligiendo daño fisico a los enemigos cercanos por cada daga que los golpea."
       }
-    }
+    },
+    "region": "Noxus",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Katarina_OriginalSquare.png?e11e0"
   },
   {
     "champion": "Kayle",
@@ -1477,7 +1657,10 @@
         "name": "Intervencion Divina",
         "description": "Kayle protege a un aliado, haciendolo invulnerable durante unos segundos."
       }
-    }
+    },
+    "region": "Demacia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kayle_OriginalSquare_Ascension.png?f2e05"
   },
   {
     "champion": "Kayn",
@@ -1502,7 +1685,10 @@
         "name": "Asalto Implacable",
         "description": "Kayn se lanza hacia una ubicacion objetivo, infligiendo daño fisico a los enemigos en su camino y ralentizandolos."
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kayn_OriginalSquare.png?37607"
   },
   {
     "champion": "Kennen",
@@ -1527,10 +1713,13 @@
         "name": "Ojo del Tormenta",
         "description": "Kennen desata una poderosa tormenta electrica en un area grande, aturdiendo a los enemigos alcanzados y aplicando cargas de Furia del Trueno."
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kennen_OriginalSquare.png?f8fad"
   },
   {
-    "champion": "Khazix",
+    "champion": "Kha'zix",
     "abilities": {
       "P": {
         "name": "Evolucion del Vacio",
@@ -1552,7 +1741,10 @@
         "name": "Asesinato del Vacio",
         "description": "Kha'Zix se vuelve invisible durante un breve periodo y gana velocidad de movimiento. Al salir de la invisibilidad, su proximo ataque basico inflige daño adicional."
       }
-    }
+    },
+    "region": "Void",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kha%27Zix_OriginalSquare.png?a0597"
   },
   {
     "champion": "Kindred",
@@ -1577,7 +1769,10 @@
         "name": "Último Suspiro",
         "description": "Kindred crea un area que protege a los aliados dentro de ella, evitando que mueran durante unos segundos."
       }
-    }
+    },
+    "region": "Runeterra",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kindred_OriginalSquare.png?86d26"
   },
   {
     "champion": "Kled",
@@ -1602,7 +1797,10 @@
         "name": "¡A la Carga!",
         "description": "Kled y Skaarl se lanzan hacia una ubicacion objetivo, infligiendo daño fisico y aturdiendo a los enemigos en su camino."
       }
-    }
+    },
+    "region": "Noxus",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kled_OriginalSquare.png?353e8"
   },
   {
     "champion": "Kog'Maw",
@@ -1627,7 +1825,10 @@
         "name": "Barrera de Laseres",
         "description": "Kog'Maw dispara una serie de laseres de largo alcance que infligen daño magico significativo a los enemigos en linea recta."
       }
-    }
+    },
+    "region": "Void",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Kog%27Maw_OriginalSquare.png?1f3d5"
   },
   {
     "champion": "K'sante",
@@ -1652,7 +1853,10 @@
         "name": "Furia del Leon",
         "description": "K'Sante desata todo su poder, ganando vida adicional, resistencia y reduciendo el enfriamiento de sus habilidades durante unos segundos."
       }
-    }
+    },
+    "region": "Shurima",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/K%27Sante_OriginalSquare.png?6c0c1"
   },
   {
     "champion": "LeBlanc",
@@ -1677,7 +1881,10 @@
         "name": "Mimica",
         "description": "LeBlanc puede lanzar una copia potenciada de su ultima habilidad utilizada, infligiendo daño adicional."
       }
-    }
+    },
+    "region": "Noxus",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/LeBlanc_OriginalSquare.png?4031b"
   },
   {
     "champion": "Lee Sin",
@@ -1702,7 +1909,10 @@
         "name": "Dragon Ascendente",
         "description": "Lee Sin se lanza hacia un enemigo, infligiendo daño fisico y lanzandolo por el aire. Puede volver a activar la habilidad para desplazarse hacia una ubicacion cercana."
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Lee_Sin_OriginalSquare.png?f1618"
   },
   {
     "champion": "Leona",
@@ -1727,7 +1937,10 @@
         "name": "Llamado del Sol",
         "description": "Leona invoca un gran sol que inflige daño magico a los enemigos en un area y los aturde."
       }
-    }
+    },
+    "region": "Mount Targon",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Leona_OriginalSquare.png?9c355"
   },
   {
     "champion": "Lillia",
@@ -1752,7 +1965,10 @@
         "name": "Danza Somnolienta",
         "description": "Lillia crea un gran area que induce el sueño a los enemigos alcanzados, haciendolos caer dormidos durante unos segundos."
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Lillia_OriginalSquare.png?16dff"
   },
   {
     "champion": "Lissandra",
@@ -1777,7 +1993,10 @@
         "name": "Corona de Hielo",
         "description": "Lissandra se convierte en un bloque de hielo, volviendose invulnerable durante unos segundos. Al finalizar, inflige daño magico a los enemigos cercanos y los congela en su lugar."
       }
-    }
+    },
+    "region": "Freljord",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Lissandra_OriginalSquare.png?fe62c"
   },
   {
     "champion": "Lucian",
@@ -1802,7 +2021,10 @@
         "name": "El Relampago de la Luz",
         "description": "Lucian dispara una serie de proyectiles en linea recta, infligiendo daño fisico significativo a los enemigos alcanzados."
       }
-    }
+    },
+    "region": "Demacia",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Lucian_OriginalSquare.png?514f2"
   },
   {
     "champion": "Lulu",
@@ -1827,7 +2049,10 @@
         "name": "¡Que Comience la Fiesta!",
         "description": "Lulu transforma a un enemigo en una criatura inofensiva durante unos segundos, impidiendole atacar o usar habilidades. Al finalizar, inflige daño magico al objetivo."
       }
-    }
+    },
+    "region": "Bandle City",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Lulu_OriginalSquare.png?18777"
   },
   {
     "champion": "Lux",
@@ -1852,7 +2077,10 @@
         "name": "Destello Final",
         "description": "Lux dispara un poderoso rayo de luz que inflige daño magico significativo a los enemigos en linea recta."
       }
-    }
+    },
+    "region": "Demacia",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Lux_OriginalSquare.png?285c1"
   },
   {
     "champion": "Malphite",
@@ -1877,7 +2105,10 @@
         "name": "Fuerza Inquebrantable",
         "description": "Malphite se lanza hacia una ubicacion objetivo, infligiendo daño magico y lanzando por el aire a los enemigos alcanzados."
       }
-    }
+    },
+    "region": "Ixtal",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Malphite_OriginalSquare.png?e38f9"
   },
   {
     "champion": "Malzahar",
@@ -1902,7 +2133,10 @@
         "name": "Nulificacion del Vacio",
         "description": "Malzahar canaliza y luego inflige daño magico significativo a un enemigo, silenciandolo y aturdiendolo si no se mueve durante la canalizacion."
       }
-    }
+    },
+    "region": "Void",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Malzahar_OriginalSquare.png?0d05f"
   },
   {
     "champion": "Maokai",
@@ -1927,7 +2161,10 @@
         "name": "Tormenta de la Naturaleza",
         "description": "Maokai invoca una tormenta de raices que inflige daño magico a los enemigos en un area grande y los inmoviliza."
       }
-    }
+    },
+    "region": "Shadow Isles",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Maokai_OriginalSquare.png?5d15e"
   },
   {
     "champion": "Master Yi",
@@ -1952,15 +2189,24 @@
         "name": "Cuchilla del Dragon",
         "description": "Master Yi entra en un estado de furia, ganando velocidad de movimiento y reduciendo el enfriamiento de sus habilidades durante unos segundos."
       }
-    }
+    },
+    "region": "Ionia",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Master_Yi_OriginalSquare.png?3d56a"
   },
   {
     "champion": "Mel",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Mel_ArcaneCouncilorSquare.png?b74b6"
   },
   {
     "champion": "Milio",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ixtal",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Milio_OriginalSquare.png?b81c0"
   },
   {
     "champion": "Miss Fortune",
@@ -1985,7 +2231,10 @@
         "name": "Lluvia de Balas",
         "description": "Miss Fortune desata una lluvia de balas en un area grande, infligiendo daño fisico significativo a los enemigos alcanzados."
       }
-    }
+    },
+    "region": "Bilgewater",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Miss_Fortune_OriginalSquare.png?47a40"
   },
   {
     "champion": "Mordekaiser",
@@ -2010,342 +2259,618 @@
         "name": "Reino de la Muerte",
         "description": "Mordekaiser arrastra a un enemigo al Reino de la Muerte, donde luchan uno contra uno durante unos segundos."
       }
-    }
+    },
+    "region": "Noxus",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Mordekaiser_OriginalSquare.png?76c25"
   },
   {
     "champion": "Morgana",
-    "abilities": {}
+    "abilities": {},
+    "region": "Demacia",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Morgana_OriginalSquare.png?03afb"
   },
   {
     "champion": "Naafiri",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shurima",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Naafiri_OriginalSquare.png?ccf30"
   },
   {
     "champion": "Nami",
-    "abilities": {}
+    "abilities": {},
+    "region": "Bilgewater",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Nami_OriginalSquare.png?b8c44"
   },
   {
     "champion": "Nasus",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shurima",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Nasus_OriginalSquare.png?9a2f8"
   },
   {
     "champion": "Nautilus",
-    "abilities": {}
+    "abilities": {},
+    "region": "Bilgewater",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Nautilus_OriginalSquare.png?8b72f"
   },
   {
     "champion": "Neeko",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ixtal",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Neeko_OriginalSquare.png?7667b"
   },
   {
     "champion": "Nidalee",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ixtal",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Nidalee_OriginalSquare.png?c6101"
   },
   {
     "champion": "Nilah",
-    "abilities": {}
+    "abilities": {},
+    "region": "Runeterra",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Nilah_OriginalSquare.png?573d3"
   },
   {
     "champion": "Nocturne",
-    "abilities": {}
+    "abilities": {},
+    "region": "Runeterra",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Nocturne_OriginalSquare.png?3ed03"
   },
   {
     "champion": "Nunu & Willump",
-    "abilities": {}
+    "abilities": {},
+    "region": "Freljord",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Nunu_OriginalSquare.png?ef0fa"
   },
   {
     "champion": "Olaf",
-    "abilities": {}
+    "abilities": {},
+    "region": "Freljord",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Olaf_OriginalSquare.png?4841d"
   },
   {
     "champion": "Orianna",
-    "abilities": {}
+    "abilities": {},
+    "region": "Piltover",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Orianna_OriginalSquare.png?ea994"
   },
   {
     "champion": "Ornn",
-    "abilities": {}
+    "abilities": {},
+    "region": "Freljord",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Ornn_OriginalSquare.png?ab1d6"
   },
   {
     "champion": "Pantheon",
-    "abilities": {}
+    "abilities": {},
+    "region": "Mount Targon",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Pantheon_OriginalSquare.png?81183"
   },
   {
     "champion": "Poppy",
-    "abilities": {}
+    "abilities": {},
+    "region": "Demacia",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Poppy_OriginalSquare.png?fde1f"
   },
   {
     "champion": "Pyke",
-    "abilities": {}
+    "abilities": {},
+    "region": "Bilgewater",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Pyke_OriginalSquare.png?071c0"
   },
   {
     "champion": "Qiyana",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ixtal",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Qiyana_OriginalSquare.png?f2220"
   },
   {
     "champion": "Quinn",
-    "abilities": {}
+    "abilities": {},
+    "region": "Demacia",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Quinn_OriginalSquare.png?098bd"
   },
   {
     "champion": "Rakan",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Rakan_OriginalSquare.png?5747a"
   },
   {
     "champion": "Rammus",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shurima",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Rammus_OriginalSquare.png?3fbfd"
   },
   {
     "champion": "Rek'Sai",
-    "abilities": {}
+    "abilities": {},
+    "region": "Void",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Rek%27Sai_OriginalSquare.png?c597d"
   },
   {
     "champion": "Rell",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Rell_OriginalSquare.png?d80b8"
   },
   {
     "champion": "Renata Glasc",
-    "abilities": {}
+    "abilities": {},
+    "region": "Zaun",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Renata_Glasc_OriginalSquare.png?1300f"
   },
   {
     "champion": "Renekton",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shurima",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Renekton_OriginalSquare.png?0f653"
   },
   {
     "champion": "Rengar",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ixtal",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Rengar_OriginalSquare.png?53142"
   },
   {
     "champion": "Riven",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Riven_OriginalSquare.png?6e136"
   },
   {
     "champion": "Rumble",
-    "abilities": {}
+    "abilities": {},
+    "region": "Bandle City",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Rumble_OriginalSquare.png?26721"
   },
   {
     "champion": "Ryze",
-    "abilities": {}
+    "abilities": {},
+    "region": "Runeterra",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Ryze_OriginalSquare.png?716a1"
   },
   {
     "champion": "Samira",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Samira_OriginalSquare.png?b57dc"
   },
   {
     "champion": "Sejuani",
-    "abilities": {}
+    "abilities": {},
+    "region": "Freljord",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Sejuani_OriginalSquare.png?d585c"
   },
   {
     "champion": "Senna",
-    "abilities": {}
+    "abilities": {},
+    "region": "Demacia",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Senna_OriginalSquare.png?98201"
   },
   {
     "champion": "Seraphine",
-    "abilities": {}
+    "abilities": {},
+    "region": "Piltover",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Seraphine_OriginalSquare.png?a7e01"
   },
   {
     "champion": "Sett",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Sett_OriginalSquare.png?a9ec3"
   },
   {
     "champion": "Shaco",
-    "abilities": {}
+    "abilities": {},
+    "region": "Runeterra",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Shaco_OriginalSquare.png?dd925"
   },
   {
     "champion": "Shen",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Shen_OriginalSquare.png?7795f"
   },
   {
     "champion": "Shyvana",
-    "abilities": {}
+    "abilities": {},
+    "region": "Demacia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Shyvana_OriginalSquare.png?2f509"
   },
   {
     "champion": "Singed",
-    "abilities": {}
+    "abilities": {},
+    "region": "Zaun",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Singed_ArcaneShimmerLabSquare.png?f57ee"
   },
   {
     "champion": "Sion",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Sion_OriginalSquare.png?33ac7"
   },
   {
     "champion": "Sivir",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shurima",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Sivir_OriginalSquare.png?2852b"
   },
   {
     "champion": "Skarner",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shurima",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Skarner_OriginalSquare.png?76e44"
   },
   {
     "champion": "Smolder",
-    "abilities": {}
+    "abilities": {},
+    "region": "Runeterra",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Smolder_OriginalSquare.png?d6866"
   },
   {
     "champion": "Sona",
-    "abilities": {}
+    "abilities": {},
+    "region": "Demacia",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Sona_OriginalSquare.png?72d48"
   },
   {
     "champion": "Soraka",
-    "abilities": {}
+    "abilities": {},
+    "region": "Mount Targon",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Soraka_OriginalSquare.png?0c2df"
   },
   {
     "champion": "Swain",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Swain_OriginalSquare.png?b7cdb"
   },
   {
     "champion": "Sylas",
-    "abilities": {}
+    "abilities": {},
+    "region": "Demacia",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Sylas_OriginalSquare.png?5939c"
   },
   {
     "champion": "Syndra",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Syndra_OriginalSquare.png?f6b95"
   },
   {
     "champion": "Tahm Kench",
-    "abilities": {}
+    "abilities": {},
+    "region": "Runeterra",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Tahm_Kench_OriginalSquare.png?c177a"
   },
   {
     "champion": "Taliyah",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shurima",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Taliyah_OriginalSquare.png?c757b"
   },
   {
     "champion": "Talon",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Talon_OriginalSquare.png?eb66c"
   },
   {
     "champion": "Taric",
-    "abilities": {}
+    "abilities": {},
+    "region": "Mount Targon",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Taric_OriginalSquare.png?df987"
   },
   {
     "champion": "Teemo",
-    "abilities": {}
+    "abilities": {},
+    "region": "Bandle City",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Teemo_OriginalSquare.png?783d6"
   },
   {
     "champion": "Thresh",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shadow Isles",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Thresh_OriginalSquare.png?9ef1d"
   },
   {
     "champion": "Tristana",
-    "abilities": {}
+    "abilities": {},
+    "region": "Bandle City",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Tristana_OriginalSquare.png?b2200"
   },
   {
     "champion": "Trundle",
-    "abilities": {}
+    "abilities": {},
+    "region": "Freljord",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Trundle_OriginalSquare.png?4bae6"
   },
   {
     "champion": "Tryndamere",
-    "abilities": {}
+    "abilities": {},
+    "region": "Freljord",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Tryndamere_OriginalSquare.png?3eb36"
   },
   {
     "champion": "Twisted Fate",
-    "abilities": {}
+    "abilities": {},
+    "region": "Bilgewater",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Twisted_Fate_OriginalSquare.png?72748"
   },
   {
     "champion": "Twitch",
-    "abilities": {}
+    "abilities": {},
+    "region": "Zaun",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Twitch_OriginalSquare.png?143e2"
   },
   {
     "champion": "Udyr",
-    "abilities": {}
+    "abilities": {},
+    "region": "Freljord",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Udyr_OriginalSquare.png?fe8df"
   },
   {
     "champion": "Urgot",
-    "abilities": {}
+    "abilities": {},
+    "region": "Zaun",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Urgot_OriginalSquare.png?1c3ee"
   },
   {
     "champion": "Varus",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Varus_OriginalSquare.png?1f1e0"
   },
   {
     "champion": "Vayne",
-    "abilities": {}
+    "abilities": {},
+    "region": "Demacia",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Vayne_OriginalSquare.png?78bd3  "
   },
   {
     "champion": "Veigar",
-    "abilities": {}
+    "abilities": {},
+    "region": "Bandle City",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Veigar_OriginalSquare.png?2add0"
   },
   {
     "champion": "Vel'Koz",
-    "abilities": {}
+    "abilities": {},
+    "region": "Void",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Vel%27Koz_OriginalSquare.png?0c64b"
   },
   {
     "champion": "Vex",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shadow Isles",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Vex_OriginalSquare.png?f6345"
   },
   {
     "champion": "Vi",
-    "abilities": {}
+    "abilities": {},
+    "region": "Piltover",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Vi_ArcaneUndercitySquare.png?5f241"
   },
   {
     "champion": "Viego",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shadow Isles",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Viego_OriginalSquare.png?5f898"
   },
   {
     "champion": "Viktor",
-    "abilities": {}
+    "abilities": {},
+    "region": "Zaun",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Viktor_OriginalSquare_old3.png?88d6c"
   },
   {
     "champion": "Vladimir",
-    "abilities": {}
+    "abilities": {},
+    "region": "Noxus",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Vladimir_OriginalSquare.png?41820"
   },
   {
     "champion": "Volibear",
-    "abilities": {}
+    "abilities": {},
+    "region": "Freljord",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Volibear_OriginalSquare.png?b4f76"
   },
   {
     "champion": "Warwick",
-    "abilities": {}
+    "abilities": {},
+    "region": "Zaun",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Warwick_OriginalSquare.png?cc8c7"
   },
   {
     "champion": "Wukong",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Wukong_OriginalSquare.png?bac3b"
   },
   {
     "champion": "Xayah",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Xayah_OriginalSquare.png?17473"
   },
   {
     "champion": "Xerath",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shurima",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Xerath_OriginalSquare.png?ae665"
   },
   {
     "champion": "Xin Zhao",
-    "abilities": {}
+    "abilities": {},
+    "region": "Demacia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Xin_Zhao_OriginalSquare.png?c48eb"
   },
   {
     "champion": "Yasuo",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Yasuo_OriginalSquare.png?efb3b"
   },
   {
     "champion": "Yone",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Yone_OriginalSquare.png?4b7e6"
   },
   {
     "champion": "Yorick",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shadow Isles",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Yorick_OriginalSquare.png?13f0f"
+  },
+  {
+    "champion": "Yunara",
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Yunara_OriginalSquare.png?7b5b6"
   },
   {
     "champion": "Yuumi",
-    "abilities": {}
+    "abilities": {},
+    "region": "Bandle City",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Yuumi_OriginalSquare.png?c851e"
   },
   {
+    "champion": "Zaahen",
+    "abilities": {},
+    "region": "Runeterra",
+    "role": "Luchador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Zaahen_OriginalSquare.png?aabf2"
+  }, 
+  {
     "champion": "Zac",
-    "abilities": {}
+    "abilities": {},
+    "region": "Zaun",
+    "role": "Tanque",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Zac_OriginalSquare.png?01e68"
   },
   {
     "champion": "Zed",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ionia",
+    "role": "Asesino",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Zed_OriginalSquare.png?b08cd"
+  },
+  {
+    "champion": "Zeri",
+    "abilities": {},
+    "region": "Zaun",
+    "role": "Tirador",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Zeri_OriginalSquare.png?3b11a"
   },
   {
     "champion": "Ziggs",
-    "abilities": {}
+    "abilities": {},
+    "region": "Zaun",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Ziggs_OriginalSquare.png?d44a6"
   },
   {
     "champion": "Zilean",
-    "abilities": {}
+    "abilities": {},
+    "region": "Shurima",
+    "role": "Soporte",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Zilean_OriginalSquare.png?f0cc9"
   },
   {
     "champion": "Zoe",
-    "abilities": {}
+    "abilities": {},
+    "region": "Mount Targon",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Zoe_OriginalSquare.png?c2d6a"
   },
   {
     "champion": "Zyra",
-    "abilities": {}
+    "abilities": {},
+    "region": "Ixtal",
+    "role": "Mago",
+    "image": "https://wiki.leagueoflegends.com/en-us/images/Zyra_OriginalSquare.png?e97f0"
   }
 ]
