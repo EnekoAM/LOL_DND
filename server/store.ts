@@ -139,6 +139,11 @@ function numericCost(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0;
 }
 
+/** La venta paga el 70% del coste de cada copia, al oro más cercano. */
+function sellUnit(cost: number): number {
+  return Math.round((cost * 70) / 100);
+}
+
 /** Tarifa fija según la rareza del resultado. La misma tabla está en src/features/items/recipe.ts. */
 function rarityCraftGold(rareza: unknown): number {
   if (typeof rareza !== 'string') return 0;
@@ -299,7 +304,7 @@ export async function craftItem(nombre: string) {
   };
 }
 
-/** Compra o vende varias copias al coste de cada objeto. Lo equipado no se puede vender. */
+/** Compra al coste o vende al 70%. Lo equipado no se puede vender. */
 export async function tradeShop(order: ShopOrder) {
   const col = await collection('items');
   const docs = await col.find({}).toArray();
@@ -330,7 +335,8 @@ export async function tradeShop(order: ShopOrder) {
           : `No hay tantas copias de ${doc.nombre}`);
       }
     }
-    const oro = numericCost(doc.coste) * line.cantidad;
+    const unit = numericCost(doc.coste);
+    const oro = (order.mode === 'venta' ? sellUnit(unit) : unit) * line.cantidad;
     total += oro;
     plan.push({ id: doc._id, nombre: doc.nombre, cantidad: line.cantidad, reserved, oro });
   }

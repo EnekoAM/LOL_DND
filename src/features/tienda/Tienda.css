@@ -393,6 +393,36 @@
   gap: 4px;
 }
 
+.shop-craft__name {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  line-height: 1.25;
+  color: #f6e7c4;
+}
+
+.shop-craft__name-text {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.shop-craft__name--slide { text-align: start; }
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-craft__name--slide { text-align: center; }
+
+  .shop-craft__name--slide .shop-craft__name-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: none;
+  }
+}
+
 .shop-craft__item img,
 .shop-craft__item .shop-ware__fallback {
   width: 100%;

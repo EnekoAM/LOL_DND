@@ -1,4 +1,4 @@
-import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import Modal from '../../components/Modal';
 import { craftItem, findItem, findItems, ITEMS, STAT_KEYS, type Item } from '../../data/items';
 import { partyGold, subscribeParty } from '../../data/party';
@@ -45,6 +45,9 @@ const raritySlug = (rareza: string): string =>
 
 const itemPrice = (item: Item | undefined): number =>
   typeof item?.coste === 'number' && Number.isFinite(item.coste) && item.coste > 0 ? item.coste : 0;
+
+/** La misma cuenta está en server/store.ts. El 70% se hace en enteros: 350 * 0.7 no es 245 en coma flotante. */
+const sellPrice = (cost: number): number => Math.round((cost * 70) / 100);
 
 const formatGold = (amount: number): string => amount.toLocaleString('es-ES');
 
@@ -94,7 +97,7 @@ const Tienda = () => {
   const selectedCraft = craftName ? findItem(craftName) ?? null : null;
   const lines = cart.map(line => {
     const item = findItem(line.nombre);
-    const price = itemPrice(item);
+    const price = mode === 'venta' ? sellPrice(itemPrice(item)) : itemPrice(item);
     const available = item ? itemAvailability(item).available : 0;
     return { ...line, item, price, available, subtotal: price * line.cantidad };
   });
@@ -294,7 +297,11 @@ const Tienda = () => {
             const stock = itemAvailability(item);
             const capped = mode === 'venta' && (inCart?.cantidad ?? 0) >= stock.available;
             const picked = mode === 'crafteo' && selectedCraft?.nombre === item.nombre;
-            const price = mode === 'crafteo' ? craftGold(item, recipeLines(item.craftsFrom)) : itemPrice(item);
+            const price = mode === 'crafteo'
+              ? craftGold(item, recipeLines(item.craftsFrom))
+              : mode === 'venta'
+                ? sellPrice(itemPrice(item))
+                : itemPrice(item);
             return (
               <div
                 key={item.nombre}
@@ -335,7 +342,7 @@ const Tienda = () => {
         ) : (
         <section className="shop-cart">
           <h2 className="shop-cart__title">Carrito</h2>
-          {mode === 'venta' && <p className="shop-cart__hint">Las copias equipadas no se venden.</p>}
+          {mode === 'venta' && <p className="shop-cart__hint">Se paga el 70% del coste. Las copias equipadas no se venden.</p>}
           {lines.length === 0 && <p className="shop-order__empty">El carrito está vacío.</p>}
           <ul className="shop-cart__lines">
             {lines.map(line => (
@@ -391,6 +398,72 @@ const Tienda = () => {
   );
 };
 
+const NAME_CYCLE_MS = 12000;
+
+/** El mismo reloj para todas las fichas: el progreso sale de la hora, no de cuándo arrancó cada una. */
+function marqueeAt(progress: number, shift: number): { x: number; opacity: number } {
+  if (progress < 0.18) return { x: 0, opacity: 1 };
+  if (progress < 0.62) return { x: -shift * ((progress - 0.18) / 0.44), opacity: 1 };
+  if (progress < 0.8) return { x: -shift, opacity: 1 };
+  if (progress < 0.82) return { x: -shift, opacity: 1 - (progress - 0.8) / 0.02 };
+  if (progress < 0.84) return { x: 0, opacity: (progress - 0.82) / 0.02 };
+  return { x: 0, opacity: 1 };
+}
+
+const CraftName = ({ name }: { name: string }) => {
+  const frameRef = useRef<HTMLSpanElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [shift, setShift] = useState(0);
+
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    const text = textRef.current;
+    if (!frame || !text) return;
+
+    const measure = () => {
+      const overflow = Math.ceil(text.scrollWidth - frame.clientWidth);
+      setShift(current => {
+        const next = overflow > 2 ? overflow : 0;
+        return current === next ? current : next;
+      });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    const fonts = document.fonts;
+    if (fonts) void fonts.ready.then(measure);
+    return () => observer.disconnect();
+  }, [name]);
+
+  useEffect(() => {
+    const text = textRef.current;
+    if (!text || shift <= 0) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let frame = 0;
+    const tick = () => {
+      const progress = (performance.now() % NAME_CYCLE_MS) / NAME_CYCLE_MS;
+      const { x, opacity } = marqueeAt(progress, shift);
+      text.style.transform = `translateX(${x}px)`;
+      text.style.opacity = opacity.toFixed(3);
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(frame);
+      text.style.transform = '';
+      text.style.opacity = '';
+    };
+  }, [shift]);
+
+  return (
+    <span ref={frameRef} className={cx('shop-craft__name', shift > 0 && 'shop-craft__name--slide')} title={name}>
+      <span ref={textRef} className="shop-craft__name-text">{name}</span>
+    </span>
+  );
+};
+
 type CraftBenchProps = {
   item: Item | null;
   gold: number;
@@ -440,7 +513,7 @@ const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchP
                 {line.item?.imagen
                   ? <img src={line.item.imagen} alt={line.name} />
                   : <span className="shop-ware__fallback">?</span>}
-                <span className="shop-ware__name">{line.name}</span>
+                <CraftName name={line.name} />
                 <span className="shop-craft__stock">{line.available}/{line.needed}</span>
               </button>
             ))}
@@ -468,7 +541,7 @@ const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchP
                 {result.imagen
                   ? <img src={result.imagen} alt={result.nombre} />
                   : <span className="shop-ware__fallback">?</span>}
-                <span className="shop-ware__name">{result.nombre}</span>
+                <CraftName name={result.nombre} />
               </button>
             ))}
           </div>
