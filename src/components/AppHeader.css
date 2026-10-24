@@ -124,15 +124,15 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
+  padding: 7px 8px;
   border-radius: 2px;
   border: 1px solid rgba(150,120,60,0.2);
   background: transparent;
   color: rgba(212,196,154,0.5);
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 2px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s;
@@ -160,7 +160,10 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .stat-exp { min-width: 120px; }
+  .app-header { padding: 0 10px; }
+  .header-stats { gap: 10px; }
+  .stat-exp { min-width: 88px; }
+  .header-nav { gap: 2px; }
   .nav-btn__label { display: none; }
-  .nav-btn { padding: 8px 10px; }
+  .nav-btn { padding: 6px; gap: 0; }
 }

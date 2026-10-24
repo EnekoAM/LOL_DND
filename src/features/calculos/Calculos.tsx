@@ -1,12 +1,10 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import type { Ability, Champion } from '../../data/champions';
-import type { Item } from '../../data/items';
 import { PLAYERS, savePlayerPatch, type Player, type PlayerListPatch } from '../../data/players';
 import { normalizeName } from '../../lib/text';
 import { useStoredSet } from '../../hooks/useStoredSet';
 import ChampionDetail from './ChampionDetail';
 import ChampionPicker, { type ChampionPickerFilter } from './ChampionPicker';
-import CraftModal from './CraftModal';
 import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from './damage';
 import DamagePanel from './DamagePanel';
 import PickerCard from './PickerCard';
@@ -33,7 +31,6 @@ const Calculos = () => {
   const [favorites, toggleFavorite] = useStoredSet(FAVORITES_STORAGE_KEY);
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState(DEFAULT_DAMAGE_INPUTS);
-  const [craftItem, setCraftItem] = useState<Item | null>(null);
   const [saving, setSaving] = useState(false);
   const [equipError, setEquipError] = useState<string | null>(null);
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -42,7 +39,6 @@ const Calculos = () => {
     setPickerFilter(prev => ({ ...prev, ...patch }));
   const updateDamageInputs = (patch: Partial<DamageInputs>) =>
     setDamageInputs(prev => ({ ...prev, ...patch }));
-  const closeCraftModal = useCallback(() => setCraftItem(null), []);
 
   const leavePlayer = () => {
     setPlayer(null);
@@ -91,7 +87,6 @@ const Calculos = () => {
               buildError={buildError}
               onBack={leavePlayer}
               onSelectAbility={setAbility}
-              onSelectItem={setCraftItem}
               onEquipamientoChange={equipamiento => { void updatePlayerList({ equipamiento }); }}
               onBuildChange={build => { void updatePlayerList({ build }); }}
             />
@@ -118,8 +113,6 @@ const Calculos = () => {
           )}
         </>
       )}
-
-      {craftItem && <CraftModal item={craftItem} onSelect={setCraftItem} onClose={closeCraftModal} />}
     </div>
   );
 };

@@ -7,13 +7,12 @@ type Props = {
   name: string;
   item: Item | undefined;
   state?: ItemTileState;
-  onSelect: (item: Item) => void;
   onRemove?: () => void;
   removeDisabled?: boolean;
 };
 
-const ItemTile = ({ name, item, state, onSelect, onRemove, removeDisabled }: Props) => (
-  <div className={cx('calc-item-card', state && `calc-item-card--${state}`)} onClick={() => item && onSelect(item)}>
+const ItemTile = ({ name, item, state, onRemove, removeDisabled }: Props) => (
+  <div className={cx('calc-item-card', state && `calc-item-card--${state}`)}>
     {item?.imagen
       ? <img className="calc-item-card__img" src={item.imagen} alt={name} />
       : <div className="calc-item-card__no-img">✦</div>
@@ -29,10 +28,7 @@ const ItemTile = ({ name, item, state, onSelect, onRemove, removeDisabled }: Pro
         className="calc-item-card__remove"
         aria-label={`Quitar ${name}`}
         disabled={removeDisabled}
-        onClick={event => {
-          event.stopPropagation();
-          onRemove();
-        }}
+        onClick={onRemove}
       >
         ×
       </button>

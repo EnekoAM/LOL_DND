@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { findItem, type Item } from '../../data/items';
+import { findItem } from '../../data/items';
 import { cx } from '../../lib/cx';
 import {
   ABILITY_SCORES,
@@ -23,7 +23,6 @@ import {
 type Props = {
   playerName: string;
   equipment: string[];
-  onSelectItem: (item: Item) => void;
 };
 
 type SheetRow = {
@@ -160,7 +159,7 @@ const RoleTablePanel = ({ roleId, level }: { roleId: string; level?: number }) =
   );
 };
 
-const StatsTable = ({ playerName, equipment, onSelectItem }: Props) => {
+const StatsTable = ({ playerName, equipment }: Props) => {
   const sheet = findPlayerSheet(playerName);
   const base = sheet ? sheetBase(sheet) : undefined;
 
@@ -179,7 +178,6 @@ const StatsTable = ({ playerName, equipment, onSelectItem }: Props) => {
       key: `${name}-${index}`,
       label: item?.nombre ?? name,
       line: item ? itemStatLine(item.stats) : null,
-      onClick: item ? () => onSelectItem(item) : undefined,
       passive: item?.efecto.pasiva ?? '',
       active: item?.efecto.activa ?? '',
     };

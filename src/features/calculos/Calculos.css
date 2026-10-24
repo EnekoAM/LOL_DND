@@ -447,7 +447,6 @@
   background: linear-gradient(160deg, var(--parchment), var(--parchment-dark));
   border: 1px solid rgba(201,168,76,0.12);
   padding: 10px 8px;
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -456,7 +455,7 @@
   position: relative;
 }
 
-.calc-item-card:hover {
+.calc-item-card--add:hover {
   border-color: rgba(201,168,76,0.35);
 }
 
@@ -548,6 +547,7 @@
   color: inherit;
   border-style: dashed;
   background: transparent;
+  cursor: pointer;
 }
 
 .calc-item-card--add:disabled {
@@ -877,6 +877,7 @@
   border-right: 1px solid rgba(201,168,76,0.3);
   padding: 28px 32px;
   overflow-y: auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -896,91 +897,6 @@
   color: var(--gold-bright);
   text-align: center;
   text-shadow: 0 0 16px rgba(201,168,76,0.25);
-}
-
-.calc-modal__img {
-  width: 110px;
-  height: 110px;
-  object-fit: contain;
-  border: 1px solid rgba(201,168,76,0.2);
-  padding: 8px;
-  background: rgba(0,0,0,0.3);
-}
-
-.calc-modal__rule {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
-
-.calc-modal__rule::before,
-.calc-modal__rule::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(201,168,76,0.2), transparent);
-}
-
-.calc-modal__rule-ornament {
-  color: rgba(201,168,76,0.4);
-  font-size: 12px;
-}
-
-/* Sección de crafteo */
-.calc-craft-section {
-  width: 100%;
-}
-
-.calc-craft-label {
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(201,168,76,0.4);
-  margin-bottom: 12px;
-}
-
-.calc-craft-items {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.calc-craft-item {
-  width: 72px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  transition: transform 0.15s;
-}
-
-.calc-craft-item:hover { transform: translateY(-3px); }
-
-.calc-craft-item img {
-  width: 100%;
-  border: 1px solid rgba(201,168,76,0.15);
-  padding: 4px;
-  background: rgba(0,0,0,0.3);
-  box-sizing: border-box;
-}
-
-.calc-craft-item:hover img { border-color: rgba(201,168,76,0.5); }
-
-.calc-craft-item__name {
-  font-family: 'Cinzel', serif;
-  font-size: 7px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: rgba(212,196,154,0.4);
-  text-align: center;
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Botón cerrar modal */

@@ -1,11 +1,14 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import champions from '../api/champions';
+import craft from '../api/craft';
 import health from '../api/health';
+import history from '../api/history';
 import items from '../api/items';
 import loot from '../api/loot';
 import party from '../api/party';
 import playerByName from '../api/players/[name]';
 import players from '../api/players/index';
+import shop from '../api/shop';
 import type { ApiHandler, ApiRequest, ApiResponse } from './http';
 import { loadEnv } from './env';
 
@@ -48,6 +51,10 @@ app.get('/api/champions', adapt(champions));
 app.patch('/api/champions', adapt(champions));
 app.get('/api/items', adapt(items));
 app.patch('/api/items', adapt(items));
+  app.post('/api/craft', adapt(craft));
+  app.post('/api/shop', adapt(shop));
+app.get('/api/history', adapt(history));
+app.post('/api/history', adapt(history));
 app.get('/api/loot', adapt(loot));
 app.get('/api/party', adapt(party));
 app.patch('/api/party', adapt(party));

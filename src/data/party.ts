@@ -13,6 +13,28 @@ export let PARTY: Party = {
   expToNextLevel: 600,
 };
 
+const listeners = new Set<() => void>();
+
+function emitParty(): void {
+  for (const listener of listeners) listener();
+}
+
+export function subscribeParty(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/** Instantánea estable para que el oro del header se entere de un crafteo. */
+export function partyGold(): number {
+  return PARTY.gold;
+}
+
+export function setPartyGold(gold: number): void {
+  if (PARTY.gold === gold) return;
+  PARTY = { ...PARTY, gold };
+  emitParty();
+}
+
 export function hydrateParty(party: Party): void {
   PARTY = {
     gold: party.gold,
@@ -20,4 +42,5 @@ export function hydrateParty(party: Party): void {
     exp: party.exp,
     expToNextLevel: party.expToNextLevel,
   };
+  emitParty();
 }

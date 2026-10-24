@@ -10,7 +10,10 @@ const Items = () => {
   const [filters, setFilters] = useState(DEFAULT_ITEM_FILTERS);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-  const visibleItems = useMemo(() => ITEMS.filter(item => matchesItemFilters(item, filters)), [filters]);
+  const visibleItems = useMemo(
+    () => ITEMS.filter(item => matchesItemFilters(item, filters)),
+    [filters],
+  );
 
   const updateFilters = (patch: Partial<ItemFilterState>) => setFilters(prev => ({ ...prev, ...patch }));
   const closeModal = useCallback(() => setSelectedItem(null), []);
@@ -25,7 +28,9 @@ const Items = () => {
         ))}
       </div>
 
-      {selectedItem && <ItemDetailModal item={selectedItem} onClose={closeModal} />}
+      {selectedItem && (
+        <ItemDetailModal item={selectedItem} onClose={closeModal} />
+      )}
     </div>
   );
 };

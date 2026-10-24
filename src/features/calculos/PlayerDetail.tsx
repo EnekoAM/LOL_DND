@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { findAbility, type Ability } from '../../data/champions';
-import { findItem, type Item } from '../../data/items';
+import { findItem } from '../../data/items';
 import { EQUIPMENT_SLOTS, type Player, type PlayerAbilitySlot } from '../../data/players';
 import { itemAvailability } from '../items/stock';
 import { formatPercentList } from '../../lib/format';
@@ -18,7 +18,6 @@ type Props = {
   buildError: string | null;
   onBack: () => void;
   onSelectAbility: (ability: Ability) => void;
-  onSelectItem: (item: Item) => void;
   onEquipamientoChange: (equipamiento: string[]) => void;
   onBuildChange: (build: string[]) => void;
 };
@@ -45,7 +44,6 @@ const PlayerDetail = ({
   buildError,
   onBack,
   onSelectAbility,
-  onSelectItem,
   onEquipamientoChange,
   onBuildChange,
 }: Props) => {
@@ -82,7 +80,6 @@ const PlayerDetail = ({
     <StatsTable
       playerName={player.name}
       equipment={player.equipamiento}
-      onSelectItem={onSelectItem}
     />
 
     <div className="calc-grid">
@@ -110,7 +107,6 @@ const PlayerDetail = ({
           key={`${itemName}-${index}`}
           name={itemName}
           item={findItem(itemName)}
-          onSelect={onSelectItem}
           onRemove={() => onEquipamientoChange(removeAt(player.equipamiento, index))}
           removeDisabled={saving}
         />
@@ -140,7 +136,6 @@ const PlayerDetail = ({
           name={itemName}
           item={findItem(itemName)}
           state={getBuildItemState(player, itemName)}
-          onSelect={onSelectItem}
           onRemove={() => onBuildChange(removeAt(player.build, index))}
           removeDisabled={saving}
         />

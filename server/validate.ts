@@ -10,6 +10,10 @@ export type RollRecord = {
   rareza: RollRarity;
 };
 
+const HISTORY_KINDS = ['tirada', 'crafteo', 'compra', 'venta'] as const;
+
+export type HistoryKind = (typeof HISTORY_KINDS)[number];
+
 const EQUIPMENT_LIMIT = 7;
 const ABILITY_SLOTS = ['P', 'H1', 'H2', 'H3', 'R'] as const;
 
@@ -262,6 +266,57 @@ export function parseChampionAbilityPatch(body: unknown): ChampionAbilityPatch {
     if (effect) ability.effect = effect;
   }
   return { slot: source.slot as ChampionSlot, ability };
+}
+
+const SHOP_MODES = ['compra', 'venta'] as const;
+
+export type ShopMode = (typeof SHOP_MODES)[number];
+
+export type ShopLine = {
+  nombre: string;
+  cantidad: number;
+};
+
+export type ShopOrder = {
+  mode: ShopMode;
+  lines: ShopLine[];
+};
+
+export function parseShopOrder(body: unknown): ShopOrder {
+  const source = asObject(body);
+  if (typeof source.mode !== 'string' || !SHOP_MODES.includes(source.mode as ShopMode)) {
+    throw new HttpError(400, 'La tienda tiene que ser una compra o una venta');
+  }
+  if (!Array.isArray(source.lines) || source.lines.length === 0) throw new HttpError(400, 'El carrito está vacío');
+  if (source.lines.length > 40) throw new HttpError(400, 'El carrito admite como máximo 40 objetos');
+
+  const seen = new Set<string>();
+  const lines: ShopLine[] = [];
+  for (const entry of source.lines) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new HttpError(400, 'Cada línea del carrito tiene que ser un objeto');
+    }
+    const line = entry as Record<string, unknown>;
+    if (typeof line.nombre !== 'string' || !line.nombre.trim()) throw new HttpError(400, 'Falta el nombre de un objeto del carrito');
+    if (typeof line.cantidad !== 'number' || !Number.isInteger(line.cantidad) || line.cantidad < 1 || line.cantidad > 99) {
+      throw new HttpError(400, 'La cantidad del carrito tiene que ser un entero entre 1 y 99');
+    }
+    const nombre = line.nombre.trim();
+    const key = nombre.toLowerCase();
+    if (seen.has(key)) throw new HttpError(400, 'El carrito repite un objeto');
+    seen.add(key);
+    lines.push({ nombre, cantidad: line.cantidad });
+  }
+  return { mode: source.mode as ShopMode, lines };
+}
+
+export function parseHistoryRevert(body: unknown): { id: string; kind: HistoryKind } {
+  const source = asObject(body);
+  if (typeof source.id !== 'string' || !source.id.trim()) throw new HttpError(400, 'Falta el historial');
+  if (typeof source.kind !== 'string' || !HISTORY_KINDS.includes(source.kind as HistoryKind)) {
+    throw new HttpError(400, 'El historial tiene que ser una tirada, un crafteo, una compra o una venta');
+  }
+  return { id: source.id.trim(), kind: source.kind as HistoryKind };
 }
 
 export function parsePlayerReplace(body: unknown): PlayerReplace {

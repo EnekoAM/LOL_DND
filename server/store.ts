@@ -1,7 +1,7 @@
-import type { Collection, Document, Filter } from 'mongodb';
+import { ObjectId, type Collection, type Document, type Filter } from 'mongodb';
 import { getDb } from './db';
-import { HttpError } from './errors';
-import type { ChampionAbility, PartyPatch, PlayerPatch, PlayerReplace, RollRecord } from './validate';
+import { HttpError, logError } from './errors';
+import type { ChampionAbility, HistoryKind, PartyPatch, PlayerPatch, PlayerReplace, RollRecord, ShopOrder } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -83,11 +83,322 @@ export async function grantItem(nombre: string, roll: RollRecord) {
   );
   await (await collection('rollHistoric')).insertOne({
     timestamp: rollTimestamp(),
+    createdAt: new Date(),
     item,
     tirada: roll.tirada,
     rareza: roll.rareza,
+    reverted: false,
   });
   return getItems(item);
+}
+
+const itemKey = (name: string) => name.trim().toLowerCase();
+
+function countOf(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function recipeNames(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length === 0) throw new HttpError(400, 'Este ítem no se craftea');
+  const names: string[] = [];
+  for (const entry of value) {
+    if (typeof entry !== 'string' || !entry.trim()) throw new HttpError(400, 'La receta del ítem está mal formada');
+    names.push(entry.trim());
+  }
+  return names;
+}
+
+/** Una receta puede pedir el mismo ingrediente varias veces. */
+function groupNeeds(names: string[]): { key: string; label: string; needed: number }[] {
+  const grouped = new Map<string, { key: string; label: string; needed: number }>();
+  for (const name of names) {
+    const key = itemKey(name);
+    const current = grouped.get(key);
+    if (current) current.needed += 1;
+    else grouped.set(key, { key, label: name, needed: 1 });
+  }
+  return [...grouped.values()];
+}
+
+async function equippedCounts(): Promise<Map<string, number>> {
+  const docs = await (await players()).find({}, { projection: { equipamiento: 1 } }).toArray();
+  const counts = new Map<string, number>();
+  for (const doc of docs) {
+    if (!Array.isArray(doc.equipamiento)) continue;
+    for (const name of doc.equipamiento) {
+      if (typeof name !== 'string' || !name.trim()) continue;
+      const key = itemKey(name);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
+function numericCost(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+/** Tarifa fija según la rareza del resultado. La misma tabla está en src/features/items/recipe.ts. */
+function rarityCraftGold(rareza: unknown): number {
+  if (typeof rareza !== 'string') return 0;
+  const key = rareza.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+  if (key === 'epico') return 400;
+  if (key === 'legendario') return 800;
+  return 0;
+}
+
+/** Pico, Espadón y las dos varas: las piezas valen más y solo se cobran 200. La misma cifra está en src/features/items/recipe.ts. */
+const SURPLUS_CRAFT_GOLD = 200;
+
+/**
+ * Oro del crafteo, sin la tarifa de rareza.
+ * Si el resultado vale más que las piezas, se cobra la diferencia.
+ * Si una sola pieza vale más, el coste guardado ya es el restante.
+ * Si varias piezas valen más, no se devuelve la diferencia: se cobran 200.
+ * La misma cuenta está en src/features/items/recipe.ts.
+ */
+function craftGold(resultCost: number, pieceCosts: number[]): number {
+  const covered = pieceCosts.reduce((sum, cost) => sum + cost, 0);
+  const restante = resultCost - covered;
+  if (restante >= 0) return restante;
+  if (pieceCosts.length === 1) return resultCost;
+  return SURPLUS_CRAFT_GOLD;
+}
+
+async function chargeGold(amount: number, updatedAt: string): Promise<void> {
+  if (amount <= 0) return;
+  const col = await singleton('party');
+  const paid = await col.updateOne(
+    { _id: 'current', gold: { $gte: amount } },
+    { $inc: { gold: -amount }, $set: { updatedAt } },
+  );
+  if (paid.modifiedCount === 1) return;
+  const current = await col.findOne({ _id: 'current' }, { projection: { gold: 1 } });
+  if (!current) throw new HttpError(404, 'No hay grupo');
+  const have = typeof current.gold === 'number' ? current.gold : 0;
+  throw new HttpError(400, `Falta oro (tienes ${have.toLocaleString('es-ES')}, hacen falta ${amount.toLocaleString('es-ES')})`);
+}
+
+async function refundGold(amount: number): Promise<void> {
+  if (amount <= 0) return;
+  const result = await (await singleton('party')).updateOne(
+    { _id: 'current' },
+    { $inc: { gold: amount }, $set: { updatedAt: new Date().toISOString() } },
+  );
+  if (result.matchedCount !== 1) throw new HttpError(404, 'No hay grupo');
+}
+
+async function readPartyGold(): Promise<number> {
+  const doc = await getParty();
+  return typeof doc.gold === 'number' ? doc.gold : 0;
+}
+
+/**
+ * Gasta las copias libres de la receta (craftsFrom), el oro que falta hasta el coste,
+ * y suma una del resultado. Lo que lleva puesto un jugador no se puede gastar.
+ */
+export async function craftItem(nombre: string) {
+  const trimmed = nombre.trim();
+  if (!trimmed) throw new HttpError(400, 'Falta el nombre del ítem');
+
+  const col = await collection('items');
+  const docs = await col.find({}).toArray();
+  type ItemId = (typeof docs)[number]['_id'];
+  const byKey = new Map<string, (typeof docs)[number]>();
+  for (const doc of docs) {
+    if (typeof doc.nombre !== 'string') continue;
+    const key = itemKey(doc.nombre);
+    if (!byKey.has(key)) byKey.set(key, doc);
+  }
+
+  const target = byKey.get(itemKey(trimmed));
+  if (!target) throw new HttpError(404, `No existe el item ${trimmed}`);
+
+  const needs = groupNeeds(recipeNames(target.craftsFrom));
+  const equipped = await equippedCounts();
+  const plan: { id: ItemId; key: string; nombre: string; needed: number }[] = [];
+  const missing: string[] = [];
+  const short: string[] = [];
+
+  for (const need of needs) {
+    const doc = byKey.get(need.key);
+    if (!doc || typeof doc.nombre !== 'string') {
+      missing.push(need.label);
+      continue;
+    }
+    const available = Math.max(0, countOf(doc.cantidad) - (equipped.get(need.key) ?? 0));
+    if (available < need.needed) short.push(`${doc.nombre} (${available}/${need.needed})`);
+    plan.push({ id: doc._id, key: need.key, nombre: doc.nombre, needed: need.needed });
+  }
+
+  if (missing.length > 0) throw new HttpError(400, `No existe el ingrediente ${missing.join(', ')}`);
+  if (short.length > 0) throw new HttpError(400, `Faltan ingredientes: ${short.join(', ')}`);
+
+  const pieceCosts: number[] = [];
+  for (const step of plan) {
+    const cost = numericCost(byKey.get(step.key)?.coste);
+    for (let index = 0; index < step.needed; index += 1) pieceCosts.push(cost);
+  }
+  const gold = craftGold(numericCost(target.coste), pieceCosts) + rarityCraftGold(target.rareza);
+  if (gold <= 0) throw new HttpError(400, 'Este crafteo tiene que costar oro');
+
+  const applied: { id: ItemId; amount: number }[] = [];
+  const updatedAt = new Date().toISOString();
+  let createdCopy = false;
+  let chargedGold = 0;
+  try {
+    if (gold > 0) {
+      await chargeGold(gold, updatedAt);
+      chargedGold = gold;
+    }
+
+    for (const step of plan) {
+      const reserved = equipped.get(step.key) ?? 0;
+      const result = await col.updateOne(
+        { _id: step.id, cantidad: { $gte: reserved + step.needed } },
+        { $inc: { cantidad: -step.needed }, $set: { updatedAt } },
+      );
+      if (result.modifiedCount !== 1) {
+        throw new HttpError(409, 'El stock cambió mientras se crafteaba. Vuelve a intentarlo');
+      }
+      applied.push({ id: step.id, amount: step.needed });
+    }
+
+    const created = await col.updateOne(
+      { _id: target._id },
+      { $inc: { cantidad: 1 }, $set: { updatedAt } },
+    );
+    if (created.matchedCount !== 1) throw new HttpError(404, `No existe el item ${trimmed}`);
+    createdCopy = true;
+
+    await (await collection('craftHistoric')).insertOne({
+      timestamp: rollTimestamp(),
+      createdAt: new Date(),
+      item: String(target.nombre),
+      ingredients: plan.map(step => ({ nombre: step.nombre, cantidad: step.needed })),
+      oro: gold,
+      reverted: false,
+    });
+  } catch (error) {
+    try {
+      if (createdCopy) await col.updateOne({ _id: target._id }, { $inc: { cantidad: -1 } });
+      for (const step of applied.reverse()) {
+        await col.updateOne({ _id: step.id }, { $inc: { cantidad: step.amount } });
+      }
+      if (chargedGold > 0) await refundGold(chargedGold);
+    } catch (rollbackError) {
+      logError(rollbackError);
+    }
+    throw error;
+  }
+
+  return {
+    items: await col.find({ _id: { $in: [target._id, ...plan.map(step => step.id)] } }, PUBLIC).toArray(),
+    gold: await readPartyGold(),
+  };
+}
+
+/** Compra o vende varias copias al coste de cada objeto. Lo equipado no se puede vender. */
+export async function tradeShop(order: ShopOrder) {
+  const col = await collection('items');
+  const docs = await col.find({}).toArray();
+  type ItemId = (typeof docs)[number]['_id'];
+  const byKey = new Map<string, (typeof docs)[number]>();
+  for (const doc of docs) {
+    if (typeof doc.nombre !== 'string') continue;
+    const key = itemKey(doc.nombre);
+    if (!byKey.has(key)) byKey.set(key, doc);
+  }
+
+  const equipped = order.mode === 'venta' ? await equippedCounts() : new Map<string, number>();
+  const plan: { id: ItemId; nombre: string; cantidad: number; reserved: number; oro: number }[] = [];
+  let total = 0;
+
+  for (const line of order.lines) {
+    const doc = byKey.get(itemKey(line.nombre));
+    if (!doc || typeof doc.nombre !== 'string') throw new HttpError(404, `No existe el item ${line.nombre}`);
+    if (order.mode === 'compra' && numericCost(doc.coste) <= 0) {
+      throw new HttpError(400, `${doc.nombre} no se compra`);
+    }
+    const reserved = equipped.get(itemKey(doc.nombre)) ?? 0;
+    if (order.mode === 'venta') {
+      const available = Math.max(0, countOf(doc.cantidad) - reserved);
+      if (available < line.cantidad) {
+        throw new HttpError(400, countOf(doc.cantidad) > available
+          ? `No se puede vender ${doc.nombre}: las copias equipadas no se gastan`
+          : `No hay tantas copias de ${doc.nombre}`);
+      }
+    }
+    const oro = numericCost(doc.coste) * line.cantidad;
+    total += oro;
+    plan.push({ id: doc._id, nombre: doc.nombre, cantidad: line.cantidad, reserved, oro });
+  }
+
+  const updatedAt = new Date().toISOString();
+  const applied: { id: ItemId; cantidad: number }[] = [];
+  const historyName = order.mode === 'compra' ? 'buyHistoric' : 'sellHistoric';
+  const history = await collection(historyName);
+  const historyIds: ObjectId[] = [];
+  const recordedAt = new Date();
+  let charged = 0;
+  let paidOut = 0;
+  try {
+    if (order.mode === 'compra' && total > 0) {
+      await chargeGold(total, updatedAt);
+      charged = total;
+    }
+    for (const step of plan) {
+      if (order.mode === 'compra') {
+        const result = await col.updateOne(
+          { _id: step.id },
+          { $inc: { cantidad: step.cantidad }, $set: { updatedAt } },
+        );
+        if (result.matchedCount !== 1) throw new HttpError(404, `No existe el item ${step.nombre}`);
+      } else {
+        const result = await col.updateOne(
+          { _id: step.id, cantidad: { $gte: step.reserved + step.cantidad } },
+          { $inc: { cantidad: -step.cantidad }, $set: { updatedAt } },
+        );
+        if (result.modifiedCount !== 1) {
+          throw new HttpError(409, 'El stock cambió mientras se vendía. Vuelve a intentarlo');
+        }
+      }
+      applied.push({ id: step.id, cantidad: step.cantidad });
+    }
+    if (order.mode === 'venta' && total > 0) {
+      await refundGold(total);
+      paidOut = total;
+    }
+    for (const step of plan) {
+      const inserted = await history.insertOne({
+        timestamp: rollTimestamp(recordedAt),
+        createdAt: recordedAt,
+        item: step.nombre,
+        cantidad: step.cantidad,
+        oro: step.oro,
+        reverted: false,
+      });
+      historyIds.push(inserted.insertedId);
+    }
+  } catch (error) {
+    try {
+      if (historyIds.length > 0) await history.deleteMany({ _id: { $in: historyIds } });
+      for (const step of applied.reverse()) {
+        const delta = order.mode === 'compra' ? -step.cantidad : step.cantidad;
+        await col.updateOne({ _id: step.id }, { $inc: { cantidad: delta } });
+      }
+      if (charged > 0) await refundGold(charged);
+      if (paidOut > 0) await chargeGold(paidOut, new Date().toISOString());
+    } catch (rollbackError) {
+      logError(rollbackError);
+    }
+    throw error;
+  }
+
+  return {
+    items: await col.find({ _id: { $in: plan.map(step => step.id) } }, PUBLIC).toArray(),
+    gold: await readPartyGold(),
+  };
 }
 
 export async function getLoot() {
@@ -162,10 +473,293 @@ export async function upsertPlayer(name: string, input: PlayerReplace) {
   return getPlayer(storedName);
 }
 
+type IngredientLine = { nombre: string; cantidad: number };
+
+type HistoryEntry = {
+  id: string;
+  kind: HistoryKind;
+  timestamp: string;
+  item: string;
+  reverted: boolean;
+  tirada?: string;
+  rareza?: string;
+  ingredients?: IngredientLine[];
+  cantidad?: number;
+  oro?: number;
+};
+
+function historyMoment(doc: Document): number {
+  if (doc.createdAt instanceof Date) return doc.createdAt.getTime();
+  if (typeof doc.timestamp !== 'string') return 0;
+  const match = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})$/.exec(doc.timestamp);
+  if (!match) return 0;
+  const [, day, month, year, hour, minute, second] = match;
+  return Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second));
+}
+
+function ingredientLines(value: unknown): IngredientLine[] {
+  if (!Array.isArray(value)) return [];
+  const lines: IngredientLine[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') continue;
+    const source = entry as Record<string, unknown>;
+    if (typeof source.nombre !== 'string' || !source.nombre.trim()) continue;
+    if (typeof source.cantidad !== 'number' || !Number.isFinite(source.cantidad) || source.cantidad < 1) continue;
+    lines.push({ nombre: source.nombre.trim(), cantidad: source.cantidad });
+  }
+  return lines;
+}
+
+function toHistoryEntry(doc: Document, kind: HistoryKind): HistoryEntry {
+  const entry: HistoryEntry = {
+    id: String(doc._id),
+    kind,
+    timestamp: typeof doc.timestamp === 'string' ? doc.timestamp : '',
+    item: typeof doc.item === 'string' ? doc.item : '',
+    reverted: doc.reverted === true,
+  };
+  if (kind === 'tirada') {
+    entry.tirada = typeof doc.tirada === 'string' ? doc.tirada : '';
+    entry.rareza = typeof doc.rareza === 'string' ? doc.rareza : '';
+  } else if (kind === 'crafteo') {
+    entry.ingredients = ingredientLines(doc.ingredients);
+    if (typeof doc.oro === 'number' && Number.isFinite(doc.oro) && doc.oro >= 0) entry.oro = doc.oro;
+  } else {
+    if (typeof doc.cantidad === 'number' && Number.isInteger(doc.cantidad) && doc.cantidad > 0) entry.cantidad = doc.cantidad;
+    if (typeof doc.oro === 'number' && Number.isFinite(doc.oro) && doc.oro >= 0) entry.oro = doc.oro;
+  }
+  return entry;
+}
+
+function historyCollectionName(kind: HistoryKind): string {
+  if (kind === 'tirada') return 'rollHistoric';
+  if (kind === 'crafteo') return 'craftHistoric';
+  if (kind === 'compra') return 'buyHistoric';
+  return 'sellHistoric';
+}
+
+function paidGold(doc: Document): number {
+  return typeof doc.oro === 'number' && Number.isFinite(doc.oro) && doc.oro > 0 ? doc.oro : 0;
+}
+
+export async function listHistory(): Promise<HistoryEntry[]> {
+  const [rolls, crafts, buys, sells] = await Promise.all([
+    (await collection('rollHistoric')).find({}).toArray(),
+    (await collection('craftHistoric')).find({}).toArray(),
+    (await collection('buyHistoric')).find({}).toArray(),
+    (await collection('sellHistoric')).find({}).toArray(),
+  ]);
+  return [
+    ...rolls.map(doc => ({ doc, kind: 'tirada' as const })),
+    ...crafts.map(doc => ({ doc, kind: 'crafteo' as const })),
+    ...buys.map(doc => ({ doc, kind: 'compra' as const })),
+    ...sells.map(doc => ({ doc, kind: 'venta' as const })),
+  ]
+    .sort((a, b) => historyMoment(b.doc) - historyMoment(a.doc))
+    .map(({ doc, kind }) => toHistoryEntry(doc, kind));
+}
+
+function historyObjectId(id: string): ObjectId {
+  if (!ObjectId.isValid(id)) throw new HttpError(404, 'No existe esa entrada del historial');
+  return new ObjectId(id);
+}
+
+function copyCount(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 1 || value > 99) {
+    throw new HttpError(400, 'La entrada del historial está mal formada');
+  }
+  return value;
+}
+
+/** Una compra no se deshace si esas copias se craftearon o se vendieron después. */
+async function purchaseStillHeld(item: string, after: number): Promise<void> {
+  const key = itemKey(item);
+  const hits: { at: number; message: string }[] = [];
+
+  for (const craft of await (await collection('craftHistoric')).find({}).toArray()) {
+    const at = historyMoment(craft);
+    if (at <= after) continue;
+    const used = ingredientLines(craft.ingredients).some(line => itemKey(line.nombre) === key);
+    if (!used) continue;
+    const result = typeof craft.item === 'string' && craft.item.trim() ? craft.item.trim() : 'otro objeto';
+    hits.push({
+      at,
+      message: `No se puede revertir la compra de ${item}: se usó para craftear ${result}. Revierte primero ese crafteo.`,
+    });
+  }
+
+  for (const sale of await (await collection('sellHistoric')).find({}).toArray()) {
+    const at = historyMoment(sale);
+    if (at <= after) continue;
+    if (typeof sale.item !== 'string' || itemKey(sale.item) !== key) continue;
+    hits.push({
+      at,
+      message: `No se puede revertir la compra de ${item}: después se vendió. Revierte primero esa venta.`,
+    });
+  }
+
+  hits.sort((a, b) => a.at - b.at);
+  if (hits[0]) throw new HttpError(409, hits[0].message);
+}
+
+/** Quita copias libres. Lo equipado no se puede deshacer hasta que se suelte. */
+async function takeFreeCopies(nombre: string, amount: number) {
+  const col = await collection('items');
+  const existing = await col.findOne({ nombre }, { collation: CI });
+  if (!existing || typeof existing.nombre !== 'string') throw new HttpError(404, `No existe el item ${nombre}`);
+  const reserved = (await equippedCounts()).get(itemKey(existing.nombre)) ?? 0;
+  const result = await col.updateOne(
+    { _id: existing._id, cantidad: { $gte: reserved + amount } },
+    { $inc: { cantidad: -amount }, $set: { updatedAt: new Date().toISOString() } },
+  );
+  if (result.modifiedCount !== 1) {
+    const free = Math.max(0, countOf(existing.cantidad) - reserved);
+    if (amount === 1 && free < 1 && countOf(existing.cantidad) > 0) {
+      throw new HttpError(409, `No se puede revertir: ${existing.nombre} está equipado`);
+    }
+    if (amount === 1) throw new HttpError(409, `No se puede revertir: no queda una copia libre de ${existing.nombre}`);
+    if (reserved > 0 && free < amount) {
+      throw new HttpError(409, `No se puede revertir: las copias equipadas de ${existing.nombre} no se quitan`);
+    }
+    throw new HttpError(409, `No se puede revertir: no quedan ${amount} copias libres de ${existing.nombre}`);
+  }
+  return existing.nombre;
+}
+
+async function giveCopies(nombre: string, amount: number) {
+  const col = await collection('items');
+  const result = await col.updateOne(
+    { nombre },
+    { $inc: { cantidad: amount }, $set: { updatedAt: new Date().toISOString() } },
+    { collation: CI },
+  );
+  if (result.matchedCount !== 1) throw new HttpError(404, `No existe el item ${nombre}`);
+}
+
+async function changedItems(names: string[]) {
+  const unique = [...new Set(names.map(name => name.trim()).filter(Boolean))];
+  if (unique.length === 0) return [];
+  return (await collection('items')).find({ nombre: { $in: unique } }, { ...PUBLIC, collation: CI }).toArray();
+}
+
+async function deleteHistory(col: Collection, existing: Document, undo: () => Promise<void>) {
+  const deleted = await col.deleteOne({ _id: existing._id, reverted: { $ne: true } });
+  if (deleted.deletedCount === 1) return;
+  try {
+    await undo();
+  } catch (rollbackError) {
+    logError(rollbackError);
+  }
+  throw new HttpError(409, 'Esa entrada ya está revertida');
+}
+
+/** Deshace la operación y borra la entrada del historial. */
+export async function revertHistory(kind: HistoryKind, id: string) {
+  const col = await collection(historyCollectionName(kind));
+  const existing = await col.findOne({ _id: historyObjectId(id) });
+  if (!existing) throw new HttpError(404, 'No existe esa entrada del historial');
+  if (existing.reverted === true) throw new HttpError(409, 'Esa entrada ya está revertida');
+  if (typeof existing.item !== 'string' || !existing.item.trim()) {
+    throw new HttpError(400, 'La entrada del historial está mal formada');
+  }
+
+  if (kind === 'compra' || kind === 'venta') {
+    const item = existing.item.trim();
+    const amount = copyCount(existing.cantidad);
+    const gold = paidGold(existing);
+    if (kind === 'compra') await purchaseStillHeld(item, historyMoment(existing));
+
+    let stockChanged = false;
+    let goldChanged = false;
+    const undo = async () => {
+      if (kind === 'compra') {
+        if (stockChanged) await giveCopies(item, amount);
+        if (goldChanged) await chargeGold(gold, new Date().toISOString());
+      } else {
+        if (stockChanged) await takeFreeCopies(item, amount);
+        if (goldChanged) await refundGold(gold);
+      }
+    };
+    try {
+      if (kind === 'compra') {
+        await takeFreeCopies(item, amount);
+        stockChanged = true;
+        if (gold > 0) {
+          await refundGold(gold);
+          goldChanged = true;
+        }
+      } else {
+        if (gold > 0) {
+          await chargeGold(gold, new Date().toISOString());
+          goldChanged = true;
+        }
+        await giveCopies(item, amount);
+        stockChanged = true;
+      }
+    } catch (error) {
+      try {
+        await undo();
+      } catch (rollbackError) {
+        logError(rollbackError);
+      }
+      throw error;
+    }
+    await deleteHistory(col, existing, undo);
+    return {
+      id: String(existing._id),
+      kind,
+      items: await changedItems([item]),
+      gold: await readPartyGold(),
+    };
+  }
+
+  const touched = [existing.item];
+  const given: IngredientLine[] = [];
+  const refund = kind === 'crafteo' ? paidGold(existing) : 0;
+  let removed = false;
+  let refunded = false;
+  const undo = async () => {
+    for (const line of [...given].reverse()) await giveCopies(line.nombre, -line.cantidad);
+    if (removed) await giveCopies(existing.item, 1);
+    if (refunded) await chargeGold(refund, new Date().toISOString());
+  };
+  try {
+    await takeFreeCopies(existing.item, 1);
+    removed = true;
+    if (kind === 'crafteo') {
+      for (const line of ingredientLines(existing.ingredients)) {
+        await giveCopies(line.nombre, line.cantidad);
+        given.push(line);
+        touched.push(line.nombre);
+      }
+      if (refund > 0) {
+        await refundGold(refund);
+        refunded = true;
+      }
+    }
+  } catch (error) {
+    try {
+      await undo();
+    } catch (rollbackError) {
+      logError(rollbackError);
+    }
+    throw error;
+  }
+
+  await deleteHistory(col, existing, undo);
+
+  return {
+    id: String(existing._id),
+    kind,
+    items: await changedItems(touched),
+    gold: await readPartyGold(),
+  };
+}
+
 export async function mongoStatus() {
   const db = await getDb();
   await db.command({ ping: 1 });
-  const names = ['champions', 'items', 'players', 'loot', 'party', 'rollHistoric'] as const;
+  const names = ['champions', 'items', 'players', 'loot', 'party', 'rollHistoric', 'craftHistoric', 'buyHistoric', 'sellHistoric'] as const;
   const counts = Object.fromEntries(
     await Promise.all(names.map(async name => [name, await db.collection(name).estimatedDocumentCount()] as const)),
   );

@@ -1,4 +1,5 @@
-import { PARTY } from '../data/party';
+import { useSyncExternalStore } from 'react';
+import { PARTY, partyGold, subscribeParty } from '../data/party';
 import { cx } from '../lib/cx';
 import './AppHeader.css';
 
@@ -15,6 +16,7 @@ type Props<T extends string> = {
 };
 
 export default function AppHeader<T extends string>({ navItems, activeId, onNavigate }: Props<T>) {
+  const gold = useSyncExternalStore(subscribeParty, partyGold);
   const expPercent = (PARTY.exp / PARTY.expToNextLevel) * 100;
 
   return (
@@ -22,7 +24,7 @@ export default function AppHeader<T extends string>({ navItems, activeId, onNavi
       <div className="header-stats">
         <div className="stat-gold">
           <span className="stat-gold__coin">⚜</span>
-          <span className="stat-gold__amount">{PARTY.gold.toLocaleString()}</span>
+          <span className="stat-gold__amount">{gold.toLocaleString()}</span>
           <span className="stat-gold__label">oro</span>
         </div>
 
