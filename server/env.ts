@@ -1,6 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 let loaded = false;
 
@@ -9,12 +8,8 @@ export function loadEnv(): void {
   if (loaded) return;
   loaded = true;
 
-  const candidates = [
-    join(process.cwd(), '.env'),
-    join(dirname(fileURLToPath(import.meta.url)), '..', '.env'),
-  ];
-  const path = candidates.find(candidate => existsSync(candidate));
-  if (!path) return;
+  const path = join(process.cwd(), '.env');
+  if (!existsSync(path)) return;
 
   const text = readFileSync(path, 'utf8').replace(/^\uFEFF/, '');
   for (const line of text.split(/\r?\n/)) {
