@@ -8,3 +8,26 @@ body {
   color: #d4c49a;
   font-family: Georgia, serif;
 }
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 76, 0.45) rgba(0, 0, 0, 0.3);
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 76, 0.3);
+  border-radius: 2px;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
