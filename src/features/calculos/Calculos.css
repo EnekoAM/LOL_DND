@@ -280,6 +280,15 @@
   border-top: 1px solid rgba(201,168,76,0.1);
 }
 
+.calc-role__note {
+  margin: 0;
+  padding: 10px 14px 0;
+}
+
+.calc-scores--sheet {
+  margin: 10px 12px 12px;
+}
+
 .calc-sheet {
   width: 100%;
   min-width: 980px;

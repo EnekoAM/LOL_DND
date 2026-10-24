@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { findItem } from '../../data/items';
+import { partyLevel, subscribeParty } from '../../data/party';
 import { cx } from '../../lib/cx';
 import {
   ABILITY_SCORES,
   findPlayerSheet,
   sheetBase,
-  sheetLevel,
   type AbilityScore,
 } from './playerSheets';
 import { ROLE_TABLES, findRoleTable } from './roleTables';
@@ -160,6 +160,8 @@ const RoleTablePanel = ({ roleId, level }: { roleId: string; level?: number }) =
 };
 
 const StatsTable = ({ playerName, equipment }: Props) => {
+  const [open, setOpen] = useState(false);
+  const partyLevelNow = useSyncExternalStore(subscribeParty, partyLevel);
   const sheet = findPlayerSheet(playerName);
   const base = sheet ? sheetBase(sheet) : undefined;
 
@@ -183,7 +185,7 @@ const StatsTable = ({ playerName, equipment }: Props) => {
     };
   });
 
-  const level = sheet ? sheetLevel() : undefined;
+  const level = sheet ? partyLevelNow : undefined;
   const parts: StatLine[] = [];
   if (base) parts.push(base);
   for (const row of itemRows) parts.push(row.line ?? emptyStatLine());
@@ -201,19 +203,34 @@ const StatsTable = ({ playerName, equipment }: Props) => {
 
   return (
     <>
-      <div className="calc-section-title">Estadísticas</div>
-      {!sheet && (
-        <p className="calc-build-empty">Sin ficha de base. El total solo suma el equipamiento.</p>
-      )}
-      <SheetGrid rows={rows} effects />
-
-      {sheet?.scores && (
-        <div className="calc-scores">
-          {ABILITY_SCORES.map(({ key, label }) => (
-            <Score key={key} label={label} score={sheet.scores![key]} />
-          ))}
+      <div className="calc-role">
+        <div className="calc-role__bar">
+          <button
+            type="button"
+            className="calc-role__toggle"
+            aria-expanded={open}
+            onClick={() => setOpen(current => !current)}
+          >
+            <span className="calc-role__chevron" aria-hidden="true">{open ? '▾' : '▸'}</span>
+            Estadísticas
+          </button>
         </div>
-      )}
+        {open && (
+          <>
+            {!sheet && (
+              <p className="calc-build-empty calc-role__note">Sin ficha de base. El total solo suma el equipamiento.</p>
+            )}
+            <SheetGrid rows={rows} effects />
+            {sheet?.scores && (
+              <div className="calc-scores calc-scores--sheet">
+                {ABILITY_SCORES.map(({ key, label }) => (
+                  <Score key={key} label={label} score={sheet.scores![key]} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       <RoleTablePanel
         key={playerName}

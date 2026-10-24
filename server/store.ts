@@ -415,11 +415,26 @@ export async function getParty() {
 }
 
 export async function updateParty(patch: PartyPatch) {
+  const { addGold, ...fields } = patch;
+  const updatedAt = new Date().toISOString();
   const col = await singleton('party');
-  const result = await col.updateOne(
-    { _id: 'current' },
-    { $set: { ...patch, updatedAt: new Date().toISOString() } },
-  );
+  if (addGold !== undefined && addGold < 0) {
+    const taken = -addGold;
+    const takenResult = await col.updateOne(
+      { _id: 'current', gold: { $gte: taken } },
+      { $inc: { gold: addGold }, $set: { ...fields, updatedAt } },
+    );
+    if (takenResult.modifiedCount === 1) return getParty();
+    const current = await col.findOne({ _id: 'current' }, { projection: { gold: 1 } });
+    if (!current) throw new HttpError(404, 'No hay grupo. Ejecuta npm run seed');
+    const have = typeof current.gold === 'number' ? current.gold : 0;
+    throw new HttpError(400, `Falta oro (tienes ${have.toLocaleString('es-ES')}, quieres quitar ${taken.toLocaleString('es-ES')})`);
+  }
+  const update: { $set: Record<string, unknown>; $inc?: { gold: number } } = {
+    $set: { ...fields, updatedAt },
+  };
+  if (addGold !== undefined) update.$inc = { gold: addGold };
+  const result = await col.updateOne({ _id: 'current' }, update);
   if (result.matchedCount === 0) throw new HttpError(404, 'No hay grupo. Ejecuta npm run seed');
   return getParty();
 }

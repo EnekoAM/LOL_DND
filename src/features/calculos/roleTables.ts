@@ -208,6 +208,9 @@ export const ROLE_TABLES: RoleTable[] = [
   { id: 'tanque', name: 'Tanque', levels: tanque },
 ];
 
+/** Las fichas leen la fila de este nivel. Por encima no hay estadísticas de rol. */
+export const MAX_ROLE_LEVEL = Math.min(...ROLE_TABLES.map(role => role.levels.length));
+
 const rolesById = new Map(ROLE_TABLES.map(role => [role.id, role]));
 
 export function findRoleTable(id: string): RoleTable | undefined {

@@ -17,7 +17,10 @@ export type HistoryKind = (typeof HISTORY_KINDS)[number];
 const EQUIPMENT_LIMIT = 7;
 const ABILITY_SLOTS = ['P', 'H1', 'H2', 'H3', 'R'] as const;
 
-export type PartyPatch = Partial<Record<(typeof PARTY_FIELDS)[number], number>>;
+export type PartyPatch = Partial<Record<(typeof PARTY_FIELDS)[number], number>> & {
+  /** Suma o resta esta cantidad al oro del grupo, sin sustituir el saldo. */
+  addGold?: number;
+};
 
 export type BasicAttack = { type: string; scaling: number[] };
 
@@ -134,6 +137,16 @@ export function parsePartyPatch(body: unknown): PartyPatch {
       throw new HttpError(400, 'expToNextLevel tiene que ser mayor que 0');
     }
     patch[key] = value;
+  }
+  if (source.addGold !== undefined) {
+    const addGold = source.addGold;
+    if (typeof addGold !== 'number' || !Number.isInteger(addGold) || addGold === 0) {
+      throw new HttpError(400, 'addGold tiene que ser un entero distinto de 0');
+    }
+    if (patch.gold !== undefined) {
+      throw new HttpError(400, 'No se puede fijar el oro y sumarlo a la vez');
+    }
+    patch.addGold = addGold;
   }
   if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return patch;
