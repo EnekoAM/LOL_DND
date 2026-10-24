@@ -1,1 +1,10 @@
 @import "tailwindcss";
+@import "./styles/tokens.css";
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0e0a05;
+  color: #d4c49a;
+  font-family: Georgia, serif;
+}

@@ -1,0 +1,14 @@
+:root {
+  --header-height: 76px;
+
+  --gold:           #c9a84c;
+  --gold-bright:    #e8c96a;
+  --gold-dim:       #7a5f28;
+
+  --ink:            #d4c49a;
+  --ink-dim:        rgba(212,196,154,0.45);
+  --ink-ghost:      rgba(212,196,154,0.18);
+
+  --parchment:      #1a1208;
+  --parchment-dark: #110d06;
+}
