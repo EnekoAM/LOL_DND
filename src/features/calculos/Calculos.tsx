@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Ability, Champion } from '../../data/champions';
-import { PLAYERS, savePlayerPatch, type Player, type PlayerListPatch } from '../../data/players';
+import { PLAYERS, savePlayerPatch, type Player } from '../../data/players';
 import { normalizeName } from '../../lib/text';
 import { useStoredSet } from '../../hooks/useStoredSet';
 import ChampionDetail from './ChampionDetail';
@@ -46,7 +46,7 @@ const Calculos = () => {
     setBuildError(null);
   };
 
-  const updatePlayerList = async (patch: PlayerListPatch) => {
+  const updatePlayerList = async (patch: Partial<Pick<Player, 'build' | 'equipamiento'>>) => {
     if (!player || saving) return;
     const name = player.name;
     const previous = player;

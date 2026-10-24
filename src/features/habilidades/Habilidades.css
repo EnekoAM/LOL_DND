@@ -161,6 +161,12 @@
   background: rgba(201,168,76,0.05);
 }
 
+.hab-key-pip--learned {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  background: rgba(201,168,76,0.16);
+}
+
 .hab-champion__arrow {
   font-size: 8px;
   color: rgba(201,168,76,0.3);
@@ -257,6 +263,14 @@
   color: var(--ink);
   line-height: 1.2;
   margin-top: 2px;
+}
+
+.hab-ability__learned {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
 }
 
 .hab-ability__desc {
@@ -575,6 +589,61 @@
   color: rgba(212,196,154,0.28);
 }
 
+.hab-learned {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 2px;
+  background: rgba(0,0,0,0.35);
+  color: rgba(212,196,154,0.7);
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hab-learned--on {
+  border-color: rgba(201,168,76,0.6);
+  color: var(--gold-bright);
+}
+
+.hab-learned:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.hab-learned__switch {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 18px;
+  border-radius: 999px;
+  background: #2a2118;
+}
+
+.hab-learned__switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #c4b08a;
+  transition: transform 0.15s ease;
+}
+
+.hab-learned--on .hab-learned__switch { background: var(--gold); }
+.hab-learned--on .hab-learned__switch::after {
+  transform: translateX(16px);
+  background: #2a1808;
+}
+
 .hab-modal__actions {
   display: flex;
   flex-wrap: wrap;
@@ -620,6 +689,146 @@
 
 .hab-modal__hint { color: rgba(212,196,154,0.55); }
 .hab-modal__error { color: #f87171; }
+
+/* ── JUGADORES ──────────────────────────────────────────── */
+.hab-block-title {
+  margin: 0 0 12px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(201,168,76,0.55);
+}
+
+.hab-players {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.hab-players .hab-ability--empty {
+  opacity: 0.85;
+}
+
+.hab-player-empty {
+  margin: 0 0 32px;
+  font-style: italic;
+  color: rgba(212,196,154,0.45);
+}
+
+.hab-modal--assign {
+  max-width: 640px;
+}
+
+.hab-assign-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: none;
+  border-bottom: 1px solid rgba(201,168,76,0.35);
+  background: transparent;
+  color: var(--ink);
+  font-family: 'Crimson Text', serif;
+  font-size: 16px;
+  outline: none;
+}
+
+.hab-assign-search:focus {
+  border-bottom-color: rgba(201,168,76,0.7);
+}
+
+.hab-assign-search::placeholder {
+  color: rgba(212,196,154,0.28);
+  font-style: italic;
+}
+
+.hab-assign-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.hab-assign-list::-webkit-scrollbar { width: 4px; }
+.hab-assign-list::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); }
+
+.hab-assign-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(201,168,76,0.18);
+  background: rgba(0,0,0,0.25);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hab-assign-item:hover:not(:disabled),
+.hab-assign-item:focus-visible {
+  border-color: rgba(201,168,76,0.55);
+}
+
+.hab-assign-item:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.hab-assign-item--current {
+  border-color: rgba(201,168,76,0.75);
+  background: rgba(201,168,76,0.08);
+}
+
+.hab-assign-item img,
+.hab-assign-item__fallback {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border: 1px solid rgba(201,168,76,0.25);
+}
+
+.hab-assign-item__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  color: rgba(201,168,76,0.45);
+}
+
+.hab-assign-item__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hab-assign-item__name {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--ink);
+}
+
+.hab-assign-item__meta {
+  font-size: 14px;
+  color: rgba(212,196,154,0.55);
+}
+
+.hab-assign-item__key {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
 
 /* ── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 700px) {

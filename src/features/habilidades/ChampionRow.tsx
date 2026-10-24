@@ -26,6 +26,7 @@ const ChampionAbilities = ({ abilities, onOpenAbility }: Pick<Champion, 'abiliti
           {ability ? (
             <>
               <div className="hab-ability__name">{ability.name || 'Sin nombre'}</div>
+              {ability.learned && <div className="hab-ability__learned">Aprendida</div>}
               <div className="hab-ability__desc">{ability.description}</div>
             </>
           ) : (
@@ -58,7 +59,14 @@ const ChampionRow = ({ champion, isOpen, onToggle, onOpenAbility }: Props) => (
       </span>
       <span className="hab-champion__keys">
         {ABILITY_KEYS.map(key => (
-          <span key={key} className={cx('hab-key-pip', !!champion.abilities[key] && 'hab-key-pip--active')}>
+          <span
+            key={key}
+            className={cx(
+              'hab-key-pip',
+              !!champion.abilities[key] && 'hab-key-pip--active',
+              champion.abilities[key]?.learned && 'hab-key-pip--learned',
+            )}
+          >
             {key}
           </span>
         ))}

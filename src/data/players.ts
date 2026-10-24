@@ -1,11 +1,28 @@
 import { normalizeName } from '../lib/text';
+import type { AbilityKind } from './champions';
 
 export const EQUIPMENT_SLOTS = 7;
 
 export type PlayerAbilitySlot = 'P' | 'H1' | 'H2' | 'H3' | 'R';
 
+/** H1, H2 y H3 son los huecos Q, W y E. Los tres admiten cualquier habilidad básica. */
+export const PLAYER_ABILITY_SLOTS: {
+  slot: PlayerAbilitySlot;
+  key: 'P' | 'Q' | 'W' | 'E' | 'R';
+  label: string;
+  detail: string;
+  kind: AbilityKind;
+}[] = [
+  { slot: 'P', key: 'P', label: 'Pasiva', detail: 'Pasiva', kind: 'pasiva' },
+  { slot: 'H1', key: 'Q', label: 'Q', detail: 'Básica', kind: 'basica' },
+  { slot: 'H2', key: 'W', label: 'W', detail: 'Básica', kind: 'basica' },
+  { slot: 'H3', key: 'E', label: 'E', detail: 'Básica', kind: 'basica' },
+  { slot: 'R', key: 'R', label: 'Definitiva', detail: 'Definitiva', kind: 'definitiva' },
+];
+
 export type Player = {
   name: string;
+  rol?: string;
   basicAttack?: { type: string; scaling: number[] };
   /** Nombres de habilidades definidas en habilidades.json. */
   abilities: Record<PlayerAbilitySlot, string | null>;
@@ -24,7 +41,9 @@ function readError(body: unknown, fallback: string): string {
   return fallback;
 }
 
-export type PlayerListPatch = Partial<Pick<Player, 'build' | 'equipamiento'>>;
+export type PlayerListPatch = Partial<Pick<Player, 'build' | 'equipamiento'>> & {
+  abilities?: Partial<Record<PlayerAbilitySlot, string | null>>;
+};
 
 /** Sustituye la build o el equipamiento y deja la copia en memoria alineada con lo guardado. */
 export async function savePlayerPatch(name: string, patch: PlayerListPatch): Promise<Player> {

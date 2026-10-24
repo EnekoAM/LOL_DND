@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '../../components/Modal';
 import { saveChampionAbility, type Ability, type AbilityKey, type Champion } from '../../data/champions';
+import { cx } from '../../lib/cx';
 import { formatPercentList } from '../../lib/format';
 import { ABILITY_LABELS } from './championStyle';
 import {
@@ -123,6 +124,17 @@ const AbilityForm = ({
         <span>Descripción</span>
         <textarea rows={4} value={draft.description} onChange={e => onChange({ description: e.target.value })} />
       </label>
+
+      <button
+        type="button"
+        className={cx('hab-learned', draft.learned && 'hab-learned--on')}
+        aria-pressed={draft.learned}
+        disabled={saving}
+        onClick={() => onChange({ learned: !draft.learned })}
+      >
+        <span>Aprendida</span>
+        <span className="hab-learned__switch" aria-hidden="true" />
+      </button>
 
       <label className="hab-field">
         <span>Coste</span>

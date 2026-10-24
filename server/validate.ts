@@ -172,6 +172,7 @@ export type ChampionAbilityEffect = {
 export type ChampionAbility = {
   name: string;
   description?: string;
+  learned?: boolean;
   damage?: ChampionAbilityDamage;
   effect?: ChampionAbilityEffect[];
   cost?: string;
@@ -257,6 +258,12 @@ export function parseChampionAbilityPatch(body: unknown): ChampionAbilityPatch {
   const cost = optionalText(abilitySource.cost, 'cost');
   if (description) ability.description = description;
   if (cost) ability.cost = cost;
+  if ('learned' in abilitySource) {
+    if (typeof abilitySource.learned !== 'boolean') {
+      throw new HttpError(400, 'learned tiene que ser verdadero o falso');
+    }
+    ability.learned = abilitySource.learned;
+  }
   if ('damage' in abilitySource) {
     const damage = parseDamage(abilitySource.damage);
     if (damage) ability.damage = damage;

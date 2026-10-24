@@ -20,6 +20,7 @@ export type AbilityEffect = {
 export type Ability = {
   name: string;
   description?: string;
+  learned?: boolean;
   damage?: AbilityDamage;
   effect?: AbilityEffect[];
   cost?: string;
@@ -41,28 +42,82 @@ export type ChampionFilter = {
 
 export const ABILITY_KEYS: AbilityKey[] = ['P', 'Q', 'W', 'E', 'R'];
 
+/** La pasiva es P, las básicas son Q/W/E y la definitiva es R. */
+export type AbilityKind = 'pasiva' | 'basica' | 'definitiva';
+
+export type AbilityRef = {
+  name: string;
+  champion: string;
+  image: string;
+  role: string;
+  slot: AbilityKey;
+  ability: Ability;
+};
+
+const KIND_BY_SLOT: Record<AbilityKey, AbilityKind> = {
+  P: 'pasiva',
+  Q: 'basica',
+  W: 'basica',
+  E: 'basica',
+  R: 'definitiva',
+};
+
 export let CHAMPIONS: Champion[] = [];
 
 export let CHAMPION_REGIONS: string[] = [];
 
 export const CHAMPION_ROLES = ['Luchador', 'Mago', 'Tirador', 'Tanque', 'Asesino', 'Soporte'];
 
-let abilitiesByName = new Map<string, Ability>();
+const foldName = (name: string): string =>
+  name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+let abilitiesByName = new Map<string, AbilityRef>();
+let abilitiesByFold = new Map<string, AbilityRef>();
 
 export function hydrateChampions(champions: Champion[]): void {
   CHAMPIONS = champions;
   CHAMPION_REGIONS = [...new Set(champions.map(c => c.region).filter(Boolean))].sort();
   abilitiesByName = new Map();
+  abilitiesByFold = new Map();
   for (const champion of champions) {
-    for (const ability of Object.values(champion.abilities)) {
-      if (ability && !abilitiesByName.has(ability.name)) abilitiesByName.set(ability.name, ability);
+    for (const slot of ABILITY_KEYS) {
+      const ability = champion.abilities[slot];
+      if (!ability?.name || abilitiesByName.has(ability.name)) continue;
+      const ref: AbilityRef = {
+        name: ability.name,
+        champion: champion.champion,
+        image: champion.image,
+        role: champion.role,
+        slot,
+        ability,
+      };
+      abilitiesByName.set(ability.name, ref);
+      const folded = foldName(ability.name);
+      if (!abilitiesByFold.has(folded)) abilitiesByFold.set(folded, ref);
     }
   }
 }
 
 /** Hay nombres de habilidad repetidos entre campeones: gana el primero del JSON. */
+export const findAbilityRef = (name: string | null): AbilityRef | null => {
+  if (!name) return null;
+  return abilitiesByName.get(name) ?? abilitiesByFold.get(foldName(name)) ?? null;
+};
+
+export const sameAbilityName = (left: string | null, right: string | null): boolean =>
+  !!left && !!right && foldName(left) === foldName(right);
+
 export const findAbility = (name: string | null): Ability | null =>
-  name ? abilitiesByName.get(name) ?? null : null;
+  findAbilityRef(name)?.ability ?? null;
+
+export const learnedAbilities = (kind: AbilityKind, role?: string): AbilityRef[] => {
+  const wanted = role?.trim().toLowerCase();
+  return [...abilitiesByName.values()].filter(ref =>
+    ref.ability.learned === true &&
+    KIND_BY_SLOT[ref.slot] === kind &&
+    (!wanted || ref.role.trim().toLowerCase() === wanted),
+  );
+};
 
 export const filterChampions = (champions: Champion[], { search, region, role }: ChampionFilter): Champion[] =>
   champions.filter(c =>

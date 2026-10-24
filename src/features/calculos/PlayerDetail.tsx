@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { findAbility, type Ability } from '../../data/champions';
 import { findItem } from '../../data/items';
-import { EQUIPMENT_SLOTS, type Player, type PlayerAbilitySlot } from '../../data/players';
+import { EQUIPMENT_SLOTS, PLAYER_ABILITY_SLOTS, type Player } from '../../data/players';
 import { itemAvailability } from '../items/stock';
 import { formatPercentList } from '../../lib/format';
 import { normalizeName } from '../../lib/text';
@@ -21,14 +21,6 @@ type Props = {
   onEquipamientoChange: (equipamiento: string[]) => void;
   onBuildChange: (build: string[]) => void;
 };
-
-const ABILITY_SLOTS: { slot: PlayerAbilitySlot; label: string }[] = [
-  { slot: 'P',  label: 'Pasiva'      },
-  { slot: 'H1', label: 'Habilidad 1' },
-  { slot: 'H2', label: 'Habilidad 2' },
-  { slot: 'H3', label: 'Habilidad 3' },
-  { slot: 'R',  label: 'Definitiva'  },
-];
 
 const getBuildItemState = (player: Player, itemName: string): ItemTileState => {
   const key = normalizeName(itemName);
@@ -83,7 +75,7 @@ const PlayerDetail = ({
     />
 
     <div className="calc-grid">
-      {ABILITY_SLOTS.map(({ slot, label }) => {
+      {PLAYER_ABILITY_SLOTS.map(({ slot, label }) => {
         const abilityName = player.abilities[slot];
         return (
           <AbilityCard

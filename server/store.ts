@@ -8,6 +8,7 @@ const CI = { locale: 'es', strength: 2 } as const;
 
 type PlayerDoc = Document & {
   name: string;
+  rol?: string;
   order?: number;
   abilities?: Record<string, string | null>;
 };
@@ -437,10 +438,88 @@ export async function getPlayer(name: string) {
   return doc;
 }
 
+const CHAMPION_ABILITY_KIND = {
+  P: 'pasiva',
+  Q: 'basica',
+  W: 'basica',
+  E: 'basica',
+  R: 'definitiva',
+} as const;
+
+const PLAYER_SLOT_KIND = {
+  P: 'pasiva',
+  H1: 'basica',
+  H2: 'basica',
+  H3: 'basica',
+  R: 'definitiva',
+} as const;
+
+const SLOT_REFUSAL: Record<keyof typeof PLAYER_SLOT_KIND, string> = {
+  P: 'La pasiva solo admite pasivas',
+  H1: 'Q, W y E solo admiten habilidades básicas',
+  H2: 'Q, W y E solo admiten habilidades básicas',
+  H3: 'Q, W y E solo admiten habilidades básicas',
+  R: 'La definitiva solo admite definitivas',
+};
+
+type ClassifiedAbility = {
+  kind: (typeof CHAMPION_ABILITY_KIND)[keyof typeof CHAMPION_ABILITY_KIND] | 'unlearned';
+  role: string;
+};
+
+/** El primer campeón que usa el nombre decide el tipo y el rol, igual que en el cliente. */
+async function assertAbilitiesFit(
+  abilities: Partial<Record<string, string | null>> | undefined,
+  playerRol?: string,
+): Promise<void> {
+  if (!abilities) return;
+  const filled = Object.entries(abilities).filter((entry): entry is [string, string] => typeof entry[1] === 'string');
+  if (filled.length === 0) return;
+
+  const docs = await (await collection('champions'))
+    .find({}, { projection: { abilities: 1, role: 1, _id: 0 } })
+    .sort({ order: 1 })
+    .toArray();
+
+  const classified = new Map<string, ClassifiedAbility>();
+  for (const doc of docs) {
+    const slots = doc.abilities;
+    if (!slots || typeof slots !== 'object') continue;
+    const role = typeof doc.role === 'string' ? doc.role : '';
+    for (const slot of Object.keys(CHAMPION_ABILITY_KIND) as (keyof typeof CHAMPION_ABILITY_KIND)[]) {
+      const ability = (slots as Record<string, unknown>)[slot];
+      if (!ability || typeof ability !== 'object') continue;
+      const record = ability as { name?: unknown; learned?: unknown };
+      if (typeof record.name !== 'string' || !record.name.trim()) continue;
+      const key = record.name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (classified.has(key)) continue;
+      classified.set(key, {
+        kind: record.learned === true ? CHAMPION_ABILITY_KIND[slot] : 'unlearned',
+        role,
+      });
+    }
+  }
+
+  const wantedRol = playerRol?.trim().toLowerCase() ?? '';
+  for (const [slot, name] of filled) {
+    const playerSlot = slot as keyof typeof PLAYER_SLOT_KIND;
+    const expected = PLAYER_SLOT_KIND[playerSlot];
+    if (!expected) continue;
+    const found = classified.get(name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+    if (!found) throw new HttpError(400, `No existe la habilidad ${name}`);
+    if (found.kind === 'unlearned') throw new HttpError(400, 'Solo se pueden asignar habilidades aprendidas');
+    if (found.kind !== expected) throw new HttpError(400, SLOT_REFUSAL[playerSlot]);
+    if (wantedRol && found.role.trim().toLowerCase() !== wantedRol) {
+      throw new HttpError(400, `${name} no es una habilidad de ${playerRol}`);
+    }
+  }
+}
+
 export async function updatePlayer(name: string, patch: PlayerPatch) {
   const col = await players();
   const existing = await col.findOne({ name }, { collation: CI });
   if (!existing) throw new HttpError(404, `No existe el jugador ${name}`);
+  await assertAbilitiesFit(patch.abilities, typeof existing.rol === 'string' ? existing.rol : undefined);
 
   const $set: Record<string, unknown> = { updatedAt: new Date().toISOString() };
   const $unset: Record<string, ''> = {};
@@ -464,6 +543,7 @@ export async function upsertPlayer(name: string, input: PlayerReplace) {
   const existing = await col.findOne({ name: trimmed }, { collation: CI });
   const storedName = existing?.name ?? trimmed;
   const order = existing?.order ?? (await col.countDocuments());
+  await assertAbilitiesFit(input.abilities, typeof existing?.rol === 'string' ? existing.rol : undefined);
 
   await col.updateOne(
     { name: storedName },

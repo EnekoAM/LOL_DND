@@ -9,6 +9,7 @@ export type EffectDraft = {
 export type AbilityDraft = {
   name: string;
   description: string;
+  learned: boolean;
   cost: string;
   damageType: string;
   ap: string;
@@ -39,6 +40,7 @@ export function abilityToDraft(ability: Ability | null): AbilityDraft {
   return {
     name: ability?.name ?? '',
     description: ability?.description ?? '',
+    learned: ability?.learned === true,
     cost: ability?.cost ?? '',
     damageType: ability?.damage?.type ?? '',
     ap: formatRatioList(ability?.damage?.ap),
@@ -96,7 +98,7 @@ export function draftToAbility(draft: AbilityDraft): Ability {
   const name = draft.name.trim();
   if (!name) throw new Error('La habilidad necesita un nombre');
 
-  const ability: Ability = { name };
+  const ability: Ability = { name, learned: draft.learned };
   const description = draft.description.trim();
   const cost = draft.cost.trim();
   if (description) ability.description = description;
