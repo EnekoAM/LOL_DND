@@ -5,7 +5,7 @@ import { itemAvailability } from './stock';
 
 export const ALL = 'all';
 
-export type StockFilter = typeof ALL | 'in' | 'out';
+export type StockFilter = typeof ALL | 'owned' | 'in' | 'out';
 
 export type ItemFilterState = {
   stat: string;
@@ -22,7 +22,8 @@ export const DEFAULT_ITEM_FILTERS: ItemFilterState = {
 };
 
 const matchesStock = (item: Item, stock: StockFilter): boolean => {
-  const { available } = itemAvailability(item);
+  const { owned, available } = itemAvailability(item);
+  if (stock === 'owned') return owned > 0;
   if (stock === 'in') return available > 0;
   if (stock === 'out') return available <= 0;
   return true;

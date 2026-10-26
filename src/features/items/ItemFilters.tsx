@@ -28,8 +28,9 @@ const ItemFilters = ({ filters, resultCount, onChange }: Props) => (
         onChange={e => onChange({ stock: e.target.value as StockFilter })}
       >
         <option value={ALL}>Todos</option>
-        <option value="in">Disponible</option>
-        <option value="out">No disponible</option>
+        <option value="owned">Tienen</option>
+        <option value="in">Disponibles</option>
+        <option value="out">No disponibles</option>
       </select>
     </div>
 
