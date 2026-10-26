@@ -177,10 +177,24 @@ function sellUnit(cost: number): number {
   return Math.round((cost * 70) / 100);
 }
 
+
+function rarityKey(rareza: unknown): string {
+  if (typeof rareza !== 'string') return '';
+  return rareza.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+}
+
+/** Los prismáticos no se compran, aunque tengan coste. Se pueden vender y craftear. */
+function isPrismatic(rareza: unknown): boolean {
+  return rarityKey(rareza) === 'prismatico';
+}
+
+function isStarter(rareza: unknown): boolean {
+  return rarityKey(rareza) === 'inicial';
+}
+
 /** Tarifa fija según la rareza del resultado. La misma tabla está en src/features/items/recipe.ts. */
 function rarityCraftGold(rareza: unknown): number {
-  if (typeof rareza !== 'string') return 0;
-  const key = rareza.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+  const key = rarityKey(rareza);
   if (key === 'epico') return 400;
   if (key === 'legendario') return 800;
   return 0;
@@ -356,7 +370,7 @@ export async function tradeShop(order: ShopOrder) {
   for (const line of order.lines) {
     const doc = byKey.get(itemKey(line.nombre));
     if (!doc || typeof doc.nombre !== 'string') throw new HttpError(404, `No existe el item ${line.nombre}`);
-    if (order.mode === 'compra' && numericCost(doc.coste) <= 0) {
+    if (order.mode === 'compra' && (numericCost(doc.coste) <= 0 || isPrismatic(doc.rareza) || isStarter(doc.rareza))) {
       throw new HttpError(400, `${doc.nombre} no se compra`);
     }
     const reserved = equipped.get(itemKey(doc.nombre)) ?? 0;

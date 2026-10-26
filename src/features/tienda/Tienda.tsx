@@ -46,6 +46,13 @@ const raritySlug = (rareza: string): string =>
 const itemPrice = (item: Item | undefined): number =>
   typeof item?.coste === 'number' && Number.isFinite(item.coste) && item.coste > 0 ? item.coste : 0;
 
+/** Los prismáticos no están en el mostrador de compra. La misma regla está en server/store.ts. */
+const isPrismatic = (rareza: string): boolean =>
+  rareza.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '') === 'prismatico';
+
+const isStarter = (rareza: string): boolean =>
+  rareza.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '') === 'inicial';
+
 /** La misma cuenta está en server/store.ts. El 70% se hace en enteros: 350 * 0.7 no es 245 en coma flotante. */
 const sellPrice = (cost: number): number => Math.round((cost * 70) / 100);
 
@@ -69,15 +76,21 @@ const Tienda = () => {
   const [notice, setNotice] = useState<{ mode: CounterMode; kind: 'ok' | 'error'; text: string } | null>(null);
   const gold = useSyncExternalStore(subscribeParty, partyGold);
 
+  useEffect(() => {
+    if (mode === 'compra' && (isPrismatic(rarity) || (isStarter(rarity)))) setRarity('');
+  }, [mode, rarity]);
+
   const catalog = useMemo(
     () => [...ITEMS].sort((a, b) => rarityRank(a.rareza) - rarityRank(b.rareza) || a.nombre.localeCompare(b.nombre, 'es')),
     [],
   );
 
   const rarities = useMemo(() => {
-    const present = new Set(catalog.map(item => item.rareza));
+    const present = new Set(
+      catalog.filter(item => mode !== 'compra' || (!isPrismatic(item.rareza) && !isStarter(item.rareza))).map(item => item.rareza),
+    );
     return [...present].sort((a, b) => rarityRank(a) - rarityRank(b) || a.localeCompare(b, 'es'));
-  }, [catalog]);
+  }, [catalog, mode]);
 
   const visibleItems = useMemo(() => catalog.filter(item => {
     if (rarity && item.rareza !== rarity) return false;
@@ -85,7 +98,7 @@ const Tienda = () => {
     if (!matchesSearch(item.nombre, search)) return false;
     const stock = itemAvailability(item);
     if (mode === 'crafteo' && !canBeCrafted(item)) return false;
-    if (mode === 'compra' && itemPrice(item) <= 0) return false;
+    if (mode === 'compra' && (itemPrice(item) <= 0 || isPrismatic(item.rareza) || isStarter(item.rareza))) return false;
     if (mode === 'venta' && stock.available <= 0) return false;
     if (onlyOwned && stock.owned <= 0) return false;
     return true;
@@ -123,6 +136,7 @@ const Tienda = () => {
   };
 
   const addToCart = (item: Item) => {
+    if (mode === 'compra' && (isPrismatic(item.rareza) || isStarter(item.rareza))) return;
     const available = itemAvailability(item).available;
     updateCart(current => {
       const existing = current.find(line => line.nombre === item.nombre);
