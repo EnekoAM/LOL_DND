@@ -7,6 +7,7 @@ import {
   type AbilityKey,
   type ChampionFilter,
 } from '../../data/champions';
+import { cx } from '../../lib/cx';
 import { normalizeName } from '../../lib/text';
 import AbilityModal from './AbilityModal';
 import ChampionRow from './ChampionRow';
@@ -15,7 +16,7 @@ import { ROLE_ICONS } from './championStyle';
 import './Habilidades.css';
 
 const Habilidades = () => {
-  const [filter, setFilter] = useState<ChampionFilter>({ search: '', region: '', role: '' });
+  const [filter, setFilter] = useState<ChampionFilter>({ search: '', region: '', role: '', onlyLearned: false });
   const [expandedName, setExpandedName] = useState<string | null>(null);
   const [selected, setSelected] = useState<{ champion: string; slot: AbilityKey } | null>(null);
   const [revision, setRevision] = useState(0);
@@ -56,6 +57,15 @@ const Habilidades = () => {
             <option key={role} value={role}>{ROLE_ICONS[role]} {role}</option>
           ))}
         </select>
+        <button
+          type="button"
+          className={cx('hab-learned-filter', filter.onlyLearned && 'hab-learned-filter--on')}
+          aria-pressed={!!filter.onlyLearned}
+          title="Mostrar solo campeones con alguna habilidad aprendida"
+          onClick={() => updateFilter({ onlyLearned: !filter.onlyLearned })}
+        >
+          Aprendidas
+        </button>
         <span className="hab-search__count">{champions.length}</span>
       </div>
 

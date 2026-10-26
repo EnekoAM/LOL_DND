@@ -38,6 +38,7 @@ export type ChampionFilter = {
   search: string;
   region: string;
   role: string;
+  onlyLearned?: boolean;
 };
 
 export const ABILITY_KEYS: AbilityKey[] = ['P', 'Q', 'W', 'E', 'R'];
@@ -119,11 +120,15 @@ export const learnedAbilities = (kind: AbilityKind, role?: string): AbilityRef[]
   );
 };
 
-export const filterChampions = (champions: Champion[], { search, region, role }: ChampionFilter): Champion[] =>
+const hasLearnedAbility = (champion: Champion): boolean =>
+  ABILITY_KEYS.some(key => champion.abilities[key]?.learned === true);
+
+export const filterChampions = (champions: Champion[], { search, region, role, onlyLearned }: ChampionFilter): Champion[] =>
   champions.filter(c =>
     matchesSearch(c.champion, search) &&
     (!region || c.region === region) &&
-    (!role || c.role === role),
+    (!role || c.role === role) &&
+    (!onlyLearned || hasLearnedAbility(c)),
   );
 
 function readError(body: unknown, fallback: string): string {
