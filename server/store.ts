@@ -1,6 +1,7 @@
 import { ObjectId, type Collection, type Document, type Filter } from 'mongodb';
 import { getDb } from './db';
 import { HttpError, logError } from './errors';
+import { buildLootItems, LOOT_RULES } from './lootItems';
 import type { ChampionAbility, HistoryKind, ItemUpdate, PartyPatch, PlayerPatch, PlayerReplace, RollRecord, ShopOrder } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
@@ -441,9 +442,18 @@ export async function tradeShop(order: ShopOrder) {
 }
 
 export async function getLoot() {
-  const doc = await (await singleton('loot')).findOne({ _id: 'tables' }, { projection: { _id: 0 } });
-  if (!doc) throw new HttpError(404, 'No hay tablas de loot. Ejecuta npm run seed');
-  return doc;
+  const catalog = await (await collection('items'))
+    .find({}, { projection: { nombre: 1, rareza: 1, coste: 1, _id: 0 } })
+    .sort({ order: 1 })
+    .toArray();
+  return {
+    ...LOOT_RULES,
+    items: buildLootItems(catalog.map(item => ({
+      nombre: item.nombre,
+      rareza: item.rareza,
+      coste: item.coste,
+    }))),
+  };
 }
 
 export async function getParty() {
