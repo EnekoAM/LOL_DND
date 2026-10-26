@@ -1,7 +1,7 @@
 import { ObjectId, type Collection, type Document, type Filter } from 'mongodb';
 import { getDb } from './db';
 import { HttpError, logError } from './errors';
-import type { ChampionAbility, HistoryKind, PartyPatch, PlayerPatch, PlayerReplace, RollRecord, ShopOrder } from './validate';
+import type { ChampionAbility, HistoryKind, ItemUpdate, PartyPatch, PlayerPatch, PlayerReplace, RollRecord, ShopOrder } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -50,6 +50,38 @@ export async function getItems(nombre?: string) {
   const col = await collection('items');
   if (!nombre) return col.find({}, PUBLIC).sort({ order: 1 }).toArray();
   return one(col, { nombre }, `No existe el item ${nombre}`);
+}
+
+/**
+ * Cambia la definición de un ítem (rareza, efectos, stats y coste).
+ * No toca nombre ni cantidad: el nombre es la referencia que usan jugadores, builds, recetas e historiales.
+ * Las stats se fijan una a una para no borrar claves que el formulario no conozca.
+ */
+export async function updateItem(nombre: string, update: ItemUpdate) {
+  const trimmed = nombre.trim();
+  if (!trimmed) throw new HttpError(400, 'Falta el nombre del ítem');
+  const col = await collection('items');
+  const existing = await col.findOne({ nombre: trimmed }, { collation: CI });
+  if (!existing) throw new HttpError(404, `No existe el item ${trimmed}`);
+
+  const set: Document = {
+    rareza: update.rareza,
+    efecto: { pasiva: update.efecto.pasiva, activa: update.efecto.activa },
+    updatedAt: new Date().toISOString(),
+  };
+  const hasStats = !!existing.stats && typeof existing.stats === 'object' && !Array.isArray(existing.stats);
+  if (hasStats) {
+    for (const [key, value] of Object.entries(update.stats)) set[`stats.${key}`] = value;
+  } else {
+    set.stats = update.stats;
+  }
+  if (typeof update.coste === 'number') set.coste = update.coste;
+
+  await col.updateOne(
+    { _id: existing._id },
+    update.coste === null ? { $set: set, $unset: { coste: '' } } : { $set: set },
+  );
+  return getItems(String(existing.nombre));
 }
 
 /** Hora de España (península), como "01/01/2026 12:00:00". */

@@ -288,6 +288,82 @@ export function parseChampionAbilityPatch(body: unknown): ChampionAbilityPatch {
   return { slot: source.slot as ChampionSlot, ability };
 }
 
+export type ItemUpdate = {
+  rareza: string;
+  efecto: { pasiva: string; activa: string };
+  stats: Record<string, number | string>;
+  /** undefined deja el coste como está; null lo quita. */
+  coste?: number | null;
+};
+
+const ITEM_TEXT_LIMIT = 2000;
+const STAT_TEXT_LIMIT = 20;
+
+function effectText(value: unknown, field: string): string {
+  if (value === undefined || value === null) return '-';
+  if (typeof value !== 'string') throw new HttpError(400, `${field} tiene que ser un texto`);
+  const text = value.trim();
+  if (text.length > ITEM_TEXT_LIMIT) throw new HttpError(400, `${field} es demasiado largo`);
+  return text || '-';
+}
+
+function itemStats(value: unknown): Record<string, number | string> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'stats tiene que ser un objeto');
+  }
+  const stats: Record<string, number | string> = {};
+  for (const [rawKey, stat] of Object.entries(value as Record<string, unknown>)) {
+    const key = rawKey.trim();
+    // Mongo no admite "." ni "$" en las claves que se usan con $set.
+    if (!key || key.includes('.') || key.startsWith('$')) throw new HttpError(400, `Stat no válida: ${rawKey}`);
+    if (typeof stat === 'number') {
+      if (!Number.isFinite(stat)) throw new HttpError(400, `${key} tiene que ser un número`);
+      stats[key] = stat;
+      continue;
+    }
+    if (typeof stat === 'string' && stat.trim() && stat.trim().length <= STAT_TEXT_LIMIT) {
+      stats[key] = stat.trim();
+      continue;
+    }
+    throw new HttpError(400, `${key} tiene que ser un número o un dado (por ejemplo 1d4)`);
+  }
+  return stats;
+}
+
+/** Definición de un ítem para PUT /api/items. El nombre va en la query y no se puede cambiar. */
+export function parseItemUpdate(body: unknown): ItemUpdate {
+  const source = asObject(body);
+  if ('cantidad' in source) {
+    throw new HttpError(400, 'La cantidad no se edita aquí: usa tiradas, crafteos o la tienda');
+  }
+  const rareza = optionalText(source.rareza, 'rareza');
+  if (!rareza) throw new HttpError(400, 'El ítem necesita una rareza');
+
+  if (!source.efecto || typeof source.efecto !== 'object' || Array.isArray(source.efecto)) {
+    throw new HttpError(400, 'efecto tiene que ser un objeto con pasiva y activa');
+  }
+  const efecto = source.efecto as Record<string, unknown>;
+
+  const update: ItemUpdate = {
+    rareza,
+    efecto: {
+      pasiva: effectText(efecto.pasiva, 'efecto.pasiva'),
+      activa: effectText(efecto.activa, 'efecto.activa'),
+    },
+    stats: itemStats(source.stats),
+  };
+
+  if (source.coste === null) {
+    update.coste = null;
+  } else if (source.coste !== undefined) {
+    if (typeof source.coste !== 'number' || !Number.isFinite(source.coste) || source.coste < 0) {
+      throw new HttpError(400, 'coste tiene que ser un número igual o mayor que 0');
+    }
+    update.coste = source.coste;
+  }
+  return update;
+}
+
 const SHOP_MODES = ['compra', 'venta'] as const;
 
 export type ShopMode = (typeof SHOP_MODES)[number];
