@@ -136,7 +136,9 @@ export type PlayerListPatch = Partial<
 export async function savePlayerPatch(name: string, patch: PlayerListPatch): Promise<Player> {
   let response: Response;
   try {
-    response = await fetch(`/api/players/${encodeURIComponent(name)}`, {
+    // Query (?name=) en vez de /api/players/:name: en Vercel la ruta con segmento
+    // puede acabar en la reescritura SPA (index.html → 405) si falla vercel.json.
+    response = await fetch(`/api/players?name=${encodeURIComponent(name)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),

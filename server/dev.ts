@@ -64,11 +64,15 @@ app.patch('/api/loot', notifies('loot'), adapt(loot));
 app.get('/api/party', adapt(party));
 // Cambiar el nivel recalcula los rangos de habilidad de todos los jugadores.
 app.patch('/api/party', notifies('party', 'players'), adapt(party));
+// El cliente escribe con ?name= (igual que en Vercel); /:name se mantiene por compatibilidad.
 app.get('/api/players', adapt(players));
+app.patch('/api/players', notifies('players'), adapt(players));
+app.put('/api/players', notifies('players'), adapt(players));
 app.get('/api/players/:name', adapt(playerByName));
 app.patch('/api/players/:name', notifies('players'), adapt(playerByName));
 app.put('/api/players/:name', notifies('players'), adapt(playerByName));
 app.get('/api/roles', adapt(roles));
+app.patch('/api/roles', notifies('roles'), adapt(roles));
 app.get('/api/roles/:id', adapt(roleById));
 app.patch('/api/roles/:id', notifies('roles'), adapt(roleById));
 app.use('/api', (_req, res) => {

@@ -13,7 +13,7 @@ export type LiveResource = 'party' | 'players' | 'items' | 'loot' | 'roles' | 'c
 export type LiveEvent = {
   type: 'changed';
   resources: LiveResource[];
-  /** Jugador concreto, si el cambio vino de /api/players/:name. */
+  /** Jugador concreto, si el cambio vino de /api/players/:name o ?name=. */
   name?: string;
   /** Pestaña que hizo el cambio (cabecera X-Client-Id); ella misma lo ignora. */
   clientId?: string;
@@ -70,7 +70,8 @@ export function notifies(...resources: LiveResource[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     res.on('finish', () => {
       if (res.statusCode < 200 || res.statusCode >= 300) return;
-      const name = typeof req.params.name === 'string' ? req.params.name : undefined;
+      const raw = req.params.name ?? req.query.name;
+      const name = typeof raw === 'string' ? raw : undefined;
       broadcast({ resources, name, clientId: headerValue(req.headers['x-client-id']) });
     });
     next();
