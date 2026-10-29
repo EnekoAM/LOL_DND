@@ -1,4 +1,4 @@
-/* ── FICHA · HABILIDADES (cartas de hechizo) ─────────────── */
+﻿/* ── FICHA · HABILIDADES (cartas de hechizo) ─────────────── */
 .spell-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -78,7 +78,6 @@
 }
 
 .spell--clickable { cursor: pointer; }
-.spell--clickable:hover { transform: translateY(-2px); }
 
 /* Definitiva: brillo que respira */
 .spell--definitiva {
