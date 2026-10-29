@@ -206,6 +206,15 @@ const PlayerSheet = ({
             error={combatError}
             onChange={onCombatChange}
           />
+          <div className="sheet-panel sheet-side__mana">
+            <ManaPanel
+              player={player}
+              suggestedMax={suggestedMana}
+              saving={saving}
+              error={combatError}
+              onChange={onCombatChange}
+            />
+          </div>
         </aside>
 
         <div className="sheet-content">
@@ -255,18 +264,6 @@ const PlayerSheet = ({
                 </div>
               </section>
 
-              <section className="sheet-panel sheet-general__resources">
-                <div className="sheet-panel__title">Recursos</div>
-                <div className="sheet-resources">
-                  <ManaPanel
-                    player={player}
-                    suggestedMax={suggestedMana}
-                    saving={saving}
-                    error={combatError}
-                    onChange={onCombatChange}
-                  />
-                </div>
-              </section>
             </div>
           )}
 
