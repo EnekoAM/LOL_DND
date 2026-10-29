@@ -1,11 +1,10 @@
-import type { StatLine } from './statLine';
+import type { RoleStatLine as StatLine, RoleTable } from '../server/validate';
 
-export type RoleTable = {
-  id: string;
-  name: string;
-  /** Índice 0 = nivel 1. */
-  levels: StatLine[];
-};
+/**
+ * Tablas de rol × nivel que antes vivían en src/features/calculos/roleTables.ts.
+ * Solo las usa scripts/migrate-roles.ts para rellenar la colección roles;
+ * en tiempo de ejecución la app las lee de Mongo (GET /api/roles).
+ */
 
 /**
  * AC 10, MR 0, crítico 0 / 1,5 y el resto de columnas de porcentaje a 0 en todas las tablas.
@@ -50,7 +49,7 @@ const HP_RAMP_START = 1.25; // multiplicador en nivel 1
 const HP_RAMP_STEP = 0.044; // +0,044 por nivel → ≈ ×2 en nivel 18
 const HP_TIER_STARTS = [6, 11, 16];
 
-export function hpAt(base: number, level: number, tierBonus: number[] = []): number {
+function hpAt(base: number, level: number, tierBonus: number[] = []): number {
   const extra = HP_TIER_STARTS.reduce(
     (sum, start, i) => (level >= start ? sum + (tierBonus[i] ?? 0) : sum),
     0,
@@ -213,7 +212,7 @@ const tanque: StatLine[] = [
   row(90, '4d4', '4d4', 11, 1, 1),
 ];
 
-export const ROLE_TABLES: RoleTable[] = [
+export const DEFAULT_ROLE_TABLES: RoleTable[] = [
   { id: 'mago', name: 'Mago', levels: withHp(mago, 8) },
   { id: 'asesino-ad', name: 'Asesino AD', levels: withHp(asesinoAd, 9) },
   { id: 'asesino-ap', name: 'Asesino AP', levels: withHp(asesinoAp, 9) },
@@ -230,12 +229,3 @@ export const ROLE_TABLES: RoleTable[] = [
   { id: 'luchador-ap', name: 'Luchador AP', levels: withHp(luchadorAp, 11) },
   { id: 'tanque', name: 'Tanque', levels: withHp(tanque, 13, [10, 15, 20]) },
 ];
-
-/** Las fichas leen la fila de este nivel. Por encima no hay estadísticas de rol. */
-export const MAX_ROLE_LEVEL = Math.min(...ROLE_TABLES.map(role => role.levels.length));
-
-const rolesById = new Map(ROLE_TABLES.map(role => [role.id, role]));
-
-export function findRoleTable(id: string): RoleTable | undefined {
-  return rolesById.get(id);
-}

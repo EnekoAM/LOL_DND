@@ -3,6 +3,7 @@ import { hydrateItems, type Item } from './items';
 import { hydrateLoot, type LootTables } from './loot';
 import { hydrateParty, type Party } from './party';
 import { hydratePlayers, type Player } from './players';
+import { hydrateRoles, type RoleTable } from './roles';
 
 async function getJson<T>(path: string): Promise<T> {
   let response: Response;
@@ -23,10 +24,11 @@ async function getJson<T>(path: string): Promise<T> {
 }
 
 export async function loadCatalogs(): Promise<void> {
-  const [champions, items, players, loot, party] = await Promise.all([
+  const [champions, items, players, roles, loot, party] = await Promise.all([
     getJson<Champion[]>('/api/champions'),
     getJson<Item[]>('/api/items'),
     getJson<Player[]>('/api/players'),
+    getJson<RoleTable[]>('/api/roles'),
     getJson<LootTables>('/api/loot'),
     getJson<Party>('/api/party'),
   ]);
@@ -34,6 +36,7 @@ export async function loadCatalogs(): Promise<void> {
   hydrateChampions(champions);
   hydrateItems(items);
   hydratePlayers(players);
+  hydrateRoles(roles);
   hydrateLoot(loot);
   hydrateParty(party);
 }

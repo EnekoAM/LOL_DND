@@ -17,6 +17,8 @@ export type LootTables = {
   'Drop basico': DropChance[];
   'Drop epico': DropChance[];
   'Drop legendario': DropChance[];
+  /** Parte fija de "Lo que quieras" por rareza (0 a 1). Ya va incluida en items. */
+  wildCard: Record<LootRarity, number>;
   items: Record<LootRarity, LootEntry[]>;
 };
 
@@ -25,6 +27,7 @@ const EMPTY_LOOT: LootTables = {
   'Drop basico': [],
   'Drop epico': [],
   'Drop legendario': [],
+  wildCard: { basico: 0, epico: 0, legendario: 0 },
   items: { basico: [], epico: [], legendario: [] },
 };
 

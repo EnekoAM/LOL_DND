@@ -2,7 +2,7 @@ import { MongoClient, type Db } from 'mongodb';
 import { loadEnv } from './env';
 import { HttpError, logError } from './errors';
 
-const INDEXED = ['champions', 'items', 'players'] as const;
+const INDEXED = ['champions', 'items', 'players', 'roles'] as const;
 
 let clientPromise: Promise<MongoClient> | undefined;
 let indexesPromise: Promise<void> | undefined;

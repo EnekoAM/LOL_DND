@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { adjustPartyGold, partyGold, partyLevel, savePartyLevel, subscribeParty } from '../data/party';
 import { syncAllPlayerStats } from '../features/calculos/playerTotals';
-import { MAX_ROLE_LEVEL } from '../features/calculos/roleTables';
+import { MAX_ROLE_LEVEL } from '../data/roles';
 import { NavLink } from 'react-router-dom';
 import { cx } from '../lib/cx';
 import './AppHeader.css';

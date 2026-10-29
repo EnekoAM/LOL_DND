@@ -1,8 +1,9 @@
 import { ObjectId, type Collection, type Document, type Filter } from 'mongodb';
 import { getDb } from './db';
 import { HttpError, logError } from './errors';
-import { buildLootItems, LOOT_RULES } from './lootItems';
-import type { ChampionAbility, HistoryKind, ItemUpdate, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RollRecord, ShopOrder } from './validate';
+import { buildLootItems } from './lootItems';
+import { LOOT_RULE_KEYS, parseLootRules } from './validate';
+import type { ChampionAbility, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -456,19 +457,70 @@ export async function tradeShop(order: ShopOrder) {
   };
 }
 
+const LOOT_DOC_ID = 'tables';
+const MISSING_LOOT_RULES = 'Faltan las reglas de botín en Mongo. Ejecuta npm run migrate:loot';
+
+/** Reglas de botín guardadas en loot/tables (rolls, Drop básico/épico/legendario y wildCard). */
+async function readLootRules(): Promise<LootRules> {
+  const projection = Object.fromEntries(LOOT_RULE_KEYS.map(key => [key, 1]));
+  const doc = await (await singleton('loot')).findOne({ _id: LOOT_DOC_ID }, { projection });
+  if (!doc || LOOT_RULE_KEYS.some(key => doc[key] === undefined)) throw new HttpError(404, MISSING_LOOT_RULES);
+  try {
+    return parseLootRules(doc);
+  } catch (error) {
+    const detail = error instanceof HttpError ? error.message : String(error);
+    throw new HttpError(500, `Reglas de botín inválidas en Mongo (${detail}). Ejecuta npm run migrate:loot -- --force`);
+  }
+}
+
 export async function getLoot() {
+  const rules = await readLootRules();
   const catalog = await (await collection('items'))
     .find({}, { projection: { nombre: 1, rareza: 1, coste: 1, _id: 0 } })
     .sort({ order: 1 })
     .toArray();
   return {
-    ...LOOT_RULES,
-    items: buildLootItems(catalog.map(item => ({
-      nombre: item.nombre,
-      rareza: item.rareza,
-      coste: item.coste,
-    }))),
+    ...rules,
+    items: buildLootItems(
+      catalog.map(item => ({
+        nombre: item.nombre,
+        rareza: item.rareza,
+        coste: item.coste,
+      })),
+      rules.wildCard,
+    ),
   };
+}
+
+/** Cambia solo las reglas; los ítems siguen saliendo del catálogo. */
+export async function updateLootRules(patch: LootRulesPatch) {
+  const { wildCard, ...tables } = patch;
+  const set: Record<string, unknown> = { ...tables, updatedAt: new Date().toISOString() };
+  for (const [rarity, prob] of Object.entries(wildCard ?? {})) set[`wildCard.${rarity}`] = prob;
+  const result = await (await singleton('loot')).updateOne({ _id: LOOT_DOC_ID }, { $set: set });
+  if (result.matchedCount !== 1) throw new HttpError(404, MISSING_LOOT_RULES);
+  return getLoot();
+}
+
+const MISSING_ROLES = 'No hay tablas de rol en Mongo. Ejecuta npm run migrate:roles';
+
+export async function listRoles() {
+  const roles = await (await collection('roles')).find({}, PUBLIC).sort({ order: 1 }).toArray();
+  if (roles.length === 0) throw new HttpError(404, MISSING_ROLES);
+  return roles;
+}
+
+export async function getRole(id: string) {
+  return one(await collection('roles'), { id }, `No existe el rol ${id}`);
+}
+
+export async function updateRole(id: string, patch: RolePatch) {
+  const result = await (await collection('roles')).updateOne(
+    { id },
+    { $set: { ...patch, updatedAt: new Date().toISOString() } },
+  );
+  if (result.matchedCount !== 1) throw new HttpError(404, `No existe el rol ${id}`);
+  return getRole(id);
 }
 
 export async function getParty() {
@@ -926,7 +978,7 @@ export async function revertHistory(kind: HistoryKind, id: string) {
 export async function mongoStatus() {
   const db = await getDb();
   await db.command({ ping: 1 });
-  const names = ['champions', 'items', 'players', 'loot', 'party', 'rollHistoric', 'craftHistoric', 'buyHistoric', 'sellHistoric'] as const;
+  const names = ['champions', 'items', 'players', 'roles', 'loot', 'party', 'rollHistoric', 'craftHistoric', 'buyHistoric', 'sellHistoric'] as const;
   const counts = Object.fromEntries(
     await Promise.all(names.map(async name => [name, await db.collection(name).estimatedDocumentCount()] as const)),
   );

@@ -229,7 +229,7 @@ export type SheetStatKey = (typeof SHEET_STAT_KEYS)[number];
 
 /** Ficha D&D guardada en players.sheet. El modificador se calcula: floor((puntuación - 10) / 2). */
 export type PlayerSheet = {
-  /** Id de la tabla de rol (roleTables.ts), p. ej. "asesino-ad". */
+  /** Id del rol (colección roles), p. ej. "asesino-ad". */
   roleId: string;
   scores?: Record<AbilityScoreKey, number>;
   /** Bonos fijos que se suman al total (solo las claves distintas de 0). */
@@ -587,4 +587,188 @@ export function parsePlayerReplace(body: unknown): PlayerReplace {
     equipamiento: equipmentList(source.equipamiento),
     build: stringList(source.build, 'build'),
   };
+}
+
+/** Fila de una tabla de rol: las mismas columnas que la ficha (hp, ac, mana, ad…). */
+export type RoleStatLine = Record<SheetStatKey, number | string>;
+
+export type RoleTable = {
+  id: string;
+  name: string;
+  /** Índice 0 = nivel 1. */
+  levels: RoleStatLine[];
+};
+
+export type RolePatch = {
+  name?: string;
+  levels?: RoleStatLine[];
+};
+
+const ROLE_NAME_LIMIT = 40;
+const ROLE_LEVEL_LIMIT = 30;
+const ROLE_TEXT_LIMIT = 40;
+
+export function isRoleId(value: string): boolean {
+  return ROLE_ID.test(value);
+}
+
+function roleStatLine(value: unknown, index: number): RoleStatLine {
+  const field = `levels[${index}]`;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, `${field} tiene que ser un objeto`);
+  }
+  const source = value as Record<string, unknown>;
+  for (const key of Object.keys(source)) {
+    if (!SHEET_STAT_KEYS.includes(key as SheetStatKey)) throw new HttpError(400, `${field}: stat desconocida ${key}`);
+  }
+  const line = {} as RoleStatLine;
+  for (const key of SHEET_STAT_KEYS) {
+    const raw = source[key];
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+      line[key] = raw;
+      continue;
+    }
+    if (typeof raw === 'string' && raw.trim() && raw.trim().length <= ROLE_TEXT_LIMIT) {
+      line[key] = raw.trim();
+      continue;
+    }
+    throw new HttpError(400, `${field}.${key} tiene que ser un número o un dado (por ejemplo 2d4)`);
+  }
+  return line;
+}
+
+export function parseRolePatch(body: unknown): RolePatch {
+  const source = asObject(body);
+  for (const key of Object.keys(source)) {
+    if (key !== 'name' && key !== 'levels') throw new HttpError(400, `Campo de rol desconocido: ${key}`);
+  }
+  const patch: RolePatch = {};
+  if ('name' in source) {
+    const name = typeof source.name === 'string' ? source.name.trim() : '';
+    if (!name || name.length > ROLE_NAME_LIMIT) {
+      throw new HttpError(400, `name tiene que ser un texto de 1 a ${ROLE_NAME_LIMIT} caracteres`);
+    }
+    patch.name = name;
+  }
+  if ('levels' in source) {
+    const levels = source.levels;
+    if (!Array.isArray(levels) || levels.length === 0 || levels.length > ROLE_LEVEL_LIMIT) {
+      throw new HttpError(400, `levels tiene que ser una lista de 1 a ${ROLE_LEVEL_LIMIT} niveles`);
+    }
+    patch.levels = levels.map(roleStatLine);
+  }
+  if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
+  return patch;
+}
+
+const LOOT_RARITIES = ['basico', 'epico', 'legendario'] as const;
+const SPAWN_TYPES = ['Basico', 'Epico'] as const;
+const DROP_ITEMS = ['Prob. basico', 'Prob. epico', 'Prob. legendario'] as const;
+const DROP_TABLES = ['Drop basico', 'Drop epico', 'Drop legendario'] as const;
+
+export type LootRuleRarity = (typeof LOOT_RARITIES)[number];
+export type DropTableKey = (typeof DROP_TABLES)[number];
+export type SpawnRoll = { type: (typeof SPAWN_TYPES)[number]; prob: number };
+export type DropChance = { item: (typeof DROP_ITEMS)[number]; prob: number };
+
+/**
+ * Reglas fijas del botín guardadas en loot/tables.
+ * wildCard: parte fija de "Lo que quieras" en cada tabla (0 a 1); el resto se reparte entre los ítems.
+ */
+export type LootRules = {
+  rolls: SpawnRoll[];
+  wildCard: Record<LootRuleRarity, number>;
+} & Record<DropTableKey, DropChance[]>;
+
+export type LootRulesPatch = Partial<LootRules>;
+
+export const LOOT_RULE_KEYS = ['rolls', ...DROP_TABLES, 'wildCard'] as const;
+
+function percent(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 100) {
+    throw new HttpError(400, `${field} tiene que ser un número entre 0 y 100`);
+  }
+  return value;
+}
+
+function spawnRolls(value: unknown): SpawnRoll[] {
+  if (!Array.isArray(value) || value.length === 0) throw new HttpError(400, 'rolls tiene que ser una lista');
+  const seen = new Set<string>();
+  return value.map((raw, index) => {
+    const entry = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : null;
+    const type = entry?.type;
+    if (typeof type !== 'string' || !SPAWN_TYPES.includes(type as SpawnRoll['type'])) {
+      throw new HttpError(400, `rolls[${index}].type tiene que ser ${SPAWN_TYPES.join(' o ')}`);
+    }
+    if (seen.has(type)) throw new HttpError(400, `rolls repite el tipo ${type}`);
+    seen.add(type);
+    return { type: type as SpawnRoll['type'], prob: percent(entry?.prob, `rolls[${index}].prob`) };
+  });
+}
+
+function dropTable(value: unknown, field: DropTableKey): DropChance[] {
+  if (!Array.isArray(value) || value.length === 0) throw new HttpError(400, `${field} tiene que ser una lista`);
+  const seen = new Set<string>();
+  const entries = value.map((raw, index) => {
+    const entry = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : null;
+    const item = entry?.item;
+    if (typeof item !== 'string' || !DROP_ITEMS.includes(item as DropChance['item'])) {
+      throw new HttpError(400, `${field}[${index}].item tiene que ser ${DROP_ITEMS.join(', ')}`);
+    }
+    if (seen.has(item)) throw new HttpError(400, `${field} repite ${item}`);
+    seen.add(item);
+    return { item: item as DropChance['item'], prob: percent(entry?.prob, `${field}[${index}].prob`) };
+  });
+  const total = entries.reduce((sum, entry) => sum + entry.prob, 0);
+  if (Math.abs(total - 100) > 1e-6) throw new HttpError(400, `${field} tiene que sumar 100 (suma ${total})`);
+  return entries;
+}
+
+function wildCard(value: unknown, partial: boolean): Partial<Record<LootRuleRarity, number>> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'wildCard tiene que ser un objeto');
+  }
+  const source = value as Record<string, unknown>;
+  for (const key of Object.keys(source)) {
+    if (!LOOT_RARITIES.includes(key as LootRuleRarity)) throw new HttpError(400, `wildCard: rareza desconocida ${key}`);
+  }
+  const result: Partial<Record<LootRuleRarity, number>> = {};
+  for (const rarity of LOOT_RARITIES) {
+    const raw = source[rarity];
+    if (raw === undefined && partial) continue;
+    if (typeof raw !== 'number' || !Number.isFinite(raw) || raw < 0 || raw >= 1) {
+      throw new HttpError(400, `wildCard.${rarity} tiene que ser un número entre 0 y 1 (sin llegar a 1)`);
+    }
+    result[rarity] = raw;
+  }
+  return result;
+}
+
+/** Cambia solo las reglas del botín; los ítems se calculan siempre del catálogo. */
+export function parseLootRulesPatch(body: unknown): LootRulesPatch {
+  const source = asObject(body);
+  for (const key of Object.keys(source)) {
+    if (!LOOT_RULE_KEYS.includes(key as (typeof LOOT_RULE_KEYS)[number])) {
+      throw new HttpError(400, `Campo de botín desconocido: ${key}`);
+    }
+  }
+  const patch: LootRulesPatch = {};
+  if ('rolls' in source) patch.rolls = spawnRolls(source.rolls);
+  for (const table of DROP_TABLES) {
+    if (table in source) patch[table] = dropTable(source[table], table);
+  }
+  if ('wildCard' in source) patch.wildCard = wildCard(source.wildCard, true) as LootRules['wildCard'];
+  if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
+  return patch;
+}
+
+/** Lee las reglas completas guardadas en Mongo. Lanza si falta algo. */
+export function parseLootRules(value: unknown): LootRules {
+  const source = asObject(value);
+  const rules = {
+    rolls: spawnRolls(source.rolls),
+    wildCard: wildCard(source.wildCard, false) as LootRules['wildCard'],
+  } as LootRules;
+  for (const table of DROP_TABLES) rules[table] = dropTable(source[table], table);
+  return rules;
 }

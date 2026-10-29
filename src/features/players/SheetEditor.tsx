@@ -6,7 +6,7 @@ import {
   abilityScore,
   type AbilityScore,
 } from '../calculos/playerSheets';
-import { ROLE_TABLES, findRoleTable } from '../calculos/roleTables';
+import { ROLE_TABLES, findRoleTable } from '../../data/roles';
 import { STAT_COLUMNS, type StatKey } from '../calculos/statLine';
 
 type Props = {

@@ -1,3 +1,5 @@
+import type { LootRules } from './validate';
+
 export type LootRarity = 'basico' | 'epico' | 'legendario';
 
 export type LootRollEntry = {
@@ -10,11 +12,18 @@ export type LootRollEntry = {
 
 const RARITIES: LootRarity[] = ['basico', 'epico', 'legendario'];
 
-/** Spawns y subidas de rareza. Antes vivían en la colección loot; no dependen de los ítems. */
-export const LOOT_RULES = {
+/**
+ * Valores iniciales de las reglas de botín (spawns, subidas de rareza y "Lo que quieras").
+ * En tiempo de ejecución se leen de Mongo (loot/tables); esto solo lo usan
+ * scripts/migrate-loot-rules.ts y scripts/seed.ts para rellenar el documento.
+ *
+ * wildCard: parte fija de "Lo que quieras". El resto se reparte con peso 1/coste.
+ * En épico el JSON antiguo guardaba 0.046, pero la tirada miraba la acumulada 0.99, así que salía un 1%.
+ */
+export const DEFAULT_LOOT_RULES: LootRules = {
   rolls: [
-    { type: 'Basico' as const, prob: 50 },
-    { type: 'Epico' as const, prob: 75 },
+    { type: 'Basico', prob: 50 },
+    { type: 'Epico', prob: 75 },
   ],
   'Drop basico': [
     { item: 'Prob. basico', prob: 92 },
@@ -31,16 +40,11 @@ export const LOOT_RULES = {
     { item: 'Prob. epico', prob: 30 },
     { item: 'Prob. legendario', prob: 70 },
   ],
-};
-
-/**
- * Parte fija de "Lo que quieras". El resto se reparte con peso 1/coste.
- * En épico el JSON guarda 0.046, pero la tirada mira la acumulada 0.99, así que sale un 1%.
- */
-const WILD_CARD_PROB: Record<LootRarity, number> = {
-  basico: 0.015,
-  epico: 0.01,
-  legendario: 0.0075,
+  wildCard: {
+    basico: 0.015,
+    epico: 0.01,
+    legendario: 0.0075,
+  },
 };
 
 const WILD_CARD = 'Lo que quieras';
@@ -56,9 +60,13 @@ function positiveCost(value: unknown): number {
 
 type PricedItem = { name: string; coste: number };
 
-/** Arma las tres tablas de botín a partir del catálogo. Un ítem entra si su rareza es básica, épica o legendaria y tiene coste. */
+/**
+ * Arma las tres tablas de botín a partir del catálogo. Un ítem entra si su rareza es básica, épica o legendaria y tiene coste.
+ * wildCardProb viene de las reglas guardadas en Mongo (loot/tables.wildCard).
+ */
 export function buildLootItems(
   catalog: { nombre?: unknown; rareza?: unknown; coste?: unknown }[],
+  wildCardProb: Record<LootRarity, number>,
 ): Record<LootRarity, LootRollEntry[]> {
   const grouped: Record<LootRarity, PricedItem[]> = { basico: [], epico: [], legendario: [] };
   const seen: Record<LootRarity, Set<string>> = {
@@ -84,7 +92,7 @@ export function buildLootItems(
     const priced = grouped[rarity].sort(
       (a, b) => a.coste - b.coste || a.name.localeCompare(b.name, 'es'),
     );
-    const wildProb = priced.length > 0 ? WILD_CARD_PROB[rarity] : 1;
+    const wildProb = priced.length > 0 ? wildCardProb[rarity] : 1;
     const share = 1 - wildProb;
     const weightSum = priced.reduce((sum, item) => sum + 1 / item.coste, 0);
     let accumulated = 0;

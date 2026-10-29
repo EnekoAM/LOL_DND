@@ -33,7 +33,7 @@ export type AbilityScoreKey =
  * `extra` usa las claves de columna de Cálculos (hp, mana, ad…) y solo guarda las distintas de 0.
  */
 export type PlayerSheet = {
-  /** Id de la tabla de rol (roleTables.ts). */
+  /** Id del rol (colección roles). */
   roleId: string;
   /** Puntuaciones FUE…CAR; el modificador se calcula. */
   scores?: Record<AbilityScoreKey, number>;

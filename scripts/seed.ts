@@ -1,10 +1,11 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Document } from 'mongodb';
 import { closeDb, getDb } from '../server/db';
 import { logError } from '../server/errors';
 import { loadEnv } from '../server/env';
+import { writeLootRules } from './lootRules';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -23,13 +24,17 @@ function singleDoc(value: unknown, file: string): Record<string, unknown> {
 async function seed() {
   const resetParty = process.argv.includes('--reset-party');
   const db = await getDb();
-  const lootDoc = singleDoc(readJson('src/json/loot.json'), 'loot.json');
+
+  // Reglas de botín: mismas que npm run migrate:loot (no pisa las ya guardadas).
+  const lootResult = await writeLootRules(db, false);
+  console.log(`Base "${db.databaseName}": reglas de botín ${lootResult}.`);
+
+  if (!existsSync(join(root, 'src/json/party.json'))) {
+    console.log('Grupo: no hay src/json/party.json, se omite');
+    return;
+  }
   const partyDoc = singleDoc(readJson('src/json/party.json'), 'party.json');
-
-  const loot = db.collection<Document & { _id: string }>('loot');
   const party = db.collection<Document & { _id: string }>('party');
-
-  await loot.replaceOne({ _id: 'tables' }, { ...lootDoc, _id: 'tables' }, { upsert: true });
 
   if (resetParty) {
     await party.replaceOne({ _id: 'current' }, { ...partyDoc, _id: 'current' }, { upsert: true });
@@ -41,7 +46,6 @@ async function seed() {
     );
   }
 
-  console.log(`Base "${db.databaseName}": loot actualizado.`);
   console.log(resetParty ? 'Grupo: reiniciado con party.json' : 'Grupo: conservado si ya existía');
 }
 

@@ -10,7 +10,7 @@ import {
   type AbilityScore,
   type PlayerSheet,
 } from './playerSheets';
-import { ROLE_TABLES, findRoleTable } from './roleTables';
+import { ROLE_TABLES, findRoleTable } from '../../data/roles';
 import { playerTotalLine } from './playerTotals';
 import {
   STAT_COLUMNS,

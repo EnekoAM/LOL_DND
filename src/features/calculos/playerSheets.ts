@@ -1,6 +1,6 @@
 import { PARTY } from '../../data/party';
 import { findPlayer, type AbilityScoreKey, type PlayerSheet } from '../../data/players';
-import { findRoleTable } from './roleTables';
+import { findRoleTable } from '../../data/roles';
 import { STAT_COLUMNS, emptyStatLine, type StatKey, type StatLine } from './statLine';
 
 export type { AbilityScoreKey, PlayerSheet } from '../../data/players';
