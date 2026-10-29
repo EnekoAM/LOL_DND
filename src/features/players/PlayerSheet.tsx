@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { Ability } from '../../data/champions';
 import { findItem } from '../../data/items';
+import type { RankedSlot } from '../../data/abilityRanks';
 import { partyLevel, subscribeParty } from '../../data/party';
 import {
   EQUIPMENT_SLOTS,
@@ -36,12 +37,13 @@ type Props = {
   sheetError: string | null;
   abilityError: string | null;
   onBack: () => void;
-  onSelectAbility: (ability: Ability) => void;
+  onSelectAbility: (ability: Ability, rank?: number) => void;
   onEquipamientoChange: (equipamiento: string[]) => void;
   onBuildChange: (build: string[]) => void;
   onCombatChange: (combat: CombatPatch) => void;
   onSheetChange: (sheet: PlayerSheetData) => Promise<void>;
   onAbilityChange: (slot: PlayerAbilitySlot, name: string | null) => Promise<void>;
+  onRankChange: (slot: RankedSlot, rank: number) => Promise<void>;
 };
 
 type SheetTab = 'general' | 'habilidades' | 'equipo' | 'build' | 'desglose';
@@ -123,6 +125,7 @@ const PlayerSheet = ({
   onCombatChange,
   onSheetChange,
   onAbilityChange,
+  onRankChange,
 }: Props) => {
   const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
   const [portraitFailed, setPortraitFailed] = useState(false);
@@ -292,6 +295,8 @@ const PlayerSheet = ({
               error={abilityError}
               onSelectAbility={onSelectAbility}
               onAbilityChange={onAbilityChange}
+              level={level}
+              onRankChange={onRankChange}
             />
           )}
 

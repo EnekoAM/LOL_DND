@@ -43,3 +43,91 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* ── RANGOS ─────────────────────────────────────────────── */
+.sheet-abilities__title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sheet-points {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.sheet-points--free {
+  color: var(--gold-bright);
+}
+
+.sheet-abilities__error {
+  font-size: 12px;
+  color: #e57373;
+  margin-bottom: 8px;
+}
+
+.sheet-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.sheet-rank__pips {
+  display: flex;
+  gap: 5px;
+}
+
+.sheet-rank__pip {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid rgba(201,168,76,0.55);
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.sheet-rank__pip--on {
+  background: var(--gold);
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 4px rgba(201,168,76,0.5);
+}
+
+.sheet-rank--auto .sheet-rank__pip--on {
+  background: rgba(74,144,226,0.85);
+  border-color: #4a90e2;
+  box-shadow: 0 0 4px rgba(74,144,226,0.45);
+}
+
+.sheet-rank--auto .sheet-rank__pip {
+  border-color: rgba(74,144,226,0.5);
+}
+
+.sheet-rank__btn {
+  width: 22px;
+  height: 22px;
+  line-height: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  background: rgba(201,168,76,0.06);
+  border: 1px solid rgba(201,168,76,0.3);
+  cursor: pointer;
+  padding: 0;
+}
+
+.sheet-rank__btn:hover:not(:disabled) {
+  background: rgba(201,168,76,0.14);
+  border-color: rgba(201,168,76,0.6);
+}
+
+.sheet-rank__btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}

@@ -1,3 +1,4 @@
+import { RANKED_SLOTS, maxRank, type RankedSlot } from './abilityRanks';
 import { HttpError } from './errors';
 
 const PARTY_FIELDS = ['gold', 'level', 'exp', 'expToNextLevel'] as const;
@@ -46,6 +47,8 @@ export type PlayerPatch = {
   actualMana?: number;
   /** Ficha D&D (rol, características y extra). null la borra. */
   sheet?: PlayerSheet | null;
+  /** Rangos de Q/W/E/R. Solo se mandan los huecos que cambian; el servidor valida contra el nivel. */
+  abilityRanks?: Partial<Record<RankedSlot, number>>;
 };
 
 export type PlayerReplace = {
@@ -319,6 +322,23 @@ export function parsePlayerSheet(value: unknown): PlayerSheet {
   return sheet;
 }
 
+function abilityRanks(value: unknown): Partial<Record<RankedSlot, number>> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'abilityRanks tiene que ser un objeto');
+  }
+  const parsed: Partial<Record<RankedSlot, number>> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!RANKED_SLOTS.includes(key as RankedSlot)) {
+      throw new HttpError(400, `Hueco con rango desconocido: ${key} (solo H1, H2, H3 y R)`);
+    }
+    const slot = key as RankedSlot;
+    const rank = nonNegInt(raw, `abilityRanks.${key}`);
+    if (rank > maxRank(slot)) throw new HttpError(400, `abilityRanks.${key} admite como máximo ${maxRank(slot)}`);
+    parsed[slot] = rank;
+  }
+  return parsed;
+}
+
 export function parsePlayerPatch(body: unknown): PlayerPatch {
   const source = asObject(body);
   const patch: PlayerPatch = {};
@@ -336,6 +356,10 @@ export function parsePlayerPatch(body: unknown): PlayerPatch {
   if ('mana' in source) patch.mana = nonNegInt(source.mana, 'mana');
   if ('actualMana' in source) patch.actualMana = nonNegInt(source.actualMana, 'actualMana');
   if ('sheet' in source) patch.sheet = source.sheet === null ? null : parsePlayerSheet(source.sheet);
+  if ('abilityRanks' in source) patch.abilityRanks = abilityRanks(source.abilityRanks);
+  if ('unassignedPoints' in source) {
+    throw new HttpError(400, 'unassignedPoints se calcula (nivel − puntos gastados); cambia abilityRanks');
+  }
   if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return patch;
 }

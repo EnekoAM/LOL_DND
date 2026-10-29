@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Ability } from '../../data/champions';
 import { PLAYERS, PLAYERS_HYDRATED_EVENT, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
+import type { RankedSlot } from '../../data/abilityRanks';
 import { normalizeName } from '../../lib/text';
 import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from '../calculos/damage';
 import DamagePanel from '../calculos/DamagePanel';
@@ -127,6 +128,30 @@ const Players = () => {
     }
   };
 
+  // Sube o baja un rango; la API recalcula los puntos libres y rechaza si no quedan o la R está bloqueada.
+  const changeRank = async (slot: RankedSlot, rank: number) => {
+    if (!player || saving) return;
+    const name = player.name;
+    const previous = player;
+    setSaving(true);
+    setAbilityError(null);
+    try {
+      const saved = await savePlayerPatch(name, { abilityRanks: { [slot]: rank } });
+      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? saved : current));
+    } catch (error) {
+      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? previous : current));
+      setAbilityError(error instanceof Error ? error.message : 'No se pudo guardar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Al abrir el cálculo desde la ficha, el nivel de habilidad parte del rango actual.
+  const selectAbility = (selected: Ability, rank?: number) => {
+    if (rank && rank > 0) setDamageInputs(prev => ({ ...prev, level: rank }));
+    setAbility(selected);
+  };
+
   if (ability) {
     return (
       <div className="players-root">
@@ -152,12 +177,13 @@ const Players = () => {
           sheetError={sheetError}
           abilityError={abilityError}
           onBack={leavePlayer}
-          onSelectAbility={setAbility}
+          onSelectAbility={selectAbility}
           onEquipamientoChange={equipamiento => { void updatePlayerList({ equipamiento }); }}
           onBuildChange={build => { void updatePlayerList({ build }); }}
           onCombatChange={combat => updatePlayerList(combat)}
           onSheetChange={sheet => updatePlayerList({ sheet })}
           onAbilityChange={changeAbility}
+          onRankChange={changeRank}
         />
       ) : (
         <>

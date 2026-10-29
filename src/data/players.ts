@@ -1,4 +1,5 @@
 import { normalizeName } from '../lib/text';
+import type { AbilityRanks, RankedSlot } from './abilityRanks';
 import type { AbilityKind } from './champions';
 
 export const EQUIPMENT_SLOTS = 7;
@@ -84,6 +85,10 @@ export type Player = {
   actualMana?: number;
   /** Ficha D&D: rol de stats, características y extra. */
   sheet?: PlayerSheet;
+  /** Rangos de Q/W/E (0–5) y R (0–3). La pasiva y los AA van por nivel y no se guardan. */
+  abilityRanks?: AbilityRanks;
+  /** Puntos de habilidad libres = nivel del grupo − puntos gastados (lo calcula la API). */
+  unassignedPoints?: number;
 };
 
 /** URL pública del retrato. Vacío si no hay imagen. */
@@ -118,6 +123,8 @@ export type PlayerListPatch = Partial<
   abilities?: Partial<Record<PlayerAbilitySlot, string | null>>;
   /** null borra la ficha. */
   sheet?: PlayerSheet | null;
+  /** Solo los huecos que cambian; la API valida puntos y desbloqueos de la R. */
+  abilityRanks?: Partial<Record<RankedSlot, number>>;
 };
 
 /** Sustituye la build o el equipamiento y deja la copia en memoria alineada con lo guardado. */

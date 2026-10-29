@@ -2,6 +2,7 @@ import { ObjectId, type Collection, type Document, type Filter } from 'mongodb';
 import { getDb } from './db';
 import { HttpError, logError } from './errors';
 import { buildLootItems } from './lootItems';
+import { RANKED_SLOTS, canRaise, normalizeRanks, ultRankCap, unassignedPoints, type AbilityRanks } from './abilityRanks';
 import { LOOT_RULE_KEYS, parseLootRules } from './validate';
 import type { ChampionAbility, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder } from './validate';
 
@@ -14,6 +15,8 @@ type PlayerDoc = Document & {
   order?: number;
   abilities?: Record<string, string | null>;
   sheet?: PlayerSheet;
+  abilityRanks?: Partial<AbilityRanks>;
+  unassignedPoints?: number;
 };
 
 type StringIdDoc = Document & { _id: string };
@@ -539,7 +542,10 @@ export async function updateParty(patch: PartyPatch) {
       { _id: 'current', gold: { $gte: taken } },
       { $inc: { gold: addGold }, $set: { ...fields, updatedAt } },
     );
-    if (takenResult.modifiedCount === 1) return getParty();
+    if (takenResult.modifiedCount === 1) {
+      if (fields.level !== undefined) await reconcileAbilityRanks(fields.level);
+      return getParty();
+    }
     const current = await col.findOne({ _id: 'current' }, { projection: { gold: 1 } });
     if (!current) throw new HttpError(404, 'No hay grupo. Ejecuta npm run seed');
     const have = typeof current.gold === 'number' ? current.gold : 0;
@@ -551,6 +557,7 @@ export async function updateParty(patch: PartyPatch) {
   if (addGold !== undefined) update.$inc = { gold: addGold };
   const result = await col.updateOne({ _id: 'current' }, update);
   if (result.matchedCount === 0) throw new HttpError(404, 'No hay grupo. Ejecuta npm run seed');
+  if (fields.level !== undefined) await reconcileAbilityRanks(fields.level);
   return getParty();
 }
 
@@ -558,14 +565,75 @@ async function players(): Promise<Collection<PlayerDoc>> {
   return (await getDb()).collection<PlayerDoc>('players');
 }
 
+async function partyLevelNow(): Promise<number> {
+  const doc = await (await singleton('party')).findOne({ _id: 'current' }, { projection: { level: 1 } });
+  return typeof doc?.level === 'number' && doc.level >= 1 ? Math.floor(doc.level) : 1;
+}
+
+/** Siempre devuelve rangos y puntos libres coherentes con el nivel actual del grupo. */
+function withRanks<T extends Document>(doc: T, level: number): T & { abilityRanks: AbilityRanks; unassignedPoints: number } {
+  const ranks = normalizeRanks(doc.abilityRanks, level);
+  return { ...doc, abilityRanks: ranks, unassignedPoints: unassignedPoints(ranks, level) };
+}
+
+/** Recalcula y guarda rangos/puntos libres de todos los jugadores (al cambiar el nivel del grupo). */
+export async function reconcileAbilityRanks(level?: number): Promise<number> {
+  const current = level ?? (await partyLevelNow());
+  const col = await players();
+  const docs = await col.find({}, { projection: { abilityRanks: 1, unassignedPoints: 1 } }).toArray();
+  let changed = 0;
+  for (const doc of docs) {
+    const ranks = normalizeRanks(doc.abilityRanks, current);
+    const free = unassignedPoints(ranks, current);
+    const same =
+      doc.unassignedPoints === free &&
+      RANKED_SLOTS.every(slot => doc.abilityRanks?.[slot] === ranks[slot]);
+    if (same) continue;
+    await col.updateOne({ _id: doc._id }, { $set: { abilityRanks: ranks, unassignedPoints: free } });
+    changed++;
+  }
+  return changed;
+}
+
 export async function listPlayers() {
-  return (await players()).find({}, PUBLIC).sort({ order: 1 }).toArray();
+  const [docs, level] = await Promise.all([
+    (await players()).find({}, PUBLIC).sort({ order: 1 }).toArray(),
+    partyLevelNow(),
+  ]);
+  return docs.map(doc => withRanks(doc, level));
 }
 
 export async function getPlayer(name: string) {
   const doc = await (await players()).findOne({ name }, { ...PUBLIC, collation: CI });
   if (!doc) throw new HttpError(404, `No existe el jugador ${name}`);
-  return doc;
+  return withRanks(doc, await partyLevelNow());
+}
+
+/** Aplica el cambio de rangos paso a paso para dar un error claro (sin puntos, R bloqueada…). */
+async function nextAbilityRanks(existing: PlayerDoc, patch: NonNullable<PlayerPatch['abilityRanks']>) {
+  const level = await partyLevelNow();
+  const ranks = normalizeRanks(existing.abilityRanks, level);
+  const lowered = { ...ranks };
+  for (const slot of RANKED_SLOTS) {
+    const wanted = patch[slot];
+    if (wanted !== undefined && wanted < lowered[slot]) lowered[slot] = wanted;
+  }
+  const next = { ...lowered };
+  for (const slot of RANKED_SLOTS) {
+    const wanted = patch[slot];
+    if (wanted === undefined) continue;
+    while (next[slot] < wanted) {
+      if (!canRaise(next, slot, level)) {
+        if (unassignedPoints(next, level) <= 0) throw new HttpError(400, 'No quedan puntos de habilidad sin asignar');
+        if (slot === 'R') {
+          throw new HttpError(400, `La definitiva solo sube en los niveles 6, 11 y 16 (a nivel ${level}, máximo ${ultRankCap(level)})`);
+        }
+        throw new HttpError(400, `${slot} ya está al máximo`);
+      }
+      next[slot]++;
+    }
+  }
+  return { ranks: next, unassignedPoints: unassignedPoints(next, level) };
 }
 
 const CHAMPION_ABILITY_KIND = {
@@ -667,6 +735,11 @@ export async function updatePlayer(name: string, patch: PlayerPatch) {
   else if (patch.sheet) $set.sheet = patch.sheet;
   if (patch.basicAttack === null) $unset.basicAttack = '';
   else if (patch.basicAttack) $set.basicAttack = patch.basicAttack;
+  if (patch.abilityRanks) {
+    const next = await nextAbilityRanks(existing, patch.abilityRanks);
+    $set.abilityRanks = next.ranks;
+    $set.unassignedPoints = next.unassignedPoints;
+  }
 
   await col.updateOne(
     { _id: existing._id },
