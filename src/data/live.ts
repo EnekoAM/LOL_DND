@@ -121,11 +121,20 @@ function tagApiRequests(): void {
 
 let started = false;
 
+/** Intentos antes de rendirse si el WebSocket nunca llegó a conectar. */
+const MAX_INITIAL_ATTEMPTS = 3;
+
+/** Hosts sin servidor de WebSocket (Vercel serverless): ni se intenta. */
+function hasNoLiveServer(): boolean {
+  return window.location.hostname.endsWith('.vercel.app');
+}
+
 /** Abre el WebSocket (mismo host que la web; Vite lo pasa a :3001) y reconecta solo. */
 export function startLiveSync(): void {
   if (started || typeof window === 'undefined' || typeof WebSocket === 'undefined') return;
   started = true;
   tagApiRequests();
+  if (hasNoLiveServer()) return;
 
   let retry = 0;
   let everConnected = false;
@@ -141,7 +150,10 @@ export function startLiveSync(): void {
     };
     socket.onmessage = message => handleMessage(message.data);
     socket.onclose = () => {
-      // 1s, 2s, 4s… hasta 30s. Sin servidor de WS (p. ej. en Vercel) sigue reintentando en silencio.
+      // Sin servidor de WS (p. ej. en Vercel serverless) no se insiste: tras unos
+      // intentos sin haber conectado nunca, se deja (la app sigue por REST).
+      if (!everConnected && retry >= MAX_INITIAL_ATTEMPTS - 1) return;
+      // 1s, 2s, 4s… hasta 30s.
       const delay = Math.min(30_000, 1000 * 2 ** retry);
       retry += 1;
       setTimeout(connect, delay);

@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/players/:name", "destination": "/api/players?name=:name" },
+    { "source": "/api/roles/:id", "destination": "/api/roles?id=:id" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
