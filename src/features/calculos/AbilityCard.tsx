@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Ability } from '../../data/champions';
 import { cx } from '../../lib/cx';
 import { formatPercentList } from '../../lib/format';
@@ -10,9 +11,11 @@ type Props = {
   onSelect: (ability: Ability) => void;
   /** Oculta los escalados de daño (ficha). */
   hideScaling?: boolean;
+  /** Contenido extra dentro de la tarjeta (p. ej. rangos en la ficha). */
+  children?: ReactNode;
 };
 
-const AbilityCard = ({ label, name, ability, onSelect, hideScaling = false }: Props) => {
+const AbilityCard = ({ label, name, ability, onSelect, hideScaling = false, children }: Props) => {
   const damage = ability?.damage;
 
   const handleClick = () => {
@@ -26,6 +29,7 @@ const AbilityCard = ({ label, name, ability, onSelect, hideScaling = false }: Pr
       {!hideScaling && damage?.ap && <div className="calc-card__damage">AP: {formatPercentList(damage.ap)}</div>}
       {!ability && <div className="calc-card__undefined">No implementada</div>}
       {ability && !damage && <div className="calc-card__no-calc">Sin cálculo</div>}
+      {children && <div className="calc-card__extra" onClick={event => event.stopPropagation()}>{children}</div>}
     </div>
   );
 };

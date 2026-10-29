@@ -131,3 +131,10 @@
   opacity: 0.3;
   cursor: default;
 }
+
+.calc-card .sheet-rank {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(201,168,76,0.15);
+}
+

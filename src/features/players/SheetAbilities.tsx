@@ -90,9 +90,9 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                 <div className="calc-card calc-card--ability" title={'Ataque básico ' + entry.type}>
                   <div className="calc-card__key">[AA]</div>
                   <div className="calc-card__name">Ataque básico {entry.type}</div>
-                </div>
-                <div className="sheet-rank sheet-rank--auto">
-                  <RankPips rank={autoRank} max={MILESTONE_RANKS} title={autoTitle} />
+                  <div className="sheet-rank sheet-rank--auto">
+                    <RankPips rank={autoRank} max={MILESTONE_RANKS} title={autoTitle} />
+                  </div>
                 </div>
               </div>
             ))
@@ -124,8 +124,7 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                   ability={findAbility(abilityName)}
                   onSelect={ability => onSelectAbility(ability, rank)}
                   hideScaling
-                />
-                {ref?.champion && <div className="sheet-ability__origin">{ref.champion}</div>}
+                >
                 {ranked ? (
                   <div className="sheet-rank">
                     <button
@@ -156,6 +155,8 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                     <RankPips rank={autoRank} max={MILESTONE_RANKS} title={autoTitle} />
                   </div>
                 )}
+                </AbilityCard>
+                {ref?.champion && <div className="sheet-ability__origin">{ref.champion}</div>}
                 <button
                   type="button"
                   className="sheet-ability__change"
