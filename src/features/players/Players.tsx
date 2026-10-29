@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Ability } from '../../data/champions';
 import { PLAYERS, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
 import { normalizeName } from '../../lib/text';
@@ -10,8 +10,24 @@ import '../calculos/Calculos.css';
 import PlayerSheet from './PlayerSheet';
 import './Players.css';
 
+const OPEN_PLAYER_KEY = 'players.openPlayer';
+
 const Players = () => {
-  const [player, setPlayer] = useState<Player | null>(null);
+  const [player, setPlayer] = useState<Player | null>(() => {
+    try {
+      const saved = localStorage.getItem(OPEN_PLAYER_KEY);
+      return saved ? PLAYERS.find(p => normalizeName(p.name) === normalizeName(saved)) ?? null : null;
+    } catch {
+      return null;
+    }
+  });
+  const openName = player?.name ?? null;
+  useEffect(() => {
+    try {
+      if (openName) localStorage.setItem(OPEN_PLAYER_KEY, openName);
+      else localStorage.removeItem(OPEN_PLAYER_KEY);
+    } catch { /* ignore */ }
+  }, [openName]);
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState(DEFAULT_DAMAGE_INPUTS);
   const [saving, setSaving] = useState(false);
