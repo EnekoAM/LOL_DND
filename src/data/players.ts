@@ -86,6 +86,8 @@ export type Player = {
   mana?: number;
   /** Maná actual. */
   actualMana?: number;
+  /** Inspiración D&D 5e: activa o no (se gasta al usarla). */
+  inspiration?: boolean;
   /** Ficha D&D: rol de stats, características y extra. */
   sheet?: PlayerSheet;
   /** Rangos de Q/W/E (0–5) y R (0–3). La pasiva y los AA van por nivel y no se guardan. */
@@ -121,7 +123,7 @@ function readError(body: unknown, fallback: string): string {
 }
 
 export type PlayerListPatch = Partial<
-  Pick<Player, 'build' | 'equipamiento' | 'stats' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana'>
+  Pick<Player, 'build' | 'equipamiento' | 'stats' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration'>
 > & {
   abilities?: Partial<Record<PlayerAbilitySlot, string | null>>;
   /** null borra la ficha. */

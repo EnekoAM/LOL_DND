@@ -45,6 +45,8 @@ export type PlayerPatch = {
   mana?: number;
   /** Maná actual. */
   actualMana?: number;
+  /** Inspiración D&D (sí/no). */
+  inspiration?: boolean;
   /** Ficha D&D (rol, características y extra). null la borra. */
   sheet?: PlayerSheet | null;
   /** Rangos de Q/W/E/R. Solo se mandan los huecos que cambian; el servidor valida contra el nivel. */
@@ -380,6 +382,10 @@ export function parsePlayerPatch(body: unknown): PlayerPatch {
   if ('vidaTemporal' in source) patch.vidaTemporal = nonNegInt(source.vidaTemporal, 'vidaTemporal');
   if ('mana' in source) patch.mana = nonNegInt(source.mana, 'mana');
   if ('actualMana' in source) patch.actualMana = nonNegInt(source.actualMana, 'actualMana');
+  if ('inspiration' in source) {
+    if (typeof source.inspiration !== 'boolean') throw new HttpError(400, 'inspiration tiene que ser true o false');
+    patch.inspiration = source.inspiration;
+  }
   if ('sheet' in source) patch.sheet = source.sheet === null ? null : parsePlayerSheet(source.sheet);
   if ('abilityRanks' in source) patch.abilityRanks = abilityRanks(source.abilityRanks);
   if ('unassignedPoints' in source) {

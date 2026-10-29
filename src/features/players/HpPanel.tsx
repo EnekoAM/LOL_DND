@@ -9,6 +9,7 @@ export type CombatPatch = {
   vidaTemporal?: number;
   mana?: number;
   actualMana?: number;
+  inspiration?: boolean;
 };
 
 type Props = {

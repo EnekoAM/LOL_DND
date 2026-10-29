@@ -23,6 +23,7 @@ import StatsTable from '../calculos/StatsTable';
 import { itemAvailability } from '../items/stock';
 import { cx } from '../../lib/cx';
 import HpPanel, { type CombatPatch } from './HpPanel';
+import InspirationToggle from './InspirationToggle';
 import ManaPanel from './ManaPanel';
 import SheetAbilities from './SheetAbilities';
 import SheetEditor from './SheetEditor';
@@ -196,6 +197,11 @@ const PlayerSheet = ({
             <div className="sheet-side__meta">
               NVL {level} · {player.rol?.trim() || 'Sin rol'}
             </div>
+            <InspirationToggle
+              active={player.inspiration === true}
+              saving={saving}
+              onToggle={next => onCombatChange({ inspiration: next })}
+            />
           </div>
 
           <div className="sheet-panel sheet-side__hp">

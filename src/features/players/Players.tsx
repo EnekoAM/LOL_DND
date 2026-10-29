@@ -72,14 +72,14 @@ const Players = () => {
   };
 
   const updatePlayerList = async (
-    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'sheet'>>,
+    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'sheet'>>,
   ) => {
     if (!player || saving) return;
     const name = player.name;
     const previous = player;
     const isCombat =
       'hp' in patch || 'actualHp' in patch || 'escudo' in patch || 'vidaTemporal' in patch
-      || 'mana' in patch || 'actualMana' in patch;
+      || 'mana' in patch || 'actualMana' in patch || 'inspiration' in patch;
     const isSheet = 'sheet' in patch;
     // El total guardado en `stats` depende de la ficha y del equipamiento: se recalcula si cambia cualquiera.
     const recalc = isSheet || ('equipamiento' in patch && patch.equipamiento !== undefined);
