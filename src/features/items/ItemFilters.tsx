@@ -66,6 +66,9 @@ const ItemFilters = ({ filters, resultCount, onChange }: Props) => (
         value={filters.search}
         onChange={e => onChange({ search: e.target.value })}
       />
+      {filters.search && (
+        <button type="button" className="filter-search-clear" aria-label="Borrar búsqueda" title="Borrar" onClick={() => onChange({ search: '' })}>×</button>
+      )}
     </div>
 
     <div className="items-count">

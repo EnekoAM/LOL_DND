@@ -587,3 +587,9 @@
   .filter-select, .filter-input { min-width: 120px; }
   .item-edit__stats { grid-template-columns: 1fr; }
 }
+
+.filter-group--search { position: relative; }
+.filter-group--search .filter-input { padding-right: 28px; width: 100%; box-sizing: border-box; }
+.filter-search-clear { position: absolute; right: 6px; bottom: 6px; background: none; border: none; color: inherit; opacity: .6; cursor: pointer; font-size: 18px; line-height: 1; padding: 0 4px; }
+.filter-search-clear:hover { opacity: 1; }
+
