@@ -6,7 +6,6 @@ import {
   type Player,
   type PlayerAbilitySlot,
 } from '../../data/players';
-import { formatPercentList } from '../../lib/format';
 import AbilityCard from '../calculos/AbilityCard';
 import AbilityAssignModal from '../habilidades/AbilityAssignModal';
 import '../habilidades/Habilidades.css';
@@ -42,15 +41,12 @@ const SheetAbilities = ({ player, saving, error, onSelectAbility, onAbilityChang
         <div className="sheet-panel__title">Auto-ataques</div>
         <div className="calc-grid">
           {basicAttack.length > 0 ? (
-            <div className="calc-card calc-card--ability" title="Ataque básico">
-              <div className="calc-card__key">[AA]</div>
-              <div className="calc-card__name">Ataque básico</div>
-              {basicAttack.map((entry, index) => (
-                <div key={`${entry.type}-${index}`} className="calc-card__damage">
-                  {entry.type}: {formatPercentList(entry.scaling)}
-                </div>
-              ))}
-            </div>
+            basicAttack.map((entry, index) => (
+              <div key={entry.type + '-' + index} className="calc-card calc-card--ability" title={'Ataque básico ' + entry.type}>
+                <div className="calc-card__key">[AA]</div>
+                <div className="calc-card__name">Ataque básico {entry.type}</div>
+              </div>
+            ))
           ) : (
             <div className="calc-card__name">Sin ataque básico definido</div>
           )}
@@ -70,6 +66,7 @@ const SheetAbilities = ({ player, saving, error, onSelectAbility, onAbilityChang
                   name={abilityName ?? 'No definida'}
                   ability={findAbility(abilityName)}
                   onSelect={onSelectAbility}
+                  hideScaling
                 />
                 {ref?.champion && <div className="sheet-ability__origin">{ref.champion}</div>}
                 <button

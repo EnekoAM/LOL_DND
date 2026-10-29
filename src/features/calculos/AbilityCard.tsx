@@ -8,9 +8,11 @@ type Props = {
   /** null cuando el nombre no existe en habilidades.json. */
   ability: Ability | null;
   onSelect: (ability: Ability) => void;
+  /** Oculta los escalados de daño (ficha). */
+  hideScaling?: boolean;
 };
 
-const AbilityCard = ({ label, name, ability, onSelect }: Props) => {
+const AbilityCard = ({ label, name, ability, onSelect, hideScaling = false }: Props) => {
   const damage = ability?.damage;
 
   const handleClick = () => {
@@ -21,7 +23,7 @@ const AbilityCard = ({ label, name, ability, onSelect }: Props) => {
     <div className={cx('calc-card calc-card--ability', !damage && 'calc-card--ability--inactive')} onClick={handleClick}>
       <div className="calc-card__key">[{label}]</div>
       <div className="calc-card__name">{name}</div>
-      {damage?.ap && <div className="calc-card__damage">AP: {formatPercentList(damage.ap)}</div>}
+      {!hideScaling && damage?.ap && <div className="calc-card__damage">AP: {formatPercentList(damage.ap)}</div>}
       {!ability && <div className="calc-card__undefined">No implementada</div>}
       {ability && !damage && <div className="calc-card__no-calc">Sin cálculo</div>}
     </div>
