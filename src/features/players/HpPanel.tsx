@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Player } from '../../data/players';
+import { hpSyncPatch } from '../calculos/playerTotals';
 
 export type CombatPatch = {
   hp?: number;
@@ -14,6 +15,11 @@ type Props = {
   player: Player;
   /** Máximo sugerido por el total de Cálculos (si aún no hay `hp` guardado). */
   suggestedMax: number;
+  /**
+   * HP TOTAL de la tabla (rol×nivel + equipo + extra). Si viene, el máximo queda vinculado
+   * a la tabla y no se edita a mano; undefined = ficha sin rol, máximo manual.
+   */
+  linkedMax?: number;
   saving: boolean;
   error: string | null;
   onChange: (patch: CombatPatch) => void | Promise<void>;
@@ -50,9 +56,12 @@ const parseNonNegInt = (raw: string): number | null => {
   return value;
 };
 
-const HpPanel = ({ player, suggestedMax, saving, error, onChange }: Props) => {
-  const maxHp = suggestedOr(player.hp, Math.max(0, Math.floor(suggestedMax)));
-  const actualHp = suggestedOr(player.actualHp, maxHp);
+const HpPanel = ({ player, suggestedMax, linkedMax, saving, error, onChange }: Props) => {
+  const linked = linkedMax !== undefined;
+  // Vinculado: se muestra ya el valor alineado con la tabla aunque el guardado vaya por detrás.
+  const synced = linked ? hpSyncPatch(player, linkedMax) : null;
+  const maxHp = linked ? linkedMax : suggestedOr(player.hp, Math.max(0, Math.floor(suggestedMax)));
+  const actualHp = synced?.actualHp ?? Math.min(maxHp, suggestedOr(player.actualHp, maxHp));
   const escudo = suggestedOr(player.escudo, 0);
   const vidaTemporal = suggestedOr(player.vidaTemporal, 0);
 
@@ -84,7 +93,7 @@ const HpPanel = ({ player, suggestedMax, saving, error, onChange }: Props) => {
     const value = parseNonNegInt(amount);
     if (value === null || value === 0 || saving) return;
     const baseActual = editing ? (parseNonNegInt(draftActual) ?? actualHp) : actualHp;
-    const baseMax = editing ? (parseNonNegInt(draftMax) ?? maxHp) : maxHp;
+    const baseMax = editing && !linked ? (parseNonNegInt(draftMax) ?? maxHp) : maxHp;
     const nextActual = Math.min(baseMax, baseActual + value);
     if (editing) {
       setDraftActual(String(nextActual));
@@ -98,7 +107,7 @@ const HpPanel = ({ player, suggestedMax, saving, error, onChange }: Props) => {
     const value = parseNonNegInt(amount);
     if (value === null || value === 0 || saving) return;
     const baseActual = editing ? (parseNonNegInt(draftActual) ?? actualHp) : actualHp;
-    const baseMax = editing ? (parseNonNegInt(draftMax) ?? maxHp) : maxHp;
+    const baseMax = editing && !linked ? (parseNonNegInt(draftMax) ?? maxHp) : maxHp;
     const baseTemp = editing ? (parseNonNegInt(draftTemp) ?? vidaTemporal) : vidaTemporal;
     const baseEscudo = editing ? (parseNonNegInt(draftEscudo) ?? escudo) : escudo;
     const next = applyDamage(value, {
@@ -132,7 +141,7 @@ const HpPanel = ({ player, suggestedMax, saving, error, onChange }: Props) => {
 
   const finishEdit = async () => {
     const nextActual = parseNonNegInt(draftActual);
-    const nextMax = parseNonNegInt(draftMax);
+    const nextMax = linked ? maxHp : parseNonNegInt(draftMax);
     const nextTemp = parseNonNegInt(draftTemp);
     const nextEscudo = parseNonNegInt(draftEscudo);
     if (
@@ -203,14 +212,18 @@ const HpPanel = ({ player, suggestedMax, saving, error, onChange }: Props) => {
             />
           </label>
           <div className="sheet-hp__slash" aria-hidden="true">/</div>
-          <label className="sheet-hp__field">
-            <span>Máximo</span>
+          <label
+            className="sheet-hp__field"
+            title={linked ? 'Sale del HP TOTAL de la tabla (rol × nivel + equipo + extra)' : undefined}
+          >
+            <span>{linked ? 'Máximo (tabla)' : 'Máximo'}</span>
             <input
               className="sheet-hp__input"
               inputMode="numeric"
-              value={draftMax}
+              value={linked ? String(maxHp) : draftMax}
               onChange={event => setDraftMax(event.target.value.replace(/[^\d]/g, ''))}
               disabled={saving}
+              readOnly={linked}
             />
           </label>
         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { findAbility, type Ability } from '../../data/champions';
 import { findItem } from '../../data/items';
 import { partyLevel, subscribeParty } from '../../data/party';
@@ -14,7 +14,7 @@ import { normalizeName } from '../../lib/text';
 import AbilityCard from '../calculos/AbilityCard';
 import BuildPicker from '../calculos/BuildPicker';
 import ItemTile, { type ItemTileState } from '../calculos/ItemTile';
-import { playerTotalLine } from '../calculos/playerTotals';
+import { hpSyncPatch, playerMaxHp, playerTotalLine } from '../calculos/playerTotals';
 import {
   STAT_COLUMNS,
   formatStat,
@@ -139,6 +139,19 @@ const PlayerSheet = ({
   };
 
   const suggestedMax = typeof total.hp === 'number' && Number.isFinite(total.hp) ? total.hp : 0;
+  // PG máximos vinculados al HP TOTAL de la tabla (undefined si la ficha no tiene rol).
+  const tableMaxHp = playerMaxHp(player.sheet, player.equipamiento);
+  const hpSyncTried = useRef<string | null>(null);
+  useEffect(() => {
+    if (saving) return;
+    const patch = hpSyncPatch(player, tableMaxHp);
+    if (!patch) return;
+    // Un intento por combinación: si la API falla no se reintenta en bucle.
+    const key = `${player.name}:${player.hp}:${player.actualHp}:${patch.hp}`;
+    if (hpSyncTried.current === key) return;
+    hpSyncTried.current = key;
+    Promise.resolve(onCombatChange(patch)).catch(() => undefined);
+  }, [player, tableMaxHp, level, saving, onCombatChange]);
   const suggestedMana = typeof total.mana === 'number' && Number.isFinite(total.mana) ? total.mana : 0;
 
   return (
@@ -167,6 +180,7 @@ const PlayerSheet = ({
           <HpPanel
             player={player}
             suggestedMax={suggestedMax}
+            linkedMax={tableMaxHp}
             saving={saving}
             error={combatError}
             onChange={onCombatChange}

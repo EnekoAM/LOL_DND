@@ -5,7 +5,7 @@ import { normalizeName } from '../../lib/text';
 import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from '../calculos/damage';
 import DamagePanel from '../calculos/DamagePanel';
 import PickerCard from '../calculos/PickerCard';
-import { playerStatsDocument } from '../calculos/playerTotals';
+import { hpSyncPatch, playerMaxHp, playerStatsDocument } from '../calculos/playerTotals';
 import '../calculos/Calculos.css';
 import PlayerSheet from './PlayerSheet';
 import './Players.css';
@@ -43,13 +43,14 @@ const Players = () => {
     const isSheet = 'sheet' in patch;
     // El total guardado en `stats` depende de la ficha y del equipamiento: se recalcula si cambia cualquiera.
     const recalc = isSheet || ('equipamiento' in patch && patch.equipamiento !== undefined);
+    const nextSheet = isSheet ? patch.sheet : player.sheet;
+    const nextEquipment = patch.equipamiento ?? player.equipamiento;
+    // Los PG máximos salen del mismo total: si cambia, el actual se mueve lo mismo.
     const payload = recalc
       ? {
           ...patch,
-          stats: playerStatsDocument(
-            isSheet ? patch.sheet : player.sheet,
-            patch.equipamiento ?? player.equipamiento,
-          ),
+          stats: playerStatsDocument(nextSheet, nextEquipment),
+          ...hpSyncPatch(player, playerMaxHp(nextSheet, nextEquipment)),
         }
       : patch;
     setPlayer({ ...player, ...payload });
