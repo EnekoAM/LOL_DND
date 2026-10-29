@@ -45,6 +45,15 @@ type Props = {
 };
 
 type SheetTab = 'general' | 'habilidades' | 'equipo' | 'build' | 'desglose';
+const SHEET_TABS: SheetTab[] = ['general', 'habilidades', 'equipo', 'build', 'desglose'];
+const readTab = (key: string): SheetTab => {
+  try {
+    const v = localStorage.getItem(key) as SheetTab | null;
+    return v && SHEET_TABS.includes(v) ? v : 'general';
+  } catch {
+    return 'general';
+  }
+};
 
 const TABS: { id: SheetTab; label: string }[] = [
   { id: 'general', label: 'General' },
@@ -117,7 +126,19 @@ const PlayerSheet = ({
 }: Props) => {
   const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
   const [portraitFailed, setPortraitFailed] = useState(false);
-  const [tab, setTab] = useState<SheetTab>('general');
+  const tabKey = `playerSheetTab:${player.name}`;
+  const [tab, setTabState] = useState<SheetTab>(() => readTab(tabKey));
+  useEffect(() => {
+    setTabState(readTab(tabKey));
+  }, [tabKey]);
+  const setTab = (next: SheetTab) => {
+    setTabState(next);
+    try {
+      localStorage.setItem(tabKey, next);
+    } catch {
+      /* ignore */
+    }
+  };
   const level = useSyncExternalStore(subscribeParty, partyLevel);
   useEffect(() => {
     setPortraitFailed(false);
