@@ -95,9 +95,11 @@ export function playerPortraitUrl(image: string | undefined | null): string | nu
 }
 
 export let PLAYERS: Player[] = [];
+export const PLAYERS_HYDRATED_EVENT = 'players:hydrated';
 
 export function hydratePlayers(players: Player[]): void {
   PLAYERS = players;
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(PLAYERS_HYDRATED_EVENT));
 }
 
 export function findPlayer(name: string): Player | undefined {

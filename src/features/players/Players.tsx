@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Ability } from '../../data/champions';
-import { PLAYERS, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
+import { PLAYERS, PLAYERS_HYDRATED_EVENT, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
 import { normalizeName } from '../../lib/text';
 import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from '../calculos/damage';
 import DamagePanel from '../calculos/DamagePanel';
@@ -13,21 +13,34 @@ import './Players.css';
 const OPEN_PLAYER_KEY = 'players.openPlayer';
 
 const Players = () => {
-  const [player, setPlayer] = useState<Player | null>(() => {
-    try {
-      const saved = localStorage.getItem(OPEN_PLAYER_KEY);
-      return saved ? PLAYERS.find(p => normalizeName(p.name) === normalizeName(saved)) ?? null : null;
-    } catch {
-      return null;
-    }
-  });
+  const readSaved = () => {
+    try { return localStorage.getItem(OPEN_PLAYER_KEY); } catch { return null; }
+  };
+  const findSaved = (name: string | null) =>
+    name ? PLAYERS.find(p => normalizeName(p.name) === normalizeName(name)) ?? null : null;
+  const [player, setPlayer] = useState<Player | null>(() => findSaved(readSaved()));
+  // Mientras haya un nombre guardado sin resolver (players aún sin cargar), no se borra la clave.
+  const [restoring, setRestoring] = useState(() => !!readSaved() && PLAYERS.length === 0);
+  useEffect(() => {
+    if (!restoring) return;
+    const tryRestore = () => {
+      if (PLAYERS.length === 0) return;
+      const found = findSaved(readSaved());
+      if (found) setPlayer(found);
+      setRestoring(false);
+    };
+    tryRestore();
+    window.addEventListener(PLAYERS_HYDRATED_EVENT, tryRestore);
+    return () => window.removeEventListener(PLAYERS_HYDRATED_EVENT, tryRestore);
+  }, [restoring]);
   const openName = player?.name ?? null;
   useEffect(() => {
+    if (restoring) return;
     try {
       if (openName) localStorage.setItem(OPEN_PLAYER_KEY, openName);
       else localStorage.removeItem(OPEN_PLAYER_KEY);
     } catch { /* ignore */ }
-  }, [openName]);
+  }, [openName, restoring]);
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState(DEFAULT_DAMAGE_INPUTS);
   const [saving, setSaving] = useState(false);
@@ -41,6 +54,7 @@ const Players = () => {
     setDamageInputs(prev => ({ ...prev, ...patch }));
 
   const leavePlayer = () => {
+    setRestoring(false);
     setPlayer(null);
     setEquipError(null);
     setBuildError(null);
