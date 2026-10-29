@@ -12,6 +12,7 @@
     "migrate:roles": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/migrate-roles.ts",
     "migrate:loot": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/migrate-loot-rules.ts",
     "migrate:ranks": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/migrate-ability-ranks.ts",
+    "migrate:skills": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/migrate-skills.ts",
     "typecheck:server": "tsc -p tsconfig.server.json"
   },
   "dependencies": {

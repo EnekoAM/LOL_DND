@@ -17,7 +17,6 @@ import { hpSyncPatch, playerMaxHp, playerTotalLine } from '../calculos/playerTot
 import {
   STAT_COLUMNS,
   formatStat,
-  isZeroStat,
   type StatKey,
 } from '../calculos/statLine';
 import StatsTable from '../calculos/StatsTable';
@@ -27,6 +26,7 @@ import HpPanel, { type CombatPatch } from './HpPanel';
 import ManaPanel from './ManaPanel';
 import SheetAbilities from './SheetAbilities';
 import SheetEditor from './SheetEditor';
+import SheetSkills from './SheetSkills';
 
 type Props = {
   player: Player;
@@ -63,12 +63,6 @@ const TABS: { id: SheetTab; label: string }[] = [
   { id: 'equipo', label: 'Equipo' },
   { id: 'build', label: 'Build' },
   { id: 'desglose', label: 'Desglose' },
-];
-
-/** Stats mostrados como filas a la izquierda (estilo lista). */
-const LIST_KEYS: StatKey[] = [
-  'ad', 'ap', 'critChance', 'critDamage', 'atkSpe', 'atkSpePct',
-  'abSpe', 'abSpePct', 'lethality', 'magicPen',
 ];
 
 const DEFENSE_KEYS: { key: StatKey; label: string }[] = [
@@ -232,25 +226,13 @@ const PlayerSheet = ({
 
           {tab === 'general' && (
             <div className="sheet-general">
-              <section className="sheet-panel sheet-panel--list sheet-general__combat">
-                <div className="sheet-panel__title">Combate</div>
-                <ul className="sheet-stat-list">
-                  {LIST_KEYS.map(key => {
-                    const column = columnsByKey[key];
-                    const value = total[key];
-                    return (
-                      <li
-                        key={key}
-                        className={cx('sheet-stat-row', isZeroStat(value) && 'sheet-stat-row--zero')}
-                        title={column.title}
-                      >
-                        <span className="sheet-stat-row__label">{column.label}</span>
-                        <span className="sheet-stat-row__value">{formatStat(value)}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
+              <SheetSkills
+                sheet={player.sheet}
+                level={level}
+                saving={saving}
+                error={sheetError}
+                onSave={onSheetChange}
+              />
 
               <div className="sheet-general__sheet">
                 <SheetEditor

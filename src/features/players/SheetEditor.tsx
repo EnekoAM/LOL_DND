@@ -43,8 +43,10 @@ function toDraft(sheet: PlayerSheet | undefined): Draft {
 }
 
 /** Devuelve la ficha o un mensaje de error en español. */
-function fromDraft(draft: Draft): PlayerSheet | string {
+function fromDraft(draft: Draft, skills: PlayerSheet['skills']): PlayerSheet | string {
   const sheet: PlayerSheet = { roleId: draft.roleId };
+  // Las competencias se editan en el panel de Habilidades; aquí solo se conservan.
+  if (skills) sheet.skills = skills;
 
   const filled = ABILITY_SCORES.filter(({ key }) => draft.scores[key].trim() !== '');
   if (filled.length > 0) {
@@ -104,7 +106,7 @@ const SheetEditor = ({ sheet, saving, error, onSave }: Props) => {
 
   const save = async () => {
     if (saving) return;
-    const next = fromDraft(draft);
+    const next = fromDraft(draft, sheet?.skills);
     if (typeof next === 'string') {
       setLocalError(next);
       return;

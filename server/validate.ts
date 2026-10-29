@@ -241,6 +241,15 @@ export const SHEET_STAT_KEYS = [
 
 export type SheetStatKey = (typeof SHEET_STAT_KEYS)[number];
 
+/** Habilidades D&D 5e con competencia (players.sheet.skills). */
+export const DND_SKILL_KEYS = [
+  'acrobatics', 'animalHandling', 'arcana', 'athletics', 'deception', 'history',
+  'insight', 'intimidation', 'investigation', 'medicine', 'nature', 'perception',
+  'performance', 'persuasion', 'religion', 'sleightOfHand', 'stealth', 'survival',
+] as const;
+
+export type DndSkillKey = (typeof DND_SKILL_KEYS)[number];
+
 /** Ficha D&D guardada en players.sheet. El modificador se calcula: floor((puntuación - 10) / 2). */
 export type PlayerSheet = {
   /** Id del rol (colección roles), p. ej. "asesino-ad". */
@@ -248,6 +257,8 @@ export type PlayerSheet = {
   scores?: Record<AbilityScoreKey, number>;
   /** Bonos fijos que se suman al total (solo las claves distintas de 0). */
   extra?: Partial<Record<SheetStatKey, number | string>>;
+  /** Competencias marcadas (solo `true`); `{}` si ninguna. */
+  skills?: Partial<Record<DndSkillKey, boolean>>;
 };
 
 const ROLE_ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
@@ -300,13 +311,26 @@ function sheetExtra(value: unknown): Partial<Record<SheetStatKey, number | strin
   return extra;
 }
 
+function sheetSkills(value: unknown): Partial<Record<DndSkillKey, boolean>> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'sheet.skills tiene que ser un objeto');
+  }
+  const skills: Partial<Record<DndSkillKey, boolean>> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!DND_SKILL_KEYS.includes(key as DndSkillKey)) throw new HttpError(400, `Habilidad desconocida: ${key}`);
+    if (typeof raw !== 'boolean') throw new HttpError(400, `sheet.skills.${key} tiene que ser true o false`);
+    if (raw) skills[key as DndSkillKey] = true;
+  }
+  return skills;
+}
+
 export function parsePlayerSheet(value: unknown): PlayerSheet {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new HttpError(400, 'sheet tiene que ser un objeto');
   }
   const source = value as Record<string, unknown>;
   for (const key of Object.keys(source)) {
-    if (key !== 'roleId' && key !== 'scores' && key !== 'extra') {
+    if (key !== 'roleId' && key !== 'scores' && key !== 'extra' && key !== 'skills') {
       throw new HttpError(400, `Campo de ficha desconocido: ${key}`);
     }
   }
@@ -319,6 +343,7 @@ export function parsePlayerSheet(value: unknown): PlayerSheet {
     const extra = sheetExtra(source.extra);
     if (Object.keys(extra).length) sheet.extra = extra;
   }
+  if (source.skills !== undefined && source.skills !== null) sheet.skills = sheetSkills(source.skills);
   return sheet;
 }
 

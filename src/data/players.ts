@@ -1,6 +1,7 @@
 import { normalizeName } from '../lib/text';
 import type { AbilityRanks, RankedSlot } from './abilityRanks';
 import type { AbilityKind } from './champions';
+import type { DndSkillProficiencies } from './dndSkills';
 
 export const EQUIPMENT_SLOTS = 7;
 
@@ -39,6 +40,8 @@ export type PlayerSheet = {
   /** Puntuaciones FUE…CAR; el modificador se calcula. */
   scores?: Record<AbilityScoreKey, number>;
   extra?: Partial<Record<string, number | string>>;
+  /** Competencias en habilidades D&D (Acrobacias…): solo las marcadas, `{}` si ninguna. */
+  skills?: DndSkillProficiencies;
 };
 
 export type BasicAttackEntry = { type: string; scaling: number[] };
