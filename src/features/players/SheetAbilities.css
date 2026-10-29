@@ -424,3 +424,24 @@
   letter-spacing: 1px;
   background: linear-gradient(180deg, var(--accent-hi), rgb(var(--accent)));
 }
+/* Botón de acción uniforme en todas las cartas (no depende del tono) */
+.spell .spell__action .spell__btn:not(.spell__btn--primary) {
+  color: #e8c77a;
+  border: 1px solid rgba(200, 160, 80, 0.45);
+  background: rgba(0, 0, 0, 0.55);
+}
+.spell .spell__action .spell__btn:not(.spell__btn--primary):hover:not(:disabled) {
+  color: #fff1c8;
+  border-color: rgba(232, 199, 122, 0.8);
+  background: rgba(40, 28, 10, 0.8);
+}
+/* Espacio para el botón: el título no se mete debajo */
+.spell .spell__titles { padding-right: 26px; min-width: 0; }
+.spell--empty .spell__titles { padding-right: 30px; }
+.spell .spell__btn--primary {
+  min-width: 22px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #140d05;
+}

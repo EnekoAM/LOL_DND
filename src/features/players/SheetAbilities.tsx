@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+﻿import { useState, type ReactNode } from 'react';
 import {
   MILESTONE_LEVELS,
   MILESTONE_RANKS,
@@ -237,7 +237,7 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                     title={empty ? 'Asignar habilidad' : 'Cambiar habilidad'}
                     aria-label={empty ? 'Asignar habilidad' : 'Cambiar habilidad'}
                   >
-                    {empty ? '+ Asignar' : '⇄'}
+                    {empty ? '+' : '⇄'}
                   </button>
                 )}
               />
