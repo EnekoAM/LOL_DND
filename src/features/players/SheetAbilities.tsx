@@ -234,8 +234,10 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                     className={cx('spell__btn', empty && 'spell__btn--primary')}
                     disabled={saving}
                     onClick={() => setPicking(slot)}
+                    title={empty ? 'Asignar habilidad' : 'Cambiar habilidad'}
+                    aria-label={empty ? 'Asignar habilidad' : 'Cambiar habilidad'}
                   >
-                    {empty ? '+ Asignar' : 'Cambiar'}
+                    {empty ? '+ Asignar' : '⇄'}
                   </button>
                 )}
               />

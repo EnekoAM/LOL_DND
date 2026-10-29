@@ -399,3 +399,28 @@
   opacity: 0.25;
   cursor: default;
 }
+
+/* Botón compacto arriba a la derecha */
+.spell__action {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+}
+.spell .spell__btn {
+  width: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: 20px;
+  clip-path: none;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.55);
+}
+.spell .spell__btn--primary {
+  font-size: 8px;
+  letter-spacing: 1px;
+  background: linear-gradient(180deg, var(--accent-hi), rgb(var(--accent)));
+}
