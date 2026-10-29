@@ -259,10 +259,13 @@ const HpPanel = ({ player, suggestedMax, linkedMax, saving, error, onChange }: P
     );
   }
 
+  const hpPct = maxHp > 0 ? Math.max(0, Math.min(100, Math.round((actualHp / maxHp) * 100))) : 0;
+  const hpColor = hpPct > 50 ? '#4caf50' : hpPct > 25 ? '#e0a030' : '#c0392b';
+
   return (
-    <div className="sheet-hp">
-      <div className="sheet-hp__top">
-        <div className="sheet-hp__label">Puntos de golpe</div>
+    <div className="sheet-resource">
+      <div className="sheet-resource__top">
+        <div className="sheet-resource__label">Puntos de golpe</div>
         <button
           type="button"
           className="sheet-hp__icon-btn"
@@ -274,23 +277,24 @@ const HpPanel = ({ player, suggestedMax, linkedMax, saving, error, onChange }: P
           ✎
         </button>
       </div>
-
-      <div className="sheet-hp__value sheet-hp__value--center">
-        <span className="sheet-hp__current-wrap">
+      <div className="sheet-resource__head sheet-resource__head--values">
+        <span>
+          {actualHp} / {maxHp}
           {vidaTemporal > 0 && (
-            <span className="sheet-hp__badge sheet-hp__badge--temp" title="Vida temporal">
+            <span className="sheet-hp__badge sheet-hp__badge--temp" title="Vida temporal" style={{ marginLeft: 6 }}>
               +{vidaTemporal}
             </span>
           )}
-          <span className="sheet-hp__current">{actualHp}</span>
           {escudo > 0 && (
-            <span className="sheet-hp__badge sheet-hp__badge--escudo" title="Escudo">
+            <span className="sheet-hp__badge sheet-hp__badge--escudo" title="Escudo" style={{ marginLeft: 4 }}>
               {escudo}
             </span>
           )}
         </span>
-        <span className="sheet-hp__sep">/</span>
-        <span className="sheet-hp__max">{maxHp}</span>
+        <span>{hpPct}%</span>
+      </div>
+      <div className="sheet-resource__track" aria-hidden="true">
+        <div className="sheet-resource__fill" style={{ width: `${hpPct}%`, background: hpColor }} />
       </div>
       {error && <p className="sheet-hp__error">{error}</p>}
     </div>
