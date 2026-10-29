@@ -7,7 +7,7 @@ import type { RoleStatLine as StatLine, RoleTable } from '../server/validate';
  */
 
 /**
- * AC 10, MR 0, crítico 0 / 1,5 y el resto de columnas de porcentaje a 0 en todas las tablas.
+ * AC 10, MR 5, crítico 0 / 1,5 y el resto de columnas de porcentaje a 0 en todas las tablas.
  * HP: se calcula con withHp() a partir de la vida base de cada rol.
  * Cambian maná, AD, AP, SPE, ATK_SPE y AB_SPE.
  */
@@ -22,7 +22,7 @@ function row(
   return {
     hp: 0, // se calcula después con withHp()
     ac: 10,
-    mr: 0,
+    mr: 5,
     mana,
     ad,
     ap,
