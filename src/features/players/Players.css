@@ -32,7 +32,7 @@
 }
 
 .sheet {
-  max-width: 1200px;
+  max-width: 1480px;
   margin: 0 auto;
   padding: 12px 12px 32px;
   position: relative;
@@ -44,8 +44,8 @@
 
 .sheet-body {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: clamp(220px, 17vw, 260px) minmax(0, 1fr);
+  gap: 16px;
   align-items: start;
 }
 
@@ -368,6 +368,8 @@
 
 .sheet-content {
   min-width: 0;
+  container-type: inline-size;
+  container-name: sheet-content;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -411,18 +413,65 @@
   box-shadow: 0 0 12px rgba(201, 168, 76, 0.12);
 }
 
+/* General: 1 columna en estrecho; 2 (combate | resto) en medio; 3 en ancho. */
 .sheet-general {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'combat'
+    'defense'
+    'resources'
+    'sheet';
   gap: 12px;
   align-items: start;
 }
 
-.sheet-general__right {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
+.sheet-general > * { min-width: 0; }
+.sheet-general__combat { grid-area: combat; }
+.sheet-general__sheet { grid-area: sheet; }
+.sheet-general__defense { grid-area: defense; }
+.sheet-general__resources { grid-area: resources; }
+
+@container sheet-content (min-width: 600px) {
+  .sheet-general {
+    grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+    grid-template-areas:
+      'combat defense'
+      'combat resources'
+      'combat sheet';
+    grid-template-rows: auto auto 1fr;
+  }
+}
+
+@container sheet-content (min-width: 880px) {
+  .sheet-general {
+    grid-template-columns: minmax(270px, 340px) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'combat defense resources'
+      'combat sheet sheet';
+    grid-template-rows: auto 1fr;
+  }
+
+  /* Defensa y recursos a la misma altura en la fila de arriba */
+  .sheet-general__defense,
+  .sheet-general__resources {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sheet-general__defense .sheet-defense,
+  .sheet-general__resources .sheet-resources {
+    flex: 1;
+    align-content: center;
+    justify-content: center;
+  }
+}
+
+/* Características sin datos: una línea, sin rectángulo vacío */
+.sheet-general__sheet .calc-build-empty {
+  margin: 0;
+  text-align: left;
 }
 
 .sheet-panel {
@@ -472,11 +521,11 @@
 }
 
 .sheet-stat-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 7px 8px;
+  gap: 12px;
+  padding: 8px 10px;
   border-radius: 4px;
   border: 1px solid transparent;
 }
@@ -486,23 +535,25 @@
 }
 
 .sheet-stat-row--zero {
-  opacity: 0.38;
+  opacity: 0.5;
 }
 
 .sheet-stat-row__label {
   font-family: 'Cinzel', serif;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.55);
+  color: rgba(201, 168, 76, 0.7);
+  white-space: nowrap;
 }
 
 .sheet-stat-row__value {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--ink);
   text-align: right;
-  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
 }
 
 .sheet-scores {
@@ -559,13 +610,14 @@
 
 .sheet-defense {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 120px));
+  justify-content: start;
   gap: 8px;
 }
 
 .sheet-defense__card {
   text-align: center;
-  padding: 14px 8px;
+  padding: 10px 8px;
   background: rgba(10, 8, 4, 0.5);
   border: 1px solid rgba(201, 168, 76, 0.2);
   border-radius: 6px;
@@ -573,11 +625,11 @@
 
 .sheet-defense__label {
   font-family: 'Cinzel', serif;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.5);
-  margin-bottom: 8px;
+  color: rgba(201, 168, 76, 0.6);
+  margin-bottom: 6px;
 }
 
 .sheet-defense__value {
@@ -652,6 +704,13 @@
   color: rgba(212, 196, 154, 0.85);
 }
 
+.sheet-resource__head--values span:first-child {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--gold-bright);
+}
+
 .sheet-resource--edit {
   padding: 10px;
   background: rgba(10, 8, 4, 0.55);
@@ -690,9 +749,6 @@
   .sheet-hp { grid-area: hp; }
   .sheet-side__attack { grid-area: attack; margin-top: 0; padding-top: 0; border-top: 0; text-align: left; }
 
-  .sheet-general {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 560px) {
@@ -720,7 +776,7 @@
   }
 
   .sheet-defense {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -787,4 +843,34 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: 8px;
+}
+
+/* Sidebar: vida y maná como tarjetas separadas */
+.sheet-side__hp,
+.sheet-side__mana {
+  padding: 10px;
+  background: rgba(10, 8, 4, 0.55);
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  border-radius: 6px;
+}
+.sheet-side__hp .sheet-hp,
+.sheet-side__mana .sheet-resource {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.sheet-side__mana { margin-top: 16px; }
+
+/* General sin Recursos: sin hueco */
+@container sheet-content (min-width: 600px) {
+  .sheet-general {
+    grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
+    grid-template-areas:
+      'combat defense'
+      'combat sheet';
+    grid-template-rows: auto 1fr;
+  }
+  .sheet-general__defense .sheet-defense {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

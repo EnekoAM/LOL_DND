@@ -198,6 +198,8 @@ const PlayerSheet = ({
             </div>
           </div>
 
+          <div className="sheet-panel sheet-side__hp">
+
           <HpPanel
             player={player}
             suggestedMax={suggestedMax}
@@ -205,7 +207,7 @@ const PlayerSheet = ({
             saving={saving}
             error={combatError}
             onChange={onCombatChange}
-          />
+          /></div>
           <div className="sheet-panel sheet-side__mana">
             <ManaPanel
               player={player}
