@@ -22,7 +22,9 @@ export type PartyPatch = Partial<Record<(typeof PARTY_FIELDS)[number], number>> 
   addGold?: number;
 };
 
-export type BasicAttack = { type: string; scaling: number[] };
+export type BasicAttackEntry = { type: string; scaling: number[] };
+/** Un tipo (formato antiguo) o varios (p. ej. AD + AP). */
+export type BasicAttack = BasicAttackEntry | BasicAttackEntry[];
 
 export type PlayerPatch = {
   basicAttack?: BasicAttack | null;
@@ -75,18 +77,27 @@ function equipmentList(value: unknown): string[] {
   return items;
 }
 
-function basicAttack(value: unknown): BasicAttack {
+function basicAttackEntry(value: unknown, field: string): BasicAttackEntry {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new HttpError(400, 'basicAttack tiene que ser un objeto');
+    throw new HttpError(400, `${field} tiene que ser un objeto`);
   }
   const attack = value as Record<string, unknown>;
   if (typeof attack.type !== 'string' || !attack.type.trim()) {
-    throw new HttpError(400, 'basicAttack.type tiene que ser un texto');
+    throw new HttpError(400, `${field}.type tiene que ser un texto`);
   }
   if (!Array.isArray(attack.scaling) || attack.scaling.some(n => typeof n !== 'number' || !Number.isFinite(n))) {
-    throw new HttpError(400, 'basicAttack.scaling tiene que ser una lista de números');
+    throw new HttpError(400, `${field}.scaling tiene que ser una lista de números`);
   }
   return { type: attack.type.trim(), scaling: attack.scaling };
+}
+
+/** Acepta un objeto { type, scaling } o una lista de ellos (p. ej. AD + AP). */
+function basicAttack(value: unknown): BasicAttack {
+  if (Array.isArray(value)) {
+    if (!value.length) throw new HttpError(400, 'basicAttack no puede ser una lista vacía');
+    return value.map((entry, index) => basicAttackEntry(entry, `basicAttack[${index}]`));
+  }
+  return basicAttackEntry(value, 'basicAttack');
 }
 
 function abilities(

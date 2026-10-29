@@ -40,10 +40,28 @@ export type PlayerSheet = {
   extra?: Partial<Record<string, number | string>>;
 };
 
+export type BasicAttackEntry = { type: string; scaling: number[] };
+/** Un tipo (formato antiguo) o varios (p. ej. AD + AP). */
+export type BasicAttack = BasicAttackEntry | BasicAttackEntry[];
+
+/** Normaliza basicAttack a lista y descarta entradas mal formadas. */
+export function basicAttackEntries(value: BasicAttack | null | undefined): BasicAttackEntry[] {
+  if (!value) return [];
+  const list = Array.isArray(value) ? value : [value];
+  return list.filter(
+    (entry): entry is BasicAttackEntry =>
+      !!entry &&
+      typeof entry.type === 'string' &&
+      Array.isArray(entry.scaling) &&
+      entry.scaling.every(n => typeof n === 'number' && Number.isFinite(n)),
+  );
+}
+
 export type Player = {
   name: string;
   rol?: string;
-  basicAttack?: { type: string; scaling: number[] };
+  /** Ataque básico: un tipo (formato antiguo) o varios (p. ej. AD + AP). */
+  basicAttack?: BasicAttack;
   /** Nombres de habilidades definidas en habilidades.json. */
   abilities: Record<PlayerAbilitySlot, string | null>;
   equipamiento: string[];

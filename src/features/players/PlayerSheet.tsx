@@ -5,6 +5,7 @@ import { partyLevel, subscribeParty } from '../../data/party';
 import {
   EQUIPMENT_SLOTS,
   PLAYER_ABILITY_SLOTS,
+  basicAttackEntries,
   playerPortraitUrl,
   type Player,
   type PlayerSheet as PlayerSheetData,
@@ -120,6 +121,7 @@ const PlayerSheet = ({
     setPortraitFailed(false);
   }, [player.image, player.name]);
   const total = playerTotalLine(player.sheet, player.equipamiento);
+  const basicAttack = basicAttackEntries(player.basicAttack);
   const columnsByKey = Object.fromEntries(STAT_COLUMNS.map(column => [column.key, column]));
 
   const removeAt = (items: string[], index: number) => items.filter((_, itemIndex) => itemIndex !== index);
@@ -185,15 +187,6 @@ const PlayerSheet = ({
             error={combatError}
             onChange={onCombatChange}
           />
-
-          {player.basicAttack && (
-            <div className="sheet-side__attack">
-              <div className="sheet-side__attack-label">Ataque básico</div>
-              <div>
-                {formatPercentList(player.basicAttack.scaling)} {player.basicAttack.type}
-              </div>
-            </div>
-          )}
         </aside>
 
         <div className="sheet-content">
@@ -274,6 +267,17 @@ const PlayerSheet = ({
             <section className="sheet-panel">
               <div className="sheet-panel__title">Habilidades</div>
               <div className="calc-grid">
+                {basicAttack.length > 0 && (
+                  <div className="calc-card calc-card--ability" title="Ataque básico">
+                    <div className="calc-card__key">[AA]</div>
+                    <div className="calc-card__name">Ataque básico</div>
+                    {basicAttack.map((entry, index) => (
+                      <div key={`${entry.type}-${index}`} className="calc-card__damage">
+                        {entry.type}: {formatPercentList(entry.scaling)}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {PLAYER_ABILITY_SLOTS.map(({ slot, label }) => {
                   const abilityName = player.abilities[slot];
                   return (
