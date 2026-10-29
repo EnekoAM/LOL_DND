@@ -5,12 +5,13 @@ import Calculos from './features/calculos/Calculos';
 import Habilidades from './features/habilidades/Habilidades';
 import Historial from './features/historial/Historial';
 import ItemRoll from './features/item-roll/ItemRoll';
+import Dados from './features/dados/Dados';
 import Items from './features/items/Items';
 import Players from './features/players/Players';
 import Tienda from './features/tienda/Tienda';
 import './App.css';
 
-type ScreenId = 'items' | 'tienda' | 'habilidades' | 'players' | 'calculos' | 'item-roll'  | 'historial';
+type ScreenId = 'items' | 'tienda' | 'habilidades' | 'players' | 'calculos' | 'item-roll' | 'dados' | 'historial';
 
 type Screen = NavItem<ScreenId> & { Component: ComponentType };
 
@@ -21,6 +22,7 @@ const SCREENS: Screen[] = [
   { id: 'players',     label: 'Players',     icon: '👤', Component: Players },
   { id: 'calculos',    label: 'Calculos',    icon: '⚗',  Component: Calculos },
   { id: 'item-roll',   label: 'Item Roll',   icon: '🎲', Component: ItemRoll },
+  { id: 'dados',       label: 'Dados',       icon: '⚀',  Component: Dados },
   { id: 'historial',   label: 'Historial',   icon: '📜', Component: Historial },
 ];
 
