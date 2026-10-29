@@ -1,5 +1,5 @@
 import { STAT_KEYS } from '../../data/items';
-import { ALL, type ItemFilterState, type StockFilter } from './filters';
+import { ALL, SORT_RAREZA_COSTE, type ItemFilterState, type StockFilter } from './filters';
 import { RARITIES } from './rarity';
 
 type Props = {
@@ -40,6 +40,19 @@ const ItemFilters = ({ filters, resultCount, onChange }: Props) => (
         <option value={ALL}>Todas</option>
         {RARITIES.map(rarity => (
           <option key={rarity} value={rarity}>{rarity}</option>
+        ))}
+      </select>
+    </div>
+
+    <div className="filter-group">
+      <label className="filter-label">Ordenar</label>
+      <select className="filter-select" value={filters.sort} onChange={e => onChange({ sort: e.target.value })}>
+        <option value={SORT_RAREZA_COSTE}>Rareza / Coste</option>
+        <option value="coste">Coste</option>
+        <option value="rareza">Rareza</option>
+        <option value="nombre">Nombre</option>
+        {STAT_KEYS.map(stat => (
+          <option key={stat} value={stat}>{stat}</option>
         ))}
       </select>
     </div>

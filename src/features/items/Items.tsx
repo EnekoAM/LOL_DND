@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { findItem, ITEMS, type Item } from '../../data/items';
-import { DEFAULT_ITEM_FILTERS, matchesItemFilters, type ItemFilterState } from './filters';
+import { DEFAULT_ITEM_FILTERS, matchesItemFilters, sortItems, type ItemFilterState } from './filters';
 import ItemCard from './ItemCard';
 import ItemDetailModal from './ItemDetailModal';
 import ItemFilters from './ItemFilters';
@@ -13,7 +13,7 @@ const Items = () => {
 
   // revision obliga a recalcular la lista cuando se guarda un ítem (ITEMS se actualiza fuera de React).
   const visibleItems = useMemo(
-    () => ITEMS.filter(item => matchesItemFilters(item, filters)),
+    () => sortItems(ITEMS.filter(item => matchesItemFilters(item, filters)), filters.sort),
     [filters, revision],
   );
   const selectedItem = selectedName ? findItem(selectedName) ?? null : null;

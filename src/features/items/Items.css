@@ -4,6 +4,8 @@
 .rarity--epico      { --rc: #8898e8; --rc-dim: #4858a8; --rc-bg: rgba(100,120,200,0.1);  }
 .rarity--legendario { --rc: var(--gold); --rc-dim: var(--gold-dim); --rc-bg: rgba(201,168,76,0.1);   }
 .rarity--prismatico { --rc: #e06090; --rc-dim: #903060; --rc-bg: rgba(220,80,140,0.1);   }
+.rarity--botas      { --rc: #6a9e8a; --rc-dim: #3a6a58; --rc-bg: rgba(90,150,120,0.1);   }
+.rarity--pociones  { --rc: #c87858; --rc-dim: #8a4830; --rc-bg: rgba(200,110,70,0.1);   }
 
 /* ─── ROOT ───────────────────────────────────────────────── */
 .items-root {
