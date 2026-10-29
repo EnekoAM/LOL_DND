@@ -1,32 +1,33 @@
 import { PARTY } from '../../data/party';
-import { normalizeName } from '../../lib/text';
+import { findPlayer, type AbilityScoreKey, type PlayerSheet } from '../../data/players';
 import { findRoleTable } from './roleTables';
-import { emptyStatLine, type StatLine } from './statLine';
+import { STAT_COLUMNS, emptyStatLine, type StatKey, type StatLine } from './statLine';
+
+export type { AbilityScoreKey, PlayerSheet } from '../../data/players';
 
 export type AbilityScore = { score: number; modifier: number };
 
-export type AbilityScoreKey =
-  | 'strength'
-  | 'dexterity'
-  | 'constitution'
-  | 'intelligence'
-  | 'wisdom'
-  | 'charisma';
-
-export const ABILITY_SCORES: { key: AbilityScoreKey; label: string }[] = [
-  { key: 'strength', label: 'Fuerza' },
-  { key: 'dexterity', label: 'Destreza' },
-  { key: 'constitution', label: 'Constitución' },
-  { key: 'intelligence', label: 'Inteligencia' },
-  { key: 'wisdom', label: 'Sabiduría' },
-  { key: 'charisma', label: 'Carisma' },
+export const ABILITY_SCORES: { key: AbilityScoreKey; label: string; short: string }[] = [
+  { key: 'strength', label: 'Fuerza', short: 'FUE' },
+  { key: 'dexterity', label: 'Destreza', short: 'DES' },
+  { key: 'constitution', label: 'Constitución', short: 'CON' },
+  { key: 'intelligence', label: 'Inteligencia', short: 'INT' },
+  { key: 'wisdom', label: 'Sabiduría', short: 'SAB' },
+  { key: 'charisma', label: 'Carisma', short: 'CAR' },
 ];
 
-export type PlayerSheet = {
-  roleId: string;
-  extra?: StatLine;
-  scores?: Record<AbilityScoreKey, AbilityScore>;
-};
+export const DEFAULT_SCORE = 10;
+
+/** Modificador D&D 5e: floor((puntuación - 10) / 2). */
+export function scoreModifier(score: number): number {
+  return Math.floor((score - 10) / 2);
+}
+
+export function abilityScore(sheet: PlayerSheet | undefined, key: AbilityScoreKey): AbilityScore | undefined {
+  const score = sheet?.scores?.[key];
+  if (typeof score !== 'number' || !Number.isFinite(score)) return undefined;
+  return { score, modifier: scoreModifier(score) };
+}
 
 /** El nivel de la ficha es el del grupo guardado en la base de datos. */
 export function sheetLevel(): number {
@@ -37,29 +38,22 @@ export function sheetBase(sheet: PlayerSheet): StatLine | undefined {
   return findRoleTable(sheet.roleId)?.levels[sheetLevel() - 1];
 }
 
-const ZERAF: PlayerSheet = {
-  roleId: 'asesino-ad',
-  extra: { ...emptyStatLine(), mana: 5 },
-  scores: {
-    strength: { score: 8, modifier: -1 },
-    dexterity: { score: 16, modifier: 3 },
-    constitution: { score: 14, modifier: 2 },
-    intelligence: { score: 8, modifier: -1 },
-    wisdom: { score: 8, modifier: -1 },
-    charisma: { score: 15, modifier: 2 },
-  },
-};
+const STAT_KEYS = new Set<string>(STAT_COLUMNS.map(column => column.key));
 
-const SAMAEL: PlayerSheet = { roleId: 'mago' };
+/** Fila Extra completa (las claves que faltan valen 0). Undefined si no hay ninguna. */
+export function sheetExtra(sheet: PlayerSheet | undefined): StatLine | undefined {
+  if (!sheet?.extra) return undefined;
+  const line = emptyStatLine();
+  let any = false;
+  for (const [key, value] of Object.entries(sheet.extra)) {
+    if (!STAT_KEYS.has(key) || value === undefined) continue;
+    line[key as StatKey] = value;
+    any = true;
+  }
+  return any ? line : undefined;
+}
 
-const COMBATIENTE: PlayerSheet = { roleId: 'luchador-ad' };
-
-const SHEETS: Record<string, PlayerSheet> = {
-  [normalizeName('Zeraf')]: ZERAF,
-  [normalizeName('Samael')]: SAMAEL,
-  [normalizeName('Combatiente')]: COMBATIENTE,
-};
-
+/** Ficha guardada en Mongo para un player (por nombre). */
 export function findPlayerSheet(name: string): PlayerSheet | undefined {
-  return SHEETS[normalizeName(name)];
+  return findPlayer(name)?.sheet;
 }

@@ -18,6 +18,7 @@ const Players = () => {
   const [equipError, setEquipError] = useState<string | null>(null);
   const [buildError, setBuildError] = useState<string | null>(null);
   const [combatError, setCombatError] = useState<string | null>(null);
+  const [sheetError, setSheetError] = useState<string | null>(null);
 
   const updateDamageInputs = (patch: Partial<DamageInputs>) =>
     setDamageInputs(prev => ({ ...prev, ...patch }));
@@ -27,10 +28,11 @@ const Players = () => {
     setEquipError(null);
     setBuildError(null);
     setCombatError(null);
+    setSheetError(null);
   };
 
   const updatePlayerList = async (
-    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana'>>,
+    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'sheet'>>,
   ) => {
     if (!player || saving) return;
     const name = player.name;
@@ -38,15 +40,24 @@ const Players = () => {
     const isCombat =
       'hp' in patch || 'actualHp' in patch || 'escudo' in patch || 'vidaTemporal' in patch
       || 'mana' in patch || 'actualMana' in patch;
-    const payload =
-      'equipamiento' in patch && patch.equipamiento !== undefined
-        ? { ...patch, stats: playerStatsDocument(name, patch.equipamiento) }
-        : patch;
+    const isSheet = 'sheet' in patch;
+    // El total guardado en `stats` depende de la ficha y del equipamiento: se recalcula si cambia cualquiera.
+    const recalc = isSheet || ('equipamiento' in patch && patch.equipamiento !== undefined);
+    const payload = recalc
+      ? {
+          ...patch,
+          stats: playerStatsDocument(
+            isSheet ? patch.sheet : player.sheet,
+            patch.equipamiento ?? player.equipamiento,
+          ),
+        }
+      : patch;
     setPlayer({ ...player, ...payload });
     setSaving(true);
     setEquipError(null);
     setBuildError(null);
     setCombatError(null);
+    setSheetError(null);
     try {
       const saved = await savePlayerPatch(name, payload);
       setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? saved : current));
@@ -54,6 +65,7 @@ const Players = () => {
       setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? previous : current));
       const message = error instanceof Error ? error.message : 'No se pudo guardar';
       if ('equipamiento' in patch) setEquipError(message);
+      else if (isSheet) setSheetError(message);
       else if (isCombat) setCombatError(message);
       else setBuildError(message);
       throw error;
@@ -84,11 +96,13 @@ const Players = () => {
           equipError={equipError}
           buildError={buildError}
           combatError={combatError}
+          sheetError={sheetError}
           onBack={leavePlayer}
           onSelectAbility={setAbility}
           onEquipamientoChange={equipamiento => { void updatePlayerList({ equipamiento }); }}
           onBuildChange={build => { void updatePlayerList({ build }); }}
           onCombatChange={combat => updatePlayerList(combat)}
+          onSheetChange={sheet => updatePlayerList({ sheet })}
         />
       ) : (
         <>

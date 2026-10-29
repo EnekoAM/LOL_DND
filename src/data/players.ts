@@ -20,6 +20,26 @@ export const PLAYER_ABILITY_SLOTS: {
   { slot: 'R', key: 'R', label: 'Definitiva', detail: 'Definitiva', kind: 'definitiva' },
 ];
 
+export type AbilityScoreKey =
+  | 'strength'
+  | 'dexterity'
+  | 'constitution'
+  | 'intelligence'
+  | 'wisdom'
+  | 'charisma';
+
+/**
+ * Ficha D&D guardada en players.sheet (Mongo).
+ * `extra` usa las claves de columna de Cálculos (hp, mana, ad…) y solo guarda las distintas de 0.
+ */
+export type PlayerSheet = {
+  /** Id de la tabla de rol (roleTables.ts). */
+  roleId: string;
+  /** Puntuaciones FUE…CAR; el modificador se calcula. */
+  scores?: Record<AbilityScoreKey, number>;
+  extra?: Partial<Record<string, number | string>>;
+};
+
 export type Player = {
   name: string;
   rol?: string;
@@ -44,6 +64,8 @@ export type Player = {
   mana?: number;
   /** Maná actual. */
   actualMana?: number;
+  /** Ficha D&D: rol de stats, características y extra. */
+  sheet?: PlayerSheet;
 };
 
 /** URL pública del retrato. Vacío si no hay imagen. */
@@ -60,6 +82,11 @@ export function hydratePlayers(players: Player[]): void {
   PLAYERS = players;
 }
 
+export function findPlayer(name: string): Player | undefined {
+  const key = normalizeName(name);
+  return PLAYERS.find(player => normalizeName(player.name) === key);
+}
+
 function readError(body: unknown, fallback: string): string {
   if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string') return body.error;
   return fallback;
@@ -69,6 +96,8 @@ export type PlayerListPatch = Partial<
   Pick<Player, 'build' | 'equipamiento' | 'stats' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana'>
 > & {
   abilities?: Partial<Record<PlayerAbilitySlot, string | null>>;
+  /** null borra la ficha. */
+  sheet?: PlayerSheet | null;
 };
 
 /** Sustituye la build o el equipamiento y deja la copia en memoria alineada con lo guardado. */

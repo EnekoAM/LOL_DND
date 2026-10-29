@@ -1,7 +1,7 @@
 import { findItem } from '../../data/items';
 import { PARTY } from '../../data/party';
-import { PLAYERS, savePlayerPatch } from '../../data/players';
-import { findPlayerSheet, sheetBase } from './playerSheets';
+import { PLAYERS, savePlayerPatch, type PlayerSheet } from '../../data/players';
+import { sheetBase, sheetExtra } from './playerSheets';
 import {
   STAT_COLUMNS,
   emptyStatLine,
@@ -55,8 +55,7 @@ const LINE_TO_STORED: Record<StatKey, Exclude<PlayerStatsKey, 'nivel'>> = {
 };
 
 /** Misma suma que la fila Total de Cálculos (base de rol + equipo + extra). */
-export function playerTotalLine(playerName: string, equipment: string[]): StatLine {
-  const sheet = findPlayerSheet(playerName);
+export function playerTotalLine(sheet: PlayerSheet | undefined, equipment: string[]): StatLine {
   const parts: StatLine[] = [];
   const base = sheet ? sheetBase(sheet) : undefined;
   if (base) parts.push(base);
@@ -64,12 +63,13 @@ export function playerTotalLine(playerName: string, equipment: string[]): StatLi
     const item = findItem(name);
     parts.push(item ? itemStatLine(item.stats) : emptyStatLine());
   }
-  if (sheet?.extra) parts.push(sheet.extra);
+  const extra = sheetExtra(sheet);
+  if (extra) parts.push(extra);
   return sumStatLines(parts);
 }
 
-export function playerStatsDocument(playerName: string, equipment: string[]): PlayerStats {
-  const total = playerTotalLine(playerName, equipment);
+export function playerStatsDocument(sheet: PlayerSheet | undefined, equipment: string[]): PlayerStats {
+  const total = playerTotalLine(sheet, equipment);
   const stats = { nivel: PARTY.level } as PlayerStats;
   for (const column of STAT_COLUMNS) {
     stats[LINE_TO_STORED[column.key]] = total[column.key];
@@ -77,13 +77,21 @@ export function playerStatsDocument(playerName: string, equipment: string[]): Pl
   return stats;
 }
 
-export async function syncPlayerStats(playerName: string, equipment: string[]): Promise<void> {
-  await savePlayerPatch(playerName, { stats: playerStatsDocument(playerName, equipment) });
+export async function syncPlayerStats(
+  playerName: string,
+  sheet: PlayerSheet | undefined,
+  equipment: string[],
+): Promise<void> {
+  await savePlayerPatch(playerName, { stats: playerStatsDocument(sheet, equipment) });
 }
 
-/** Recalcula y guarda el total de todos los players (p. ej. al cambiar el nivel). */
+/**
+ * Recalcula y guarda el total de todos los players con ficha (p. ej. al cambiar el nivel).
+ * Los que aún no tienen `sheet` en Mongo no se tocan, para no pisar su total sin la base de rol.
+ */
 export async function syncAllPlayerStats(): Promise<void> {
   await Promise.all(
-    PLAYERS.map(player => syncPlayerStats(player.name, player.equipamiento)),
+    PLAYERS.filter(player => player.sheet)
+      .map(player => syncPlayerStats(player.name, player.sheet, player.equipamiento)),
   );
 }

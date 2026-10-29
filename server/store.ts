@@ -2,7 +2,7 @@ import { ObjectId, type Collection, type Document, type Filter } from 'mongodb';
 import { getDb } from './db';
 import { HttpError, logError } from './errors';
 import { buildLootItems, LOOT_RULES } from './lootItems';
-import type { ChampionAbility, HistoryKind, ItemUpdate, PartyPatch, PlayerPatch, PlayerReplace, RollRecord, ShopOrder } from './validate';
+import type { ChampionAbility, HistoryKind, ItemUpdate, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RollRecord, ShopOrder } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -12,6 +12,7 @@ type PlayerDoc = Document & {
   rol?: string;
   order?: number;
   abilities?: Record<string, string | null>;
+  sheet?: PlayerSheet;
 };
 
 type StringIdDoc = Document & { _id: string };
@@ -610,6 +611,8 @@ export async function updatePlayer(name: string, patch: PlayerPatch) {
   if (patch.vidaTemporal !== undefined) $set.vidaTemporal = patch.vidaTemporal;
   if (patch.mana !== undefined) $set.mana = patch.mana;
   if (patch.actualMana !== undefined) $set.actualMana = patch.actualMana;
+  if (patch.sheet === null) $unset.sheet = '';
+  else if (patch.sheet) $set.sheet = patch.sheet;
   if (patch.basicAttack === null) $unset.basicAttack = '';
   else if (patch.basicAttack) $set.basicAttack = patch.basicAttack;
 

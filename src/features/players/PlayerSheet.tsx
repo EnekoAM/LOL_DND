@@ -2,17 +2,18 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { findAbility, type Ability } from '../../data/champions';
 import { findItem } from '../../data/items';
 import { partyLevel, subscribeParty } from '../../data/party';
-import { EQUIPMENT_SLOTS, PLAYER_ABILITY_SLOTS, playerPortraitUrl, type Player } from '../../data/players';
+import {
+  EQUIPMENT_SLOTS,
+  PLAYER_ABILITY_SLOTS,
+  playerPortraitUrl,
+  type Player,
+  type PlayerSheet as PlayerSheetData,
+} from '../../data/players';
 import { formatPercentList } from '../../lib/format';
 import { normalizeName } from '../../lib/text';
 import AbilityCard from '../calculos/AbilityCard';
 import BuildPicker from '../calculos/BuildPicker';
 import ItemTile, { type ItemTileState } from '../calculos/ItemTile';
-import {
-  ABILITY_SCORES,
-  findPlayerSheet,
-  type AbilityScore,
-} from '../calculos/playerSheets';
 import { playerTotalLine } from '../calculos/playerTotals';
 import {
   STAT_COLUMNS,
@@ -25,6 +26,7 @@ import { itemAvailability } from '../items/stock';
 import { cx } from '../../lib/cx';
 import HpPanel, { type CombatPatch } from './HpPanel';
 import ManaPanel from './ManaPanel';
+import SheetEditor from './SheetEditor';
 
 type Props = {
   player: Player;
@@ -32,11 +34,13 @@ type Props = {
   equipError: string | null;
   buildError: string | null;
   combatError: string | null;
+  sheetError: string | null;
   onBack: () => void;
   onSelectAbility: (ability: Ability) => void;
   onEquipamientoChange: (equipamiento: string[]) => void;
   onBuildChange: (build: string[]) => void;
   onCombatChange: (combat: CombatPatch) => void;
+  onSheetChange: (sheet: PlayerSheetData) => Promise<void>;
 };
 
 type SheetTab = 'general' | 'habilidades' | 'equipo' | 'build' | 'desglose';
@@ -68,9 +72,6 @@ const getBuildItemState = (player: Player, itemName: string): ItemTileState => {
   return 'none';
 };
 
-const formatModifier = (modifier: number): string =>
-  modifier >= 0 ? `+${modifier}` : String(modifier);
-
 const Portrait = ({
   image,
   name,
@@ -97,25 +98,19 @@ const Portrait = ({
   );
 };
 
-const ScoreCard = ({ label, score }: { label: string; score: AbilityScore }) => (
-  <div className="sheet-score">
-    <div className="sheet-score__label">{label}</div>
-    <div className="sheet-score__mod">{formatModifier(score.modifier)}</div>
-    <div className="sheet-score__value">{score.score}</div>
-  </div>
-);
-
 const PlayerSheet = ({
   player,
   saving,
   equipError,
   buildError,
   combatError,
+  sheetError,
   onBack,
   onSelectAbility,
   onEquipamientoChange,
   onBuildChange,
   onCombatChange,
+  onSheetChange,
 }: Props) => {
   const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
   const [portraitFailed, setPortraitFailed] = useState(false);
@@ -124,8 +119,7 @@ const PlayerSheet = ({
   useEffect(() => {
     setPortraitFailed(false);
   }, [player.image, player.name]);
-  const sheet = findPlayerSheet(player.name);
-  const total = playerTotalLine(player.name, player.equipamiento);
+  const total = playerTotalLine(player.sheet, player.equipamiento);
   const columnsByKey = Object.fromEntries(STAT_COLUMNS.map(column => [column.key, column]));
 
   const removeAt = (items: string[], index: number) => items.filter((_, itemIndex) => itemIndex !== index);
@@ -227,16 +221,12 @@ const PlayerSheet = ({
               </section>
 
               <div className="sheet-general__right">
-                {sheet?.scores && (
-                  <section className="sheet-panel">
-                    <div className="sheet-panel__title">Características</div>
-                    <div className="sheet-scores">
-                      {ABILITY_SCORES.map(({ key, label }) => (
-                        <ScoreCard key={key} label={label} score={sheet.scores![key]} />
-                      ))}
-                    </div>
-                  </section>
-                )}
+                <SheetEditor
+                  sheet={player.sheet}
+                  saving={saving}
+                  error={sheetError}
+                  onSave={onSheetChange}
+                />
 
                 <section className="sheet-panel">
                   <div className="sheet-panel__title">Defensa y movimiento</div>
@@ -356,6 +346,7 @@ const PlayerSheet = ({
             <section className="sheet-panel">
               <StatsTable
                 playerName={player.name}
+                sheet={player.sheet}
                 equipment={player.equipamiento}
                 defaultOpen
               />

@@ -4,9 +4,11 @@ import { partyLevel, subscribeParty } from '../../data/party';
 import { cx } from '../../lib/cx';
 import {
   ABILITY_SCORES,
-  findPlayerSheet,
+  abilityScore,
   sheetBase,
+  sheetExtra,
   type AbilityScore,
+  type PlayerSheet,
 } from './playerSheets';
 import { ROLE_TABLES, findRoleTable } from './roleTables';
 import { playerTotalLine } from './playerTotals';
@@ -21,6 +23,8 @@ import {
 
 type Props = {
   playerName: string;
+  /** Ficha del player (Mongo). Sin ficha, el total solo suma el equipamiento. */
+  sheet?: PlayerSheet;
   equipment: string[];
   /** Si true, la ficha de estadísticas sale desplegada. */
   defaultOpen?: boolean;
@@ -160,11 +164,11 @@ const RoleTablePanel = ({ roleId, level }: { roleId: string; level?: number }) =
   );
 };
 
-const StatsTable = ({ playerName, equipment, defaultOpen = false }: Props) => {
+const StatsTable = ({ playerName, sheet, equipment, defaultOpen = false }: Props) => {
   const [open, setOpen] = useState(defaultOpen);
   const partyLevelNow = useSyncExternalStore(subscribeParty, partyLevel);
-  const sheet = findPlayerSheet(playerName);
   const base = sheet ? sheetBase(sheet) : undefined;
+  const extra = sheetExtra(sheet);
 
   if (!sheet && equipment.length === 0) {
     return (
@@ -187,14 +191,14 @@ const StatsTable = ({ playerName, equipment, defaultOpen = false }: Props) => {
   });
 
   const level = sheet ? partyLevelNow : undefined;
-  const total = playerTotalLine(playerName, equipment);
+  const total = playerTotalLine(sheet, equipment);
 
   const rows: SheetRow[] = [
     { key: 'total', label: 'Total', line: total, tone: 'total' },
     ...(base ? [{ key: 'base', label: `Base nv. ${level}`, line: base, tone: 'base' as const }] : []),
     ...itemRows,
-    ...(sheet?.extra
-      ? [{ key: 'extra', label: 'Extra', line: sheet.extra, tone: 'extra' as const, passive: '-', active: '-' }]
+    ...(extra
+      ? [{ key: 'extra', label: 'Extra', line: extra, tone: 'extra' as const, passive: '-', active: '-' }]
       : []),
   ];
 
@@ -220,9 +224,10 @@ const StatsTable = ({ playerName, equipment, defaultOpen = false }: Props) => {
             <SheetGrid rows={rows} effects />
             {sheet?.scores && (
               <div className="calc-scores calc-scores--sheet">
-                {ABILITY_SCORES.map(({ key, label }) => (
-                  <Score key={key} label={label} score={sheet.scores![key]} />
-                ))}
+                {ABILITY_SCORES.map(({ key, label }) => {
+                  const score = abilityScore(sheet, key);
+                  return score && <Score key={key} label={label} score={score} />;
+                })}
               </div>
             )}
           </>
@@ -230,7 +235,7 @@ const StatsTable = ({ playerName, equipment, defaultOpen = false }: Props) => {
       </div>
 
       <RoleTablePanel
-        key={playerName}
+        key={`${playerName}-${sheet?.roleId ?? ''}`}
         roleId={sheet?.roleId ?? ROLE_TABLES[0].id}
         level={level}
       />

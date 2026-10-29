@@ -735,3 +735,56 @@
 .sheet-panel .calc-item-card {
   height: 100%;
 }
+
+/* Editor de la ficha D&D (rol, características y extra) */
+.sheet-sheet__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sheet-sheet__head .sheet-panel__title {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.sheet-sheet__edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sheet-sheet__role select {
+  text-align: left;
+}
+
+.sheet-sheet__subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.55);
+}
+
+.sheet-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
+
+.sheet-sheet__grid--scores {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+@media (max-width: 600px) {
+  .sheet-sheet__grid--scores {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.sheet-sheet__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 8px;
+}

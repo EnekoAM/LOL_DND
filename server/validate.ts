@@ -42,6 +42,8 @@ export type PlayerPatch = {
   mana?: number;
   /** Maná actual. */
   actualMana?: number;
+  /** Ficha D&D (rol, características y extra). null la borra. */
+  sheet?: PlayerSheet | null;
 };
 
 export type PlayerReplace = {
@@ -193,6 +195,119 @@ function nonNegInt(value: unknown, field: string): number {
   return value;
 }
 
+export const ABILITY_SCORE_KEYS = [
+  'strength',
+  'dexterity',
+  'constitution',
+  'intelligence',
+  'wisdom',
+  'charisma',
+] as const;
+
+export type AbilityScoreKey = (typeof ABILITY_SCORE_KEYS)[number];
+
+/** Claves de la fila Extra, iguales que las columnas de Cálculos (statLine.ts). */
+export const SHEET_STAT_KEYS = [
+  'hp',
+  'ac',
+  'mr',
+  'mana',
+  'ad',
+  'ap',
+  'critChance',
+  'critDamage',
+  'spe',
+  'atkSpe',
+  'atkSpePct',
+  'abSpe',
+  'abSpePct',
+  'lethality',
+  'magicPen',
+] as const;
+
+export type SheetStatKey = (typeof SHEET_STAT_KEYS)[number];
+
+/** Ficha D&D guardada en players.sheet. El modificador se calcula: floor((puntuación - 10) / 2). */
+export type PlayerSheet = {
+  /** Id de la tabla de rol (roleTables.ts), p. ej. "asesino-ad". */
+  roleId: string;
+  scores?: Record<AbilityScoreKey, number>;
+  /** Bonos fijos que se suman al total (solo las claves distintas de 0). */
+  extra?: Partial<Record<SheetStatKey, number | string>>;
+};
+
+const ROLE_ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
+const SCORE_MIN = 1;
+const SCORE_MAX = 30;
+const SHEET_TEXT_LIMIT = 20;
+
+function sheetScores(value: unknown): Record<AbilityScoreKey, number> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'sheet.scores tiene que ser un objeto');
+  }
+  const source = value as Record<string, unknown>;
+  for (const key of Object.keys(source)) {
+    if (!ABILITY_SCORE_KEYS.includes(key as AbilityScoreKey)) {
+      throw new HttpError(400, `Característica desconocida: ${key}`);
+    }
+  }
+  const scores = {} as Record<AbilityScoreKey, number>;
+  for (const key of ABILITY_SCORE_KEYS) {
+    const raw = source[key];
+    if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < SCORE_MIN || raw > SCORE_MAX) {
+      throw new HttpError(400, `sheet.scores.${key} tiene que ser un entero entre ${SCORE_MIN} y ${SCORE_MAX}`);
+    }
+    scores[key] = raw;
+  }
+  return scores;
+}
+
+function sheetExtra(value: unknown): Partial<Record<SheetStatKey, number | string>> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'sheet.extra tiene que ser un objeto');
+  }
+  const extra: Partial<Record<SheetStatKey, number | string>> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!SHEET_STAT_KEYS.includes(key as SheetStatKey)) throw new HttpError(400, `Stat extra desconocida: ${key}`);
+    const stat = key as SheetStatKey;
+    if (typeof raw === 'number') {
+      if (!Number.isFinite(raw)) throw new HttpError(400, `sheet.extra.${key} tiene que ser un número`);
+      if (raw !== 0) extra[stat] = raw;
+      continue;
+    }
+    if (typeof raw === 'string') {
+      const text = raw.trim();
+      if (text.length > SHEET_TEXT_LIMIT) throw new HttpError(400, `sheet.extra.${key} es demasiado largo`);
+      if (text && text !== '0' && text !== '-') extra[stat] = text;
+      continue;
+    }
+    throw new HttpError(400, `sheet.extra.${key} tiene que ser un número o un dado (por ejemplo 1d4)`);
+  }
+  return extra;
+}
+
+export function parsePlayerSheet(value: unknown): PlayerSheet {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'sheet tiene que ser un objeto');
+  }
+  const source = value as Record<string, unknown>;
+  for (const key of Object.keys(source)) {
+    if (key !== 'roleId' && key !== 'scores' && key !== 'extra') {
+      throw new HttpError(400, `Campo de ficha desconocido: ${key}`);
+    }
+  }
+  const roleId = typeof source.roleId === 'string' ? source.roleId.trim() : '';
+  if (!ROLE_ID.test(roleId)) throw new HttpError(400, 'sheet.roleId tiene que ser un id de rol (p. ej. asesino-ad)');
+
+  const sheet: PlayerSheet = { roleId };
+  if (source.scores !== undefined && source.scores !== null) sheet.scores = sheetScores(source.scores);
+  if (source.extra !== undefined && source.extra !== null) {
+    const extra = sheetExtra(source.extra);
+    if (Object.keys(extra).length) sheet.extra = extra;
+  }
+  return sheet;
+}
+
 export function parsePlayerPatch(body: unknown): PlayerPatch {
   const source = asObject(body);
   const patch: PlayerPatch = {};
@@ -209,6 +324,7 @@ export function parsePlayerPatch(body: unknown): PlayerPatch {
   if ('vidaTemporal' in source) patch.vidaTemporal = nonNegInt(source.vidaTemporal, 'vidaTemporal');
   if ('mana' in source) patch.mana = nonNegInt(source.mana, 'mana');
   if ('actualMana' in source) patch.actualMana = nonNegInt(source.actualMana, 'actualMana');
+  if ('sheet' in source) patch.sheet = source.sheet === null ? null : parsePlayerSheet(source.sheet);
   if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return patch;
 }

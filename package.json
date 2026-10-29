@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "seed": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/seed.ts",
+    "migrate:sheets": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/migrate-sheets.ts",
     "typecheck:server": "tsc -p tsconfig.server.json"
   },
   "dependencies": {
