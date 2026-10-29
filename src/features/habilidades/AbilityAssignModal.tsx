@@ -70,14 +70,19 @@ const AbilityAssignModal = ({
         </div>
         <h2 className="hab-modal__title">{copy.title}</h2>
 
-        <input
-          className="hab-assign-search"
-          type="text"
-          autoFocus
-          placeholder="Buscar habilidad o campeón..."
-          value={search}
-          onChange={event => setSearch(event.target.value)}
-        />
+        <span className="search-clear-wrap">
+          <input
+            className="hab-assign-search"
+            type="text"
+            autoFocus
+            placeholder="Buscar habilidad o campeón..."
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+          />
+          {search && (
+            <button type="button" className="search-clear" aria-label="Borrar búsqueda" title="Borrar" onClick={() => setSearch('')}>×</button>
+          )}
+        </span>
 
         <div className="hab-assign-list">
           {options.length === 0 && <p className="hab-modal__hint">{search.trim() ? 'Ninguna habilidad coincide' : empty}</p>}

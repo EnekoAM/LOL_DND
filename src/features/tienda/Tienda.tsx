@@ -225,13 +225,18 @@ const Tienda = () => {
         </div>
 
         <div className="shop-search-row">
-          <input
-            className="shop-search"
-            type="text"
-            placeholder="Buscar en el mostrador"
-            value={search}
-            onChange={event => setSearch(event.target.value)}
-          />
+          <div className="shop-search-wrap">
+            <input
+              className="shop-search"
+              type="text"
+              placeholder="Buscar en el mostrador"
+              value={search}
+              onChange={event => setSearch(event.target.value)}
+            />
+            {search && (
+              <button type="button" className="shop-search-clear" aria-label="Borrar búsqueda" title="Borrar" onClick={() => setSearch('')}>×</button>
+            )}
+          </div>
           <button
             type="button"
             className={cx('shop-filter-btn', activeFilters > 0 && 'shop-filter-btn--on')}

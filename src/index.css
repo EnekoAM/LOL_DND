@@ -31,3 +31,9 @@ html {
 *::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* Botón X para borrar búsquedas */
+.search-clear-wrap { position: relative; display: block; flex: 1; min-width: 0; }
+.search-clear-wrap > input { width: 100%; box-sizing: border-box; padding-right: 30px; }
+.search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: inherit; opacity: .6; cursor: pointer; font-size: 18px; line-height: 1; padding: 0 4px; }
+.search-clear:hover { opacity: 1; }

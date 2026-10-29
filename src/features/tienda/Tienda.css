@@ -646,3 +646,9 @@
   .shop-cart { max-height: none; }
   .shop-ledger { max-height: 42vh; }
 }
+
+.shop-search-wrap { position: relative; flex: 1; min-width: 0; }
+.shop-search-wrap .shop-search { padding-right: 34px; box-sizing: border-box; }
+.shop-search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #f6e7c4; opacity: .6; cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px; }
+.shop-search-clear:hover { opacity: 1; }
+

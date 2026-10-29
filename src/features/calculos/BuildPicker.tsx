@@ -30,14 +30,19 @@ const BuildPicker = ({ title, busy, onlyAvailable = false, taken, takenLabel = '
 
       <div className="calc-modal__body">
         <div className="calc-modal__title">{title}</div>
-        <input
-          className="calc-picker-search"
-          type="text"
-          autoFocus
-          placeholder="Buscar ítem..."
-          value={search}
-          onChange={event => setSearch(event.target.value)}
-        />
+        <span className="search-clear-wrap">
+          <input
+            className="calc-picker-search"
+            type="text"
+            autoFocus
+            placeholder="Buscar ítem..."
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+          />
+          {search && (
+            <button type="button" className="search-clear" aria-label="Borrar búsqueda" title="Borrar" onClick={() => setSearch('')}>×</button>
+          )}
+        </span>
 
         <div className="calc-picker-grid">
           {results.length === 0 && (

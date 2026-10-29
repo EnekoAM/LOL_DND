@@ -32,13 +32,18 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
   return (
     <>
       <div className="calc-champ-filters">
-        <input
-          className="calc-input calc-champ-search"
-          type="text"
-          placeholder="Buscar campeón..."
-          value={filter.search}
-          onChange={e => onFilterChange({ search: e.target.value })}
-        />
+        <span className="search-clear-wrap">
+          <input
+            className="calc-input calc-champ-search"
+            type="text"
+            placeholder="Buscar campeón..."
+            value={filter.search}
+            onChange={e => onFilterChange({ search: e.target.value })}
+          />
+          {filter.search && (
+            <button type="button" className="search-clear" aria-label="Borrar búsqueda" title="Borrar" onClick={() => onFilterChange({ search: '' })}>×</button>
+          )}
+        </span>
         <select
           className="calc-select-dmg"
           value={filter.region}

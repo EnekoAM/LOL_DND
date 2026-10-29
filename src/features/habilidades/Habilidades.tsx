@@ -36,13 +36,18 @@ const Habilidades = () => {
       <h2 className="hab-block-title">Campeones</h2>
       <div className="hab-search-wrap">
         <span className="hab-search__icon">⚔</span>
-        <input
-          className="hab-search"
-          type="text"
-          placeholder="Buscar campeón..."
-          value={filter.search}
-          onChange={e => updateFilter({ search: e.target.value })}
-        />
+        <span className="search-clear-wrap">
+          <input
+            className="hab-search"
+            type="text"
+            placeholder="Buscar campeón..."
+            value={filter.search}
+            onChange={e => updateFilter({ search: e.target.value })}
+          />
+          {filter.search && (
+            <button type="button" className="search-clear" aria-label="Borrar búsqueda" title="Borrar" onClick={() => updateFilter({ search: '' })}>×</button>
+          )}
+        </span>
         <select className="hab-select" value={filter.region} onChange={e => updateFilter({ region: e.target.value })}>
           <option value="">Región</option>
           {CHAMPION_REGIONS.map(region => (
