@@ -49,10 +49,11 @@ const SheetSkills = ({ sheet, level, saving, error, onSave }: Props) => {
       </div>
       {!sheet && <p className="calc-build-empty">Sin ficha: crea las características para marcar competencias.</p>}
       <ul className="sheet-skills">
-        {DND_SKILLS.map(({ key, label, ability }) => {
+        {DND_SKILLS.map(({ key, label, ability: baseAbility, altAbilities }) => {
           const proficient = skills[key] === true;
-          const score = sheet?.scores?.[ability] ?? DEFAULT_SCORE;
-          const value = scoreModifier(score) + (proficient ? bonus : 0);
+          const modOf = (a: typeof baseAbility) => scoreModifier(sheet?.scores?.[a] ?? DEFAULT_SCORE);
+          const ability = (altAbilities ?? []).reduce((best, a) => (modOf(a) > modOf(best) ? a : best), baseAbility);
+          const value = modOf(ability) + (proficient ? bonus : 0);
           return (
             <li key={key} className={cx('sheet-skill', proficient && 'sheet-skill--prof')}>
               <button

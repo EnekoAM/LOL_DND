@@ -27,7 +27,8 @@ export type DndSkillKey = (typeof DND_SKILL_KEYS)[number];
 /** Competencias marcadas (solo se guardan las `true`). */
 export type DndSkillProficiencies = Partial<Record<DndSkillKey, boolean>>;
 
-export type DndSkill = { key: DndSkillKey; label: string; ability: AbilityScoreKey };
+/** `altAbilities`: se usa el mod más alto entre `ability` y estas. */
+export type DndSkill = { key: DndSkillKey; label: string; ability: AbilityScoreKey; altAbilities?: AbilityScoreKey[] };
 
 /** Orden alfabético en español, como la hoja de Let's Role. */
 export const DND_SKILLS: DndSkill[] = [
@@ -37,7 +38,7 @@ export const DND_SKILLS: DndSkill[] = [
   { key: 'deception', label: 'Engaño', ability: 'charisma' },
   { key: 'history', label: 'Historia', ability: 'intelligence' },
   { key: 'performance', label: 'Interpretación', ability: 'charisma' },
-  { key: 'intimidation', label: 'Intimidación', ability: 'charisma' },
+  { key: 'intimidation', label: 'Intimidación', ability: 'charisma', altAbilities: ['strength'] },
   { key: 'investigation', label: 'Investigación', ability: 'intelligence' },
   { key: 'sleightOfHand', label: 'Juego de Manos', ability: 'dexterity' },
   { key: 'medicine', label: 'Medicina', ability: 'wisdom' },
