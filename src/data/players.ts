@@ -28,7 +28,31 @@ export type Player = {
   abilities: Record<PlayerAbilitySlot, string | null>;
   equipamiento: string[];
   build: string[];
+  /** Total de Cálculos (nivel + stats). */
+  stats?: Record<string, number | string>;
+  /** Nombre de archivo en images/pfp (p. ej. "samael.png"), ruta o URL. */
+  image?: string;
+  /** Máximo de PG de combate (editable). */
+  hp?: number;
+  /** PG actuales. */
+  actualHp?: number;
+  /** Escudo (persistido; no se muestra en la vista compacta). */
+  escudo?: number;
+  /** Vida temporal (persistida; solo en el editor). */
+  vidaTemporal?: number;
+  /** Máximo de maná (editable). */
+  mana?: number;
+  /** Maná actual. */
+  actualMana?: number;
 };
+
+/** URL pública del retrato. Vacío si no hay imagen. */
+export function playerPortraitUrl(image: string | undefined | null): string | null {
+  const value = image?.trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value;
+  return `/images/pfp/${value.replace(/^\/+/, '')}`;
+}
 
 export let PLAYERS: Player[] = [];
 
@@ -41,7 +65,9 @@ function readError(body: unknown, fallback: string): string {
   return fallback;
 }
 
-export type PlayerListPatch = Partial<Pick<Player, 'build' | 'equipamiento'>> & {
+export type PlayerListPatch = Partial<
+  Pick<Player, 'build' | 'equipamiento' | 'stats' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana'>
+> & {
   abilities?: Partial<Record<PlayerAbilitySlot, string | null>>;
 };
 

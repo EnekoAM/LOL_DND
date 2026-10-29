@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { adjustPartyGold, partyGold, partyLevel, savePartyLevel, subscribeParty } from '../data/party';
+import { syncAllPlayerStats } from '../features/calculos/playerTotals';
 import { MAX_ROLE_LEVEL } from '../features/calculos/roleTables';
+import { NavLink } from 'react-router-dom';
 import { cx } from '../lib/cx';
 import './AppHeader.css';
 
@@ -12,11 +14,9 @@ export type NavItem<T extends string> = {
 
 type Props<T extends string> = {
   navItems: NavItem<T>[];
-  activeId: T;
-  onNavigate: (id: T) => void;
 };
 
-export default function AppHeader<T extends string>({ navItems, activeId, onNavigate }: Props<T>) {
+export default function AppHeader<T extends string>({ navItems }: Props<T>) {
   const gold = useSyncExternalStore(subscribeParty, partyGold);
   const level = useSyncExternalStore(subscribeParty, partyLevel);
   const [grantOpen, setGrantOpen] = useState(false);
@@ -76,6 +76,11 @@ export default function AppHeader<T extends string>({ navItems, activeId, onNavi
     setError(null);
     try {
       await savePartyLevel(next);
+      try {
+        await syncAllPlayerStats();
+      } catch {
+        // El nivel ya está guardado; las stats se recalcularán al tocar el equipo.
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo cambiar el nivel');
     } finally {
@@ -174,14 +179,14 @@ export default function AppHeader<T extends string>({ navItems, activeId, onNavi
 
       <nav className="header-nav">
         {navItems.map(item => (
-          <button
+          <NavLink
             key={item.id}
-            className={cx('nav-btn', item.id === activeId && 'nav-btn--active')}
-            onClick={() => onNavigate(item.id)}
+            to={`/${item.id}`}
+            className={({ isActive }) => cx('nav-btn', isActive && 'nav-btn--active')}
           >
             <span className="nav-btn__icon">{item.icon}</span>
             <span className="nav-btn__label">{item.label}</span>
-          </button>
+          </NavLink>
         ))}
       </nav>
     </header>

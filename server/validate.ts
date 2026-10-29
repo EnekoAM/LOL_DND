@@ -29,6 +29,19 @@ export type PlayerPatch = {
   abilities?: Partial<Record<(typeof ABILITY_SLOTS)[number], string | null>>;
   equipamiento?: string[];
   build?: string[];
+  stats?: Record<string, number | string>;
+  /** Máximo de PG de combate (editable en la ficha). */
+  hp?: number;
+  /** PG actuales. */
+  actualHp?: number;
+  /** Escudo (no se muestra en la vista compacta). */
+  escudo?: number;
+  /** Vida temporal (solo en el editor). */
+  vidaTemporal?: number;
+  /** Máximo de maná (editable en la ficha). */
+  mana?: number;
+  /** Maná actual. */
+  actualMana?: number;
 };
 
 export type PlayerReplace = {
@@ -152,6 +165,34 @@ export function parsePartyPatch(body: unknown): PartyPatch {
   return patch;
 }
 
+
+function playerStats(value: unknown): Record<string, number | string> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'stats tiene que ser un objeto');
+  }
+  const stats: Record<string, number | string> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!key.trim()) throw new HttpError(400, 'stats no admite claves vacías');
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+      stats[key] = raw;
+      continue;
+    }
+    if (typeof raw === 'string') {
+      stats[key] = raw;
+      continue;
+    }
+    throw new HttpError(400, `stats.${key} tiene que ser un número o un texto`);
+  }
+  return stats;
+}
+
+function nonNegInt(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value) || value < 0) {
+    throw new HttpError(400, `${field} tiene que ser un entero ≥ 0`);
+  }
+  return value;
+}
+
 export function parsePlayerPatch(body: unknown): PlayerPatch {
   const source = asObject(body);
   const patch: PlayerPatch = {};
@@ -161,6 +202,13 @@ export function parsePlayerPatch(body: unknown): PlayerPatch {
   if ('abilities' in source) patch.abilities = abilities(source.abilities, false);
   if ('equipamiento' in source) patch.equipamiento = equipmentList(source.equipamiento);
   if ('build' in source) patch.build = stringList(source.build, 'build');
+  if ('stats' in source) patch.stats = playerStats(source.stats);
+  if ('hp' in source) patch.hp = nonNegInt(source.hp, 'hp');
+  if ('actualHp' in source) patch.actualHp = nonNegInt(source.actualHp, 'actualHp');
+  if ('escudo' in source) patch.escudo = nonNegInt(source.escudo, 'escudo');
+  if ('vidaTemporal' in source) patch.vidaTemporal = nonNegInt(source.vidaTemporal, 'vidaTemporal');
+  if ('mana' in source) patch.mana = nonNegInt(source.mana, 'mana');
+  if ('actualMana' in source) patch.actualMana = nonNegInt(source.actualMana, 'actualMana');
   if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return patch;
 }

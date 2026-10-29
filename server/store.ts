@@ -603,6 +603,13 @@ export async function updatePlayer(name: string, patch: PlayerPatch) {
   if (patch.abilities) $set.abilities = { ...existing.abilities, ...patch.abilities };
   if (patch.equipamiento) $set.equipamiento = patch.equipamiento;
   if (patch.build) $set.build = patch.build;
+  if (patch.stats) $set.stats = patch.stats;
+  if (patch.hp !== undefined) $set.hp = patch.hp;
+  if (patch.actualHp !== undefined) $set.actualHp = patch.actualHp;
+  if (patch.escudo !== undefined) $set.escudo = patch.escudo;
+  if (patch.vidaTemporal !== undefined) $set.vidaTemporal = patch.vidaTemporal;
+  if (patch.mana !== undefined) $set.mana = patch.mana;
+  if (patch.actualMana !== undefined) $set.actualMana = patch.actualMana;
   if (patch.basicAttack === null) $unset.basicAttack = '';
   else if (patch.basicAttack) $set.basicAttack = patch.basicAttack;
 

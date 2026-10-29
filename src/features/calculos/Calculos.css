@@ -422,7 +422,7 @@
 
 .calc-equip-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -437,6 +437,11 @@
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 10px;
   margin-bottom: 12px;
+}
+
+.calc-equip-grid > *,
+.calc-build-grid > * {
+  min-width: 0;
 }
 
 .calc-build-empty,
@@ -462,6 +467,9 @@
   gap: 6px;
   transition: border-color 0.18s;
   position: relative;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .calc-item-card--add:hover {
@@ -470,9 +478,12 @@
 
 .calc-item-card__img {
   width: 100%;
+  max-width: 100%;
+  height: auto;
   aspect-ratio: 1;
   object-fit: contain;
   border-radius: 2px;
+  display: block;
 }
 
 .calc-item-card__name {
@@ -933,7 +944,7 @@
 /* ── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 700px) {
   .calc-equip-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .calc-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

@@ -323,6 +323,7 @@
   border: 1px solid rgba(150,120,60,0.2);
   background: transparent;
   color: rgba(212,196,154,0.5);
+  text-decoration: none;
   font-family: 'Cinzel', serif;
   font-size: 10px;
   font-weight: 600;

@@ -9,13 +9,12 @@ import {
   type AbilityScore,
 } from './playerSheets';
 import { ROLE_TABLES, findRoleTable } from './roleTables';
+import { playerTotalLine } from './playerTotals';
 import {
   STAT_COLUMNS,
-  emptyStatLine,
   formatStat,
   isZeroStat,
   itemStatLine,
-  sumStatLines,
   type StatLine,
   type StatValue,
 } from './statLine';
@@ -23,6 +22,8 @@ import {
 type Props = {
   playerName: string;
   equipment: string[];
+  /** Si true, la ficha de estadísticas sale desplegada. */
+  defaultOpen?: boolean;
 };
 
 type SheetRow = {
@@ -159,8 +160,8 @@ const RoleTablePanel = ({ roleId, level }: { roleId: string; level?: number }) =
   );
 };
 
-const StatsTable = ({ playerName, equipment }: Props) => {
-  const [open, setOpen] = useState(false);
+const StatsTable = ({ playerName, equipment, defaultOpen = false }: Props) => {
+  const [open, setOpen] = useState(defaultOpen);
   const partyLevelNow = useSyncExternalStore(subscribeParty, partyLevel);
   const sheet = findPlayerSheet(playerName);
   const base = sheet ? sheetBase(sheet) : undefined;
@@ -186,11 +187,7 @@ const StatsTable = ({ playerName, equipment }: Props) => {
   });
 
   const level = sheet ? partyLevelNow : undefined;
-  const parts: StatLine[] = [];
-  if (base) parts.push(base);
-  for (const row of itemRows) parts.push(row.line ?? emptyStatLine());
-  if (sheet?.extra) parts.push(sheet.extra);
-  const total = sumStatLines(parts);
+  const total = playerTotalLine(playerName, equipment);
 
   const rows: SheetRow[] = [
     { key: 'total', label: 'Total', line: total, tone: 'total' },

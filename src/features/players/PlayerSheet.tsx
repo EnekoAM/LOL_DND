@@ -1,0 +1,390 @@
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import { findAbility, type Ability } from '../../data/champions';
+import { findItem } from '../../data/items';
+import { partyLevel, subscribeParty } from '../../data/party';
+import { EQUIPMENT_SLOTS, PLAYER_ABILITY_SLOTS, playerPortraitUrl, type Player } from '../../data/players';
+import { formatPercentList } from '../../lib/format';
+import { normalizeName } from '../../lib/text';
+import AbilityCard from '../calculos/AbilityCard';
+import BuildPicker from '../calculos/BuildPicker';
+import ItemTile, { type ItemTileState } from '../calculos/ItemTile';
+import {
+  ABILITY_SCORES,
+  findPlayerSheet,
+  type AbilityScore,
+} from '../calculos/playerSheets';
+import { playerTotalLine } from '../calculos/playerTotals';
+import {
+  STAT_COLUMNS,
+  formatStat,
+  isZeroStat,
+  type StatKey,
+} from '../calculos/statLine';
+import StatsTable from '../calculos/StatsTable';
+import { itemAvailability } from '../items/stock';
+import { cx } from '../../lib/cx';
+import HpPanel, { type CombatPatch } from './HpPanel';
+import ManaPanel from './ManaPanel';
+
+type Props = {
+  player: Player;
+  saving: boolean;
+  equipError: string | null;
+  buildError: string | null;
+  combatError: string | null;
+  onBack: () => void;
+  onSelectAbility: (ability: Ability) => void;
+  onEquipamientoChange: (equipamiento: string[]) => void;
+  onBuildChange: (build: string[]) => void;
+  onCombatChange: (combat: CombatPatch) => void;
+};
+
+type SheetTab = 'general' | 'habilidades' | 'equipo' | 'build' | 'desglose';
+
+const TABS: { id: SheetTab; label: string }[] = [
+  { id: 'general', label: 'General' },
+  { id: 'habilidades', label: 'Habilidades' },
+  { id: 'equipo', label: 'Equipo' },
+  { id: 'build', label: 'Build' },
+  { id: 'desglose', label: 'Desglose' },
+];
+
+/** Stats mostrados como filas a la izquierda (estilo lista). */
+const LIST_KEYS: StatKey[] = [
+  'ad', 'ap', 'critChance', 'critDamage', 'atkSpe', 'atkSpePct',
+  'abSpe', 'abSpePct', 'lethality', 'magicPen',
+];
+
+const DEFENSE_KEYS: { key: StatKey; label: string }[] = [
+  { key: 'ac', label: 'CA' },
+  { key: 'spe', label: 'Velocidad' },
+  { key: 'mr', label: 'MR' },
+];
+
+const getBuildItemState = (player: Player, itemName: string): ItemTileState => {
+  const key = normalizeName(itemName);
+  if (player.equipamiento.some(equipped => normalizeName(equipped) === key)) return 'equipped';
+  if ((findItem(itemName)?.cantidad ?? 0) > 0) return 'owned';
+  return 'none';
+};
+
+const formatModifier = (modifier: number): string =>
+  modifier >= 0 ? `+${modifier}` : String(modifier);
+
+const Portrait = ({
+  image,
+  name,
+  failed,
+  onFail,
+}: {
+  image: string | undefined;
+  name: string;
+  failed: boolean;
+  onFail: () => void;
+}) => {
+  const src = playerPortraitUrl(image);
+  if (!src || failed) {
+    return <div className="sheet-portrait__placeholder" aria-hidden="true">👤</div>;
+  }
+  return (
+    <img
+      key={src}
+      className="sheet-portrait__img"
+      src={src}
+      alt={name}
+      onError={onFail}
+    />
+  );
+};
+
+const ScoreCard = ({ label, score }: { label: string; score: AbilityScore }) => (
+  <div className="sheet-score">
+    <div className="sheet-score__label">{label}</div>
+    <div className="sheet-score__mod">{formatModifier(score.modifier)}</div>
+    <div className="sheet-score__value">{score.score}</div>
+  </div>
+);
+
+const PlayerSheet = ({
+  player,
+  saving,
+  equipError,
+  buildError,
+  combatError,
+  onBack,
+  onSelectAbility,
+  onEquipamientoChange,
+  onBuildChange,
+  onCombatChange,
+}: Props) => {
+  const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
+  const [portraitFailed, setPortraitFailed] = useState(false);
+  const [tab, setTab] = useState<SheetTab>('general');
+  const level = useSyncExternalStore(subscribeParty, partyLevel);
+  useEffect(() => {
+    setPortraitFailed(false);
+  }, [player.image, player.name]);
+  const sheet = findPlayerSheet(player.name);
+  const total = playerTotalLine(player.name, player.equipamiento);
+  const columnsByKey = Object.fromEntries(STAT_COLUMNS.map(column => [column.key, column]));
+
+  const removeAt = (items: string[], index: number) => items.filter((_, itemIndex) => itemIndex !== index);
+  const slotsLeft = EQUIPMENT_SLOTS - player.equipamiento.length;
+
+  const addToEquipamiento = (itemName: string) => {
+    if (slotsLeft <= 0) return;
+    const item = findItem(itemName);
+    if (!item || itemAvailability(item).available <= 0) return;
+    onEquipamientoChange([...player.equipamiento, itemName]);
+    if (slotsLeft === 1) setPicker(null);
+  };
+
+  const addToBuild = (itemName: string) => {
+    if (player.build.some(name => normalizeName(name) === normalizeName(itemName))) return;
+    onBuildChange([...player.build, itemName]);
+  };
+
+  const suggestedMax = typeof total.hp === 'number' && Number.isFinite(total.hp) ? total.hp : 0;
+  const suggestedMana = typeof total.mana === 'number' && Number.isFinite(total.mana) ? total.mana : 0;
+
+  return (
+    <div className="sheet">
+      <button type="button" className="calc-back-btn sheet-back" onClick={onBack}>
+        ← Cambiar ficha
+      </button>
+
+      <div className="sheet-body">
+        <aside className="sheet-side">
+          <div className="sheet-portrait">
+            <Portrait
+              image={player.image}
+              name={player.name}
+              failed={portraitFailed}
+              onFail={() => setPortraitFailed(true)}
+            />
+          </div>
+          <div className="sheet-side__identity">
+            <h1 className="sheet-side__name">{player.name}</h1>
+            <div className="sheet-side__meta">
+              NVL {level} · {player.rol?.trim() || 'Sin rol'}
+            </div>
+          </div>
+
+          <HpPanel
+            player={player}
+            suggestedMax={suggestedMax}
+            saving={saving}
+            error={combatError}
+            onChange={onCombatChange}
+          />
+
+          {player.basicAttack && (
+            <div className="sheet-side__attack">
+              <div className="sheet-side__attack-label">Ataque básico</div>
+              <div>
+                {formatPercentList(player.basicAttack.scaling)} {player.basicAttack.type}
+              </div>
+            </div>
+          )}
+        </aside>
+
+        <div className="sheet-content">
+          <div className="sheet-tabs" role="tablist" aria-label="Secciones de la ficha">
+            {TABS.map(entry => (
+              <button
+                key={entry.id}
+                type="button"
+                role="tab"
+                aria-selected={tab === entry.id}
+                className={cx('sheet-tab', tab === entry.id && 'sheet-tab--active')}
+                onClick={() => setTab(entry.id)}
+              >
+                {entry.label}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'general' && (
+            <div className="sheet-general">
+              <section className="sheet-panel sheet-panel--list">
+                <div className="sheet-panel__title">Combate</div>
+                <ul className="sheet-stat-list">
+                  {LIST_KEYS.map(key => {
+                    const column = columnsByKey[key];
+                    const value = total[key];
+                    return (
+                      <li
+                        key={key}
+                        className={cx('sheet-stat-row', isZeroStat(value) && 'sheet-stat-row--zero')}
+                        title={column.title}
+                      >
+                        <span className="sheet-stat-row__label">{column.label}</span>
+                        <span className="sheet-stat-row__value">{formatStat(value)}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              <div className="sheet-general__right">
+                {sheet?.scores && (
+                  <section className="sheet-panel">
+                    <div className="sheet-panel__title">Características</div>
+                    <div className="sheet-scores">
+                      {ABILITY_SCORES.map(({ key, label }) => (
+                        <ScoreCard key={key} label={label} score={sheet.scores![key]} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                <section className="sheet-panel">
+                  <div className="sheet-panel__title">Defensa y movimiento</div>
+                  <div className="sheet-defense">
+                    {DEFENSE_KEYS.map(({ key, label }) => (
+                      <div key={key} className="sheet-defense__card" title={columnsByKey[key].title}>
+                        <div className="sheet-defense__label">{label}</div>
+                        <div className="sheet-defense__value">{formatStat(total[key])}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="sheet-panel">
+                  <div className="sheet-panel__title">Recursos</div>
+                  <div className="sheet-resources">
+                    <ManaPanel
+                      player={player}
+                      suggestedMax={suggestedMana}
+                      saving={saving}
+                      error={combatError}
+                      onChange={onCombatChange}
+                    />
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {tab === 'habilidades' && (
+            <section className="sheet-panel">
+              <div className="sheet-panel__title">Habilidades</div>
+              <div className="calc-grid">
+                {PLAYER_ABILITY_SLOTS.map(({ slot, label }) => {
+                  const abilityName = player.abilities[slot];
+                  return (
+                    <AbilityCard
+                      key={slot}
+                      label={label}
+                      name={abilityName ?? 'No definida'}
+                      ability={findAbility(abilityName)}
+                      onSelect={onSelectAbility}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {tab === 'equipo' && (
+            <section className="sheet-panel">
+              <div className="sheet-panel__title">
+                Equipamiento
+                <span className="sheet-panel__meta">{player.equipamiento.length}/{EQUIPMENT_SLOTS}</span>
+              </div>
+              {player.equipamiento.length === 0 && (
+                <p className="calc-build-empty">Todavía no lleva ítems equipados.</p>
+              )}
+              <div className="calc-equip-grid">
+                {player.equipamiento.map((itemName, index) => (
+                  <ItemTile
+                    key={`${itemName}-${index}`}
+                    name={itemName}
+                    item={findItem(itemName)}
+                    onRemove={() => onEquipamientoChange(removeAt(player.equipamiento, index))}
+                    removeDisabled={saving}
+                  />
+                ))}
+                {slotsLeft > 0 && (
+                  <button
+                    type="button"
+                    className="calc-item-card calc-item-card--add"
+                    onClick={() => setPicker('equipamiento')}
+                    disabled={saving}
+                  >
+                    <div className="calc-item-card__no-img">+</div>
+                    <div className="calc-item-card__name">{saving ? 'Guardando' : 'Añadir'}</div>
+                  </button>
+                )}
+              </div>
+              {equipError && <p className="calc-build-error">{equipError}</p>}
+            </section>
+          )}
+
+          {tab === 'build' && (
+            <section className="sheet-panel">
+              <div className="sheet-panel__title">Build deseada</div>
+              {player.build.length === 0 && (
+                <p className="calc-build-empty">Todavía no hay ítems en la build.</p>
+              )}
+              <div className="calc-build-grid">
+                {player.build.map((itemName, index) => (
+                  <ItemTile
+                    key={`${itemName}-${index}`}
+                    name={itemName}
+                    item={findItem(itemName)}
+                    state={getBuildItemState(player, itemName)}
+                    onRemove={() => onBuildChange(removeAt(player.build, index))}
+                    removeDisabled={saving}
+                  />
+                ))}
+                <button
+                  type="button"
+                  className="calc-item-card calc-item-card--add"
+                  onClick={() => setPicker('build')}
+                  disabled={saving}
+                >
+                  <div className="calc-item-card__no-img">+</div>
+                  <div className="calc-item-card__name">{saving ? 'Guardando' : 'Añadir'}</div>
+                </button>
+              </div>
+              {buildError && <p className="calc-build-error">{buildError}</p>}
+            </section>
+          )}
+
+          {tab === 'desglose' && (
+            <section className="sheet-panel">
+              <StatsTable
+                playerName={player.name}
+                equipment={player.equipamiento}
+                defaultOpen
+              />
+            </section>
+          )}
+        </div>
+      </div>
+
+      {picker === 'equipamiento' && (
+        <BuildPicker
+          title="Añadir al equipamiento"
+          busy={saving}
+          onlyAvailable
+          onAdd={addToEquipamiento}
+          onClose={() => setPicker(null)}
+        />
+      )}
+      {picker === 'build' && (
+        <BuildPicker
+          title="Añadir a la build"
+          busy={saving}
+          taken={player.build}
+          takenLabel="En la build"
+          onAdd={addToBuild}
+          onClose={() => setPicker(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default PlayerSheet;
