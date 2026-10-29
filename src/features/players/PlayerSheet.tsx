@@ -207,7 +207,7 @@ const PlayerSheet = ({
 
           {tab === 'general' && (
             <div className="sheet-general">
-              <section className="sheet-panel sheet-panel--list">
+              <section className="sheet-panel sheet-panel--list sheet-general__combat">
                 <div className="sheet-panel__title">Combate</div>
                 <ul className="sheet-stat-list">
                   {LIST_KEYS.map(key => {
@@ -227,71 +227,80 @@ const PlayerSheet = ({
                 </ul>
               </section>
 
-              <div className="sheet-general__right">
+              <div className="sheet-general__sheet">
                 <SheetEditor
                   sheet={player.sheet}
                   saving={saving}
                   error={sheetError}
                   onSave={onSheetChange}
                 />
-
-                <section className="sheet-panel">
-                  <div className="sheet-panel__title">Defensa y movimiento</div>
-                  <div className="sheet-defense">
-                    {DEFENSE_KEYS.map(({ key, label }) => (
-                      <div key={key} className="sheet-defense__card" title={columnsByKey[key].title}>
-                        <div className="sheet-defense__label">{label}</div>
-                        <div className="sheet-defense__value">{formatStat(total[key])}</div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                <section className="sheet-panel">
-                  <div className="sheet-panel__title">Recursos</div>
-                  <div className="sheet-resources">
-                    <ManaPanel
-                      player={player}
-                      suggestedMax={suggestedMana}
-                      saving={saving}
-                      error={combatError}
-                      onChange={onCombatChange}
-                    />
-                  </div>
-                </section>
               </div>
+
+              <section className="sheet-panel sheet-general__defense">
+                <div className="sheet-panel__title">Defensa y movimiento</div>
+                <div className="sheet-defense">
+                  {DEFENSE_KEYS.map(({ key, label }) => (
+                    <div key={key} className="sheet-defense__card" title={columnsByKey[key].title}>
+                      <div className="sheet-defense__label">{label}</div>
+                      <div className="sheet-defense__value">{formatStat(total[key])}</div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="sheet-panel sheet-general__resources">
+                <div className="sheet-panel__title">Recursos</div>
+                <div className="sheet-resources">
+                  <ManaPanel
+                    player={player}
+                    suggestedMax={suggestedMana}
+                    saving={saving}
+                    error={combatError}
+                    onChange={onCombatChange}
+                  />
+                </div>
+              </section>
             </div>
           )}
 
           {tab === 'habilidades' && (
-            <section className="sheet-panel">
-              <div className="sheet-panel__title">Habilidades</div>
-              <div className="calc-grid">
-                {basicAttack.length > 0 && (
-                  <div className="calc-card calc-card--ability" title="Ataque básico">
-                    <div className="calc-card__key">[AA]</div>
-                    <div className="calc-card__name">Ataque básico</div>
-                    {basicAttack.map((entry, index) => (
-                      <div key={`${entry.type}-${index}`} className="calc-card__damage">
-                        {entry.type}: {formatPercentList(entry.scaling)}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {PLAYER_ABILITY_SLOTS.map(({ slot, label }) => {
-                  const abilityName = player.abilities[slot];
-                  return (
-                    <AbilityCard
-                      key={slot}
-                      label={label}
-                      name={abilityName ?? 'No definida'}
-                      ability={findAbility(abilityName)}
-                      onSelect={onSelectAbility}
-                    />
-                  );
-                })}
-              </div>
-            </section>
+            <>
+              <section className="sheet-panel">
+                <div className="sheet-panel__title">Auto-ataques</div>
+                <div className="calc-grid">
+                  {basicAttack.length > 0 ? (
+                    <div className="calc-card calc-card--ability" title="Ataque básico">
+                      <div className="calc-card__key">[AA]</div>
+                      <div className="calc-card__name">Ataque básico</div>
+                      {basicAttack.map((entry, index) => (
+                        <div key={`${entry.type}-${index}`} className="calc-card__damage">
+                          {entry.type}: {formatPercentList(entry.scaling)}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="calc-card__name">Sin ataque básico definido</div>
+                  )}
+                </div>
+              </section>
+              <section className="sheet-panel">
+                <div className="sheet-panel__title">Habilidades</div>
+                <div className="calc-grid">
+                  {PLAYER_ABILITY_SLOTS.map(({ slot, label }) => {
+                    const abilityName = player.abilities[slot];
+                    return (
+                      <AbilityCard
+                        key={slot}
+                        label={label}
+                        name={abilityName ?? 'No definida'}
+                        ability={findAbility(abilityName)}
+                        onSelect={onSelectAbility}
+                      />
+                    );
+                  })}
+                </div>
+              </section>
+            </>
           )}
 
           {tab === 'equipo' && (
