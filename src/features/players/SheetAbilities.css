@@ -1,0 +1,45 @@
+/* ── FICHA · HABILIDADES ─────────────────────────────────── */
+.sheet-ability {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sheet-ability > .calc-card {
+  flex: 1;
+}
+
+.sheet-ability__origin {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  padding: 0 2px;
+}
+
+.sheet-ability__change {
+  align-self: stretch;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(201,168,76,0.06);
+  border: 1px solid rgba(201,168,76,0.3);
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.sheet-ability__change:hover:not(:disabled) {
+  background: rgba(201,168,76,0.14);
+  border-color: rgba(201,168,76,0.6);
+  color: var(--gold-bright);
+}
+
+.sheet-ability__change:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

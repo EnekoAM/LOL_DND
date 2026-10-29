@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Ability } from '../../data/champions';
-import { PLAYERS, playerPortraitUrl, savePlayerPatch, type Player } from '../../data/players';
+import { PLAYERS, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
 import { normalizeName } from '../../lib/text';
 import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from '../calculos/damage';
 import DamagePanel from '../calculos/DamagePanel';
@@ -19,6 +19,7 @@ const Players = () => {
   const [buildError, setBuildError] = useState<string | null>(null);
   const [combatError, setCombatError] = useState<string | null>(null);
   const [sheetError, setSheetError] = useState<string | null>(null);
+  const [abilityError, setAbilityError] = useState<string | null>(null);
 
   const updateDamageInputs = (patch: Partial<DamageInputs>) =>
     setDamageInputs(prev => ({ ...prev, ...patch }));
@@ -29,6 +30,7 @@ const Players = () => {
     setBuildError(null);
     setCombatError(null);
     setSheetError(null);
+    setAbilityError(null);
   };
 
   const updatePlayerList = async (
@@ -75,6 +77,26 @@ const Players = () => {
     }
   };
 
+  // Solo se manda el hueco cambiado: la API valida cada habilidad que recibe.
+  const changeAbility = async (slot: PlayerAbilitySlot, abilityName: string | null) => {
+    if (!player || saving) return;
+    const name = player.name;
+    const previous = player;
+    setPlayer({ ...player, abilities: { ...player.abilities, [slot]: abilityName } });
+    setSaving(true);
+    setAbilityError(null);
+    try {
+      const saved = await savePlayerPatch(name, { abilities: { [slot]: abilityName } });
+      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? saved : current));
+    } catch (error) {
+      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? previous : current));
+      setAbilityError(error instanceof Error ? error.message : 'No se pudo guardar');
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (ability) {
     return (
       <div className="players-root">
@@ -98,12 +120,14 @@ const Players = () => {
           buildError={buildError}
           combatError={combatError}
           sheetError={sheetError}
+          abilityError={abilityError}
           onBack={leavePlayer}
           onSelectAbility={setAbility}
           onEquipamientoChange={equipamiento => { void updatePlayerList({ equipamiento }); }}
           onBuildChange={build => { void updatePlayerList({ build }); }}
           onCombatChange={combat => updatePlayerList(combat)}
           onSheetChange={sheet => updatePlayerList({ sheet })}
+          onAbilityChange={changeAbility}
         />
       ) : (
         <>

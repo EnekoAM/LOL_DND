@@ -727,23 +727,6 @@
   color: rgba(201,168,76,0.55);
 }
 
-.hab-players {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 32px;
-}
-
-.hab-players .hab-ability--empty {
-  opacity: 0.85;
-}
-
-.hab-player-empty {
-  margin: 0 0 32px;
-  font-style: italic;
-  color: rgba(212,196,154,0.45);
-}
-
 .hab-modal--assign {
   max-width: 640px;
 }

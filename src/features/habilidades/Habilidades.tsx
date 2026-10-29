@@ -11,7 +11,6 @@ import { cx } from '../../lib/cx';
 import { normalizeName } from '../../lib/text';
 import AbilityModal from './AbilityModal';
 import ChampionRow from './ChampionRow';
-import PlayerLoadouts from './PlayerLoadouts';
 import { ROLE_ICONS } from './championStyle';
 import './Habilidades.css';
 
@@ -32,9 +31,6 @@ const Habilidades = () => {
 
   return (
     <div className="hab-root">
-      <h2 className="hab-block-title">Jugadores</h2>
-      <PlayerLoadouts revision={revision} />
-
       <h2 className="hab-block-title">Campeones</h2>
       <div className="hab-search-wrap">
         <span className="hab-search__icon">⚔</span>

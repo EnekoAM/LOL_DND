@@ -1,18 +1,15 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { findAbility, type Ability } from '../../data/champions';
+import type { Ability } from '../../data/champions';
 import { findItem } from '../../data/items';
 import { partyLevel, subscribeParty } from '../../data/party';
 import {
   EQUIPMENT_SLOTS,
-  PLAYER_ABILITY_SLOTS,
-  basicAttackEntries,
   playerPortraitUrl,
   type Player,
+  type PlayerAbilitySlot,
   type PlayerSheet as PlayerSheetData,
 } from '../../data/players';
-import { formatPercentList } from '../../lib/format';
 import { normalizeName } from '../../lib/text';
-import AbilityCard from '../calculos/AbilityCard';
 import BuildPicker from '../calculos/BuildPicker';
 import ItemTile, { type ItemTileState } from '../calculos/ItemTile';
 import { hpSyncPatch, playerMaxHp, playerTotalLine } from '../calculos/playerTotals';
@@ -27,6 +24,7 @@ import { itemAvailability } from '../items/stock';
 import { cx } from '../../lib/cx';
 import HpPanel, { type CombatPatch } from './HpPanel';
 import ManaPanel from './ManaPanel';
+import SheetAbilities from './SheetAbilities';
 import SheetEditor from './SheetEditor';
 
 type Props = {
@@ -36,12 +34,14 @@ type Props = {
   buildError: string | null;
   combatError: string | null;
   sheetError: string | null;
+  abilityError: string | null;
   onBack: () => void;
   onSelectAbility: (ability: Ability) => void;
   onEquipamientoChange: (equipamiento: string[]) => void;
   onBuildChange: (build: string[]) => void;
   onCombatChange: (combat: CombatPatch) => void;
   onSheetChange: (sheet: PlayerSheetData) => Promise<void>;
+  onAbilityChange: (slot: PlayerAbilitySlot, name: string | null) => Promise<void>;
 };
 
 type SheetTab = 'general' | 'habilidades' | 'equipo' | 'build' | 'desglose';
@@ -106,12 +106,14 @@ const PlayerSheet = ({
   buildError,
   combatError,
   sheetError,
+  abilityError,
   onBack,
   onSelectAbility,
   onEquipamientoChange,
   onBuildChange,
   onCombatChange,
   onSheetChange,
+  onAbilityChange,
 }: Props) => {
   const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
   const [portraitFailed, setPortraitFailed] = useState(false);
@@ -121,7 +123,6 @@ const PlayerSheet = ({
     setPortraitFailed(false);
   }, [player.image, player.name]);
   const total = playerTotalLine(player.sheet, player.equipamiento);
-  const basicAttack = basicAttackEntries(player.basicAttack);
   const columnsByKey = Object.fromEntries(STAT_COLUMNS.map(column => [column.key, column]));
 
   const removeAt = (items: string[], index: number) => items.filter((_, itemIndex) => itemIndex !== index);
@@ -264,43 +265,13 @@ const PlayerSheet = ({
           )}
 
           {tab === 'habilidades' && (
-            <>
-              <section className="sheet-panel">
-                <div className="sheet-panel__title">Auto-ataques</div>
-                <div className="calc-grid">
-                  {basicAttack.length > 0 ? (
-                    <div className="calc-card calc-card--ability" title="Ataque básico">
-                      <div className="calc-card__key">[AA]</div>
-                      <div className="calc-card__name">Ataque básico</div>
-                      {basicAttack.map((entry, index) => (
-                        <div key={`${entry.type}-${index}`} className="calc-card__damage">
-                          {entry.type}: {formatPercentList(entry.scaling)}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="calc-card__name">Sin ataque básico definido</div>
-                  )}
-                </div>
-              </section>
-              <section className="sheet-panel">
-                <div className="sheet-panel__title">Habilidades</div>
-                <div className="calc-grid">
-                  {PLAYER_ABILITY_SLOTS.map(({ slot, label }) => {
-                    const abilityName = player.abilities[slot];
-                    return (
-                      <AbilityCard
-                        key={slot}
-                        label={label}
-                        name={abilityName ?? 'No definida'}
-                        ability={findAbility(abilityName)}
-                        onSelect={onSelectAbility}
-                      />
-                    );
-                  })}
-                </div>
-              </section>
-            </>
+            <SheetAbilities
+              player={player}
+              saving={saving}
+              error={abilityError}
+              onSelectAbility={onSelectAbility}
+              onAbilityChange={onAbilityChange}
+            />
           )}
 
           {tab === 'equipo' && (
