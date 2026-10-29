@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalS
 import Modal from '../../components/Modal';
 import { craftItem, findItem, findItems, ITEMS, STAT_KEYS, type Item } from '../../data/items';
 import { partyGold, subscribeParty } from '../../data/party';
+import { useLiveRevision } from '../../data/live';
 import { tradeShop, type ShopMode } from '../../data/shop';
 import { cx } from '../../lib/cx';
 import { matchesSearch } from '../../lib/text';
@@ -75,6 +76,8 @@ const Tienda = () => {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ mode: CounterMode; kind: 'ok' | 'error'; text: string } | null>(null);
   const gold = useSyncExternalStore(subscribeParty, partyGold);
+  // Stock o equipo cambiados en otra pestaña: el carrito y los filtros se quedan como están.
+  const liveRevision = useLiveRevision('items', 'players');
 
   useEffect(() => {
     if (mode === 'compra' && (isPrismatic(rarity) || (isStarter(rarity)))) setRarity('');
@@ -82,7 +85,7 @@ const Tienda = () => {
 
   const catalog = useMemo(
     () => [...ITEMS].sort((a, b) => rarityRank(a.rareza) - rarityRank(b.rareza) || a.nombre.localeCompare(b.nombre, 'es')),
-    [],
+    [liveRevision],
   );
 
   const rarities = useMemo(() => {

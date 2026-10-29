@@ -7,6 +7,7 @@ import {
   type Champion,
   type ChampionFilter,
 } from '../../data/champions';
+import { useLiveRevision } from '../../data/live';
 import { cx } from '../../lib/cx';
 import PickerCard from './PickerCard';
 
@@ -21,11 +22,12 @@ type Props = {
 };
 
 const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, onSelect }: Props) => {
+  const liveRevision = useLiveRevision('champions');
   const champions = useMemo(
     () => filterChampions(CHAMPIONS, filter).filter(c => !filter.onlyFavorites || favorites.has(c.champion)),
-    [filter, favorites],
+    [filter, favorites, liveRevision],
   );
-  const pinned = useMemo(() => CHAMPIONS.filter(c => favorites.has(c.champion)), [favorites]);
+  const pinned = useMemo(() => CHAMPIONS.filter(c => favorites.has(c.champion)), [favorites, liveRevision]);
 
   return (
     <>

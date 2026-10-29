@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { findItem, ITEMS, type Item } from '../../data/items';
+import { useLiveRevision } from '../../data/live';
 import { DEFAULT_ITEM_FILTERS, matchesItemFilters, sortItems, type ItemFilterState } from './filters';
 import ItemCard from './ItemCard';
 import ItemDetailModal from './ItemDetailModal';
@@ -10,11 +11,13 @@ const Items = () => {
   const [filters, setFilters] = useState(DEFAULT_ITEM_FILTERS);
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
+  // Cambios guardados en otra pestaña (stock, definición o equipo de un jugador).
+  const liveRevision = useLiveRevision('items', 'players');
 
   // revision obliga a recalcular la lista cuando se guarda un ítem (ITEMS se actualiza fuera de React).
   const visibleItems = useMemo(
     () => sortItems(ITEMS.filter(item => matchesItemFilters(item, filters)), filters.sort),
-    [filters, revision],
+    [filters, revision, liveRevision],
   );
   const selectedItem = selectedName ? findItem(selectedName) ?? null : null;
 

@@ -7,6 +7,7 @@ import {
   type AbilityKey,
   type ChampionFilter,
 } from '../../data/champions';
+import { useLiveRevision } from '../../data/live';
 import { cx } from '../../lib/cx';
 import { normalizeName } from '../../lib/text';
 import AbilityModal from './AbilityModal';
@@ -19,8 +20,9 @@ const Habilidades = () => {
   const [expandedName, setExpandedName] = useState<string | null>(null);
   const [selected, setSelected] = useState<{ champion: string; slot: AbilityKey } | null>(null);
   const [revision, setRevision] = useState(0);
+  const liveRevision = useLiveRevision('champions');
 
-  const champions = useMemo(() => filterChampions(CHAMPIONS, filter), [filter, revision]);
+  const champions = useMemo(() => filterChampions(CHAMPIONS, filter), [filter, revision, liveRevision]);
   const selectedChampion = selected
     ? champions.find(champion => normalizeName(champion.champion) === normalizeName(selected.champion))
       ?? CHAMPIONS.find(champion => normalizeName(champion.champion) === normalizeName(selected.champion))

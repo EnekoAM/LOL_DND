@@ -58,6 +58,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://localhost:3001',
+      // Sync en vivo entre pestañas (server/live.ts).
+      '/ws': { target: 'ws://localhost:3001', ws: true },
     },
   },
 })

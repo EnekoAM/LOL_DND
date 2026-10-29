@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Ability } from '../../data/champions';
 import { PLAYERS, PLAYERS_HYDRATED_EVENT, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
 import type { RankedSlot } from '../../data/abilityRanks';
+import { useLiveRevision } from '../../data/live';
 import { normalizeName } from '../../lib/text';
 import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from '../calculos/damage';
 import DamagePanel from '../calculos/DamagePanel';
@@ -45,6 +46,12 @@ const Players = () => {
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState(DEFAULT_DAMAGE_INPUTS);
   const [saving, setSaving] = useState(false);
+  // Otra pestaña guardó un jugador: la ficha abierta toma la versión nueva (salvo si aquí hay un guardado en curso).
+  const playersRevision = useLiveRevision('players');
+  useEffect(() => {
+    if (playersRevision === 0 || saving) return;
+    setPlayer(current => (current ? findSaved(current.name) ?? current : current));
+  }, [playersRevision]);
   const [equipError, setEquipError] = useState<string | null>(null);
   const [buildError, setBuildError] = useState<string | null>(null);
   const [combatError, setCombatError] = useState<string | null>(null);

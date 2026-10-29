@@ -7,6 +7,7 @@ import {
   type HistoryEntry,
   type HistoryKind,
 } from '../../data/history';
+import { useLiveRevision } from '../../data/live';
 import { cx } from '../../lib/cx';
 import './Historial.css';
 
@@ -91,6 +92,8 @@ const Historial = () => {
   const [pending, setPending] = useState<HistoryEntry | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rowError, setRowError] = useState<{ id: string; text: string } | null>(null);
+  // Tiradas, compras o reversiones hechas en otra pestaña: se vuelve a pedir el historial.
+  const historyRevision = useLiveRevision('history');
 
   useEffect(() => {
     let active = true;
@@ -107,7 +110,7 @@ const Historial = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [historyRevision]);
 
   const visible = filter === 'todo' ? entries : entries.filter(entry => entry.kind === filter);
 

@@ -1,6 +1,7 @@
 import { useEffect, type ComponentType } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppHeader, { type NavItem } from './components/AppHeader';
+import { startLiveSync, useLiveRevision } from './data/live';
 import Calculos from './features/calculos/Calculos';
 import Habilidades from './features/habilidades/Habilidades';
 import Historial from './features/historial/Historial';
@@ -28,6 +29,12 @@ const SCREENS: Screen[] = [
 
 function App() {
   const location = useLocation();
+  // Repinta la pantalla cuando otra pestaña guarda algo (los datos viven fuera de React).
+  useLiveRevision();
+
+  useEffect(() => {
+    startLiveSync();
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
