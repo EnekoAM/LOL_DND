@@ -46,7 +46,7 @@ export default function SideNav<T extends string>({
         aria-label="Secciones"
       >
         <div className="side-nav__crest" aria-hidden="true">
-          <span className="side-nav__crest-mark">{'\u269C'}</span>
+          <img className="side-nav__crest-mark" src="/logo.png" alt="" width="20" height="23" decoding="async" />
           <span className="side-nav__crest-text">LOL &middot; D&amp;D</span>
         </div>
         <div className="side-nav__rule" aria-hidden="true" />

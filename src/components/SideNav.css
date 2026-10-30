@@ -35,9 +35,8 @@
 .side-nav__crest-mark {
   flex: none;
   width: 20px;
-  text-align: center;
-  font-size: 17px;
-  color: var(--gold);
+  height: 23px;
+  object-fit: contain;
   filter: drop-shadow(0 0 5px rgba(201,168,76,0.55));
 }
 
