@@ -20,7 +20,7 @@ export const MAX_SPIN_MS = 15000;
 
 /** Cartas antes del pool (para que no se vea hueco a la izquierda). */
 const LEAD = 6;
-/** Cartas tras el ganador: lo que había justo después. */
+/** Cartas tras el ganador: rellenan el viewport a la derecha al frenar. */
 const TAIL = 7;
 
 /** Rarezas a las que puede subir cada tirada (ver rollRarity en loot.ts). */
@@ -56,28 +56,38 @@ const takeUnique = (rarity: LootRarity, used: Set<string>): LootRoll[] => {
   return out;
 };
 
+/** Rellena hasta `count` cartas ciclando un pool (solo padding visual; la vuelta del medio sigue sin repeticiones). */
+const padFrom = (count: number, pool: LootRoll[]): LootRoll[] => {
+  if (count <= 0 || pool.length === 0) return [];
+  const out: LootRoll[] = [];
+  const order = shuffle(pool);
+  for (let i = 0; i < count; i++) out.push(order[i % order.length]!);
+  return out;
+};
+
 /**
- * Tira de la ruleta estilo "caja", SIN ítems repetidos. El ganador ya está decidido
- * (no cambia las probabilidades) y aparece una sola vez.
- * Orden: relleno · vuelta completa del pool (todas las demás opciones) · GANADOR · cola.
- * La marca recorre una vuelta entera del pool antes de parar en el ítem.
- * Relleno y cola salen solo de rarezas superiores (el "casi"); si no alcanzan, se acortan.
+ * Tira de la ruleta estilo "caja". El ganador ya está decidido y aparece una sola vez
+ * en la vuelta central. Orden: relleno · vuelta completa del pool · GANADOR · cola.
+ * Lead/cola usan primero rarezas superiores ("casi") y, si no alcanzan (p. ej. legendario),
+ * rellenan ciclando el pool para que el viewport no quede vacío al frenar.
  */
 export const buildReel = (base: LootRarity, winner: LootRoll): LootReelData => {
   const used = new Set<string>([keyOf(winner.entry.name)]);
   const poolSize = new Set((LOOT.items[base] ?? []).map(e => keyOf(e.name))).size;
-  // Vuelta completa: todas las opciones del pool excepto el ganador.
   const lap = shuffle(takeUnique(base, used));
   const extras = shuffle(UPGRADES[base].flatMap(r => takeUnique(r, used)));
 
-  // Cola: rareza superior ("casi"). 50%: 0 mín., 35%: 1, 15%: 2; hasta TAIL si hay extras.
+  // Cola: preferir extras; completar hasta TAIL con el pool (padding visual).
   const roll = Math.random();
   const minBait = roll < 0.5 ? 0 : roll < 0.85 ? 1 : 2;
-  const tailCount = Math.min(TAIL, Math.max(minBait, Math.min(TAIL, extras.length)));
-  const tail = shuffle(extras.splice(0, tailCount));
+  const baitTake = Math.min(extras.length, Math.max(minBait, Math.min(TAIL, extras.length)));
+  const bait = shuffle(extras.splice(0, baitTake));
+  const padPool = lap.length > 0 ? lap : [winner];
+  const tail = [...bait, ...padFrom(TAIL - bait.length, padPool)].slice(0, TAIL);
 
-  // Relleno inicial con lo que quede de extras (no se come la vuelta del pool).
-  const lead = extras.splice(0, Math.min(LEAD, extras.length));
+  // Relleno inicial: extras restantes + padding del pool.
+  const leadExtras = extras.splice(0, Math.min(LEAD, extras.length));
+  const lead = [...leadExtras, ...padFrom(LEAD - leadExtras.length, padPool)].slice(0, LEAD);
 
   return {
     id: Date.now() + Math.random(),
