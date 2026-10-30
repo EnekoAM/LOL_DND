@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { cx } from '../../lib/cx';
+import { MAP_PIXELS, POI_KINDS, RUNETERRA_POIS, type PoiKind, type RuneterraPoi } from './pois';
 import './Mapa.css';
 
 /**
@@ -15,10 +17,55 @@ const MAX_ZOOM = MAX_NATIVE_ZOOM + 2;
 /** En CRS.Simple, a zoom 0 un tile de 512px = 512 unidades: el mapa entero mide 512x512. */
 const MAP_UNITS = TILE_SIZE;
 const BOUNDS = L.latLngBounds([-MAP_UNITS, 0], [0, MAP_UNITS]);
+/** Unidades CRS por pixel del mapa de 8192. */
+const UNITS_PER_PIXEL = MAP_UNITS / MAP_PIXELS;
 const TILE_URL = `${import.meta.env.BASE_URL}assets/runeterra/tiles/{z}/{x}/{y}.jpg`;
+
+const KIND_LABEL: Record<PoiKind, string> = {
+  region: 'Region',
+  lugar: 'Lugar',
+  ciudad: 'Ciudad',
+  pueblo: 'Pueblo',
+};
+
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, ch => `&#${ch.charCodeAt(0)};`);
+}
+
+function poiLatLng(poi: RuneterraPoi): L.LatLng {
+  return L.latLng(-poi.y * UNITS_PER_PIXEL, poi.x * UNITS_PER_PIXEL);
+}
+
+function poiIcon(poi: RuneterraPoi): L.DivIcon {
+  return L.divIcon({
+    className: `mapa-poi mapa-poi--${poi.kind}`,
+    html: `<span class="mapa-poi__mark"></span><span class="mapa-poi__label">${escapeHtml(poi.name)}</span>`,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  });
+}
+
+function poiPopup(poi: RuneterraPoi): string {
+  const parts = [`<div class="mapa-popup__kind">${KIND_LABEL[poi.kind]}${poi.region ? ` &middot; ${escapeHtml(poi.region)}` : ''}</div>`];
+  parts.push(`<div class="mapa-popup__title">${escapeHtml(poi.name)}</div>`);
+  if (poi.nameEn !== poi.name) parts.push(`<div class="mapa-popup__alt">${escapeHtml(poi.nameEn)}</div>`);
+  if (poi.subtitle) parts.push(`<div class="mapa-popup__subtitle">${escapeHtml(poi.subtitle)}</div>`);
+  if (poi.description) parts.push(`<p class="mapa-popup__text">${escapeHtml(poi.description)}</p>`);
+  if (poi.link) {
+    parts.push(`<a class="mapa-popup__link" href="${escapeHtml(poi.link)}" target="_blank" rel="noreferrer">Ver en Universe &rarr;</a>`);
+  }
+  return `<div class="mapa-popup">${parts.join('')}</div>`;
+}
+
+const ALL_KINDS = new Set<PoiKind>(POI_KINDS.map(kind => kind.id));
 
 export default function Mapa() {
   const hostRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const groupsRef = useRef<Map<PoiKind, L.LayerGroup>>(new Map());
+  const [shown, setShown] = useState<Set<PoiKind>>(() => new Set(ALL_KINDS));
+  const shownRef = useRef(shown);
+  shownRef.current = shown;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -65,6 +112,20 @@ export default function Mapa() {
     applyMinZoom();
     map.setView(BOUNDS.getCenter(), map.getMinZoom(), { animate: false });
 
+    // Puntos de interes del mapa oficial, por capas segun zoom (como en Explore Runeterra).
+    const groups = groupsRef.current;
+    groups.clear();
+    for (const kind of POI_KINDS) groups.set(kind.id, L.layerGroup());
+    for (const poi of RUNETERRA_POIS) {
+      L.marker(poiLatLng(poi), { icon: poiIcon(poi), title: poi.name, riseOnHover: true })
+        .bindPopup(poiPopup(poi), { className: 'mapa-popup-wrap', maxWidth: 320, minWidth: 220 })
+        .addTo(groups.get(poi.kind)!);
+    }
+    mapRef.current = map;
+    const syncLayers = () => syncPoiLayers(map, groups, shownRef.current);
+    map.on('zoomend', syncLayers);
+    syncLayers();
+
     // El contenedor puede cambiar de tamano (menu lateral, movil).
     const observer = new ResizeObserver(() => {
       map.invalidateSize();
@@ -74,17 +135,57 @@ export default function Mapa() {
 
     return () => {
       observer.disconnect();
+      map.off('zoomend', syncLayers);
+      mapRef.current = null;
       map.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (mapRef.current) syncPoiLayers(mapRef.current, groupsRef.current, shown);
+  }, [shown]);
+
+  const toggleKind = (kind: PoiKind) => {
+    setShown(prev => {
+      const next = new Set(prev);
+      if (next.has(kind)) next.delete(kind);
+      else next.add(kind);
+      return next;
+    });
+  };
 
   return (
     <div className="mapa-root">
       <div className="mapa-toolbar">
         <span className="mapa-toolbar__title">Runeterra</span>
-        <span className="mapa-toolbar__hint">Arrastra para mover &middot; rueda / pellizco para zoom</span>
+        <div className="mapa-filters" role="group" aria-label="Puntos de interes">
+          {POI_KINDS.map(kind => (
+            <button
+              key={kind.id}
+              type="button"
+              className={cx('mapa-chip', `mapa-chip--${kind.id}`, shown.has(kind.id) && 'mapa-chip--on')}
+              aria-pressed={shown.has(kind.id)}
+              onClick={() => toggleKind(kind.id)}
+            >
+              {kind.label}
+            </button>
+          ))}
+        </div>
+        <span className="mapa-toolbar__hint">Acerca el zoom para ver ciudades y pueblos &middot; clic en un punto para info</span>
       </div>
       <div ref={hostRef} className="mapa-canvas" />
     </div>
   );
+}
+
+/** Muestra cada capa si esta activada y el zoom actual llega a su umbral. */
+function syncPoiLayers(map: L.Map, groups: Map<PoiKind, L.LayerGroup>, shown: Set<PoiKind>) {
+  const zoom = map.getZoom();
+  for (const kind of POI_KINDS) {
+    const group = groups.get(kind.id);
+    if (!group) continue;
+    const visible = shown.has(kind.id) && zoom >= kind.minZoom;
+    if (visible && !map.hasLayer(group)) group.addTo(map);
+    if (!visible && map.hasLayer(group)) map.removeLayer(group);
+  }
 }

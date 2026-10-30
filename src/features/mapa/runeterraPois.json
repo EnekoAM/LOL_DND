@@ -1,0 +1,1059 @@
+{
+ "source": "https://map.leagueoflegends.com/loc/pins-es_es.json + content-panels-es_es.json (Riot, Explore Runeterra)",
+ "calibration": {
+  "note": "pixel 8192 = OX + S*x, OY - S*y; least-squares fit on 5 landmarks drawn on the terrain tiles (Demacia city, Immortal Bastion, Sun Disc, Placidium, Void/Icathia); residual <= ~36px (~0.4%)",
+  "S": 3.97459,
+  "OX": 4103.88,
+  "OY": 4019.68,
+  "adjust": "Piltover/Zaun share one official point (doubleTop/doubleBottom icons); split +-24px vertically."
+ },
+ "mapSize": 8192,
+ "pois": [
+  {
+   "slug": "bilgewater",
+   "name": "Aguas Estancadas",
+   "nameEn": "Bilgewater",
+   "kind": "region",
+   "x": 6365,
+   "y": 4747,
+   "subtitle": "Ciudad portuaria sin ley",
+   "description": "Aguas Estancadas es una ciudad portuaria muy particular: hogar de cazadores de monstruos, bandas portuarias, pueblos indígenas y comerciantes de todas partes del mundo. No hay prácticamente nada que no se pueda comprar aquí, desde hextech ilegal hasta el favor de los amos del crimen locales. Es el mejor sitio en el que buscar fama y fortuna, si bien la muerte acecha en cada callejón y la ley brilla por su ausencia.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/bilgewater/"
+  },
+  {
+   "slug": "demacia",
+   "name": "Demacia",
+   "nameEn": "Demacia",
+   "kind": "region",
+   "x": 2403,
+   "y": 3753,
+   "subtitle": "Reino militar de naturaleza orgullosa",
+   "description": "Demacia es un reino orgulloso y honesto con un prestigioso historial militar. Fundado con el propósito de servir de refugio frente a la magia tras las Guerras Rúnicas, hay quien cree que la edad de oro de Demacia terminará si no logra adaptarse al nuevo mundo. Su sociedad, autosuficiente y agraria, es de naturaleza defensiva y aislada, y valora la justicia, el honor y el deber por encima de todas las cosas.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/demacia/"
+  },
+  {
+   "slug": "freljord",
+   "name": "Freljord",
+   "nameEn": "Freljord",
+   "kind": "region",
+   "x": 2709,
+   "y": 2887,
+   "subtitle": "Tierra helada y fría",
+   "description": "Freljord es una región fría e inmisericorde donde los semidioses campan a sus anchas y las personas nacen guerreras. Aunque hay muchas tribus individuales, las tres más grandes son los avarosanos, la Garra Invernal y la Guardia de Hielo, todas movidas por su afán de supervivencia. Además, es el único sitio de Runaterra en el que se puede hallar Hielo Puro.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/freljord/"
+  },
+  {
+   "slug": "shadow-isles",
+   "name": "Islas de la Sombra",
+   "nameEn": "Shadow Isles",
+   "kind": "region",
+   "x": 6886,
+   "y": 5582,
+   "subtitle": "Tierras envueltas por la Niebla Negra",
+   "description": "Las Islas de la Sombra fueron antaño un hermoso reino, pero eso fue antes de que un cataclismo mágico las asolara. Ahora la Niebla Negra cubre permanentemente la tierra, que ha sido mancillada y corrompida por su encantamiento maléfico. Los que perecen dentro sufren la condena de formar parte de ella para toda la eternidad... y lo que es peor, cada año la Niebla se extiende para absorber más almas en Runaterra.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/shadow-isles/"
+  },
+  {
+   "slug": "ixtal",
+   "name": "Ixtal",
+   "nameEn": "Ixtal",
+   "kind": "region",
+   "x": 5245,
+   "y": 5339,
+   "subtitle": "Peligrosas selvas del este",
+   "description": "Recluida en lo más profundo de la selva al este de Shurima, la sofisticada ciudad arcológica de Ixaocan sigue a día de hoy libre de toda influencia del mundo exterior. Los ciudadanos de Ixtal han presenciado desde su refugio la ruina de las Islas Bendecidas y la evolución de la cultura Buhru, y consideran que el resto de las facciones de Runaterra no están en absoluto a la altura de su grandeza. Su poderosa magia elemental los ayuda a mantener a raya a los intrusos.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/ixtal/"
+  },
+  {
+   "slug": "ionia",
+   "name": "Jonia",
+   "nameEn": "Ionia",
+   "kind": "region",
+   "x": 6246,
+   "y": 3098,
+   "subtitle": "Las Tierras Primigenias",
+   "description": "Jonia, conocida como las Tierras Primigenias, es un continente insular de gran belleza y magia naturales. Sus habitantes, que viven en provincias ligeramente aglutinadas, son gente espiritual en busca de la armonía con el mundo. Fueron esencialmente neutrales hasta que Noxus invadió su territorio. Ante esa brutal ocupación, Jonia se vio forzada a reevaluar su posición en el mundo, y la dirección que tomará ahora está todavía por determinar.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/ionia/"
+  },
+  {
+   "slug": "noxus",
+   "name": "Noxus",
+   "nameEn": "Noxus",
+   "kind": "region",
+   "x": 4104,
+   "y": 3332,
+   "subtitle": "Brutal imperio expansionista",
+   "description": "Noxus es un salvaje imperio cuya expansión no se detiene. Eso sí, quienes miren más allá de su exterior militarizado descubrirán una sociedad sorprendentemente inclusiva. Todo el mundo puede aspirar a una posición de respeto y poder si demuestra que tiene las aptitudes necesarias, sin importar su estatus social, su pasado o su riqueza. Los noxianos valoran la fuerza por encima de todo lo demás, aunque la fuerza se puede manifestar de modos muy distintos.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/noxus/"
+  },
+  {
+   "slug": "piltover-zaun",
+   "name": "Piltover y Zaun",
+   "nameEn": "Piltover & Zaun",
+   "kind": "region",
+   "x": 4875,
+   "y": 4453,
+   "subtitle": "Ciudades estado duales",
+   "description": "Ciudades estado duales que controlan las principales rutas comerciales entre Valoran y Shurima. Albergan tanto a inventores visionarios como a sus patrones adinerados y son lugares donde la brecha entre clases sociales no deja de acrecentarse peligrosamente."
+  },
+  {
+   "slug": "shurima",
+   "name": "Shurima",
+   "nameEn": "Shurima",
+   "kind": "region",
+   "x": 4370,
+   "y": 5435,
+   "subtitle": "Imperio caído del desierto",
+   "description": "Shurima, otrora una próspera civilización que recubría el continente meridional, quedó en ruinas con la caída de su dios-emperador. Con el paso de los milenios, los cuentos de su antigua gloria se tornaron en mito y ritual. Ahora sus habitantes nómadas se buscan la vida en los desiertos o terminan trabajando como mercenarios. Aun así, algunos todavía se atreven a soñar con el regreso de aquellos tiempos.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/shurima/"
+  },
+  {
+   "slug": "targon",
+   "name": "Targon",
+   "nameEn": "Targon",
+   "kind": "region",
+   "x": 3150,
+   "y": 5546,
+   "subtitle": "Extensas montañas del oeste",
+   "description": "Targon, una región montañosa y de escasa población al oeste de Shurima, presume de tener el pico más alto de Runaterra. Lejos de la civilización, la ubicación del monte Targon es prácticamente imposible de encontrar para todos salvo para los peregrinos con más determinación, que ansían con toda su alma alcanzar la cima. Los poquísimos que sobreviven al ascenso vuelven atormentados y vacíos, o experimentan un cambio que los vuelve irreconocibles.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/mount-targon/"
+  },
+  {
+   "slug": "immortal-bastion",
+   "name": "El Bastión Inmortal",
+   "nameEn": "The Immortal Bastion",
+   "kind": "lugar",
+   "x": 4084,
+   "y": 3582,
+   "subtitle": "Capital en auge de Noxus",
+   "description": "Antaño fue el bastión del temible muerto viviente Mordekaiser; ahora, una cámara olvidada llena de misterios. A su sombra, y a lo largo de siglos y siglos de expansión imperial, ha ido creciendo la ciudad capital de Noxus.",
+   "region": "Noxus"
+  },
+  {
+   "slug": "placidium",
+   "name": "El Placidium de Navori",
+   "nameEn": "The Placidium of Navori",
+   "kind": "lugar",
+   "x": 6012,
+   "y": 3066,
+   "subtitle": "Lugar sagrado de armonía jonia",
+   "description": "El Placidium constituye uno de los lugares más sagrados de las Tierras Primigenias. Los jonios llevan incontables siglos desplazándose hasta aquí para estudiar en sus prestigiosas escuelas o meditar en sus mágicos jardines silvestres.",
+   "region": "Jonia"
+  },
+  {
+   "slug": "the-void",
+   "name": "El Vacío",
+   "nameEn": "The Void",
+   "kind": "lugar",
+   "x": 5177,
+   "y": 6154,
+   "subtitle": "La nada incognoscible",
+   "description": "Comenzando a gritos su existencia junto al nacimiento del universo, el Vacío es una manifestación de la nada incognoscible que habita más allá. Es una fuerza de hambre insaciable que espera durante eones hasta que sus maestros, los misteriosos Vigilantes, marquen el momento de la destrucción definitiva, y así sumir toda Runaterra en el olvido más absoluto.",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/void/"
+  },
+  {
+   "slug": "sun-disc",
+   "name": "El disco solar",
+   "nameEn": "The Sun Disc",
+   "kind": "lugar",
+   "x": 4116,
+   "y": 5673,
+   "subtitle": "Antigua herramienta de Ascensión",
+   "description": "La herramienta utilizada por los antiguos habitantes de Shurima para ascender a la divinidad. Cayó con la ruina del imperio, pero ahora resurge de las arenas para gozar de la luz solar una vez más",
+   "region": "Shurima"
+  },
+  {
+   "slug": "demacia-city-landmark",
+   "name": "Gran ciudad de Demacia",
+   "nameEn": "The Great City of Demacia",
+   "kind": "lugar",
+   "x": 2291,
+   "y": 3873,
+   "subtitle": "Sede del poder de las casas nobles",
+   "description": "Sede del poder del rey Jarvan III, donde residen las casas nobles demacianas. Una incomparable defensa caracteriza sus suntuosas murallas, cuyas piedras están reforzadas con petricita, una substancia que anula la magia.",
+   "region": "Demacia"
+  },
+  {
+   "slug": "icathia",
+   "name": "Icathia",
+   "nameEn": "Icathia",
+   "kind": "lugar",
+   "x": 5197,
+   "y": 6317,
+   "subtitle": "Páramo árido e inhóspito",
+   "description": "Icathia, un rebelde estado vasallo de la antigua Shurima, es ahora un páramo árido e inhóspito. No obstante, entre las ruinas se empiezan a avivar una vez más innombrables horrores del Vacío..."
+  },
+  {
+   "slug": "ixaocan",
+   "name": "Ixaocan",
+   "nameEn": "Ixaocan",
+   "kind": "lugar",
+   "x": 5427,
+   "y": 5538,
+   "subtitle": "El último santuario",
+   "description": "Ciudad oculta de los ixtalíes. Mucho más antigua de lo que sería capaz de estimar un forastero, sus magníficas arcologías no llegan a ser hábitats del todo, pero tampoco escuelas de magia; más bien constituyen una mezcla de ambas.",
+   "region": "Ixtal"
+  },
+  {
+   "slug": "frostguard",
+   "name": "La Ciudadela de la Guardia de Hielo",
+   "nameEn": "The Frostguard Citadel",
+   "kind": "lugar",
+   "x": 3249,
+   "y": 2434,
+   "subtitle": "Antigua fortaleza freljordiana",
+   "description": "Una antigua fortaleza que fue construida para vigilar el oscuro desfiladero del Abismo de los Lamentos. La Ciudadela también alberga muchos de los registros históricos y los tesoros ocultos de Freljord.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "mount-targon",
+   "name": "Monte Targon",
+   "nameEn": "Mount Targon",
+   "kind": "lugar",
+   "x": 3305,
+   "y": 5705,
+   "subtitle": "El pico más alto de Runaterra",
+   "description": "El pico más alto de Runaterra y un lugar de peregrinación sagrado. Sus rocosas cumbres sesgadas y alargadas (algunos dicen que las estiraron hacia arriba) son producto de la acción de poderes que superan los límites de la comprensión humana.",
+   "region": "Targon"
+  },
+  {
+   "slug": "village-of-the-ice-children",
+   "name": "Aldea de los Vástagos del Hielo",
+   "nameEn": "Village of the Ice Children",
+   "kind": "ciudad",
+   "x": 2506,
+   "y": 2911,
+   "subtitle": "Pueblo agrícola",
+   "description": "Poblado de pastores y guerreros, rivales de la tribu avarosana.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "bilgewater-bay",
+   "name": "Bahía de Aguas Estancadas",
+   "nameEn": "Bilgewater Bay",
+   "kind": "ciudad",
+   "x": 6115,
+   "y": 4775,
+   "subtitle": "Puerto natural plagado de asentamientos",
+   "description": "Un puerto natural en las Islas de la Llama Azul. Muchos asentamientos dispersos conforman el área metropolitana de Aguas Estancadas, conocida por ser el epicentro de la actividad criminal en la región.",
+   "region": "Aguas Estancadas"
+  },
+  {
+   "slug": "basilich",
+   "name": "Basilich",
+   "nameEn": "Basilich",
+   "kind": "ciudad",
+   "x": 5324,
+   "y": 4008,
+   "subtitle": "Ciudad portuaria",
+   "description": "Ciudad portuaria cuya rebelión contra el imperio fue sofocada por Darius, su propio nativo.",
+   "region": "Noxus"
+  },
+  {
+   "slug": "belzhun",
+   "name": "Bel'zhun",
+   "nameEn": "Bel’zhun",
+   "kind": "ciudad",
+   "x": 4656,
+   "y": 4759,
+   "subtitle": "Puesto avanzado costero",
+   "description": "Puesto avanzado costero famoso por sus prósperos mercados negros y su emblemática lana de mwatis.",
+   "region": "Noxus"
+  },
+  {
+   "slug": "ryganns-reach",
+   "name": "Dominio de Rygann",
+   "nameEn": "Rygann's Reach",
+   "kind": "ciudad",
+   "x": 1481,
+   "y": 3356,
+   "subtitle": "Ruinas malditas",
+   "description": "Este antiguo asentamiento, que se rumorea que recibió la maldición de una malvada hechicera y su hijo, quedó reducido a cenizas siglos atrás.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "fossbarrow",
+   "name": "Fossbarrow",
+   "nameEn": "Fossbarrow",
+   "kind": "ciudad",
+   "x": 2109,
+   "y": 3682,
+   "subtitle": "Ciudad encantada",
+   "description": "Esta ciudad, que le debe su nombre al difunto Fossian Crownguard, estuvo atormentada antaño por la presencia de un espantoso demonio.",
+   "region": "Demacia"
+  },
+  {
+   "slug": "frostheld",
+   "name": "Fuerte Helado",
+   "nameEn": "Frostheld",
+   "kind": "ciudad",
+   "x": 1842,
+   "y": 3582,
+   "subtitle": "Ciudad en un puerto glacial",
+   "description": "Esta ciudad, situada en un puerto glacial, es la capital de las tribus avarosanas.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "delverhold",
+   "name": "Fuertehondo",
+   "nameEn": "The Delverhold",
+   "kind": "ciudad",
+   "x": 3329,
+   "y": 3018,
+   "subtitle": "Fortaleza de montaña",
+   "description": "Fortaleza alpina cuyas ricas minas suministran oro y hierro a Noxus.",
+   "region": "Noxus"
+  },
+  {
+   "slug": "ghulfrost",
+   "name": "Ghulfrost",
+   "nameEn": "Ghulfrost",
+   "kind": "ciudad",
+   "x": 2443,
+   "y": 2947,
+   "subtitle": "Ruinas antiguas",
+   "description": "Tras días recorriendo despiadados acantilados de hielo, Ashe llegó al lugar donde se terminaban los mapas de su madre: Ghulfrost. Aunque Grena esperaba que allí estuviera el trono de Avarosa, una sala repleta de tesoros, Ashe no encontró más que un montículo camuflado en la nieve... pero en él halló, enterrado entre las piedras, un arco legendario hecho en su totalidad de Hielo Puro.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "glaserport",
+   "name": "Glaserport",
+   "nameEn": "Glaserport",
+   "kind": "ciudad",
+   "x": 1342,
+   "y": 3272,
+   "subtitle": "Asentamiento portuario",
+   "description": "Este asentamiento es conocido por sus barcos lobo encadenados, el puerto natural que lo protege del hielo y la nieve.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "the-city-of-gardens",
+   "name": "La Ciudad de los Jardines",
+   "nameEn": "The City of Gardens",
+   "kind": "ciudad",
+   "x": 3774,
+   "y": 5757,
+   "subtitle": "Ruinas chamuscadas",
+   "description": "Las cambiantes mareas del desierto han ido formando caminos y abriéndose paso entre las rocas, cayendo por los acantilados en forma de cascadas de arena. Los shurimanos tienen por tradición arrojar sus objetos más preciados a las arenas como una ofrenda a los Ascendidos. A causa de esto, de vez en cuando la zona se convierte en un lugar muy lucrativo para los cazadores de tesoros.",
+   "region": "Shurima"
+  },
+  {
+   "slug": "yetis-vigil",
+   "name": "La vigilia del yeti",
+   "nameEn": "Yeti's Vigil",
+   "kind": "ciudad",
+   "x": 2959,
+   "y": 2422,
+   "subtitle": "Ruinas antiguas",
+   "description": "Ruinas de la antigua civilización yeti Allá donde los sueños se arremolinan en la nieve, nació una amistad que parecía imposible.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "marrowmark-market",
+   "name": "Marrowmark",
+   "nameEn": "Marrowmark",
+   "kind": "ciudad",
+   "x": 4315,
+   "y": 5772,
+   "subtitle": "Asentamiento de mercaderes",
+   "description": "Esta ciudad fue erigida en el tórax de una bestia gigante del desierto que pereció hace años. Se dice que todo lo que esté bajo el sol puede encontrarse en los bazares de Marrowmark... si se paga su precio.",
+   "region": "Shurima"
+  },
+  {
+   "slug": "high-silvermere",
+   "name": "Meraplata Alta",
+   "nameEn": "High Silvermere",
+   "kind": "ciudad",
+   "x": 2168,
+   "y": 3674,
+   "subtitle": "Ciudad en las tierras altas",
+   "description": "Tierra natal de Luxanna y Garen Crownguard. Se caracteriza por cordilleras rocosas y rapaces de alas plateadas.",
+   "region": "Demacia"
+  },
+  {
+   "slug": "hirana-monastery",
+   "name": "Monasterio de Hirana",
+   "nameEn": "Hirana Monastery",
+   "kind": "ciudad",
+   "x": 6330,
+   "y": 2629,
+   "subtitle": "Lugar sagrado",
+   "description": "Famoso santuario de quienes buscan una mejor comprensión de la conexión con el reino espiritual.",
+   "region": "Jonia"
+  },
+  {
+   "slug": "kinkou-monastery",
+   "name": "Monasterio kinkou",
+   "nameEn": "Kinkou Monastery",
+   "kind": "ciudad",
+   "x": 5777,
+   "y": 2883,
+   "subtitle": "Lugar sagrado",
+   "description": "Sede de la Orden Kinkou, cuyos guerreros dedican sus vidas a proteger el equilibrio de Jonia.",
+   "region": "Jonia"
+  },
+  {
+   "slug": "naljaag",
+   "name": "Naljaäg",
+   "nameEn": "Naljaäg",
+   "kind": "ciudad",
+   "x": 2995,
+   "y": 2835,
+   "subtitle": "Pueblo maldito",
+   "description": "Un simple asentamiento bajo una cascada. Su nombre original se ha perdido con el tiempo.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "nashramae",
+   "name": "Nashramae",
+   "nameEn": "Nashramae",
+   "kind": "ciudad",
+   "x": 4096,
+   "y": 4906,
+   "subtitle": "Ciudad portuaria",
+   "description": "Puerto shurimano famoso por su seda, las réplicas de discos solares y el festival que homenajea a Rammus.",
+   "region": "Shurima"
+  },
+  {
+   "slug": "piltover-town",
+   "name": "Piltover",
+   "nameEn": "Piltover",
+   "kind": "ciudad",
+   "x": 4875,
+   "y": 4429,
+   "subtitle": "Ciudad costera próspera",
+   "description": "Piltover es una próspera ciudad progresista frente al océano. Acoge a flotas enteras de barcos mercantiles que cruzan las gigantes puertas marítimas para traer bienes provenientes del resto del mundo. Los clanes mercantiles aportan los fondos necesarios para empresas increíbles: desde locuras artísticas a monumentos arquitectónicos en honor a su poder individual. Con cada vez más inventores indagando en la hextech, Piltover se ha convertido en el destino para los artesanos más habilidosos de toda Runaterra.",
+   "region": "Piltover y Zaun",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/piltover/"
+  },
+  {
+   "slug": "foundling-village",
+   "name": "Pueblo de los Desamparados",
+   "nameEn": "Foundling Village",
+   "kind": "ciudad",
+   "x": 3055,
+   "y": 2370,
+   "subtitle": "Asentamiento de la Guardia de Hielo",
+   "description": "A la sombra de la gran Ciudadela, la Guardia de Hielo proporcionan cobijo a los niños huérfanos por el frío.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "quchar",
+   "name": "Quchar",
+   "nameEn": "Quchar",
+   "kind": "ciudad",
+   "x": 2327,
+   "y": 2752,
+   "subtitle": "Aldea de los Hogareños",
+   "description": "Hogar de la tribu Ebrataal, comunidad sin magia que fue la primera en seguir y apoyar a Ashe como líder de la tribu avarosana.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "rakelstake",
+   "name": "Rakelstake",
+   "nameEn": "Rakelstake",
+   "kind": "ciudad",
+   "x": 2299,
+   "y": 3268,
+   "subtitle": "Lugar sagrado",
+   "description": "Una estatua de Avarosa custodia este lugar sagrado en el que Ashe y Tryndamere se unieron en juramento.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "ornnkaal-rocks",
+   "name": "Riscos de Ornnkaal",
+   "nameEn": "Ornnkaal Rocks",
+   "kind": "ciudad",
+   "x": 2450,
+   "y": 2752,
+   "subtitle": "Lugar sagrado",
+   "description": "Lugar de peregrinaje costero que las tribus de Sejuani y Ashe visitaban en verano cuando estas eran jóvenes y que gozaba de buenas zonas de pesca y de amplias extensiones de terreno para el pastoreo.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "temple-pallas",
+   "name": "Templo de Pallas",
+   "nameEn": "Temple of Pallas",
+   "kind": "ciudad",
+   "x": 6687,
+   "y": 3896,
+   "subtitle": "Lugar sagrado",
+   "description": "Aquí es donde pasó siglos encarcelado el oscuro Varus, pero hace tiempo que sus sellos se rompieron...",
+   "region": "Jonia"
+  },
+  {
+   "slug": "trevale",
+   "name": "Trevale",
+   "nameEn": "Trevale",
+   "kind": "ciudad",
+   "x": 2844,
+   "y": 4318,
+   "subtitle": "Comunidad agricultora",
+   "description": "Un conjunto de aldeas agrícolas posadas sobre las laderas rocosas en las que nació Riven.",
+   "region": "Noxus"
+  },
+  {
+   "slug": "uwendale",
+   "name": "Uwendale",
+   "nameEn": "Uwendale",
+   "kind": "ciudad",
+   "x": 2486,
+   "y": 3575,
+   "subtitle": "Ciudad agricultora",
+   "description": "Este pueblo cazador y ganadero, que suele sufrir ataques de guivernos, es el lugar de nacimiento de Quinn.",
+   "region": "Demacia"
+  },
+  {
+   "slug": "valars-hollow",
+   "name": "Vaguada de Valar",
+   "nameEn": "Valar's Hollow",
+   "kind": "ciudad",
+   "x": 1644,
+   "y": 3420,
+   "subtitle": "Asentamiento de mercaderes",
+   "description": "Durante incontables generaciones, mercaderes y comerciantes se reunían en este lugar en los meses de invierno, antes de adentrarse en el gélido norte.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "vathcaer",
+   "name": "Vathcaer",
+   "nameEn": "Vathcaer",
+   "kind": "ciudad",
+   "x": 2526,
+   "y": 2760,
+   "subtitle": "Asentamiento avarosano",
+   "description": "Aldea donde Ashe creció, bajo el control de su madre Grena. Posteriormente destruida por los Vástagos del Hielo.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "yadulsk",
+   "name": "Yadulsk",
+   "nameEn": "Yadulsk",
+   "kind": "ciudad",
+   "x": 2347,
+   "y": 2724,
+   "subtitle": "Asentamiento costero",
+   "description": "Aldea de la Garra Invernal donde Kalkia, la madre de Sejuani, asentó la tribu de forma temporal durante su mandato. Tradicionalmente, las tribus de la Garra Invernal se trasladan cada invierno y vuelven a levantar sus aldeas aprovechando los materiales que obtienen de sus barcos y otros materiales desguazados.",
+   "region": "Freljord"
+  },
+  {
+   "slug": "zaun-town",
+   "name": "Zaun",
+   "nameEn": "Zaun",
+   "kind": "ciudad",
+   "x": 4875,
+   "y": 4477,
+   "subtitle": "Ciudad Subterránea contaminada",
+   "description": "Zaun es una Ciudad Subterránea contaminada que se encuentra debajo de Piltover. Aunque tiempo atrás fueron una sola, ahora son dos culturas simbióticas separadas. Las investigaciones poco ortodoxas de los inventores reprimidos a menudo son bien recibidas en Zaun, pero las imprudencias de la industria han hecho que varias partes de la ciudad sean extremadamente tóxicas. Sin embargo, gracias a un boyante mercado negro, la tecnoquímica y los aumentos mecánicos, sus residentes disponen de recursos para seguir prosperando.",
+   "region": "Piltover y Zaun",
+   "link": "https://universe.leagueoflegends.com/es_ES/region/zaun/"
+  },
+  {
+   "slug": "zirima",
+   "name": "Zirima",
+   "nameEn": "Zirima",
+   "kind": "ciudad",
+   "x": 4084,
+   "y": 5939,
+   "subtitle": "Campamento mercante",
+   "description": "Campamento de mercantes donde se suelen reunir comerciantes y exploradores antes de adentrarse en el gran Sai.",
+   "region": "Shurima"
+  },
+  {
+   "slug": "ironwater",
+   "name": "Aguasférreas",
+   "nameEn": "Ironwater",
+   "kind": "pueblo",
+   "x": 5658,
+   "y": 4517
+  },
+  {
+   "slug": "killash-village",
+   "name": "Aldea de los kilash",
+   "nameEn": "Killash Village",
+   "kind": "pueblo",
+   "x": 5098,
+   "y": 5458
+  },
+  {
+   "slug": "antathir",
+   "name": "Antathir",
+   "nameEn": "Antathir",
+   "kind": "pueblo",
+   "x": 4430,
+   "y": 6110
+  },
+  {
+   "slug": "old-bargate",
+   "name": "Arco antiguo",
+   "nameEn": "Old Bargate",
+   "kind": "pueblo",
+   "x": 2760,
+   "y": 3741
+  },
+  {
+   "slug": "aurma",
+   "name": "Aurma",
+   "nameEn": "Aurma",
+   "kind": "pueblo",
+   "x": 3138,
+   "y": 4898
+  },
+  {
+   "slug": "boleham",
+   "name": "Boleham",
+   "nameEn": "Boleham",
+   "kind": "pueblo",
+   "x": 3222,
+   "y": 4218
+  },
+  {
+   "slug": "cloudfield",
+   "name": "Cloudfield",
+   "nameEn": "Cloudfield",
+   "kind": "pueblo",
+   "x": 2633,
+   "y": 3932
+  },
+  {
+   "slug": "the-drakkengate",
+   "name": "Drakkengate",
+   "nameEn": "The Drakkengate",
+   "kind": "pueblo",
+   "x": 5062,
+   "y": 3654
+  },
+  {
+   "slug": "drekan",
+   "name": "Drekan",
+   "nameEn": "Drekan",
+   "kind": "pueblo",
+   "x": 4060,
+   "y": 3658
+  },
+  {
+   "slug": "drugne",
+   "name": "Drugne",
+   "nameEn": "Drugne",
+   "kind": "pueblo",
+   "x": 3615,
+   "y": 3121
+  },
+  {
+   "slug": "edessa",
+   "name": "Edessa",
+   "nameEn": "Edessa",
+   "kind": "pueblo",
+   "x": 2224,
+   "y": 3809
+  },
+  {
+   "slug": "evenmoor",
+   "name": "Evenmoor",
+   "nameEn": "Evenmoor",
+   "kind": "pueblo",
+   "x": 2367,
+   "y": 4119
+  },
+  {
+   "slug": "everpeak",
+   "name": "Everpeak",
+   "nameEn": "Everpeak",
+   "kind": "pueblo",
+   "x": 2701,
+   "y": 3797
+  },
+  {
+   "slug": "faelor",
+   "name": "Fae’lor",
+   "nameEn": "Fae’lor",
+   "kind": "pueblo",
+   "x": 5539,
+   "y": 3225
+  },
+  {
+   "slug": "fallgren",
+   "name": "Fallgren",
+   "nameEn": "Fallgren",
+   "kind": "pueblo",
+   "x": 5908,
+   "y": 4167
+  },
+  {
+   "slug": "the-dawnhold",
+   "name": "Fuertealbor",
+   "nameEn": "Dawnhold",
+   "kind": "pueblo",
+   "x": 2021,
+   "y": 3920
+  },
+  {
+   "slug": "glorft",
+   "name": "Glorft",
+   "nameEn": "Glorft",
+   "kind": "pueblo",
+   "x": 3261,
+   "y": 4381
+  },
+  {
+   "slug": "harelport",
+   "name": "Harelport",
+   "nameEn": "Harelport",
+   "kind": "pueblo",
+   "x": 5622,
+   "y": 5196
+  },
+  {
+   "slug": "holdrum",
+   "name": "Holdrum",
+   "nameEn": "Holdrum",
+   "kind": "pueblo",
+   "x": 5137,
+   "y": 4461
+  },
+  {
+   "slug": "jandelle",
+   "name": "Jandelle",
+   "nameEn": "Jandelle",
+   "kind": "pueblo",
+   "x": 2411,
+   "y": 3861
+  },
+  {
+   "slug": "kalamanda",
+   "name": "Kalamanda",
+   "nameEn": "Kalamanda",
+   "kind": "pueblo",
+   "x": 3305,
+   "y": 4942
+  },
+  {
+   "slug": "kashuri",
+   "name": "Kashuri",
+   "nameEn": "Kashuri",
+   "kind": "pueblo",
+   "x": 6671,
+   "y": 3507
+  },
+  {
+   "slug": "kenethet",
+   "name": "Kenethet",
+   "nameEn": "Kenethet",
+   "kind": "pueblo",
+   "x": 4652,
+   "y": 5065
+  },
+  {
+   "slug": "khworez",
+   "name": "Khworez",
+   "nameEn": "Khworez",
+   "kind": "pueblo",
+   "x": 4267,
+   "y": 3261
+  },
+  {
+   "slug": "kilgrove",
+   "name": "Kilgrove",
+   "nameEn": "Kilgrove",
+   "kind": "pueblo",
+   "x": 3532,
+   "y": 4266
+  },
+  {
+   "slug": "krexor",
+   "name": "Krexor",
+   "nameEn": "Krexor",
+   "kind": "pueblo",
+   "x": 5308,
+   "y": 4238
+  },
+  {
+   "slug": "kumangra",
+   "name": "Kumangra",
+   "nameEn": "Kumangra",
+   "kind": "pueblo",
+   "x": 4978,
+   "y": 4560
+  },
+  {
+   "slug": "the-graygate",
+   "name": "La Puerta Gris",
+   "nameEn": "The Graygate",
+   "kind": "pueblo",
+   "x": 2570,
+   "y": 3730
+  },
+  {
+   "slug": "lissus",
+   "name": "Lissus",
+   "nameEn": "Lissus",
+   "kind": "pueblo",
+   "x": 2224,
+   "y": 3749
+  },
+  {
+   "slug": "mudtown",
+   "name": "Lodoburgo",
+   "nameEn": "Mudtown",
+   "kind": "pueblo",
+   "x": 5662,
+   "y": 4739
+  },
+  {
+   "slug": "meltridge",
+   "name": "Meltridge",
+   "nameEn": "Meltridge",
+   "kind": "pueblo",
+   "x": 2562,
+   "y": 3726
+  },
+  {
+   "slug": "needlebrook",
+   "name": "Needlebrook",
+   "nameEn": "Needlebrook",
+   "kind": "pueblo",
+   "x": 2510,
+   "y": 4195
+  },
+  {
+   "slug": "nerimazeth",
+   "name": "Nerimazeth",
+   "nameEn": "Nerimazeth",
+   "kind": "pueblo",
+   "x": 3551,
+   "y": 5542
+  },
+  {
+   "slug": "palclyff",
+   "name": "Palclyff",
+   "nameEn": "Palclyff",
+   "kind": "pueblo",
+   "x": 2721,
+   "y": 4334
+  },
+  {
+   "slug": "paretha",
+   "name": "Paretha",
+   "nameEn": "Paretha",
+   "kind": "pueblo",
+   "x": 5348,
+   "y": 5260
+  },
+  {
+   "slug": "pinara",
+   "name": "Pinara",
+   "nameEn": "Pinara",
+   "kind": "pueblo",
+   "x": 2216,
+   "y": 3785
+  },
+  {
+   "slug": "the-iron-pinnacle",
+   "name": "Pináculo de Hierro",
+   "nameEn": "The Iron Pinnacle",
+   "kind": "pueblo",
+   "x": 4152,
+   "y": 2970
+  },
+  {
+   "slug": "puboe",
+   "name": "Puboe",
+   "nameEn": "Puboe",
+   "kind": "pueblo",
+   "x": 5884,
+   "y": 2668
+  },
+  {
+   "slug": "gates-of-mourning",
+   "name": "Puertas de los Lamentos",
+   "nameEn": "Gates of Mourning",
+   "kind": "pueblo",
+   "x": 2756,
+   "y": 4210
+  },
+  {
+   "slug": "qualthala",
+   "name": "Qualthala",
+   "nameEn": "Qualthala",
+   "kind": "pueblo",
+   "x": 4124,
+   "y": 4159
+  },
+  {
+   "slug": "raikkon",
+   "name": "Raikkon",
+   "nameEn": "Raikkon",
+   "kind": "pueblo",
+   "x": 6417,
+   "y": 3825
+  },
+  {
+   "slug": "bloodcliffs",
+   "name": "Riscosangrientos",
+   "nameEn": "Bloodcliffs",
+   "kind": "pueblo",
+   "x": 4728,
+   "y": 3737
+  },
+  {
+   "slug": "rokrund",
+   "name": "Rokrund",
+   "nameEn": "Rokrund",
+   "kind": "pueblo",
+   "x": 4334,
+   "y": 4294
+  },
+  {
+   "slug": "ruug",
+   "name": "Ruug",
+   "nameEn": "Ruug",
+   "kind": "pueblo",
+   "x": 4048,
+   "y": 2827
+  },
+  {
+   "slug": "stonewall",
+   "name": "Stonewall",
+   "nameEn": "Stonewall",
+   "kind": "pueblo",
+   "x": 4156,
+   "y": 4548
+  },
+  {
+   "slug": "temple-jagged-knife",
+   "name": "Templo del Cuchillo Dentado",
+   "nameEn": "Temple of the Jagged Knife",
+   "kind": "pueblo",
+   "x": 6437,
+   "y": 3741
+  },
+  {
+   "slug": "terbisia",
+   "name": "Terbisia",
+   "nameEn": "Terbisia",
+   "kind": "pueblo",
+   "x": 2554,
+   "y": 3964
+  },
+  {
+   "slug": "tereshni",
+   "name": "Tereshni",
+   "nameEn": "Tereshni",
+   "kind": "pueblo",
+   "x": 4346,
+   "y": 4739
+  },
+  {
+   "slug": "tevasa",
+   "name": "Tevasa",
+   "nameEn": "Tevasa",
+   "kind": "pueblo",
+   "x": 5992,
+   "y": 3272
+  },
+  {
+   "slug": "trannit",
+   "name": "Trannit",
+   "nameEn": "Trannit",
+   "kind": "pueblo",
+   "x": 5539,
+   "y": 4540
+  },
+  {
+   "slug": "tuula",
+   "name": "Tuula",
+   "nameEn": "Tuula",
+   "kind": "pueblo",
+   "x": 6560,
+   "y": 3630
+  },
+  {
+   "slug": "urzeris",
+   "name": "Urzeris",
+   "nameEn": "Urzeris",
+   "kind": "pueblo",
+   "x": 3619,
+   "y": 4930
+  },
+  {
+   "slug": "vaskasia",
+   "name": "Vaskasia",
+   "nameEn": "Vaskasia",
+   "kind": "pueblo",
+   "x": 2236,
+   "y": 3972
+  },
+  {
+   "slug": "vekaura",
+   "name": "Vekaura",
+   "nameEn": "Vekaura",
+   "kind": "pueblo",
+   "x": 4573,
+   "y": 5490
+  },
+  {
+   "slug": "velorus",
+   "name": "Velorus",
+   "nameEn": "Velorus",
+   "kind": "pueblo",
+   "x": 2232,
+   "y": 3722
+  },
+  {
+   "slug": "vindor",
+   "name": "Vindor",
+   "nameEn": "Vindor",
+   "kind": "pueblo",
+   "x": 5594,
+   "y": 4143
+  },
+  {
+   "slug": "vlonquo",
+   "name": "Vlonqo",
+   "nameEn": "Vlonqo",
+   "kind": "pueblo",
+   "x": 6334,
+   "y": 3153
+  },
+  {
+   "slug": "wehle",
+   "name": "Weh'le",
+   "nameEn": "Weh'le",
+   "kind": "pueblo",
+   "x": 5813,
+   "y": 3292
+  },
+  {
+   "slug": "wrenwall",
+   "name": "Wrenwall",
+   "nameEn": "Wrenwall",
+   "kind": "pueblo",
+   "x": 2594,
+   "y": 4091
+  },
+  {
+   "slug": "master-yi-village",
+   "name": "Wuju",
+   "nameEn": "Wuju",
+   "kind": "pueblo",
+   "x": 5960,
+   "y": 3340
+  },
+  {
+   "slug": "zhyunia",
+   "name": "Zhyunia",
+   "nameEn": "Zhyunia",
+   "kind": "pueblo",
+   "x": 6465,
+   "y": 3491
+  },
+  {
+   "slug": "zuretta",
+   "name": "Zuretta",
+   "nameEn": "Zuretta",
+   "kind": "pueblo",
+   "x": 4076,
+   "y": 5097
+  }
+ ]
+}
