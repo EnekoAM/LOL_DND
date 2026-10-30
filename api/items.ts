@@ -2,8 +2,9 @@ import { HttpError } from '../server/errors';
 import { assertWriteAccess, queryValue, withErrors } from '../server/http';
 import { getItems, grantItem, updateItem } from '../server/store';
 import { parseItemUpdate, parseRollRecord } from '../server/validate';
+import { withLive } from '../server/livePublish';
 
-export default withErrors(async (req, res) => {
+export default withLive({ PATCH: ['items', 'history'], PUT: ['items', 'loot'] }, withErrors(async (req, res) => {
   const nombre = queryValue(req.query, 'nombre')?.trim();
 
   if (req.method === 'GET') {
@@ -25,4 +26,4 @@ export default withErrors(async (req, res) => {
     return;
   }
   throw new HttpError(405, 'Método no permitido');
-});
+}));

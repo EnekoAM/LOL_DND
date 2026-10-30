@@ -2,8 +2,9 @@ import { HttpError } from '../server/errors';
 import { assertWriteAccess, withErrors } from '../server/http';
 import { getLoot, updateLootRules } from '../server/store';
 import { parseLootRulesPatch } from '../server/validate';
+import { withLive } from '../server/livePublish';
 
-export default withErrors(async (req, res) => {
+export default withLive({ PATCH: ['loot'] }, withErrors(async (req, res) => {
   if (req.method === 'GET') {
     res.status(200).json(await getLoot());
     return;
@@ -14,4 +15,4 @@ export default withErrors(async (req, res) => {
     return;
   }
   throw new HttpError(405, 'Método no permitido');
-});
+}));

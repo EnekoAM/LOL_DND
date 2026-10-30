@@ -2,8 +2,9 @@ import { HttpError } from '../server/errors';
 import { assertWriteAccess, queryValue, withErrors } from '../server/http';
 import { getChampions, updateChampionAbility } from '../server/store';
 import { parseChampionAbilityPatch } from '../server/validate';
+import { withLive } from '../server/livePublish';
 
-export default withErrors(async (req, res) => {
+export default withLive({ PATCH: ['champions'] }, withErrors(async (req, res) => {
   const champion = queryValue(req.query, 'champion')?.trim();
 
   if (req.method === 'GET') {
@@ -18,4 +19,4 @@ export default withErrors(async (req, res) => {
     return;
   }
   throw new HttpError(405, 'Método no permitido');
-});
+}));

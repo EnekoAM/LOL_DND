@@ -1,23 +1,14 @@
 import type { Server } from 'node:http';
-import type { NextFunction, Request, Response } from 'express';
 import { WebSocket, WebSocketServer } from 'ws';
+import { setLocalBroadcaster, type LiveEvent } from './livePublish';
 
 /**
- * Sincronización en vivo entre pestañas: tras cada escritura correcta se avisa a todos
- * los navegadores conectados de qué recurso cambió. No se manda el documento; cada
- * pestaña lo vuelve a pedir por REST. Solo funciona con el servidor de `npm run dev:api`
- * (en Vercel las funciones serverless no mantienen WebSockets).
+ * WebSocket local de `npm run dev:api` para la sincronización en vivo entre pestañas.
+ * Los avisos los genera withLive (server/livePublish.ts) tras cada escritura correcta;
+ * aquí solo se reparten a los navegadores conectados. En Vercel no hay WebSocket propio:
+ * allí el aviso va por Ably (ABLY_API_KEY).
  */
-export type LiveResource = 'party' | 'players' | 'items' | 'loot' | 'roles' | 'champions' | 'history';
-
-export type LiveEvent = {
-  type: 'changed';
-  resources: LiveResource[];
-  /** Jugador concreto, si el cambio vino de /api/players/:name o ?name=. */
-  name?: string;
-  /** Pestaña que hizo el cambio (cabecera X-Client-Id); ella misma lo ignora. */
-  clientId?: string;
-};
+export type { LiveEvent, LiveResource } from './livePublish';
 
 export const LIVE_PATH = '/ws';
 
@@ -46,34 +37,14 @@ export function attachLiveSync(server: Server): void {
     }
   }, 30_000);
   wss.on('close', () => clearInterval(heartbeat));
+
+  setLocalBroadcaster(broadcast);
 }
 
-export function broadcast(event: Omit<LiveEvent, 'type'>): void {
+export function broadcast(event: LiveEvent): void {
   if (!wss || event.resources.length === 0) return;
-  const message = JSON.stringify({ type: 'changed', ...event } satisfies LiveEvent);
+  const message = JSON.stringify(event);
   for (const client of wss.clients) {
     if (client.readyState === WebSocket.OPEN) client.send(message);
   }
-}
-
-function headerValue(value: string | string[] | undefined): string | undefined {
-  const raw = Array.isArray(value) ? value[0] : value;
-  const trimmed = raw?.trim();
-  return trimmed && trimmed.length <= 100 ? trimmed : undefined;
-}
-
-/**
- * Middleware para rutas que escriben: cuando la respuesta sale con éxito (2xx),
- * avisa de los recursos indicados.
- */
-export function notifies(...resources: LiveResource[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    res.on('finish', () => {
-      if (res.statusCode < 200 || res.statusCode >= 300) return;
-      const raw = req.params.name ?? req.query.name;
-      const name = typeof raw === 'string' ? raw : undefined;
-      broadcast({ resources, name, clientId: headerValue(req.headers['x-client-id']) });
-    });
-    next();
-  };
 }

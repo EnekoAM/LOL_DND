@@ -18,6 +18,7 @@
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
     "@3d-dice/theme-default-extras": "^0.1.1",
+    "ably": "^2.30.0",
     "express": "^4.22.3",
     "framer-motion": "^12.23.26",
     "google-map-react": "^2.2.5",

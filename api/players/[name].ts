@@ -2,8 +2,9 @@ import { HttpError } from '../../server/errors';
 import { assertWriteAccess, queryValue, withErrors } from '../../server/http';
 import { getPlayer, updatePlayer, upsertPlayer } from '../../server/store';
 import { parsePlayerPatch, parsePlayerReplace } from '../../server/validate';
+import { withLive } from '../../server/livePublish';
 
-export default withErrors(async (req, res) => {
+export default withLive({ PATCH: ['players'], PUT: ['players'] }, withErrors(async (req, res) => {
   const name = queryValue(req.query, 'name')?.trim();
   if (!name) throw new HttpError(400, 'Falta el nombre del jugador');
 
@@ -22,4 +23,4 @@ export default withErrors(async (req, res) => {
     return;
   }
   throw new HttpError(405, 'Método no permitido');
-});
+}));

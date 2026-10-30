@@ -7,10 +7,13 @@ import { hydratePlayers, type Player } from './players';
 import { hydrateRoles, type RoleTable } from './roles';
 
 /**
- * Sincronización en vivo entre pestañas (ver server/live.ts).
+ * Sincronización en vivo entre pestañas (ver server/livePublish.ts).
  * El servidor solo avisa de qué recurso cambió; aquí se vuelve a pedir por REST,
  * se rehidrata el dato en memoria y se sube una revisión para que React repinte.
  * Lo local de cada pestaña (filtros, búsqueda, pestaña abierta…) no se toca.
+ *
+ * Transporte: si /api/live-token dice que hay Ably (ABLY_API_KEY en el servidor),
+ * se usa Ably (también en Vercel). Si no, el WebSocket local de `npm run dev:api` (/ws).
  */
 export type LiveResource = 'party' | 'players' | 'items' | 'loot' | 'roles' | 'champions' | 'history';
 
@@ -90,13 +93,15 @@ function isResource(value: unknown): value is LiveResource {
   return typeof value === 'string' && (ALL_RESOURCES as string[]).includes(value);
 }
 
+/** Acepta el aviso como texto JSON (WebSocket) o ya como objeto (Ably). */
 function handleMessage(raw: unknown): void {
-  if (typeof raw !== 'string') return;
-  let event: unknown;
-  try {
-    event = JSON.parse(raw);
-  } catch {
-    return;
+  let event: unknown = raw;
+  if (typeof raw === 'string') {
+    try {
+      event = JSON.parse(raw);
+    } catch {
+      return;
+    }
   }
   if (!event || typeof event !== 'object') return;
   const { type, resources, clientId } = event as Record<string, unknown>;
@@ -119,7 +124,72 @@ function tagApiRequests(): void {
   };
 }
 
-let started = false;
+// ---------------------------------------------------------------------------
+// Ably
+// ---------------------------------------------------------------------------
+
+type LiveTokenResponse =
+  | { enabled: false }
+  | { enabled: true; channel: string; tokenRequest: unknown };
+
+const LIVE_TOKEN_PATH = '/api/live-token';
+
+async function fetchLiveToken(): Promise<LiveTokenResponse | null> {
+  try {
+    const response = await fetch(LIVE_TOKEN_PATH, { cache: 'no-store' });
+    if (!response.ok) return null;
+    const data = (await response.json()) as LiveTokenResponse;
+    return data && typeof data === 'object' && 'enabled' in data ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Se conecta a Ably con tokens cortos que firma el servidor. Devuelve false si no hay Ably. */
+async function startAbly(): Promise<boolean> {
+  const first = await fetchLiveToken();
+  if (!first || !first.enabled) return false;
+
+  let Ably: typeof import('ably');
+  try {
+    // Import dinámico: el SDK solo se descarga si de verdad hay Ably.
+    Ably = await import('ably');
+  } catch {
+    return false;
+  }
+
+  let initial: unknown = first.tokenRequest;
+  const realtime = new Ably.Realtime({
+    authCallback: (_params, callback) => {
+      // El primer token ya lo tenemos; los siguientes (renovación) se piden al servidor.
+      if (initial) {
+        const tokenRequest = initial;
+        initial = undefined;
+        callback(null, tokenRequest as Parameters<typeof callback>[1]);
+        return;
+      }
+      void fetchLiveToken().then(next => {
+        if (next && next.enabled) callback(null, next.tokenRequest as Parameters<typeof callback>[1]);
+        else callback('Ably no disponible', null);
+      });
+    },
+  });
+
+  let everConnected = false;
+  realtime.connection.on('connected', () => {
+    // Tras una caída nos pudimos perder avisos: se recarga todo una vez.
+    if (everConnected) schedule(ALL_RESOURCES);
+    everConnected = true;
+  });
+
+  const channel = realtime.channels.get(first.channel);
+  void channel.subscribe('changed', message => handleMessage(message.data));
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// WebSocket local (npm run dev:api)
+// ---------------------------------------------------------------------------
 
 /** Intentos antes de rendirse si el WebSocket nunca llegó a conectar. */
 const MAX_INITIAL_ATTEMPTS = 3;
@@ -130,12 +200,7 @@ function hasNoLiveServer(): boolean {
 }
 
 /** Abre el WebSocket (mismo host que la web; Vite lo pasa a :3001) y reconecta solo. */
-export function startLiveSync(): void {
-  if (started || typeof window === 'undefined' || typeof WebSocket === 'undefined') return;
-  started = true;
-  tagApiRequests();
-  if (hasNoLiveServer()) return;
-
+function startWebSocket(): void {
   let retry = 0;
   let everConnected = false;
 
@@ -150,8 +215,8 @@ export function startLiveSync(): void {
     };
     socket.onmessage = message => handleMessage(message.data);
     socket.onclose = () => {
-      // Sin servidor de WS (p. ej. en Vercel serverless) no se insiste: tras unos
-      // intentos sin haber conectado nunca, se deja (la app sigue por REST).
+      // Sin servidor de WS: tras unos intentos sin haber conectado nunca, se deja
+      // (la app sigue por REST).
       if (!everConnected && retry >= MAX_INITIAL_ATTEMPTS - 1) return;
       // 1s, 2s, 4s… hasta 30s.
       const delay = Math.min(30_000, 1000 * 2 ** retry);
@@ -161,4 +226,19 @@ export function startLiveSync(): void {
   };
 
   connect();
+}
+
+let started = false;
+
+/** Arranca la sync en vivo: Ably si el servidor lo ofrece; si no, WebSocket local. */
+export function startLiveSync(): void {
+  if (started || typeof window === 'undefined') return;
+  started = true;
+  tagApiRequests();
+
+  void startAbly().then(usingAbly => {
+    if (usingAbly) return;
+    if (hasNoLiveServer() || typeof WebSocket === 'undefined') return;
+    startWebSocket();
+  });
 }

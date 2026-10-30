@@ -2,8 +2,9 @@ import { HttpError } from '../../server/errors';
 import { assertWriteAccess, queryValue, withErrors } from '../../server/http';
 import { getRole, updateRole } from '../../server/store';
 import { isRoleId, parseRolePatch } from '../../server/validate';
+import { withLive } from '../../server/livePublish';
 
-export default withErrors(async (req, res) => {
+export default withLive({ PATCH: ['roles'] }, withErrors(async (req, res) => {
   const id = queryValue(req.query, 'id')?.trim() ?? '';
   if (!isRoleId(id)) throw new HttpError(400, 'Falta un id de rol válido (p. ej. asesino-ad)');
 
@@ -17,4 +18,4 @@ export default withErrors(async (req, res) => {
     return;
   }
   throw new HttpError(405, 'Método no permitido');
-});
+}));
