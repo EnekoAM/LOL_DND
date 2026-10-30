@@ -198,10 +198,10 @@
   appearance: none;
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-width: 160px;
-  height: 31px;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 200px;
+  height: 34px;
   padding: 0 10px 0 12px;
   border: 1px solid rgba(201, 168, 76, 0.3);
   border-radius: 4px;
@@ -232,7 +232,15 @@
 }
 
 .dados-select__value {
+  flex: 1;
   white-space: nowrap;
+  text-align: left;
+}
+
+.dados-select__die {
+  flex-shrink: 0;
+  display: block;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
 }
 
 .dados-select__caret {
@@ -255,6 +263,7 @@
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
+  right: 0;
   z-index: 30;
   min-width: 100%;
   margin: 0;
@@ -270,7 +279,11 @@
 
 .dados-select__option {
   position: relative;
-  padding: 8px 10px 8px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 8px 7px 22px;
   border-radius: 3px;
   font-family: 'Cinzel', serif;
   font-size: 11px;
@@ -279,6 +292,11 @@
   white-space: nowrap;
   color: rgba(212, 196, 154, 0.85);
   cursor: pointer;
+}
+
+.dados-select__option-label {
+  flex: 1;
+  min-width: 0;
 }
 
 .dados-select__option.is-active {

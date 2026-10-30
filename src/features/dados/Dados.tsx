@@ -24,14 +24,30 @@ const QUICK: { label: string; notation: string }[] = [
   { label: '2d20', notation: '2d20' },
 ];
 
-const DICE_THEMES: { id: string; label: string; color?: string }[] = [
+type DiceTheme = {
+  id: string;
+  label: string;
+  color?: string;
+  /** Textura para previsualizar el d20 (temas con mapa diffuse propio). */
+  previewTexture?: string;
+};
+
+const DICE_THEMES: DiceTheme[] = [
   { id: 'default', label: 'Clásico', color: '#C9A84C' },
   { id: 'smooth', label: 'Suave', color: '#C9A84C' },
   { id: 'gemstone', label: 'Gema', color: '#7B5EA7' },
   { id: 'rock', label: 'Piedra', color: '#b7aca1' },
   { id: 'rust', label: 'Óxido', color: '#aa4f4a' },
-  { id: 'wooden', label: 'Madera' },
-  { id: 'diceOfRolling', label: 'Dice of Rolling' },
+  {
+    id: 'wooden',
+    label: 'Madera',
+    previewTexture: '/assets/dice-box/themes/wooden/diffuse.jpg',
+  },
+  {
+    id: 'diceOfRolling',
+    label: 'Dice of Rolling',
+    previewTexture: '/assets/dice-box/themes/diceOfRolling/diffuse.jpg',
+  },
 ];
 
 const THEME_KEY = 'lol-dnd:dice-theme';
@@ -100,6 +116,70 @@ const waitForBoxSize = async (el: HTMLElement): Promise<void> => {
 
 const themeColorOf = (themeId: string): string | undefined =>
   DICE_THEMES.find(theme => theme.id === themeId)?.color;
+
+
+/** Mini d20 del tema: visible siempre (trigger y opciones), sin hover. */
+const ThemeDicePreview = ({ theme, size = 22 }: { theme: DiceTheme; size?: number }) => {
+  const uid = `dice-prev-${theme.id}-${size}`;
+  const fill = theme.previewTexture ? `url(#${uid}-tex)` : (theme.color ?? '#C9A84C');
+  const stroke = theme.previewTexture ? 'rgba(40, 24, 8, 0.85)' : 'rgba(0, 0, 0, 0.45)';
+  const faceLight = theme.previewTexture ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.22)';
+  const faceDark = theme.previewTexture ? 'rgba(0, 0, 0, 0.22)' : 'rgba(0, 0, 0, 0.18)';
+  return (
+    <svg
+      className="dados-select__die"
+      width={size}
+      height={size}
+      viewBox="0 0 64 64"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        {theme.previewTexture && (
+          <pattern id={`${uid}-tex`} patternUnits="userSpaceOnUse" width="64" height="64">
+            <image href={theme.previewTexture} x="0" y="0" width="64" height="64" preserveAspectRatio="xMidYMid slice" />
+          </pattern>
+        )}
+        <linearGradient id={`${uid}-shine`} x1="0.15" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.35)" />
+          <stop offset="55%" stopColor="rgba(255,255,255,0)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.25)" />
+        </linearGradient>
+      </defs>
+      <polygon
+        points="32,4 56,18 56,46 32,60 8,46 8,18"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <polygon points="32,4 56,18 32,28 8,18" fill={faceLight} />
+      <polygon points="32,28 56,18 56,46 32,60 8,46 8,18" fill={faceDark} opacity="0.35" />
+      <polygon points="32,4 48,22 32,28 16,22" fill="none" stroke={stroke} strokeWidth="1.2" opacity="0.7" />
+      <line x1="32" y1="28" x2="32" y2="60" stroke={stroke} strokeWidth="1.1" opacity="0.55" />
+      <line x1="8" y1="18" x2="32" y2="28" stroke={stroke} strokeWidth="1.1" opacity="0.55" />
+      <line x1="56" y1="18" x2="32" y2="28" stroke={stroke} strokeWidth="1.1" opacity="0.55" />
+      <line x1="8" y1="46" x2="32" y2="28" stroke={stroke} strokeWidth="1" opacity="0.4" />
+      <line x1="56" y1="46" x2="32" y2="28" stroke={stroke} strokeWidth="1" opacity="0.4" />
+      <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" fill={`url(#${uid}-shine)`} />
+      <text
+        x="32"
+        y="36"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontFamily="Cinzel, Georgia, serif"
+        fontSize="14"
+        fontWeight="700"
+        fill={theme.previewTexture ? '#f5e6c8' : '#1a1000'}
+        stroke={theme.previewTexture ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.25)'}
+        strokeWidth="0.6"
+        paintOrder="stroke"
+      >
+        20
+      </text>
+    </svg>
+  );
+};
 
 type ThemeSelectProps = {
   value: string;
@@ -202,6 +282,7 @@ const ThemeSelect = ({ value, disabled, onChange }: ThemeSelectProps) => {
         }}
       >
         <span id="dados-theme-value" className="dados-select__value">{current.label}</span>
+        <ThemeDicePreview theme={current} size={20} />
         <span className="dados-select__caret" aria-hidden="true" />
       </button>
       {open && (
@@ -231,7 +312,8 @@ const ThemeSelect = ({ value, disabled, onChange }: ThemeSelectProps) => {
                 onMouseDown={event => event.preventDefault()}
                 onClick={() => pick(entry.id)}
               >
-                {entry.label}
+                <span className="dados-select__option-label">{entry.label}</span>
+                <ThemeDicePreview theme={entry} size={22} />
               </li>
             );
           })}
