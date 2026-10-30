@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { cx } from '../../lib/cx';
-import { MAP_PIXELS, POI_KINDS, RUNETERRA_POIS, type PoiKind, type RuneterraPoi } from './pois';
+import { MAP_PIXELS, POI_KINDS, RUNETERRA_POIS, poiIconSpec, type PoiKind, type RuneterraPoi } from './pois';
 import './Mapa.css';
 
 /**
@@ -37,9 +37,16 @@ function poiLatLng(poi: RuneterraPoi): L.LatLng {
 }
 
 function poiIcon(poi: RuneterraPoi): L.DivIcon {
+  const icon = poiIconSpec(poi);
+  const size = `width:${icon.width}px;height:${icon.height}px`;
   return L.divIcon({
     className: `mapa-poi mapa-poi--${poi.kind}`,
-    html: `<span class="mapa-poi__mark"></span><span class="mapa-poi__label">${escapeHtml(poi.name)}</span>`,
+    html:
+      `<span class="mapa-poi__icon" style="${size}">` +
+      `<img class="mapa-poi__img" src="${icon.src}" alt="" draggable="false">` +
+      `<img class="mapa-poi__img mapa-poi__img--hover" src="${icon.hover}" alt="" draggable="false">` +
+      `</span>` +
+      `<span class="mapa-poi__label" style="top:${Math.round(icon.height / 2) + 2}px">${escapeHtml(poi.name)}</span>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   });
@@ -184,7 +191,7 @@ function syncPoiLayers(map: L.Map, groups: Map<PoiKind, L.LayerGroup>, shown: Se
   for (const kind of POI_KINDS) {
     const group = groups.get(kind.id);
     if (!group) continue;
-    const visible = shown.has(kind.id) && zoom >= kind.minZoom;
+    const visible = shown.has(kind.id) && zoom >= kind.minZoom && zoom < (kind.maxZoom ?? Infinity);
     if (visible && !map.hasLayer(group)) group.addTo(map);
     if (!visible && map.hasLayer(group)) map.removeLayer(group);
   }

@@ -5,7 +5,7 @@
   "S": 3.97459,
   "OX": 4103.88,
   "OY": 4019.68,
-  "adjust": "Piltover/Zaun share one official point (doubleTop/doubleBottom icons); split +-24px vertically."
+  "adjust": "Piltover/Zaun share one official point (doubleTop/doubleBottom icons); split +-40px vertically."
  },
  "mapSize": 8192,
  "pois": [
@@ -420,7 +420,7 @@
    "nameEn": "Piltover",
    "kind": "ciudad",
    "x": 4875,
-   "y": 4429,
+   "y": 4413,
    "subtitle": "Ciudad costera próspera",
    "description": "Piltover es una próspera ciudad progresista frente al océano. Acoge a flotas enteras de barcos mercantiles que cruzan las gigantes puertas marítimas para traer bienes provenientes del resto del mundo. Los clanes mercantiles aportan los fondos necesarios para empresas increíbles: desde locuras artísticas a monumentos arquitectónicos en honor a su poder individual. Con cada vez más inventores indagando en la hextech, Piltover se ha convertido en el destino para los artesanos más habilidosos de toda Runaterra.",
    "region": "Piltover y Zaun",
@@ -542,7 +542,7 @@
    "nameEn": "Zaun",
    "kind": "ciudad",
    "x": 4875,
-   "y": 4477,
+   "y": 4493,
    "subtitle": "Ciudad Subterránea contaminada",
    "description": "Zaun es una Ciudad Subterránea contaminada que se encuentra debajo de Piltover. Aunque tiempo atrás fueron una sola, ahora son dos culturas simbióticas separadas. Las investigaciones poco ortodoxas de los inventores reprimidos a menudo son bien recibidas en Zaun, pero las imprudencias de la industria han hecho que varias partes de la ciudad sean extremadamente tóxicas. Sin embargo, gracias a un boyante mercado negro, la tecnoquímica y los aumentos mecánicos, sus residentes disponen de recursos para seguir prosperando.",
    "region": "Piltover y Zaun",
