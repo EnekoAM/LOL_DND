@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="boot-active">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,9 +18,16 @@
         background: #0e0a05;
         color: #d4c49a;
       }
-      #root { min-height: 100vh; }
+      html.boot-active, html.boot-active body {
+        height: 100%;
+        overflow: hidden;
+      }
+      #root { min-height: 100%; }
       .boot {
-        min-height: 100vh;
+        box-sizing: border-box;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
         display: grid;
         place-items: center;
         padding: 24px;

@@ -24,6 +24,7 @@ loadCatalogs()
       // Si falla el guardado, la app sigue; stats se actualizaran al tocar equipo o nivel.
     }
     setBootStatus('Abriendo mesa\u2026');
+    document.documentElement.classList.remove('boot-active');
     createRoot(rootEl).render(
       <StrictMode>
         <BrowserRouter>
