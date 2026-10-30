@@ -1,7 +1,7 @@
 import { HttpError } from '../../server/errors';
 import { queryValue, withErrors } from '../../server/http';
 import { listRoles } from '../../server/store';
-import roleById from './[id]';
+import roleById from '../../server/handlers/roleById';
 import { withLive } from '../../server/livePublish';
 
 // En Vercel, /api/roles/:id se reescribe a /api/roles?id=:id (vercel.json),

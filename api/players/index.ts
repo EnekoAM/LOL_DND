@@ -1,7 +1,7 @@
 import { HttpError } from '../../server/errors';
 import { queryValue, withErrors } from '../../server/http';
 import { listPlayers } from '../../server/store';
-import playerByName from './[name]';
+import playerByName from '../../server/handlers/playerByName';
 import { withLive } from '../../server/livePublish';
 
 // En Vercel, /api/players/:name se reescribe a /api/players?name=:name (vercel.json),

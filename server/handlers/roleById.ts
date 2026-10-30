@@ -1,8 +1,8 @@
-import { HttpError } from '../../server/errors';
-import { assertWriteAccess, queryValue, withErrors } from '../../server/http';
-import { getRole, updateRole } from '../../server/store';
-import { isRoleId, parseRolePatch } from '../../server/validate';
-import { withLive } from '../../server/livePublish';
+import { HttpError } from '../errors';
+import { assertWriteAccess, queryValue, withErrors } from '../http';
+import { getRole, updateRole } from '../store';
+import { isRoleId, parseRolePatch } from '../validate';
+import { withLive } from '../livePublish';
 
 export default withLive({ PATCH: ['roles'] }, withErrors(async (req, res) => {
   const id = queryValue(req.query, 'id')?.trim() ?? '';

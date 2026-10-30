@@ -1,8 +1,8 @@
-import { HttpError } from '../../server/errors';
-import { assertWriteAccess, queryValue, withErrors } from '../../server/http';
-import { getPlayer, updatePlayer, upsertPlayer } from '../../server/store';
-import { parsePlayerPatch, parsePlayerReplace } from '../../server/validate';
-import { withLive } from '../../server/livePublish';
+import { HttpError } from '../errors';
+import { assertWriteAccess, queryValue, withErrors } from '../http';
+import { getPlayer, updatePlayer, upsertPlayer } from '../store';
+import { parsePlayerPatch, parsePlayerReplace } from '../validate';
+import { withLive } from '../livePublish';
 
 export default withLive({ PATCH: ['players'], PUT: ['players'] }, withErrors(async (req, res) => {
   const name = queryValue(req.query, 'name')?.trim();
