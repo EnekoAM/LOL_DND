@@ -54,6 +54,10 @@ const SheetSkills = ({ sheet, level, saving, error, onSave }: Props) => {
           const modOf = (a: typeof baseAbility) => scoreModifier(sheet?.scores?.[a] ?? DEFAULT_SCORE);
           const ability = (altAbilities ?? []).reduce((best, a) => (modOf(a) > modOf(best) ? a : best), baseAbility);
           const value = modOf(ability) + (proficient ? bonus : 0);
+          return { key, label, ability, proficient, value };
+        })
+          .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, 'es'))
+          .map(({ key, label, ability, proficient, value }) => {
           return (
             <li key={key} className={cx('sheet-skill', proficient && 'sheet-skill--prof')}>
               <button
