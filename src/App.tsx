@@ -29,7 +29,7 @@ const SCREENS: Screen[] = [
   { id: 'players',     label: 'Players',     icon: '👤', Component: Players },
   { id: 'calculos',    label: 'Calculos',    icon: '⚗',  Component: Calculos },
   { id: 'item-roll',   label: 'Item Roll',   icon: '💎', Component: ItemRoll },
-  { id: 'dados',       label: 'Dados',       icon: '⚀',  Component: Dados },
+  { id: 'dados',       label: 'Dados',       icon: '🎲', Component: Dados },
   { id: 'mapa',        label: 'Mapa',        icon: '🗺️', Component: Mapa },
   { id: 'historial',   label: 'Historial',   icon: '📜', Component: Historial },
   { id: 'sugerencias', label: 'Sugerencias', icon: '💡', Component: Sugerencias },
