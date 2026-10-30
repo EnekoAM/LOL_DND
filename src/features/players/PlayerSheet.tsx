@@ -25,12 +25,14 @@ import { cx } from '../../lib/cx';
 import HpPanel, { type CombatPatch } from './HpPanel';
 import InspirationToggle from './InspirationToggle';
 import ManaPanel from './ManaPanel';
+import PlayerSwitcher from './PlayerSwitcher';
 import SheetAbilities from './SheetAbilities';
 import SheetEditor from './SheetEditor';
 import SheetSkills from './SheetSkills';
 
 type Props = {
   player: Player;
+  players: Player[];
   saving: boolean;
   equipError: string | null;
   buildError: string | null;
@@ -38,6 +40,7 @@ type Props = {
   sheetError: string | null;
   abilityError: string | null;
   onBack: () => void;
+  onSwitchPlayer: (player: Player) => void;
   onSelectAbility: (ability: Ability, rank?: number) => void;
   onEquipamientoChange: (equipamiento: string[]) => void;
   onBuildChange: (build: string[]) => void;
@@ -107,6 +110,7 @@ const Portrait = ({
 
 const PlayerSheet = ({
   player,
+  players,
   saving,
   equipError,
   buildError,
@@ -114,6 +118,7 @@ const PlayerSheet = ({
   sheetError,
   abilityError,
   onBack,
+  onSwitchPlayer,
   onSelectAbility,
   onEquipamientoChange,
   onBuildChange,
@@ -136,6 +141,16 @@ const PlayerSheet = ({
     } catch {
       /* ignore */
     }
+  };
+  // Al cambiar de jugador se conserva la pestaña abierta: se guarda como la de la ficha destino.
+  const switchTo = (next: Player) => {
+    try {
+      localStorage.setItem(`playerSheetTab:${next.name}`, tab);
+    } catch {
+      /* ignore */
+    }
+    setPicker(null);
+    onSwitchPlayer(next);
   };
   const level = useSyncExternalStore(subscribeParty, partyLevel);
   useEffect(() => {
@@ -178,9 +193,17 @@ const PlayerSheet = ({
 
   return (
     <div className="sheet">
-      <button type="button" className="calc-back-btn sheet-back" onClick={onBack}>
-        ← Cambiar ficha
-      </button>
+      <div className="sheet-topbar">
+        <button type="button" className="calc-back-btn sheet-back" onClick={onBack}>
+          ← Todas las fichas
+        </button>
+        <PlayerSwitcher
+          players={players}
+          current={player}
+          disabled={saving}
+          onSelect={switchTo}
+        />
+      </div>
 
       <div className="sheet-body">
         <aside className="sheet-side">

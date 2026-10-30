@@ -981,3 +981,202 @@
   .sheet-inspire--on .sheet-inspire__sigil svg,
   .sheet-inspire--on::after { animation: none; }
 }
+
+/* Cambio rápido de ficha (cabecera de la ficha). */
+.sheet-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.sheet-topbar .sheet-back {
+  margin-bottom: 0;
+}
+
+.sheet-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.sheet-switch__step,
+.sheet-switch__trigger {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(42, 24, 0, 0.9), rgba(26, 15, 0, 0.95));
+  color: var(--gold, #c9a84c);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.sheet-switch__step {
+  justify-content: center;
+  width: 32px;
+  padding: 0;
+}
+
+.sheet-switch__trigger {
+  gap: 8px;
+  min-width: 200px;
+  padding: 0 10px 0 4px;
+}
+
+.sheet-switch__step:hover:not(:disabled),
+.sheet-switch__trigger:hover:not(:disabled),
+.sheet-switch.is-open .sheet-switch__trigger {
+  border-color: rgba(201, 168, 76, 0.55);
+  color: var(--gold-bright, #f0d080);
+}
+
+.sheet-switch__step:focus-visible,
+.sheet-switch__trigger:focus-visible {
+  outline: none;
+  border-color: rgba(201, 168, 76, 0.7);
+  box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2);
+}
+
+.sheet-switch__step:disabled,
+.sheet-switch__trigger:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.sheet-switch__arrow {
+  width: 7px;
+  height: 7px;
+  border-left: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+}
+
+.sheet-switch__arrow--left { transform: translateX(2px) rotate(45deg); }
+.sheet-switch__arrow--right { transform: translateX(-2px) rotate(-135deg); }
+
+.sheet-switch__thumb {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.sheet-switch__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sheet-switch__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.sheet-switch__count {
+  font-size: 9px;
+  color: rgba(212, 196, 154, 0.5);
+}
+
+.sheet-switch__caret {
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease, margin-top 0.15s ease;
+  opacity: 0.8;
+}
+
+.sheet-switch.is-open .sheet-switch__caret {
+  margin-top: 3px;
+  transform: rotate(-135deg);
+}
+
+.sheet-switch__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 40;
+  min-width: 100%;
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(30, 18, 2, 0.98), rgba(14, 9, 2, 0.98));
+  border: 1px solid rgba(201, 168, 76, 0.45);
+  border-radius: 4px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+  outline: none;
+}
+
+.sheet-switch__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 3px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(212, 196, 154, 0.85);
+  cursor: pointer;
+}
+
+.sheet-switch__option.is-active {
+  background: rgba(201, 168, 76, 0.14);
+  color: var(--gold-bright, #f0d080);
+}
+
+.sheet-switch__option.is-selected {
+  color: var(--gold-bright, #f0d080);
+  cursor: default;
+}
+
+.sheet-switch__option.is-selected .sheet-switch__thumb {
+  border-color: var(--gold, #c9a84c);
+}
+
+.sheet-switch__option-name {
+  flex: 1;
+}
+
+.sheet-switch__option-rol,
+.sheet-switch__option-tag {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: rgba(212, 196, 154, 0.5);
+}
+
+.sheet-switch__option-tag {
+  color: var(--gold, #c9a84c);
+}
+
+@media (max-width: 560px) {
+  .sheet-switch { width: 100%; }
+  .sheet-switch__trigger { flex: 1; min-width: 0; }
+}

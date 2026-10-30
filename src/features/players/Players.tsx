@@ -61,14 +61,26 @@ const Players = () => {
   const updateDamageInputs = (patch: Partial<DamageInputs>) =>
     setDamageInputs(prev => ({ ...prev, ...patch }));
 
-  const leavePlayer = () => {
-    setRestoring(false);
-    setPlayer(null);
+  const clearErrors = () => {
     setEquipError(null);
     setBuildError(null);
     setCombatError(null);
     setSheetError(null);
     setAbilityError(null);
+  };
+
+  const leavePlayer = () => {
+    setRestoring(false);
+    setPlayer(null);
+    clearErrors();
+  };
+
+  // Cambio rápido desde la propia ficha (sin volver a la lista); bloqueado mientras se guarda.
+  const switchPlayer = (next: Player) => {
+    if (saving) return;
+    setRestoring(false);
+    setPlayer(findSaved(next.name) ?? next);
+    clearErrors();
   };
 
   const updatePlayerList = async (
@@ -176,7 +188,10 @@ const Players = () => {
     <div className="players-root">
       {player ? (
         <PlayerSheet
+          key={normalizeName(player.name)}
           player={player}
+          players={PLAYERS}
+          onSwitchPlayer={switchPlayer}
           saving={saving}
           equipError={equipError}
           buildError={buildError}
