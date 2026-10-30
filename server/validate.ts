@@ -677,19 +677,19 @@ export function parseTicketCreate(body: unknown): TicketInput {
   return author ? { title, text, author } : { title, text };
 }
 
-export const TICKET_STATUSES = ['pending', 'accepted', 'rejected'] as const;
+export const TICKET_STATUSES = ['pending', 'accepted', 'rejected', 'completed'] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
 
 export function isTicketStatus(value: unknown): value is TicketStatus {
   return typeof value === 'string' && (TICKET_STATUSES as readonly string[]).includes(value);
 }
 
-/** PATCH /api/tickets: { id, status: 'pending' | 'accepted' | 'rejected' }. */
+/** PATCH /api/tickets: { id, status: 'pending' | 'accepted' | 'rejected' | 'completed' }. */
 export function parseTicketStatusUpdate(body: unknown): { id: string; status: TicketStatus } {
   const source = asObject(body);
   if (typeof source.id !== 'string' || !source.id.trim()) throw new HttpError(400, 'Falta la sugerencia');
   if (!isTicketStatus(source.status)) {
-    throw new HttpError(400, 'Estado no válido (pending, accepted o rejected)');
+    throw new HttpError(400, 'Estado no válido (pending, accepted, rejected o completed)');
   }
   return { id: source.id.trim(), status: source.status };
 }

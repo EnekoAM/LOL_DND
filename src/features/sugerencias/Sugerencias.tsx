@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Modal from '../../components/Modal';
 import { useCanEdit } from '../../data/appRoleContext';
 import { useLiveRevision } from '../../data/live';
@@ -27,13 +27,26 @@ const STATUS_LABEL: Record<TicketStatus, string> = {
   pending: 'Pendiente',
   accepted: 'Aceptada',
   rejected: 'Rechazada',
+  completed: 'Completada',
 };
 
 const STATUS_BUSY: Record<TicketStatus, string> = {
   pending: 'Reabriendo',
   accepted: 'Aceptando',
   rejected: 'Rechazando',
+  completed: 'Completando',
 };
+
+type Filter = 'all' | 'accepted' | 'rejected' | 'completed';
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'all', label: 'Todos' },
+  { key: 'accepted', label: 'Aceptados' },
+  { key: 'rejected', label: 'Rechazados' },
+  { key: 'completed', label: 'Completados' },
+];
+
+const PAGE_SIZE = 50;
 
 const sortNewest = (list: Ticket[]): Ticket[] =>
   [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -52,6 +65,8 @@ const Sugerencias = () => {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busyStatus, setBusyStatus] = useState<TicketStatus | null>(null);
   const [rowError, setRowError] = useState<{ id: string; text: string } | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
+  const [page, setPage] = useState(1);
   // Sugerencias creadas o borradas en otra pestaña: se vuelve a pedir la lista.
   const ticketsRevision = useLiveRevision('tickets');
 
@@ -74,6 +89,21 @@ const Sugerencias = () => {
       active = false;
     };
   }, [ticketsRevision]);
+
+  const counts = useMemo<Record<Filter, number>>(() => ({
+    all: tickets.length,
+    accepted: tickets.filter(item => item.status === 'accepted').length,
+    rejected: tickets.filter(item => item.status === 'rejected').length,
+    completed: tickets.filter(item => item.status === 'completed').length,
+  }), [tickets]);
+  const filtered = useMemo(
+    () => (filter === 'all' ? tickets : tickets.filter(item => item.status === filter)),
+    [tickets, filter],
+  );
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  // Si al borrar/cambiar estado la página se queda vacía, se baja a la última que exista.
+  const currentPage = Math.min(page, pageCount);
+  const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const trimmed = text.trim();
   const trimmedTitle = title.trim();
@@ -178,7 +208,22 @@ const Sugerencias = () => {
 
       <div className="sug-head">
         <span className="sug-head__label">Sugerencias</span>
-        <span className="sug-count">{tickets.length}</span>
+        <div className="sug-filters" role="tablist" aria-label="Filtrar sugerencias">
+          {FILTERS.map(item => (
+            <button
+              key={item.key}
+              type="button"
+              role="tab"
+              aria-selected={filter === item.key}
+              className={`sug-filter${filter === item.key ? ' sug-filter--active' : ''}`}
+              onClick={() => { setFilter(item.key); setPage(1); }}
+            >
+              {item.label}
+              <span className="sug-filter__count">{counts[item.key]}</span>
+            </button>
+          ))}
+        </div>
+        <span className="sug-count">{filtered.length}</span>
       </div>
 
       {loading && <p className="sug-status">Cargando las sugerencias…</p>}
@@ -191,8 +236,12 @@ const Sugerencias = () => {
         </div>
       )}
 
+      {!loading && !loadError && tickets.length > 0 && filtered.length === 0 && (
+        <p className="sug-status">No hay sugerencias con este filtro</p>
+      )}
+
       <div className="sug-list">
-        {tickets.map(ticket => {
+        {visible.map(ticket => {
           const error = rowError?.id === ticket.id ? rowError.text : null;
           const busy = busyId === ticket.id;
           return (
@@ -214,14 +263,16 @@ const Sugerencias = () => {
                   {ticket.status !== 'accepted' && (
                     <button
                       type="button"
-                      className="sug-btn sug-btn--accept"
+                      className={ticket.status === 'completed' ? 'sug-cancel' : 'sug-btn sug-btn--accept'}
                       disabled={busy}
                       onClick={() => { void changeStatus(ticket, 'accepted'); }}
                     >
-                      {busy && busyStatus === 'accepted' ? STATUS_BUSY.accepted : 'Aceptar'}
+                      {busy && busyStatus === 'accepted'
+                        ? (ticket.status === 'completed' ? 'Reabriendo' : STATUS_BUSY.accepted)
+                        : (ticket.status === 'completed' ? 'Reabrir' : 'Aceptar')}
                     </button>
                   )}
-                  {ticket.status !== 'rejected' && (
+                  {(ticket.status === 'pending' || ticket.status === 'accepted') && (
                     <button
                       type="button"
                       className="sug-btn sug-btn--reject"
@@ -231,7 +282,7 @@ const Sugerencias = () => {
                       {busy && busyStatus === 'rejected' ? STATUS_BUSY.rejected : 'Rechazar'}
                     </button>
                   )}
-                  {ticket.status !== 'pending' && (
+                  {(ticket.status === 'accepted' || ticket.status === 'rejected') && (
                     <button
                       type="button"
                       className="sug-cancel"
@@ -241,20 +292,53 @@ const Sugerencias = () => {
                       {busy && busyStatus === 'pending' ? STATUS_BUSY.pending : 'Volver a pendiente'}
                     </button>
                   )}
-                  <button
-                    type="button"
-                    className="sug-btn"
-                    disabled={busy}
-                    onClick={() => setPending(ticket)}
-                  >
-                    {busy && !busyStatus ? 'Borrando' : 'Borrar'}
-                  </button>
+                  {ticket.status === 'accepted' ? (
+                    <button
+                      type="button"
+                      className="sug-btn sug-btn--complete"
+                      disabled={busy}
+                      onClick={() => { void changeStatus(ticket, 'completed'); }}
+                    >
+                      {busy && busyStatus === 'completed' ? STATUS_BUSY.completed : 'Completado'}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="sug-btn"
+                      disabled={busy}
+                      onClick={() => setPending(ticket)}
+                    >
+                      {busy && !busyStatus ? 'Borrando' : 'Borrar'}
+                    </button>
+                  )}
                 </div>
               )}
             </article>
           );
         })}
       </div>
+
+      {pageCount > 1 && (
+        <nav className="sug-pager" aria-label="Páginas de sugerencias">
+          <button type="button" className="sug-cancel" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>
+            Anterior
+          </button>
+          {Array.from({ length: pageCount }, (_, index) => index + 1).map(number => (
+            <button
+              key={number}
+              type="button"
+              className={`sug-filter${number === currentPage ? ' sug-filter--active' : ''}`}
+              aria-current={number === currentPage ? 'page' : undefined}
+              onClick={() => setPage(number)}
+            >
+              {number}
+            </button>
+          ))}
+          <button type="button" className="sug-cancel" disabled={currentPage >= pageCount} onClick={() => setPage(currentPage + 1)}>
+            Siguiente
+          </button>
+        </nav>
+      )}
 
       {pending && canEdit && (
         <Modal onClose={() => { if (!busyId) setPending(null); }} backdropClassName="sug-confirm-backdrop" className="sug-confirm">

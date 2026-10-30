@@ -1,6 +1,6 @@
 import { readAppRole } from './appRole';
 
-export type TicketStatus = 'pending' | 'accepted' | 'rejected';
+export type TicketStatus = 'pending' | 'accepted' | 'rejected' | 'completed';
 
 /** Sugerencia (ticket) guardada en Mongo. Crear: cualquiera. Aceptar/rechazar/borrar: solo admin. */
 export type Ticket = {
@@ -42,7 +42,9 @@ export async function loadTickets(): Promise<Ticket[]> {
   return (body as Ticket[]).map(ticket => ({
     ...ticket,
     title: typeof ticket.title === 'string' ? ticket.title : '',
-    status: ticket.status === 'accepted' || ticket.status === 'rejected' ? ticket.status : 'pending',
+    status: ticket.status === 'accepted' || ticket.status === 'rejected' || ticket.status === 'completed'
+      ? ticket.status
+      : 'pending',
   }));
 }
 
@@ -62,7 +64,7 @@ export async function createTicket(title: string, text: string, author?: string)
   return body as Ticket;
 }
 
-/** Solo admin: aceptar, rechazar o volver a pendiente. */
+/** Solo admin: aceptar, rechazar, completar o volver a pendiente. */
 export async function setTicketStatus(id: string, status: TicketStatus): Promise<Ticket> {
   if (readAppRole() !== 'admin') throw new Error('Solo el admin puede aceptar o rechazar sugerencias');
   const body = await call('/api/tickets', {

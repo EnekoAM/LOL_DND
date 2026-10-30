@@ -1069,7 +1069,7 @@ function toTicket(doc: Document): TicketEntry {
     id: String(doc._id),
     title: typeof doc.title === 'string' ? doc.title : '',
     text: typeof doc.text === 'string' ? doc.text : '',
-    status: doc.status === 'accepted' || doc.status === 'rejected' ? doc.status : 'pending',
+    status: doc.status === 'accepted' || doc.status === 'rejected' || doc.status === 'completed' ? doc.status : 'pending',
     createdAt: created.toISOString(),
   };
   if (typeof doc.author === 'string' && doc.author.trim()) entry.author = doc.author.trim();
@@ -1089,7 +1089,7 @@ export async function createTicket(input: TicketInput): Promise<TicketEntry> {
   return toTicket({ ...doc, _id: result.insertedId });
 }
 
-/** Aceptar / rechazar / volver a pendiente (solo admin, lo comprueba la API). */
+/** Aceptar / rechazar / completar / volver a pendiente (solo admin, lo comprueba la API). */
 export async function updateTicketStatus(id: string, status: TicketStatus): Promise<TicketEntry> {
   if (!ObjectId.isValid(id)) throw new HttpError(404, 'No existe esa sugerencia');
   const tickets = await collection('tickets');
