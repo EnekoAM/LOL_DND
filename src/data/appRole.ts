@@ -27,3 +27,21 @@ export function screenAllowed(_role: AppRole, _screenId: string): boolean {
 export function roleCanEdit(role: AppRole): boolean {
   return role === 'admin';
 }
+
+/**
+ * PIN para elegir el rol admin. OJO: NO es seguridad real; vive en el bundle del
+ * frontend y cualquiera con DevTools lo puede ver. Solo frena a visitantes casuales.
+ * Se configura con VITE_ADMIN_PIN (4 dígitos) en .env / Vercel; por defecto 1234.
+ */
+const DEFAULT_ADMIN_PIN = '1234';
+
+function resolveAdminPin(): string {
+  const raw = String(import.meta.env.VITE_ADMIN_PIN ?? '').trim();
+  return /^\d{4}$/.test(raw) ? raw : DEFAULT_ADMIN_PIN;
+}
+
+export const ADMIN_PIN_LENGTH = 4;
+
+export function checkAdminPin(pin: string): boolean {
+  return pin.trim() === resolveAdminPin();
+}

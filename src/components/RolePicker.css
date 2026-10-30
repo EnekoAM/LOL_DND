@@ -101,3 +101,90 @@
 
 .role-picker__btn--admin .role-picker__btn-icon { color: var(--gold); }
 .role-picker__btn--user .role-picker__btn-icon { color: var(--ink); }
+
+/* ── PIN de admin ── */
+.role-picker__pin .role-picker__hint { margin-bottom: 18px; }
+
+.role-picker__pin-input {
+  display: block;
+  width: 180px;
+  margin: 0 auto;
+  padding: 10px 12px;
+  font-family: 'Cinzel', serif;
+  font-size: 26px;
+  letter-spacing: 14px;
+  text-indent: 14px;
+  text-align: center;
+  color: var(--gold-bright);
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(201,168,76,0.4);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.role-picker__pin-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201,168,76,0.25);
+}
+
+.role-picker__pin-input--error {
+  border-color: #c0504a;
+  animation: role-picker-shake 0.3s ease;
+}
+
+.role-picker__pin-error {
+  min-height: 18px;
+  margin: 10px 0 18px;
+  font-size: 13px;
+  color: #e07a70;
+}
+
+.role-picker__pin-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.role-picker__pin-btn {
+  flex: 1;
+  padding: 11px 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  color: var(--ink);
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(201,168,76,0.25);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.role-picker__pin-btn:hover:not(:disabled) {
+  border-color: rgba(201,168,76,0.55);
+  background: rgba(201,168,76,0.08);
+}
+
+.role-picker__pin-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.role-picker__pin-btn--primary {
+  color: var(--gold-bright);
+  border-color: rgba(201,168,76,0.5);
+  background: rgba(201,168,76,0.12);
+}
+
+.role-picker__pin-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@keyframes role-picker-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-picker__pin-input--error { animation: none; }
+}
