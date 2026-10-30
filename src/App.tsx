@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppHeader, { type NavItem } from './components/AppHeader';
 import RolePicker from './components/RolePicker';
@@ -28,7 +28,7 @@ const SCREENS: Screen[] = [
   { id: 'habilidades', label: 'Habilidades', icon: '✦',  Component: Habilidades },
   { id: 'players',     label: 'Players',     icon: '👤', Component: Players },
   { id: 'calculos',    label: 'Calculos',    icon: '⚗',  Component: Calculos },
-  { id: 'item-roll',   label: 'Item Roll',   icon: '🎲', Component: ItemRoll },
+  { id: 'item-roll',   label: 'Item Roll',   icon: '💎', Component: ItemRoll },
   { id: 'dados',       label: 'Dados',       icon: '⚀',  Component: Dados },
   { id: 'mapa',        label: 'Mapa',        icon: '🗺️', Component: Mapa },
   { id: 'historial',   label: 'Historial',   icon: '📜', Component: Historial },
