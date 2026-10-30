@@ -15,7 +15,7 @@ export type LootReelData = {
 
 /** Tiempo por cada opción del pool que recorre la ruleta. */
 export const MS_PER_POOL_ITEM = 100;
-export const MIN_SPIN_MS = 2000;
+export const MIN_SPIN_MS = 3000;
 export const MAX_SPIN_MS = 15000;
 
 /** Cartas antes del pool (para que no se vea hueco a la izquierda). */
