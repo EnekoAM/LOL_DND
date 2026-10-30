@@ -56,7 +56,7 @@ const takeUnique = (rarity: LootRarity, used: Set<string>): LootRoll[] => {
   return out;
 };
 
-/** Rellena hasta `count` cartas ciclando un pool (solo padding visual; la vuelta del medio sigue sin repeticiones). */
+/** Rellena hasta `count` cartas ciclando un pool (padding visual). */
 const padFrom = (count: number, pool: LootRoll[]): LootRoll[] => {
   if (count <= 0 || pool.length === 0) return [];
   const out: LootRoll[] = [];
@@ -68,26 +68,36 @@ const padFrom = (count: number, pool: LootRoll[]): LootRoll[] => {
 /**
  * Tira de la ruleta estilo "caja". El ganador ya está decidido y aparece una sola vez
  * en la vuelta central. Orden: relleno · vuelta completa del pool · GANADOR · cola.
- * Lead/cola usan primero rarezas superiores ("casi") y, si no alcanzan (p. ej. legendario),
- * rellenan ciclando el pool para que el viewport no quede vacío al frenar.
+ * Alrededor del ganador casi todo es del mismo pool; como mucho 0–2 cartas de rareza
+ * superior ("casi"), para que no se llene de épicos/legendarios.
+ * Lead/cola se rellenan con el mismo pool si hace falta (p. ej. legendario sin extras).
  */
 export const buildReel = (base: LootRarity, winner: LootRoll): LootReelData => {
   const used = new Set<string>([keyOf(winner.entry.name)]);
   const poolSize = new Set((LOOT.items[base] ?? []).map(e => keyOf(e.name))).size;
   const lap = shuffle(takeUnique(base, used));
   const extras = shuffle(UPGRADES[base].flatMap(r => takeUnique(r, used)));
-
-  // Cola: preferir extras; completar hasta TAIL con el pool (padding visual).
-  const roll = Math.random();
-  const minBait = roll < 0.5 ? 0 : roll < 0.85 ? 1 : 2;
-  const baitTake = Math.min(extras.length, Math.max(minBait, Math.min(TAIL, extras.length)));
-  const bait = shuffle(extras.splice(0, baitTake));
   const padPool = lap.length > 0 ? lap : [winner];
-  const tail = [...bait, ...padFrom(TAIL - bait.length, padPool)].slice(0, TAIL);
 
-  // Relleno inicial: extras restantes + padding del pool.
-  const leadExtras = extras.splice(0, Math.min(LEAD, extras.length));
-  const lead = [...leadExtras, ...padFrom(LEAD - leadExtras.length, padPool)].slice(0, LEAD);
+  // "Casi": 50% ninguna, 35% una, 15% dos cartas de rareza superior junto al ganador.
+  const roll = Math.random();
+  const baitCount = Math.min(extras.length, roll < 0.5 ? 0 : roll < 0.85 ? 1 : 2);
+  const baits = extras.splice(0, baitCount);
+
+  // Cola: casi todo del mismo pool; repartir los baits en slots aleatorios.
+  const tail = padFrom(TAIL, padPool);
+  if (baits.length > 0 && tail.length > 0) {
+    const slots = shuffle([...tail.keys()]).slice(0, baits.length);
+    slots.forEach((slot, i) => {
+      tail[slot] = baits[i]!;
+    });
+  }
+
+  // Relleno inicial: mismo pool (sin inundar de rareza alta; a lo sumo 1 extra si queda).
+  const lead = padFrom(LEAD, padPool);
+  if (extras.length > 0 && lead.length > 0 && Math.random() < 0.25) {
+    lead[Math.floor(Math.random() * lead.length)] = extras[0]!;
+  }
 
   return {
     id: Date.now() + Math.random(),
