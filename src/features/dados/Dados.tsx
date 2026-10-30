@@ -261,6 +261,18 @@ const ThemeSelect = ({ value, disabled, onChange }: ThemeSelectProps) => {
   );
 };
 
+
+/** La moneda (d2) vive en default-extras; por defecto solo queda enlazada a Clásico. */
+const ensureCoinOnAllThemes = (box: { themesLoadedData?: Record<string, { diceExtended?: Record<string, string> }> }) => {
+  const data = box.themesLoadedData;
+  if (!data?.['default-extras']) return;
+  for (const theme of DICE_THEMES) {
+    const entry = data[theme.id];
+    if (!entry) continue;
+    entry.diceExtended = { ...entry.diceExtended, d2: 'default-extras' };
+  }
+};
+
 const Dados = () => {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const boxRef = useRef<DiceBox | null>(null);
@@ -319,6 +331,7 @@ const Dados = () => {
       try {
         await box.init();
         if (cancelled) return;
+        ensureCoinOnAllThemes(box as { themesLoadedData?: Record<string, { diceExtended?: Record<string, string> }> });
         box.show();
         box.resizeWorld();
         observer = new ResizeObserver(() => {
@@ -364,6 +377,7 @@ const Dados = () => {
       const color = themeColorOf(next);
       if (color) patch.themeColor = color;
       await box.updateConfig(patch);
+      ensureCoinOnAllThemes(box as { themesLoadedData?: Record<string, { diceExtended?: Record<string, string> }> });
       setTheme(next);
       try { box.clear(); } catch { /* ignore */ }
     } catch (caught) {
