@@ -357,7 +357,7 @@ const Tienda = () => {
         {!canUseShop ? (
           <section className="shop-cart">
             <h2 className="shop-cart__title">Solo lectura</h2>
-            <p className="shop-cart__hint">La tienda está en solo lectura.</p>
+            <p className="shop-cart__hint">La tienda estï¿½ en solo lectura.</p>
           </section>
         ) : mode === 'crafteo' ? (
           <CraftBench
@@ -403,9 +403,11 @@ const Tienda = () => {
             <span>{mode === 'compra' ? 'A pagar' : 'A cobrar'}</span>
             <strong>{formatGold(total)} oro</strong>
           </p>
-          {mode === 'compra' && cart.length > 0 && !canPay && (
-            <p className="shop-cart__note shop-cart__note--error">
-              Falta oro (tienes {formatGold(gold)}, hacen falta {formatGold(total)}).
+          {mode === 'compra' && cart.length > 0 && (
+            <p className={cx('shop-cart__note', !canPay && 'shop-cart__note--error')}>
+              {canPay
+                ? `Tras comprar te quedarÃ­an ${formatGold(gold - total)} oro.`
+                : `Te faltan ${formatGold(total - gold)} oro para comprar todo (tienes ${formatGold(gold)}).`}
             </p>
           )}
           {oversell && <p className="shop-cart__note shop-cart__note--error">No hay tantas copias libres.</p>}
@@ -550,7 +552,7 @@ const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchP
           <p className="shop-craft__cost">{craftSummary(item, ingredients)}</p>
           {canCraft && !canPay && (
             <p className="shop-cart__note shop-cart__note--error">
-              Falta oro (tienes {formatGold(gold)}, hacen falta {formatGold(price)}).
+              Te faltan {formatGold(price - gold)} oro para craftear (tienes {formatGold(gold)}).
             </p>
           )}
           {blockedByGear && <p className="shop-cart__note">Las copias equipadas no se gastan.</p>}
