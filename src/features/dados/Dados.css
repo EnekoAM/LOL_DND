@@ -199,10 +199,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
-  min-width: 200px;
-  height: 34px;
-  padding: 0 10px 0 12px;
+  gap: 10px;
+  min-width: 240px;
+  height: 44px;
+  padding: 0 12px 0 14px;
   border: 1px solid rgba(201, 168, 76, 0.3);
   border-radius: 4px;
   background: linear-gradient(135deg, rgba(42, 24, 0, 0.9), rgba(26, 15, 0, 0.95));
@@ -240,7 +240,14 @@
 .dados-select__die {
   flex-shrink: 0;
   display: block;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+}
+
+.dados-select__trigger .dados-select__die {
+  width: 32px;
+  height: 32px;
 }
 
 .dados-select__caret {
@@ -282,8 +289,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 7px 8px 7px 22px;
+  gap: 14px;
+  padding: 8px 10px 8px 22px;
+  min-height: 48px;
   border-radius: 3px;
   font-family: 'Cinzel', serif;
   font-size: 11px;

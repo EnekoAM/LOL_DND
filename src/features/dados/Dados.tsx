@@ -119,7 +119,7 @@ const themeColorOf = (themeId: string): string | undefined =>
 
 
 /** Mini d20 del tema: visible siempre (trigger y opciones), sin hover. */
-const ThemeDicePreview = ({ theme, size = 22 }: { theme: DiceTheme; size?: number }) => {
+const ThemeDicePreview = ({ theme, size = 40 }: { theme: DiceTheme; size?: number }) => {
   const uid = `dice-prev-${theme.id}-${size}`;
   const fill = theme.previewTexture ? `url(#${uid}-tex)` : (theme.color ?? '#C9A84C');
   const stroke = theme.previewTexture ? 'rgba(40, 24, 8, 0.85)' : 'rgba(0, 0, 0, 0.45)';
@@ -282,7 +282,7 @@ const ThemeSelect = ({ value, disabled, onChange }: ThemeSelectProps) => {
         }}
       >
         <span id="dados-theme-value" className="dados-select__value">{current.label}</span>
-        <ThemeDicePreview theme={current} size={20} />
+        <ThemeDicePreview theme={current} size={32} />
         <span className="dados-select__caret" aria-hidden="true" />
       </button>
       {open && (
@@ -313,7 +313,7 @@ const ThemeSelect = ({ value, disabled, onChange }: ThemeSelectProps) => {
                 onClick={() => pick(entry.id)}
               >
                 <span className="dados-select__option-label">{entry.label}</span>
-                <ThemeDicePreview theme={entry} size={22} />
+                <ThemeDicePreview theme={entry} size={40} />
               </li>
             );
           })}
