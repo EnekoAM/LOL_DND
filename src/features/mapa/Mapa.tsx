@@ -24,8 +24,8 @@ const TILE_URL = `${import.meta.env.BASE_URL}assets/runeterra/tiles/{z}/{x}/{y}.
 
 /** Monumentos 3D del mapa oficial (modelos .obj renderizados a sprite, ver landmarks/README.md). */
 const LANDMARK_URL = `${import.meta.env.BASE_URL}assets/runeterra/landmarks/sprites`;
-/** Mismo umbral que la capa de lugares. */
-const LANDMARK_MIN_ZOOM = 2.25;
+/** Siempre visibles con el chip 3D (las sombras del tile ya se ven en zoom lejano). */
+const LANDMARK_MIN_ZOOM = -Infinity;
 
 /** Rectangulo del sprite en px del mapa 8192 (ajustado a la sombra pintada en los tiles). */
 type LandmarkSprite = { left: number; top: number; width: number; height: number };
