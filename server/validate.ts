@@ -645,6 +645,42 @@ export function parseHistoryRevert(body: unknown): { id: string; kind: HistoryKi
   return { id: source.id.trim(), kind: source.kind as HistoryKind };
 }
 
+export const TICKET_TEXT_MAX = 1000;
+export const TICKET_AUTHOR_MAX = 80;
+
+export type TicketInput = {
+  text: string;
+  author?: string;
+};
+
+export function parseTicketCreate(body: unknown): TicketInput {
+  const source = asObject(body);
+  if (typeof source.text !== 'string' || !source.text.trim()) throw new HttpError(400, 'Escribe la sugerencia');
+  const text = source.text.trim();
+  if (text.length > TICKET_TEXT_MAX) {
+    throw new HttpError(400, `La sugerencia admite como máximo ${TICKET_TEXT_MAX} caracteres`);
+  }
+  if (source.author !== undefined && source.author !== null && typeof source.author !== 'string') {
+    throw new HttpError(400, 'El autor tiene que ser un texto');
+  }
+  const author = typeof source.author === 'string' ? source.author.trim() : '';
+  if (author.length > TICKET_AUTHOR_MAX) {
+    throw new HttpError(400, `El autor admite como máximo ${TICKET_AUTHOR_MAX} caracteres`);
+  }
+  return author ? { text, author } : { text };
+}
+
+/** Id de la sugerencia a borrar: ?id= o { id } en el cuerpo. */
+export function parseTicketId(queryId: string | undefined, body: unknown): string {
+  let id = queryId;
+  if (!id && body && typeof body === 'object' && !Array.isArray(body)) {
+    const value = (body as Record<string, unknown>).id;
+    if (typeof value === 'string') id = value;
+  }
+  if (!id || !id.trim()) throw new HttpError(400, 'Falta la sugerencia');
+  return id.trim();
+}
+
 export function parsePlayerReplace(body: unknown): PlayerReplace {
   const source = asObject(body);
   return {

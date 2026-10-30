@@ -14,10 +14,11 @@ import Dados from './features/dados/Dados';
 import Items from './features/items/Items';
 import Mapa from './features/mapa/Mapa';
 import Players from './features/players/Players';
+import Sugerencias from './features/sugerencias/Sugerencias';
 import Tienda from './features/tienda/Tienda';
 import './App.css';
 
-type ScreenId = 'items' | 'tienda' | 'habilidades' | 'players' | 'calculos' | 'item-roll' | 'dados' | 'mapa' | 'historial';
+type ScreenId = 'items' | 'tienda' | 'habilidades' | 'players' | 'calculos' | 'item-roll' | 'dados' | 'mapa' | 'historial' | 'sugerencias';
 
 type Screen = NavItem<ScreenId> & { Component: ComponentType };
 
@@ -31,6 +32,7 @@ const SCREENS: Screen[] = [
   { id: 'dados',       label: 'Dados',       icon: '⚀',  Component: Dados },
   { id: 'mapa',        label: 'Mapa',        icon: '🗺️', Component: Mapa },
   { id: 'historial',   label: 'Historial',   icon: '📜', Component: Historial },
+  { id: 'sugerencias', label: 'Sugerencias', icon: '💡', Component: Sugerencias },
 ];
 
 const NAV_EXPANDED_KEY = 'lol-dnd:sidenav-expanded';

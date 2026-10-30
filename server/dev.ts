@@ -12,6 +12,7 @@ import players from '../api/players/index';
 import roleById from './handlers/roleById';
 import roles from '../api/roles/index';
 import shop from '../api/shop';
+import tickets from '../api/tickets';
 import type { ApiHandler, ApiRequest, ApiResponse } from './http';
 import { attachLiveSync } from './live';
 import { ablyKey } from './livePublish';
@@ -65,6 +66,10 @@ app.post('/api/craft', adapt(craft));
 app.post('/api/shop', adapt(shop));
 app.get('/api/history', adapt(history));
 app.post('/api/history', adapt(history));
+// Sugerencias: crear cualquiera; borrar solo admin (X-App-Role: admin).
+app.get('/api/tickets', adapt(tickets));
+app.post('/api/tickets', adapt(tickets));
+app.delete('/api/tickets', adapt(tickets));
 app.get('/api/loot', adapt(loot));
 app.patch('/api/loot', adapt(loot));
 app.get('/api/party', adapt(party));

@@ -4,7 +4,7 @@ import { HttpError, logError } from './errors';
 import { buildLootItems } from './lootItems';
 import { RANKED_SLOTS, canRaise, normalizeRanks, ultRankCap, unassignedPoints, type AbilityRanks } from './abilityRanks';
 import { LOOT_RULE_KEYS, parseLootRules } from './validate';
-import type { ChampionAbility, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder } from './validate';
+import type { ChampionAbility, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -1049,10 +1049,52 @@ export async function revertHistory(kind: HistoryKind, id: string) {
   };
 }
 
+export type TicketEntry = {
+  id: string;
+  text: string;
+  author?: string;
+  createdAt: string;
+};
+
+function toTicket(doc: Document): TicketEntry {
+  const created = doc.createdAt instanceof Date
+    ? doc.createdAt
+    : doc._id instanceof ObjectId
+      ? doc._id.getTimestamp()
+      : new Date(0);
+  const entry: TicketEntry = {
+    id: String(doc._id),
+    text: typeof doc.text === 'string' ? doc.text : '',
+    createdAt: created.toISOString(),
+  };
+  if (typeof doc.author === 'string' && doc.author.trim()) entry.author = doc.author.trim();
+  return entry;
+}
+
+/** Sugerencias, de la más nueva a la más vieja. */
+export async function listTickets(): Promise<TicketEntry[]> {
+  const docs = await (await collection('tickets')).find({}).sort({ createdAt: -1, _id: -1 }).toArray();
+  return docs.map(toTicket);
+}
+
+export async function createTicket(input: TicketInput): Promise<TicketEntry> {
+  const doc: Document = { text: input.text, createdAt: new Date() };
+  if (input.author) doc.author = input.author;
+  const result = await (await collection('tickets')).insertOne(doc);
+  return toTicket({ ...doc, _id: result.insertedId });
+}
+
+export async function deleteTicket(id: string): Promise<{ id: string }> {
+  if (!ObjectId.isValid(id)) throw new HttpError(404, 'No existe esa sugerencia');
+  const result = await (await collection('tickets')).deleteOne({ _id: new ObjectId(id) });
+  if (result.deletedCount === 0) throw new HttpError(404, 'No existe esa sugerencia');
+  return { id };
+}
+
 export async function mongoStatus() {
   const db = await getDb();
   await db.command({ ping: 1 });
-  const names = ['champions', 'items', 'players', 'roles', 'loot', 'party', 'rollHistoric', 'craftHistoric', 'buyHistoric', 'sellHistoric'] as const;
+  const names = ['champions', 'items', 'players', 'roles', 'loot', 'party', 'rollHistoric', 'craftHistoric', 'buyHistoric', 'sellHistoric', 'tickets'] as const;
   const counts = Object.fromEntries(
     await Promise.all(names.map(async name => [name, await db.collection(name).estimatedDocumentCount()] as const)),
   );

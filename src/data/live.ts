@@ -15,9 +15,9 @@ import { hydrateRoles, type RoleTable } from './roles';
  * Transporte: si /api/live-token dice que hay Ably (ABLY_API_KEY en el servidor),
  * se usa Ably (también en Vercel). Si no, el WebSocket local de `npm run dev:api` (/ws).
  */
-export type LiveResource = 'party' | 'players' | 'items' | 'loot' | 'roles' | 'champions' | 'history';
+export type LiveResource = 'party' | 'players' | 'items' | 'loot' | 'roles' | 'champions' | 'history' | 'tickets';
 
-const ALL_RESOURCES: LiveResource[] = ['party', 'players', 'items', 'loot', 'roles', 'champions', 'history'];
+const ALL_RESOURCES: LiveResource[] = ['party', 'players', 'items', 'loot', 'roles', 'champions', 'history', 'tickets'];
 
 /** Id de esta pestaña. Viaja en X-Client-Id para no recargar lo que acabamos de guardar nosotros. */
 export const CLIENT_ID: string =
@@ -26,7 +26,7 @@ export const CLIENT_ID: string =
     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
 const revisions: Record<LiveResource, number> = {
-  party: 0, players: 0, items: 0, loot: 0, roles: 0, champions: 0, history: 0,
+  party: 0, players: 0, items: 0, loot: 0, roles: 0, champions: 0, history: 0, tickets: 0,
 };
 let totalRevision = 0;
 const listeners = new Set<() => void>();
@@ -68,6 +68,7 @@ async function reload(resource: LiveResource): Promise<void> {
     case 'roles': hydrateRoles(await getJson<RoleTable[]>('/api/roles')); return;
     case 'champions': hydrateChampions(await getJson<Champion[]>('/api/champions')); return;
     case 'history': return; // Historial lo vuelve a pedir él mismo al ver la revisión.
+    case 'tickets': return; // Sugerencias también.
   }
 }
 
