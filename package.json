@@ -18,6 +18,12 @@
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
     "@3d-dice/theme-default-extras": "^0.1.1",
+    "@3d-dice/theme-dice-of-rolling": "^0.2.1",
+    "@3d-dice/theme-gemstone": "^0.2.0",
+    "@3d-dice/theme-rock": "^0.2.0",
+    "@3d-dice/theme-rust": "^0.2.0",
+    "@3d-dice/theme-smooth": "^0.2.1",
+    "@3d-dice/theme-wooden": "^0.2.0",
     "ably": "^2.30.0",
     "express": "^4.22.3",
     "framer-motion": "^12.23.26",

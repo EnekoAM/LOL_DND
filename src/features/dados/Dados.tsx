@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import DiceBox from '@3d-dice/dice-box';
 import '@3d-dice/dice-box/dist/style.css';
 import './Dados.css';
@@ -23,9 +24,27 @@ const QUICK: { label: string; notation: string }[] = [
   { label: '2d20', notation: '2d20' },
 ];
 
-const ALLOWED_SIDES = new Set([2, 4, 6, 8, 10, 12, 20, 100]);
+const DICE_THEMES: { id: string; label: string; color?: string }[] = [
+  { id: 'default', label: 'Clásico', color: '#C9A84C' },
+  { id: 'smooth', label: 'Suave', color: '#C9A84C' },
+  { id: 'gemstone', label: 'Gema', color: '#7B5EA7' },
+  { id: 'rock', label: 'Piedra', color: '#b7aca1' },
+  { id: 'rust', label: 'Óxido', color: '#aa4f4a' },
+  { id: 'wooden', label: 'Madera' },
+  { id: 'diceOfRolling', label: 'Dice of Rolling' },
+];
 
+const THEME_KEY = 'lol-dnd:dice-theme';
+const ALLOWED_SIDES = new Set([2, 4, 6, 8, 10, 12, 20, 100]);
 const MAX_DICE = 50;
+
+const readSavedTheme = (): string => {
+  try {
+    const raw = localStorage.getItem(THEME_KEY);
+    if (raw && DICE_THEMES.some(theme => theme.id === raw)) return raw;
+  } catch { /* ignore */ }
+  return 'default';
+};
 
 type DiceGroup = { qty: number; sides: number };
 type ParsedRoll =
@@ -79,6 +98,149 @@ const waitForBoxSize = async (el: HTMLElement): Promise<void> => {
   }
 };
 
+const themeColorOf = (themeId: string): string | undefined =>
+  DICE_THEMES.find(theme => theme.id === themeId)?.color;
+
+type ThemeSelectProps = {
+  value: string;
+  disabled: boolean;
+  onChange: (next: string) => void;
+};
+
+/** Desplegable propio: el <select> nativo no deja estilar la lista abierta. */
+const ThemeSelect = ({ value, disabled, onChange }: ThemeSelectProps) => {
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const selectedIndex = Math.max(0, DICE_THEMES.findIndex(entry => entry.id === value));
+  const current = DICE_THEMES[selectedIndex];
+
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
+
+  useEffect(() => {
+    if (!open) return;
+    listRef.current?.focus();
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open]);
+
+  const openList = () => {
+    if (disabled) return;
+    setActive(selectedIndex);
+    setOpen(true);
+  };
+
+  const close = (refocus = true) => {
+    setOpen(false);
+    if (refocus) buttonRef.current?.focus();
+  };
+
+  const pick = (id: string) => {
+    close();
+    if (id !== value) onChange(id);
+  };
+
+  const onListKeyDown = (event: ReactKeyboardEvent<HTMLUListElement>) => {
+    const last = DICE_THEMES.length - 1;
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        setActive(index => (index >= last ? 0 : index + 1));
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        setActive(index => (index <= 0 ? last : index - 1));
+        break;
+      case 'Home':
+        event.preventDefault();
+        setActive(0);
+        break;
+      case 'End':
+        event.preventDefault();
+        setActive(last);
+        break;
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        pick(DICE_THEMES[active].id);
+        break;
+      case 'Escape':
+        event.preventDefault();
+        close();
+        break;
+      case 'Tab':
+        close(false);
+        break;
+      default:
+        break;
+    }
+  };
+
+  return (
+    <div className={`dados-select${open ? ' is-open' : ''}`} ref={rootRef}>
+      <button
+        ref={buttonRef}
+        type="button"
+        className="dados-select__trigger"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-labelledby="dados-theme-label dados-theme-value"
+        onClick={() => (open ? close() : openList())}
+        onKeyDown={event => {
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            openList();
+          }
+        }}
+      >
+        <span id="dados-theme-value" className="dados-select__value">{current.label}</span>
+        <span className="dados-select__caret" aria-hidden="true" />
+      </button>
+      {open && (
+        <ul
+          ref={listRef}
+          className="dados-select__list"
+          role="listbox"
+          tabIndex={-1}
+          aria-labelledby="dados-theme-label"
+          aria-activedescendant={`dados-theme-opt-${DICE_THEMES[active].id}`}
+          onKeyDown={onListKeyDown}
+        >
+          {DICE_THEMES.map((entry, index) => {
+            const selected = entry.id === value;
+            return (
+              <li
+                key={entry.id}
+                id={`dados-theme-opt-${entry.id}`}
+                role="option"
+                aria-selected={selected}
+                className={[
+                  'dados-select__option',
+                  selected ? 'is-selected' : '',
+                  index === active ? 'is-active' : '',
+                ].filter(Boolean).join(' ')}
+                onMouseEnter={() => setActive(index)}
+                onMouseDown={event => event.preventDefault()}
+                onClick={() => pick(entry.id)}
+              >
+                {entry.label}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+};
+
 const Dados = () => {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const boxRef = useRef<DiceBox | null>(null);
@@ -88,6 +250,12 @@ const Dados = () => {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<RollResult[] | null>(null);
   const [modifier, setModifier] = useState(0);
+  const [theme, setTheme] = useState(readSavedTheme);
+  const [themeBusy, setThemeBusy] = useState(false);
+
+  useEffect(() => {
+    try { localStorage.setItem(THEME_KEY, theme); } catch { /* ignore */ }
+  }, [theme]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -100,12 +268,16 @@ const Dados = () => {
       await waitForBoxSize(host);
       if (cancelled || boxRef.current) return;
 
+      const initialTheme = readSavedTheme();
       const box = new DiceBox({
         container: '#dados-box',
         assetPath: '/assets/dice-box/',
-        theme: 'default',
-        preloadThemes: ['default-extras'],
-        themeColor: '#C9A84C',
+        theme: initialTheme,
+        preloadThemes: [
+          'default-extras',
+          ...DICE_THEMES.map(entry => entry.id).filter(id => id !== initialTheme),
+        ],
+        themeColor: themeColorOf(initialTheme) ?? '#C9A84C',
         scale: 6,
         gravity: 1,
         friction: 0.8,
@@ -159,9 +331,31 @@ const Dados = () => {
     };
   }, []);
 
+  const changeTheme = useCallback(async (next: string) => {
+    const box = boxRef.current;
+    if (!box || !ready || rolling || themeBusy || next === theme) {
+      setTheme(next);
+      return;
+    }
+    setThemeBusy(true);
+    setError(null);
+    try {
+      const patch: { theme: string; themeColor?: string } = { theme: next };
+      const color = themeColorOf(next);
+      if (color) patch.themeColor = color;
+      await box.updateConfig(patch);
+      setTheme(next);
+      try { box.clear(); } catch { /* ignore */ }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No se pudo cambiar el tema');
+    } finally {
+      setThemeBusy(false);
+    }
+  }, [ready, rolling, theme, themeBusy]);
+
   const roll = useCallback(async (raw: string) => {
     const box = boxRef.current;
-    if (!box || !ready || rolling) return;
+    if (!box || !ready || rolling || themeBusy) return;
     const parsed = parseRollNotation(raw);
     if (!parsed.ok) {
       setError(parsed.error);
@@ -180,7 +374,7 @@ const Dados = () => {
       setRolling(false);
       setError(caught instanceof Error ? caught.message : 'No se pudo tirar');
     }
-  }, [ready, rolling]);
+  }, [ready, rolling, themeBusy]);
 
   const total = useMemo(() => {
     if (!results?.length) return null;
@@ -191,13 +385,21 @@ const Dados = () => {
     <div className="dados-root">
       <div className="dados-toolbar">
         <div className="dados-toolbar__title">Dados</div>
+        <div className="dados-theme">
+          <span className="dados-theme__label" id="dados-theme-label">Tema</span>
+          <ThemeSelect
+            value={theme}
+            disabled={!ready || rolling || themeBusy}
+            onChange={next => { void changeTheme(next); }}
+          />
+        </div>
         <div className="dados-quick">
           {QUICK.map(item => (
             <button
               key={item.notation}
               type="button"
               className="dados-chip"
-              disabled={!ready || rolling}
+              disabled={!ready || rolling || themeBusy}
               onClick={() => { void roll(item.notation); }}
             >
               {item.label}
@@ -217,10 +419,10 @@ const Dados = () => {
             onChange={event => setNotation(event.target.value)}
             aria-label="Notación de dados"
             placeholder="1d20"
-            disabled={rolling}
+            disabled={rolling || themeBusy}
           />
-          <button type="submit" className="dados-roll" disabled={!ready || rolling}>
-            {rolling ? 'Tirando…' : ready ? 'Tirar' : 'Cargando…'}
+          <button type="submit" className="dados-roll" disabled={!ready || rolling || themeBusy}>
+            {rolling ? 'Tirando…' : themeBusy ? 'Tema…' : ready ? 'Tirar' : 'Cargando…'}
           </button>
         </form>
       </div>

@@ -44,6 +44,8 @@ declare module '@3d-dice/dice-box' {
     hide(className?: string): void;
     show(): void;
     resizeWorld(): void;
+    loadTheme(theme: string): Promise<unknown>;
+    updateConfig(config: Partial<DiceBoxConfig>): Promise<unknown>;
     onRollComplete: ((results: DiceRollResult[]) => void) | null;
   }
 }
