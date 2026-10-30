@@ -63,3 +63,41 @@ export async function revertHistory(id: string, kind: HistoryKind): Promise<void
   if (Array.isArray(saved.items)) applyItemQuantities(saved.items);
   if (typeof saved.gold === 'number') setPartyGold(saved.gold);
 }
+
+export type HistoryBatchFailure = { id: string; kind: HistoryKind; error: string };
+
+/** Revierte varias entradas en una sola llamada; devuelve cuántas salieron bien y cuáles fallaron. */
+export async function revertHistoryBatch(
+  entries: { id: string; kind: HistoryKind }[],
+): Promise<{ ok: { id: string; kind: HistoryKind }[]; failed: HistoryBatchFailure[] }> {
+  let response: Response;
+  try {
+    response = await fetch('/api/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries }),
+    });
+  } catch {
+    throw new Error('No se pudo contactar con la API. Arranca npm run dev:api');
+  }
+
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readError(body, `Error ${response.status} al revertir`));
+  if (!body || typeof body !== 'object') throw new Error('La API no devolvió el resultado');
+
+  const saved = body as {
+    results?: { id: string; kind: HistoryKind; ok: boolean; error?: string }[];
+    items?: { nombre: string; cantidad: number }[];
+    gold?: unknown;
+  };
+  if (Array.isArray(saved.items)) applyItemQuantities(saved.items);
+  if (typeof saved.gold === 'number') setPartyGold(saved.gold);
+
+  const results = Array.isArray(saved.results) ? saved.results : [];
+  return {
+    ok: results.filter(r => r.ok).map(r => ({ id: r.id, kind: r.kind })),
+    failed: results
+      .filter(r => !r.ok)
+      .map(r => ({ id: r.id, kind: r.kind, error: r.error ?? 'No se pudo revertir' })),
+  };
+}

@@ -874,3 +874,25 @@ export function parseLootRules(value: unknown): LootRules {
   for (const table of DROP_TABLES) rules[table] = dropTable(source[table], table);
   return rules;
 }
+
+export const HISTORY_BATCH_MAX = 200;
+
+export function parseHistoryRevertBatch(body: unknown): { id: string; kind: HistoryKind }[] {
+  const source = asObject(body);
+  if (!Array.isArray(source.entries) || source.entries.length === 0) {
+    throw new HttpError(400, 'No hay entradas seleccionadas');
+  }
+  if (source.entries.length > HISTORY_BATCH_MAX) {
+    throw new HttpError(400, `Como mucho ${HISTORY_BATCH_MAX} entradas a la vez`);
+  }
+  const seen = new Set<string>();
+  const out: { id: string; kind: HistoryKind }[] = [];
+  for (const raw of source.entries) {
+    const entry = parseHistoryRevert(raw);
+    const key = `${entry.kind}:${entry.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(entry);
+  }
+  return out;
+}
