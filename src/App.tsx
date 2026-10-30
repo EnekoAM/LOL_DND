@@ -1,6 +1,7 @@
-import { useEffect, type ComponentType } from 'react';
+import { useCallback, useEffect, useState, type ComponentType } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppHeader, { type NavItem } from './components/AppHeader';
+import SideNav from './components/SideNav';
 import { startLiveSync, useLiveRevision } from './data/live';
 import Calculos from './features/calculos/Calculos';
 import Habilidades from './features/habilidades/Habilidades';
@@ -27,8 +28,43 @@ const SCREENS: Screen[] = [
   { id: 'historial',   label: 'Historial',   icon: '📜', Component: Historial },
 ];
 
+const NAV_EXPANDED_KEY = 'lol-dnd:sidenav-expanded';
+const MOBILE_QUERY = '(max-width: 768px)';
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_QUERY);
+    const onChange = () => setMobile(media.matches);
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
+  return mobile;
+}
+
 function App() {
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const [navExpanded, setNavExpanded] = useState(() => localStorage.getItem(NAV_EXPANDED_KEY) !== '0');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const current = SCREENS.find(screen => location.pathname === `/${screen.id}`);
+
+  useEffect(() => {
+    localStorage.setItem(NAV_EXPANDED_KEY, navExpanded ? '1' : '0');
+  }, [navExpanded]);
+
+  useEffect(() => {
+    if (!isMobile) setMobileNavOpen(false);
+  }, [isMobile]);
+
+  const toggleMenu = useCallback(() => {
+    if (isMobile) setMobileNavOpen(open => !open);
+    else setNavExpanded(open => !open);
+  }, [isMobile]);
+
+  const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
+
   // Repinta la pantalla cuando otra pestaña guarda algo (los datos viven fuera de React).
   useLiveRevision();
 
@@ -41,8 +77,18 @@ function App() {
   }, [location.pathname]);
 
   return (
-    <div className="app-root">
-      <AppHeader navItems={SCREENS} />
+    <div className={navExpanded ? 'app-root app-root--nav-expanded' : 'app-root'}>
+      <AppHeader
+        current={current}
+        menuOpen={isMobile ? mobileNavOpen : navExpanded}
+        onToggleMenu={toggleMenu}
+      />
+      <SideNav
+        items={SCREENS}
+        expanded={navExpanded}
+        mobileOpen={mobileNavOpen}
+        onCloseMobile={closeMobileNav}
+      />
 
       <main className="app-main">
         <Routes>

@@ -1,5 +1,7 @@
 :root {
-  --header-height: 76px;
+  --header-height: 64px;
+  --sidenav-collapsed: 64px;
+  --sidenav-expanded: 212px;
 
   --gold:           #c9a84c;
   --gold-bright:    #e8c96a;

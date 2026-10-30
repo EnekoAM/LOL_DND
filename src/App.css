@@ -6,7 +6,11 @@
   color: var(--ink);
   position: relative;
   padding-top: var(--header-height);
+  padding-left: var(--sidenav-collapsed);
+  transition: padding-left 0.22s ease;
 }
+
+.app-root--nav-expanded { padding-left: var(--sidenav-expanded); }
 
 /* ── BACKGROUND ── */
 .app-bg {
@@ -30,5 +34,7 @@
 }
 
 @media (max-width: 768px) {
+  .app-root,
+  .app-root--nav-expanded { padding-left: 0; }
   .app-main { padding: 20px 16px; }
 }

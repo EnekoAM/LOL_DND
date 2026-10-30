@@ -2,7 +2,6 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEven
 import { adjustPartyGold, partyGold, partyLevel, savePartyLevel, subscribeParty } from '../data/party';
 import { syncAllPlayerStats } from '../features/calculos/playerTotals';
 import { MAX_ROLE_LEVEL } from '../data/roles';
-import { NavLink } from 'react-router-dom';
 import { cx } from '../lib/cx';
 import './AppHeader.css';
 
@@ -12,11 +11,14 @@ export type NavItem<T extends string> = {
   icon: string;
 };
 
-type Props<T extends string> = {
-  navItems: NavItem<T>[];
+type Props = {
+  /** Etiqueta de la seccion actual (se muestra a la derecha). */
+  current?: NavItem<string>;
+  menuOpen: boolean;
+  onToggleMenu: () => void;
 };
 
-export default function AppHeader<T extends string>({ navItems }: Props<T>) {
+export default function AppHeader({ current, menuOpen, onToggleMenu }: Props) {
   const gold = useSyncExternalStore(subscribeParty, partyGold);
   const level = useSyncExternalStore(subscribeParty, partyLevel);
   const [grantOpen, setGrantOpen] = useState(false);
@@ -79,7 +81,7 @@ export default function AppHeader<T extends string>({ navItems }: Props<T>) {
       try {
         await syncAllPlayerStats();
       } catch {
-        // El nivel ya está guardado; las stats se recalcularán al tocar el equipo.
+        // El nivel ya esta guardado; las stats se recalcularan al tocar el equipo.
       }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo cambiar el nivel');
@@ -90,9 +92,23 @@ export default function AppHeader<T extends string>({ navItems }: Props<T>) {
 
   return (
     <header className="app-header">
+      <button
+        type="button"
+        className={cx('menu-toggle', menuOpen && 'menu-toggle--on')}
+        aria-controls="side-nav"
+        aria-expanded={menuOpen}
+        aria-label={menuOpen ? 'Cerrar men\u00fa' : 'Abrir men\u00fa'}
+        title={menuOpen ? 'Plegar men\u00fa' : 'Desplegar men\u00fa'}
+        onClick={onToggleMenu}
+      >
+        <span className="menu-toggle__bar" />
+        <span className="menu-toggle__bar" />
+        <span className="menu-toggle__bar" />
+      </button>
+
       <div className="header-stats">
         <div className="stat-gold" ref={grantRef}>
-          <span className="stat-gold__coin">⚜</span>
+          <span className="stat-gold__coin">{'\u269C'}</span>
           <span className="stat-gold__amount">{gold.toLocaleString('es-ES')}</span>
           <span className="stat-gold__label">oro</span>
           <span className="gold-grant__anchor">
@@ -110,7 +126,7 @@ export default function AppHeader<T extends string>({ navItems }: Props<T>) {
             {grantOpen && (
               <form className="gold-grant" onSubmit={giveGold}>
                 <div className="gold-grant__head">
-                  <span className="gold-grant__mark" aria-hidden="true">⚜</span>
+                  <span className="gold-grant__mark" aria-hidden="true">{'\u269C'}</span>
                   <p className="gold-grant__title">Grupo</p>
                 </div>
                 <div className="gold-grant__rule" aria-hidden="true" />
@@ -131,7 +147,7 @@ export default function AppHeader<T extends string>({ navItems }: Props<T>) {
                   />
                   <div className="gold-grant__row">
                     <button type="submit" className="gold-grant__submit" disabled={busy}>
-                      {busy ? '…' : 'Dar'}
+                      {busy ? '\u2026' : 'Dar'}
                     </button>
                     <button
                       type="button"
@@ -152,7 +168,7 @@ export default function AppHeader<T extends string>({ navItems }: Props<T>) {
                       disabled={busy || level <= 1}
                       onClick={() => void changeLevel(level - 1)}
                     >
-                      −
+                      {'\u2212'}
                     </button>
                     <span className="gold-grant__level-value" aria-labelledby={`${amountId}-level`}>{level}</span>
                     <button
@@ -177,18 +193,12 @@ export default function AppHeader<T extends string>({ navItems }: Props<T>) {
         <div className="stat-level">Nivel {level}</div>
       </div>
 
-      <nav className="header-nav">
-        {navItems.map(item => (
-          <NavLink
-            key={item.id}
-            to={`/${item.id}`}
-            className={({ isActive }) => cx('nav-btn', isActive && 'nav-btn--active')}
-          >
-            <span className="nav-btn__icon">{item.icon}</span>
-            <span className="nav-btn__label">{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+      {current && (
+        <div className="header-section" aria-live="polite">
+          <span className="header-section__icon" aria-hidden="true">{current.icon}</span>
+          <span className="header-section__label">{current.label}</span>
+        </div>
+      )}
     </header>
   );
 }
