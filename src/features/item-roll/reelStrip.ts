@@ -59,43 +59,31 @@ const takeUnique = (rarity: LootRarity, used: Set<string>): LootRoll[] => {
 /**
  * Tira de la ruleta estilo "caja", SIN ítems repetidos. El ganador ya está decidido
  * (no cambia las probabilidades) y aparece una sola vez.
- * Orden: relleno · todas las opciones de la tabla (barajadas) · GANADOR · cola.
- * La cola sale casi toda de la misma tabla y solo a veces lleva 1-2 cartas de una
- * rareza superior (el "casi"). El relleno inicial mezcla ambas.
+ * Orden: relleno · vuelta completa del pool (todas las demás opciones) · GANADOR · cola.
+ * La marca recorre una vuelta entera del pool antes de parar en el ítem.
+ * Relleno y cola salen solo de rarezas superiores (el "casi"); si no alcanzan, se acortan.
  */
 export const buildReel = (base: LootRarity, winner: LootRoll): LootReelData => {
   const used = new Set<string>([keyOf(winner.entry.name)]);
   const poolSize = new Set((LOOT.items[base] ?? []).map(e => keyOf(e.name))).size;
-  const traverse = shuffle(takeUnique(base, used));
+  // Vuelta completa: todas las opciones del pool excepto el ganador.
+  const lap = shuffle(takeUnique(base, used));
   const extras = shuffle(UPGRADES[base].flatMap(r => takeUnique(r, used)));
 
-  const minTraverse = Math.ceil(poolSize / 2);
-  const fromPool = () => (traverse.length > minTraverse ? traverse.pop() : undefined);
+  // Cola: rareza superior ("casi"). 50%: 0 mín., 35%: 1, 15%: 2; hasta TAIL si hay extras.
+  const roll = Math.random();
+  const minBait = roll < 0.5 ? 0 : roll < 0.85 ? 1 : 2;
+  const tailCount = Math.min(TAIL, Math.max(minBait, Math.min(TAIL, extras.length)));
+  const tail = shuffle(extras.splice(0, tailCount));
 
-  // Cola (lo que se ve junto al ganador): casi todo de la misma tabla; solo a veces
-  // 1-2 cartas de rareza superior como "casi" (50 %: 0, 35 %: 1, 15 %: 2).
-  const r = Math.random();
-  const baitCount = Math.min(extras.length, r < 0.5 ? 0 : r < 0.85 ? 1 : 2);
-  const baitSlots = new Set<number>();
-  while (baitSlots.size < baitCount) baitSlots.add(Math.floor(Math.random() * TAIL));
-  const tail: LootRoll[] = [];
-  for (let i = 0; i < TAIL; i++) {
-    const card = baitSlots.has(i) ? (extras.pop() ?? fromPool()) : (fromPool() ?? extras.pop());
-    if (card) tail.push(card);
-  }
-
-  // Relleno inicial (solo se ve al arrancar, lejos del ganador): mezcla de lo que quede.
-  const lead: LootRoll[] = [];
-  for (let i = 0; i < LEAD; i++) {
-    const card = (Math.random() < 0.5 ? extras.pop() : undefined) ?? fromPool() ?? extras.pop();
-    if (card) lead.push(card);
-  }
+  // Relleno inicial con lo que quede de extras (no se come la vuelta del pool).
+  const lead = extras.splice(0, Math.min(LEAD, extras.length));
 
   return {
     id: Date.now() + Math.random(),
-    items: [...lead, ...traverse, winner, ...tail],
+    items: [...lead, ...lap, winner, ...tail],
     startIndex: lead.length,
-    winnerIndex: lead.length + traverse.length,
+    winnerIndex: lead.length + lap.length,
     durationMs: spinDurationFor(poolSize),
     poolSize,
   };
