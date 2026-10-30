@@ -552,3 +552,105 @@
   .irs-reel-card__img { width: 58px; height: 58px; font-size: 22px; }
 }
 .irs-reel-save { margin: -18px 0 20px; }
+
+/* ─── SELECTOR + TIRAR ──────────────────────────────────── */
+.irs-controls {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+
+.irs-btn:disabled { cursor: not-allowed; opacity: 0.45; }
+.irs-btn--selected:disabled { opacity: 1; }
+
+.irs-btn--selected {
+  border-color: var(--gold-bright, #e8c96a) !important;
+  box-shadow: 0 0 0 1px rgba(232,201,106,0.55), 0 0 22px rgba(201,168,76,0.45), inset 0 0 14px rgba(201,168,76,0.15) !important;
+  transform: translateX(4px);
+}
+.irs-btn--selected::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--gold-bright, #e8c96a);
+  box-shadow: 0 0 8px rgba(232,201,106,0.9);
+}
+
+.irs-tirar {
+  flex: 0 0 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border-radius: 2px;
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #1a0c00;
+  background: linear-gradient(180deg, var(--gold-bright, #e8c96a) 0%, var(--gold, #c9a84c) 55%, var(--gold-dim, #8a6d2a) 100%);
+  border: 1px solid rgba(232,201,106,0.9);
+  box-shadow: 0 4px 26px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 6px rgba(0,0,0,0.35);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.2s, filter 0.2s;
+}
+.irs-tirar:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 34px rgba(232,201,106,0.65), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 6px rgba(0,0,0,0.35);
+}
+.irs-tirar:active:not(:disabled) { transform: scale(0.97); }
+.irs-tirar:disabled {
+  cursor: not-allowed;
+  color: rgba(201,168,76,0.55);
+  background: linear-gradient(180deg, #1e1812 0%, #110c06 100%);
+  border-color: rgba(150,130,80,0.25);
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+}
+.irs-tirar-icon { font-size: 30px; line-height: 1; }
+
+/* ─── STAGE (rueda o caja según selección) ─────────────── */
+.irs-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 160px;
+}
+.irs-stage .irs-wheel-panel {
+  align-self: center;
+  width: 100%;
+  max-width: 520px;
+  animation: fadeUp 0.3s ease;
+}
+.irs-stage .irs-spawn-result { width: 100%; box-sizing: border-box; }
+.irs-stage-empty {
+  min-height: 158px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  border: 1px dashed rgba(150,130,80,0.25);
+  border-radius: 2px;
+  background: rgba(8,6,3,0.45);
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  font-size: 15px;
+  letter-spacing: 1.5px;
+  color: var(--ink-ghost, rgba(212,196,154,0.5));
+  text-align: center;
+  padding: 0 16px;
+}
+
+@media (max-width: 640px) {
+  .irs-controls { flex-direction: column; }
+  .irs-tirar { flex-basis: auto; flex-direction: row; padding: 14px; }
+  .irs-tirar-icon { font-size: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .irs-btn--selected { transform: none; }
+}

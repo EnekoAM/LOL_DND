@@ -29,6 +29,13 @@ export function useSpawnRoll() {
     setSpawn({ type, success, target: pickSpawnTarget(nextSegments, success), spinning: true });
   };
 
+  /** Muestra en la rueda los segmentos de un tipo sin girarla (al seleccionarlo). */
+  const preview = (type: SpawnType) => {
+    if (spawn?.spinning) return;
+    setSegments(buildSpawnSegments(getSpawnChance(type)));
+    setSpawn(null);
+  };
+
   const finish = useCallback(() => setSpawn(prev => prev && { ...prev, spinning: false }), []);
 
   const revealed = spawn && !spawn.spinning ? spawn : null;
@@ -37,7 +44,9 @@ export function useSpawnRoll() {
     segments,
     spinTo: spawn?.spinning ? spawn.target : null,
     outcome: revealed && { success: revealed.success, message: describeOutcome(revealed) },
+    spinning: !!spawn?.spinning,
     start,
+    preview,
     finish,
   };
 }
