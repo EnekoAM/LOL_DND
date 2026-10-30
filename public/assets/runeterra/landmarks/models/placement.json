@@ -1,0 +1,124 @@
+{
+ "sun-disc": [
+  {
+   "type": "obj",
+   "map": "sun-disc.obj",
+   "offsetX": 4,
+   "offsetY": 20,
+   "offsetZ": 5,
+   "rotY": 0,
+   "scale": 9,
+   "texture": "sun-disc.jpg"
+  }
+ ],
+ "immortal-bastion": [
+  {
+   "type": "obj",
+   "map": "immortal-bastion.obj",
+   "offsetX": 7,
+   "offsetY": 15,
+   "offsetZ": 7,
+   "rotY": 0,
+   "scale": 10,
+   "texture": "immortal-bastion.jpg"
+  }
+ ],
+ "ixaocan": [
+  {
+   "type": "obj",
+   "map": "ixaocan_ground.obj",
+   "offsetX": 0,
+   "offsetY": 15,
+   "offsetZ": 4.25,
+   "rotY": -0.785398,
+   "scale": 6,
+   "texture": "ixaocan_shadow.png"
+  },
+  {
+   "type": "obj",
+   "map": "ixaocan.obj",
+   "offsetX": 0,
+   "offsetY": 15,
+   "offsetZ": 4.25,
+   "rotY": -0.785398,
+   "scale": 6,
+   "texture": "ixaocan.png"
+  },
+  {
+   "type": "obj",
+   "map": "ixaocan_orbs.obj",
+   "offsetX": 0,
+   "offsetY": 15,
+   "offsetZ": 4.25,
+   "rotY": -0.785398,
+   "scale": 6,
+   "texture": "ixaocan.png",
+   "rotationSpeed": {
+    "y": 0.001
+   }
+  }
+ ],
+ "mount-targon": [
+  {
+   "type": "obj",
+   "map": "mount-targon.obj",
+   "offsetX": 0,
+   "offsetY": 10,
+   "offsetZ": -13,
+   "rotY": -1.57,
+   "scale": 6,
+   "texture": "mount-targon.png"
+  },
+  {
+   "type": "beam"
+  }
+ ],
+ "demacia-city-landmark": [
+  {
+   "type": "obj",
+   "map": "demacia-city-landmark.obj",
+   "offsetX": 0,
+   "offsetY": 12,
+   "offsetZ": 13,
+   "rotY": 0,
+   "scale": 7,
+   "texture": "demacia-city-landmark.jpg"
+  }
+ ],
+ "frostguard": [
+  {
+   "type": "obj",
+   "map": "frostguard.obj",
+   "offsetX": 11,
+   "offsetY": 28,
+   "offsetZ": 15,
+   "rotY": 0,
+   "scale": 7,
+   "texture": "frostguard.jpg"
+  }
+ ],
+ "placidium": [
+  {
+   "type": "obj",
+   "map": "placidium.obj",
+   "offsetX": 16,
+   "offsetY": 10,
+   "offsetZ": 14,
+   "rotY": 0,
+   "scale": 8,
+   "texture": "placidium.png"
+  }
+ ],
+ "the-void": [
+  {
+   "type": "obj",
+   "map": "the-void.obj",
+   "offsetX": -7,
+   "offsetY": 17,
+   "offsetZ": 0,
+   "rotY": 0,
+   "scale": 10,
+   "texture": "the-void.jpg"
+  }
+ ]
+}

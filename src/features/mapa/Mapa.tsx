@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { cx } from '../../lib/cx';
 import { MAP_PIXELS, POI_KINDS, RUNETERRA_POIS, poiIconSpec, type PoiKind, type RuneterraPoi } from './pois';
+import landmarks3d from './landmarks3d.json';
 import './Mapa.css';
 
 /**
@@ -20,6 +21,30 @@ const BOUNDS = L.latLngBounds([-MAP_UNITS, 0], [0, MAP_UNITS]);
 /** Unidades CRS por pixel del mapa de 8192. */
 const UNITS_PER_PIXEL = MAP_UNITS / MAP_PIXELS;
 const TILE_URL = `${import.meta.env.BASE_URL}assets/runeterra/tiles/{z}/{x}/{y}.jpg`;
+
+/** Monumentos 3D del mapa oficial (modelos .obj renderizados a sprite, ver landmarks/README.md). */
+const LANDMARK_URL = `${import.meta.env.BASE_URL}assets/runeterra/landmarks/sprites`;
+/** Mismo umbral que la capa de lugares. */
+const LANDMARK_MIN_ZOOM = 2.25;
+
+type LandmarkSprite = { w: number; h: number; pxPerUnit: number; anchorX: number; anchorY: number };
+
+/** Sprite colocado en coordenadas del mapa: el ancla (origen del modelo) cae sobre el pin oficial. */
+function landmarkOverlay(poi: RuneterraPoi, sprite: LandmarkSprite): L.ImageOverlay {
+  // px del sprite -> px del mapa 8192 (1 unidad oficial = unitsToMapPixels px).
+  const k = landmarks3d.unitsToMapPixels / sprite.pxPerUnit;
+  const left = poi.x - sprite.anchorX * k;
+  const top = poi.y - sprite.anchorY * k;
+  const bounds = L.latLngBounds(
+    [-(top + sprite.h * k) * UNITS_PER_PIXEL, left * UNITS_PER_PIXEL],
+    [-top * UNITS_PER_PIXEL, (left + sprite.w * k) * UNITS_PER_PIXEL],
+  );
+  return L.imageOverlay(`${LANDMARK_URL}/${poi.slug}.webp`, bounds, {
+    className: 'mapa-landmark',
+    alt: poi.name,
+    interactive: false,
+  });
+}
 
 const KIND_LABEL: Record<PoiKind, string> = {
   region: 'Region',
@@ -73,6 +98,10 @@ export default function Mapa() {
   const [shown, setShown] = useState<Set<PoiKind>>(() => new Set(ALL_KINDS));
   const shownRef = useRef(shown);
   shownRef.current = shown;
+  const landmarksRef = useRef<L.LayerGroup>(L.layerGroup());
+  const [show3d, setShow3d] = useState(true);
+  const show3dRef = useRef(show3d);
+  show3dRef.current = show3d;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -128,8 +157,18 @@ export default function Mapa() {
         .bindPopup(poiPopup(poi), { className: 'mapa-popup-wrap', maxWidth: 320, minWidth: 220 })
         .addTo(groups.get(poi.kind)!);
     }
+    const landmarks = landmarksRef.current;
+    landmarks.clearLayers();
+    const sprites = landmarks3d.sprites as Record<string, LandmarkSprite>;
+    for (const poi of RUNETERRA_POIS) {
+      const sprite = sprites[poi.slug];
+      if (sprite) landmarkOverlay(poi, sprite).addTo(landmarks);
+    }
     mapRef.current = map;
-    const syncLayers = () => syncPoiLayers(map, groups, shownRef.current);
+    const syncLayers = () => {
+      syncPoiLayers(map, groups, shownRef.current);
+      syncLandmarks(map, landmarks, show3dRef.current);
+    };
     map.on('zoomend', syncLayers);
     syncLayers();
 
@@ -151,6 +190,10 @@ export default function Mapa() {
   useEffect(() => {
     if (mapRef.current) syncPoiLayers(mapRef.current, groupsRef.current, shown);
   }, [shown]);
+
+  useEffect(() => {
+    if (mapRef.current) syncLandmarks(mapRef.current, landmarksRef.current, show3d);
+  }, [show3d]);
 
   const toggleKind = (kind: PoiKind) => {
     setShown(prev => {
@@ -177,6 +220,14 @@ export default function Mapa() {
               {kind.label}
             </button>
           ))}
+          <button
+            type="button"
+            className={cx('mapa-chip', 'mapa-chip--3d', show3d && 'mapa-chip--on')}
+            aria-pressed={show3d}
+            onClick={() => setShow3d(on => !on)}
+          >
+            Monumentos 3D
+          </button>
         </div>
         <span className="mapa-toolbar__hint">Acerca el zoom para ver ciudades y pueblos &middot; clic en un punto para info</span>
       </div>
@@ -195,4 +246,11 @@ function syncPoiLayers(map: L.Map, groups: Map<PoiKind, L.LayerGroup>, shown: Se
     if (visible && !map.hasLayer(group)) group.addTo(map);
     if (!visible && map.hasLayer(group)) map.removeLayer(group);
   }
+}
+
+/** Monumentos 3D: visibles con el chip activado y desde el zoom de los lugares. */
+function syncLandmarks(map: L.Map, group: L.LayerGroup, on: boolean) {
+  const visible = on && map.getZoom() >= LANDMARK_MIN_ZOOM;
+  if (visible && !map.hasLayer(group)) group.addTo(map);
+  if (!visible && map.hasLayer(group)) map.removeLayer(group);
 }

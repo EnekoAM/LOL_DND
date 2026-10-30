@@ -1,0 +1,94 @@
+{
+ "source": "Modelos .obj de map.leagueoflegends.com (assets/obj/landmarks) renderizados con three.js: camara ortografica inclinada 40 grados desde el sur, 16 px por unidad oficial. anchor = centro de la base del modelo (se coloca sobre el pin); pin = origen del modelo segun placement.json oficial.",
+ "unitsToMapPixels": 3.97459,
+ "sprites": {
+  "demacia-city-landmark": {
+   "slug": "demacia-city-landmark",
+   "w": 522,
+   "h": 681,
+   "pxPerUnit": 16,
+   "tiltDeg": 40,
+   "anchorX": 261.2,
+   "anchorY": 453.6,
+   "pinX": 244.4,
+   "pinY": 666.3
+  },
+  "frostguard": {
+   "slug": "frostguard",
+   "w": 498,
+   "h": 568,
+   "pxPerUnit": 16,
+   "tiltDeg": 40,
+   "anchorX": 249.1,
+   "anchorY": 383.0,
+   "pinX": 299.7,
+   "pinY": 563.1
+  },
+  "immortal-bastion": {
+   "slug": "immortal-bastion",
+   "w": 569,
+   "h": 721,
+   "pxPerUnit": 16,
+   "tiltDeg": 40,
+   "anchorX": 284.4,
+   "anchorY": 502.8,
+   "pinX": 163.4,
+   "pinY": 671.5
+  },
+  "ixaocan": {
+   "slug": "ixaocan",
+   "w": 844,
+   "h": 759,
+   "pxPerUnit": 16,
+   "tiltDeg": 40,
+   "anchorX": 422.0,
+   "anchorY": 432.1,
+   "pinX": 388.7,
+   "pinY": 625.6
+  },
+  "mount-targon": {
+   "slug": "mount-targon",
+   "w": 769,
+   "h": 1002,
+   "pxPerUnit": 16,
+   "tiltDeg": 40,
+   "anchorX": 384.5,
+   "anchorY": 764.8,
+   "pinX": 388.5,
+   "pinY": 663.0
+  },
+  "placidium": {
+   "slug": "placidium",
+   "w": 490,
+   "h": 597,
+   "pxPerUnit": 16,
+   "tiltDeg": 40,
+   "anchorX": 244.9,
+   "anchorY": 451.0,
+   "pinX": 336.8,
+   "pinY": 627.7
+  },
+  "sun-disc": {
+   "slug": "sun-disc",
+   "w": 483,
+   "h": 653,
+   "pxPerUnit": 16,
+   "tiltDeg": 40,
+   "anchorX": 241.6,
+   "anchorY": 468.1,
+   "pinX": 279.0,
+   "pinY": 677.8
+  },
+  "the-void": {
+   "slug": "the-void",
+   "w": 469,
+   "h": 556,
+   "pxPerUnit": 16,
+   "tiltDeg": 40,
+   "anchorX": 234.6,
+   "anchorY": 384.4,
+   "pinX": 278.0,
+   "pinY": 520.0
+  }
+ }
+}
