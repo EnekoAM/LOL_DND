@@ -646,15 +646,22 @@ export function parseHistoryRevert(body: unknown): { id: string; kind: HistoryKi
 }
 
 export const TICKET_TEXT_MAX = 1000;
+export const TICKET_TITLE_MAX = 120;
 export const TICKET_AUTHOR_MAX = 80;
 
 export type TicketInput = {
+  title: string;
   text: string;
   author?: string;
 };
 
 export function parseTicketCreate(body: unknown): TicketInput {
   const source = asObject(body);
+  if (typeof source.title !== 'string' || !source.title.trim()) throw new HttpError(400, 'Pon un título a la sugerencia');
+  const title = source.title.trim();
+  if (title.length > TICKET_TITLE_MAX) {
+    throw new HttpError(400, `El título admite como máximo ${TICKET_TITLE_MAX} caracteres`);
+  }
   if (typeof source.text !== 'string' || !source.text.trim()) throw new HttpError(400, 'Escribe la sugerencia');
   const text = source.text.trim();
   if (text.length > TICKET_TEXT_MAX) {
@@ -667,7 +674,24 @@ export function parseTicketCreate(body: unknown): TicketInput {
   if (author.length > TICKET_AUTHOR_MAX) {
     throw new HttpError(400, `El autor admite como máximo ${TICKET_AUTHOR_MAX} caracteres`);
   }
-  return author ? { text, author } : { text };
+  return author ? { title, text, author } : { title, text };
+}
+
+export const TICKET_STATUSES = ['pending', 'accepted', 'rejected'] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+export function isTicketStatus(value: unknown): value is TicketStatus {
+  return typeof value === 'string' && (TICKET_STATUSES as readonly string[]).includes(value);
+}
+
+/** PATCH /api/tickets: { id, status: 'pending' | 'accepted' | 'rejected' }. */
+export function parseTicketStatusUpdate(body: unknown): { id: string; status: TicketStatus } {
+  const source = asObject(body);
+  if (typeof source.id !== 'string' || !source.id.trim()) throw new HttpError(400, 'Falta la sugerencia');
+  if (!isTicketStatus(source.status)) {
+    throw new HttpError(400, 'Estado no válido (pending, accepted o rejected)');
+  }
+  return { id: source.id.trim(), status: source.status };
 }
 
 /** Id de la sugerencia a borrar: ?id= o { id } en el cuerpo. */

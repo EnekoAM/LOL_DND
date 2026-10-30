@@ -4,7 +4,7 @@ import { HttpError, logError } from './errors';
 import { buildLootItems } from './lootItems';
 import { RANKED_SLOTS, canRaise, normalizeRanks, ultRankCap, unassignedPoints, type AbilityRanks } from './abilityRanks';
 import { LOOT_RULE_KEYS, parseLootRules } from './validate';
-import type { ChampionAbility, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput } from './validate';
+import type { ChampionAbility, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput, TicketStatus } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -1051,8 +1051,11 @@ export async function revertHistory(kind: HistoryKind, id: string) {
 
 export type TicketEntry = {
   id: string;
+  title: string;
   text: string;
   author?: string;
+  /** Docs viejos sin estado se leen como 'pending'. */
+  status: TicketStatus;
   createdAt: string;
 };
 
@@ -1064,7 +1067,9 @@ function toTicket(doc: Document): TicketEntry {
       : new Date(0);
   const entry: TicketEntry = {
     id: String(doc._id),
+    title: typeof doc.title === 'string' ? doc.title : '',
     text: typeof doc.text === 'string' ? doc.text : '',
+    status: doc.status === 'accepted' || doc.status === 'rejected' ? doc.status : 'pending',
     createdAt: created.toISOString(),
   };
   if (typeof doc.author === 'string' && doc.author.trim()) entry.author = doc.author.trim();
@@ -1078,10 +1083,22 @@ export async function listTickets(): Promise<TicketEntry[]> {
 }
 
 export async function createTicket(input: TicketInput): Promise<TicketEntry> {
-  const doc: Document = { text: input.text, createdAt: new Date() };
+  const doc: Document = { title: input.title, text: input.text, status: 'pending', createdAt: new Date() };
   if (input.author) doc.author = input.author;
   const result = await (await collection('tickets')).insertOne(doc);
   return toTicket({ ...doc, _id: result.insertedId });
+}
+
+/** Aceptar / rechazar / volver a pendiente (solo admin, lo comprueba la API). */
+export async function updateTicketStatus(id: string, status: TicketStatus): Promise<TicketEntry> {
+  if (!ObjectId.isValid(id)) throw new HttpError(404, 'No existe esa sugerencia');
+  const tickets = await collection('tickets');
+  const _id = new ObjectId(id);
+  const result = await tickets.updateOne({ _id }, { $set: { status, statusAt: new Date() } });
+  if (result.matchedCount === 0) throw new HttpError(404, 'No existe esa sugerencia');
+  const doc = await tickets.findOne({ _id });
+  if (!doc) throw new HttpError(404, 'No existe esa sugerencia');
+  return toTicket(doc);
 }
 
 export async function deleteTicket(id: string): Promise<{ id: string }> {

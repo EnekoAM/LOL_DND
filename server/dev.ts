@@ -69,6 +69,7 @@ app.post('/api/history', adapt(history));
 // Sugerencias: crear cualquiera; borrar solo admin (X-App-Role: admin).
 app.get('/api/tickets', adapt(tickets));
 app.post('/api/tickets', adapt(tickets));
+app.patch('/api/tickets', adapt(tickets));
 app.delete('/api/tickets', adapt(tickets));
 app.get('/api/loot', adapt(loot));
 app.patch('/api/loot', adapt(loot));
