@@ -12,11 +12,12 @@ import Historial from './features/historial/Historial';
 import ItemRoll from './features/item-roll/ItemRoll';
 import Dados from './features/dados/Dados';
 import Items from './features/items/Items';
+import Mapa from './features/mapa/Mapa';
 import Players from './features/players/Players';
 import Tienda from './features/tienda/Tienda';
 import './App.css';
 
-type ScreenId = 'items' | 'tienda' | 'habilidades' | 'players' | 'calculos' | 'item-roll' | 'dados' | 'historial';
+type ScreenId = 'items' | 'tienda' | 'habilidades' | 'players' | 'calculos' | 'item-roll' | 'dados' | 'mapa' | 'historial';
 
 type Screen = NavItem<ScreenId> & { Component: ComponentType };
 
@@ -28,6 +29,7 @@ const SCREENS: Screen[] = [
   { id: 'calculos',    label: 'Calculos',    icon: '⚗',  Component: Calculos },
   { id: 'item-roll',   label: 'Item Roll',   icon: '🎲', Component: ItemRoll },
   { id: 'dados',       label: 'Dados',       icon: '⚀',  Component: Dados },
+  { id: 'mapa',        label: 'Mapa',        icon: '🗺️', Component: Mapa },
   { id: 'historial',   label: 'Historial',   icon: '📜', Component: Historial },
 ];
 
