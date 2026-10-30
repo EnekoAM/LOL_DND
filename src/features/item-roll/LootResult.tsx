@@ -1,29 +1,12 @@
 import { findItem } from '../../data/items';
-import type { LootRarity } from '../../data/loot';
 import type { LootRoll } from './loot';
+import { RARITY_STYLE } from './rarityStyle';
 
 type Props = {
   result: LootRoll | null;
-  rolling: boolean;
+  spinning: boolean;
+  saving: boolean;
   saveError: string | null;
-};
-
-const RARITY_STYLE: Record<LootRarity, { color: string; glow: string; badge: string }> = {
-  basico: {
-    color: '#a09070',
-    glow: '0 0 12px rgba(150,120,80,0.4),  0 0 36px rgba(150,120,80,0.12)',
-    badge: 'COMÚN',
-  },
-  epico: {
-    color: '#8898e8',
-    glow: '0 0 16px rgba(100,120,220,0.55), 0 0 48px rgba(80,100,200,0.2)',
-    badge: 'ÉPICO',
-  },
-  legendario: {
-    color: '#c9a84c',
-    glow: '0 0 20px rgba(201,168,76,0.75),  0 0 60px rgba(201,168,76,0.28)',
-    badge: 'LEGENDARIO',
-  },
 };
 
 const RevealedItem = ({ result }: { result: LootRoll }) => {
@@ -45,7 +28,7 @@ const RevealedItem = ({ result }: { result: LootRoll }) => {
   );
 };
 
-const LootResult = ({ result, rolling, saveError }: Props) => (
+const LootResult = ({ result, spinning, saving, saveError }: Props) => (
   <>
     <div className="irs-item-box">
       <div
@@ -61,14 +44,14 @@ const LootResult = ({ result, rolling, saveError }: Props) => (
         <RevealedItem result={result} />
       ) : (
         <div className="irs-item-empty">
-          {rolling ? 'Consultando el oráculo...' : '— Ningún ítem revelado —'}
+          {spinning ? 'Consultando el oráculo...' : '— Ningún ítem revelado —'}
         </div>
       )}
     </div>
 
     {result && (
       <div className={saveError ? 'irs-save irs-save--error' : 'irs-save'}>
-        {rolling ? 'Guardando en el inventario...' : (saveError ?? 'Añadido al inventario')}
+        {saving ? 'Guardando en el inventario...' : (saveError ?? 'Añadido al inventario')}
       </div>
     )}
   </>

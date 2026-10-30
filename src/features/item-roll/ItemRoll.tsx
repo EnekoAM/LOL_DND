@@ -1,7 +1,7 @@
 import type { LootRarity, SpawnType } from '../../data/loot';
 import { cx } from '../../lib/cx';
 import { getSpawnChance } from './loot';
-import LootResult from './LootResult';
+import LootReel from './LootCaseReel';
 import MedievalWheel from './MedievalWheel';
 import { useLootRoll } from './useLootRoll';
 import { useSpawnRoll } from './useSpawnRoll';
@@ -42,6 +42,13 @@ const ItemRoll = () => {
           <span className="irs-rule-ornament">⚜</span>
         </div>
 
+        <LootReel reel={loot.reel} spinning={loot.spinning} onDone={loot.finish} />
+        {loot.result && !loot.spinning && (
+          <div className={cx('irs-save', 'irs-reel-save', loot.saveError && 'irs-save--error')}>
+            {loot.saving ? 'Guardando en el inventario...' : (loot.saveError ?? 'Añadido al inventario')}
+          </div>
+        )}
+
         <div className="irs-layout">
           <div className="irs-panel">
             {SPAWN_BUTTONS.map(({ type, className, icon, label }) => (
@@ -77,7 +84,6 @@ const ItemRoll = () => {
               </div>
             )}
 
-            <LootResult result={loot.result} rolling={loot.rolling} saveError={loot.saveError} />
           </div>
 
           <div className="irs-wheel-panel">

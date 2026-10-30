@@ -381,3 +381,174 @@
   .irs-title  { font-size: 20px; letter-spacing: 3px; }
 }
 .irs-readonly { margin: 8px 0 0; font-size: 13px; color: rgba(212,196,154,0.55); }
+
+
+/* ─── REEL (estilo caja CS) ─────────────────────────────── */
+.irs-reel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 24px;
+  animation: fadeUp 0.3s ease;
+}
+
+/* Sin esto la tira (44 cartas) ensancha la columna flex y rompe el layout. */
+.irs-panel,
+.irs-wheel-panel { min-width: 0; }
+
+.irs-reel-viewport {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  height: 158px;
+  contain: layout paint;
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(8,6,3,0.92), rgba(20,14,6,0.92));
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.7);
+  cursor: pointer;
+  user-select: none;
+}
+.irs-reel--done .irs-reel-viewport { cursor: default; }
+
+.irs-reel-track {
+  display: flex;
+  gap: 6px;
+  width: max-content;
+  height: 100%;
+  padding: 10px 6px;
+  box-sizing: border-box;
+  will-change: transform;
+}
+
+.irs-reel-card {
+  flex: 0 0 116px;
+  width: 116px;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px 6px;
+  box-sizing: border-box;
+  border: 1px solid rgba(150,130,80,0.2);
+  border-bottom: 3px solid var(--rarity);
+  border-radius: 2px;
+  background: radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--rarity) 22%, transparent), transparent 70%), rgba(14,10,5,0.95);
+  transition: opacity 0.4s, transform 0.4s, box-shadow 0.4s;
+}
+
+.irs-reel-card__img {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.35);
+  font-family: 'Cinzel', serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--rarity);
+}
+.irs-reel-card__img img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+
+.irs-reel-card__name {
+  width: 100%;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--rarity);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.irs-reel-card--legendario { border-color: rgba(201,168,76,0.4); border-bottom-color: var(--rarity); }
+
+.irs-reel--done .irs-reel-card { opacity: 0.35; }
+.irs-reel--done .irs-reel-card--winner {
+  opacity: 1;
+  transform: scale(1.04);
+  border-color: var(--rarity);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--rarity) 70%, transparent), inset 0 0 14px color-mix(in srgb, var(--rarity) 30%, transparent);
+}
+
+.irs-reel-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--gold-bright, #e8c96a);
+  box-shadow: 0 0 10px rgba(232,201,106,0.9);
+  pointer-events: none;
+  z-index: 2;
+}
+.irs-reel-marker::before,
+.irs-reel-marker::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+}
+.irs-reel-marker::before { top: 0; border-top: 9px solid var(--gold-bright, #e8c96a); }
+.irs-reel-marker::after  { bottom: 0; border-bottom: 9px solid var(--gold-bright, #e8c96a); }
+
+.irs-reel-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12%;
+  pointer-events: none;
+  z-index: 1;
+}
+.irs-reel-fade--left  { left: 0;  background: linear-gradient(90deg, rgba(8,6,3,0.95), transparent); }
+.irs-reel-fade--right { right: 0; background: linear-gradient(270deg, rgba(8,6,3,0.95), transparent); }
+
+.irs-reel-footer {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-align: center;
+}
+.irs-reel-footer em { font-style: normal; font-size: 9px; letter-spacing: 3px; opacity: 0.75; }
+
+.irs-reel-skip {
+  padding: 3px 12px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold, #c9a84c);
+  background: rgba(10,8,4,0.85);
+  border: 1px solid rgba(201,168,76,0.4);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.irs-reel-skip:hover { border-color: var(--gold-bright, #e8c96a); color: var(--gold-bright, #e8c96a); }
+
+@media (max-width: 640px) {
+  .irs-reel-viewport { height: 128px; }
+  .irs-reel-card { flex-basis: 90px; width: 90px; }
+  .irs-reel-card__img { width: 58px; height: 58px; font-size: 22px; }
+}
+.irs-reel-save { margin: -18px 0 20px; }
