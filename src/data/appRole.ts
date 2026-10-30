@@ -23,7 +23,7 @@ export function screenAllowed(_role: AppRole, _screenId: string): boolean {
   return true;
 }
 
-/** Solo admin puede mutar datos fuera de las fichas de personaje. */
+/** Solo admin puede mutar datos fuera de fichas y de comprar en la tienda. */
 export function roleCanEdit(role: AppRole): boolean {
   return role === 'admin';
 }

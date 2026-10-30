@@ -66,6 +66,9 @@ const canBeCrafted = (item: Item): boolean => item.craftsFrom.some(name => name.
 
 const Tienda = () => {
   const canEdit = useCanEdit();
+  /** User puede comprar; vender/craftear siguen siendo solo admin. */
+  const canBuy = true;
+  const canSellOrCraft = canEdit;
   const [search, setSearch] = useState('');
   const [rarity, setRarity] = useState('');
   const [statsOn, setStatsOn] = useState<string[]>([]);
@@ -330,7 +333,7 @@ const Tienda = () => {
               <div
                 key={item.nombre}
                 className={cx('shop-ware', (inCart || picked) && 'shop-ware--active', mode === 'crafteo' && 'shop-ware--pick')}
-                onClick={mode === 'crafteo' && canEdit ? () => setCraftName(item.nombre) : undefined}
+                onClick={mode === 'crafteo' && canSellOrCraft ? () => setCraftName(item.nombre) : undefined}
               >
                 {item.imagen
                   ? <img src={item.imagen} alt="" />
@@ -344,7 +347,7 @@ const Tienda = () => {
                   </span>
                 </span>
                 <span className="shop-ware__price">{formatGold(price)}</span>
-                {mode !== 'crafteo' && canEdit && (
+                {mode !== 'crafteo' && (mode === 'compra' ? canBuy : canSellOrCraft) && (
                   <button type="button" className="shop-add" disabled={capped} onClick={() => addToCart(item)}>
                     {inCart ? `+1 · ${inCart.cantidad}` : 'Añadir'}
                   </button>
@@ -354,10 +357,10 @@ const Tienda = () => {
           })}
         </div>
 
-        {!canEdit ? (
+        {!canSellOrCraft && mode !== 'compra' ? (
           <section className="shop-cart">
             <h2 className="shop-cart__title">Solo lectura</h2>
-            <p className="shop-cart__hint">Como user puedes mirar el mostrador, pero no comprar, vender ni craftear.</p>
+            <p className="shop-cart__hint">Como user puedes comprar; vender y craftear los hace el admin.</p>
           </section>
         ) : mode === 'crafteo' ? (
           <CraftBench
