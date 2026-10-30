@@ -27,17 +27,13 @@ const LANDMARK_URL = `${import.meta.env.BASE_URL}assets/runeterra/landmarks/spri
 /** Mismo umbral que la capa de lugares. */
 const LANDMARK_MIN_ZOOM = 2.25;
 
-type LandmarkSprite = { w: number; h: number; pxPerUnit: number; anchorX: number; anchorY: number };
+/** Rectangulo del sprite en px del mapa 8192 (ajustado a la sombra pintada en los tiles). */
+type LandmarkSprite = { left: number; top: number; width: number; height: number };
 
-/** Sprite colocado en coordenadas del mapa: el ancla (origen del modelo) cae sobre el pin oficial. */
 function landmarkOverlay(poi: RuneterraPoi, sprite: LandmarkSprite): L.ImageOverlay {
-  // px del sprite -> px del mapa 8192 (1 unidad oficial = unitsToMapPixels px).
-  const k = landmarks3d.unitsToMapPixels / sprite.pxPerUnit;
-  const left = poi.x - sprite.anchorX * k;
-  const top = poi.y - sprite.anchorY * k;
   const bounds = L.latLngBounds(
-    [-(top + sprite.h * k) * UNITS_PER_PIXEL, left * UNITS_PER_PIXEL],
-    [-top * UNITS_PER_PIXEL, (left + sprite.w * k) * UNITS_PER_PIXEL],
+    [-(sprite.top + sprite.height) * UNITS_PER_PIXEL, sprite.left * UNITS_PER_PIXEL],
+    [-sprite.top * UNITS_PER_PIXEL, (sprite.left + sprite.width) * UNITS_PER_PIXEL],
   );
   return L.imageOverlay(`${LANDMARK_URL}/${poi.slug}.webp`, bounds, {
     className: 'mapa-landmark',

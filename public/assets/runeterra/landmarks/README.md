@@ -32,10 +32,16 @@ y lo pinta con un ShaderMaterial sin luces (la iluminación va horneada en la te
 
 ## sprites/ (lo que usa la app)
 
-Render de cada monumento a WebP con fondo transparente (three.js en Chrome headless, cámara
-ortográfica inclinada 40° desde el sur, 16 px por unidad oficial ⇒ 1:1 con la pantalla a zoom 6).
-Metadatos en `src/features/mapa/landmarks3d.json` (`w`, `h`, `anchorX/anchorY` = centro de la base del modelo,
-que se coloca sobre el pin del POI; `pinX/pinY` = origen oficial del modelo).
+Render de cada monumento a WebP con fondo transparente (three.js en Chrome headless).
+Proyección oblicua: planta cenital (x, y sin deformar) y la altura desplazada hacia arriba
+(`y' = y + 0.75·z`), 16 px por unidad oficial. Así la base del modelo coincide 1:1 con la
+sombra que los tiles de la wiki traen pintada debajo de cada monumento.
+
+Colocación (`src/features/mapa/landmarks3d.json`, rectángulo en px del mapa 8192):
+`scripts/landmarks-fit.py` renderiza la silueta cenital de cada modelo y la busca (template matching
+con OpenCV, escala común 4.1 px/unidad) contra la sombra oscura de los tiles alrededor del pin.
+IoU silueta/sombra: Bastión 0.84, Demacia 0.83, Placidium 0.83, El Vacío 0.70, Fuerte Helado 0.57, Disco Solar 0.56.
+Ixaocan y Monte Targon no tienen sombra pintada: su base se centra en el pin.
 
 En el Mapa se muestran como `L.imageOverlay` (escalan con el zoom) desde zoom 2.25, con el chip **Monumentos 3D**.
 Script de render: `scripts/landmarks-render.js` (necesita `three`, no es dependencia de la app).

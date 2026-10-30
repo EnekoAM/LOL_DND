@@ -1,94 +1,62 @@
 {
- "source": "Modelos .obj de map.leagueoflegends.com (assets/obj/landmarks) renderizados con three.js: camara ortografica inclinada 40 grados desde el sur, 16 px por unidad oficial. anchor = centro de la base del modelo (se coloca sobre el pin); pin = origen del modelo segun placement.json oficial.",
- "unitsToMapPixels": 3.97459,
+ "source": "Modelos .obj de map.leagueoflegends.com (assets/obj/landmarks) renderizados con three.js en proyeccion oblicua (planta cenital + altura desplazada hacia arriba, shear 0.75), 16 px por unidad oficial.",
+ "placement": "left/top/width/height en px del mapa 8192. Escala comun 4.1 px/unidad; la posicion de cada monumento se ajusto haciendo coincidir su silueta cenital con la sombra pintada en los tiles (scripts/landmarks-fit.py). Ixaocan y Monte Targon no tienen sombra pintada: base centrada en el pin.",
  "sprites": {
   "demacia-city-landmark": {
-   "slug": "demacia-city-landmark",
-   "w": 522,
-   "h": 681,
-   "pxPerUnit": 16,
-   "tiltDeg": 40,
-   "anchorX": 261.2,
-   "anchorY": 453.6,
-   "pinX": 244.4,
-   "pinY": 666.3
-  },
-  "frostguard": {
-   "slug": "frostguard",
-   "w": 498,
-   "h": 568,
-   "pxPerUnit": 16,
-   "tiltDeg": 40,
-   "anchorX": 249.1,
-   "anchorY": 383.0,
-   "pinX": 299.7,
-   "pinY": 563.1
-  },
-  "immortal-bastion": {
-   "slug": "immortal-bastion",
-   "w": 569,
-   "h": 721,
-   "pxPerUnit": 16,
-   "tiltDeg": 40,
-   "anchorX": 284.4,
-   "anchorY": 502.8,
-   "pinX": 163.4,
-   "pinY": 671.5
-  },
-  "ixaocan": {
-   "slug": "ixaocan",
-   "w": 844,
-   "h": 759,
-   "pxPerUnit": 16,
-   "tiltDeg": 40,
-   "anchorX": 422.0,
-   "anchorY": 432.1,
-   "pinX": 388.7,
-   "pinY": 625.6
-  },
-  "mount-targon": {
-   "slug": "mount-targon",
-   "w": 769,
-   "h": 1002,
-   "pxPerUnit": 16,
-   "tiltDeg": 40,
-   "anchorX": 384.5,
-   "anchorY": 764.8,
-   "pinX": 388.5,
-   "pinY": 663.0
-  },
-  "placidium": {
-   "slug": "placidium",
-   "w": 490,
-   "h": 597,
-   "pxPerUnit": 16,
-   "tiltDeg": 40,
-   "anchorX": 244.9,
-   "anchorY": 451.0,
-   "pinX": 336.8,
-   "pinY": 627.7
+   "left": 2211.0,
+   "top": 3743.3,
+   "width": 133.8,
+   "height": 217.3,
+   "fit": "sombra (IoU 0.83)"
   },
   "sun-disc": {
-   "slug": "sun-disc",
-   "w": 483,
-   "h": 653,
-   "pxPerUnit": 16,
-   "tiltDeg": 40,
-   "anchorX": 241.6,
-   "anchorY": 468.1,
-   "pinX": 279.0,
-   "pinY": 677.8
+   "left": 4045.0,
+   "top": 5515.4,
+   "width": 123.8,
+   "height": 206.0,
+   "fit": "sombra (IoU 0.56)"
+  },
+  "placidium": {
+   "left": 5931.0,
+   "top": 2943.7,
+   "width": 125.6,
+   "height": 186.3,
+   "fit": "sombra (IoU 0.83)"
   },
   "the-void": {
-   "slug": "the-void",
-   "w": 469,
-   "h": 556,
-   "pxPerUnit": 16,
-   "tiltDeg": 40,
-   "anchorX": 234.6,
-   "anchorY": 384.4,
-   "pinX": 278.0,
-   "pinY": 520.0
+   "left": 5108.0,
+   "top": 6074.4,
+   "width": 120.2,
+   "height": 176.0,
+   "fit": "sombra (IoU 0.7)"
+  },
+  "immortal-bastion": {
+   "left": 4034.0,
+   "top": 3443.9,
+   "width": 145.8,
+   "height": 228.6,
+   "fit": "sombra (IoU 0.84)"
+  },
+  "frostguard": {
+   "left": 3169.0,
+   "top": 2335.7,
+   "width": 127.6,
+   "height": 180.4,
+   "fit": "sombra (IoU 0.57)"
+  },
+  "ixaocan": {
+   "left": 5318.9,
+   "top": 5403.7,
+   "width": 216.3,
+   "height": 242.4,
+   "fit": "pin"
+  },
+  "mount-targon": {
+   "left": 3206.5,
+   "top": 5469.2,
+   "width": 197.1,
+   "height": 313.9,
+   "fit": "pin"
   }
  }
 }
