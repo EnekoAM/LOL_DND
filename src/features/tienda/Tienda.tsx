@@ -9,7 +9,6 @@ import { matchesSearch } from '../../lib/text';
 import { craftGold, craftSummary, recipeLines } from '../items/recipe';
 import { hasStat } from '../items/stats';
 import { itemAvailability } from '../items/stock';
-import { useCanEdit } from '../../data/appRoleContext';
 import './Tienda.css';
 
 type CounterMode = ShopMode | 'crafteo';
@@ -65,10 +64,8 @@ const itemHasStat = (item: Item, stat: string): boolean => stat in item.stats &&
 const canBeCrafted = (item: Item): boolean => item.craftsFrom.some(name => name.trim() !== '');
 
 const Tienda = () => {
-  const canEdit = useCanEdit();
-  /** User puede comprar; vender/craftear siguen siendo solo admin. */
-  const canBuy = true;
-  const canSellOrCraft = canEdit;
+  /** User y admin pueden comprar, vender y craftear. */
+  const canUseShop = true;
   const [search, setSearch] = useState('');
   const [rarity, setRarity] = useState('');
   const [statsOn, setStatsOn] = useState<string[]>([]);
@@ -333,7 +330,7 @@ const Tienda = () => {
               <div
                 key={item.nombre}
                 className={cx('shop-ware', (inCart || picked) && 'shop-ware--active', mode === 'crafteo' && 'shop-ware--pick')}
-                onClick={mode === 'crafteo' && canSellOrCraft ? () => setCraftName(item.nombre) : undefined}
+                onClick={mode === 'crafteo' && canUseShop ? () => setCraftName(item.nombre) : undefined}
               >
                 {item.imagen
                   ? <img src={item.imagen} alt="" />
@@ -347,7 +344,7 @@ const Tienda = () => {
                   </span>
                 </span>
                 <span className="shop-ware__price">{formatGold(price)}</span>
-                {mode !== 'crafteo' && (mode === 'compra' ? canBuy : canSellOrCraft) && (
+                {mode !== 'crafteo' && canUseShop && (
                   <button type="button" className="shop-add" disabled={capped} onClick={() => addToCart(item)}>
                     {inCart ? `+1 · ${inCart.cantidad}` : 'Añadir'}
                   </button>
@@ -357,10 +354,10 @@ const Tienda = () => {
           })}
         </div>
 
-        {!canSellOrCraft && mode !== 'compra' ? (
+        {!canUseShop ? (
           <section className="shop-cart">
             <h2 className="shop-cart__title">Solo lectura</h2>
-            <p className="shop-cart__hint">Como user puedes comprar; vender y craftear los hace el admin.</p>
+            <p className="shop-cart__hint">La tienda est� en solo lectura.</p>
           </section>
         ) : mode === 'crafteo' ? (
           <CraftBench
