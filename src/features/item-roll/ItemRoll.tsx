@@ -5,6 +5,7 @@ import LootResult from './LootResult';
 import MedievalWheel from './MedievalWheel';
 import { useLootRoll } from './useLootRoll';
 import { useSpawnRoll } from './useSpawnRoll';
+import { useCanEdit } from '../../data/appRoleContext';
 import './ItemRoll.css';
 
 type ButtonConfig = {
@@ -25,6 +26,7 @@ const ROLL_BUTTONS: (ButtonConfig & { rarity: LootRarity })[] = [
 ];
 
 const ItemRoll = () => {
+  const canEdit = useCanEdit();
   const loot = useLootRoll();
   const spawn = useSpawnRoll();
 
@@ -33,6 +35,7 @@ const ItemRoll = () => {
       <div className="irs-inner">
         <div className="irs-header">
           <div className="irs-title">Tabla de Botín</div>
+          {!canEdit && <p className="irs-readonly">Solo lectura: las tiradas las hace el admin.</p>}
         </div>
 
         <div className="irs-rule">
@@ -42,7 +45,7 @@ const ItemRoll = () => {
         <div className="irs-layout">
           <div className="irs-panel">
             {SPAWN_BUTTONS.map(({ type, className, icon, label }) => (
-              <button key={type} className={cx('irs-btn', className)} onClick={() => spawn.start(type)}>
+              <button key={type} className={cx('irs-btn', className)} disabled={!canEdit} onClick={() => spawn.start(type)} title={canEdit ? undefined : 'Solo admin'}>
                 <span className="irs-btn-icon">{icon}</span>
                 <span className="irs-btn-label">{label}</span>
                 <span className="irs-btn-badge">{getSpawnChance(type)} %</span>

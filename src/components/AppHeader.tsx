@@ -16,9 +16,11 @@ type Props = {
   current?: NavItem<string>;
   menuOpen: boolean;
   onToggleMenu: () => void;
+  /** Solo admin puede dar/quitar oro y cambiar el nivel del grupo. */
+  canManageParty?: boolean;
 };
 
-export default function AppHeader({ current, menuOpen, onToggleMenu }: Props) {
+export default function AppHeader({ current, menuOpen, onToggleMenu, canManageParty = false }: Props) {
   const gold = useSyncExternalStore(subscribeParty, partyGold);
   const level = useSyncExternalStore(subscribeParty, partyLevel);
   const [grantOpen, setGrantOpen] = useState(false);
@@ -111,81 +113,83 @@ export default function AppHeader({ current, menuOpen, onToggleMenu }: Props) {
           <span className="stat-gold__coin">{'\u269C'}</span>
           <span className="stat-gold__amount">{gold.toLocaleString('es-ES')}</span>
           <span className="stat-gold__label">oro</span>
-          <span className="gold-grant__anchor">
-            <button
-              type="button"
-              className={cx('gold-grant__open', grantOpen && 'gold-grant__open--on')}
-              aria-expanded={grantOpen}
-              aria-controls={grantOpen ? amountId : undefined}
-              aria-label="Ajustar el grupo"
-              disabled={busy}
-              onClick={() => setGrantOpen(open => !open)}
-            >
-              +
-            </button>
-            {grantOpen && (
-              <form className="gold-grant" onSubmit={giveGold}>
-                <div className="gold-grant__head">
-                  <span className="gold-grant__mark" aria-hidden="true">{'\u269C'}</span>
-                  <p className="gold-grant__title">Grupo</p>
-                </div>
-                <div className="gold-grant__rule" aria-hidden="true" />
-                <div className="gold-grant__fields">
-                  <label className="gold-grant__label" htmlFor={amountId}>Oro</label>
-                  <input
-                    id={amountId}
-                    className="gold-grant__input"
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    step={1}
-                    placeholder="0"
-                    value={amount}
-                    autoFocus
-                    disabled={busy}
-                    onChange={event => setAmount(event.target.value)}
-                  />
-                  <div className="gold-grant__row">
-                    <button type="submit" className="gold-grant__submit" disabled={busy}>
-                      {busy ? '\u2026' : 'Dar'}
-                    </button>
-                    <button
-                      type="button"
-                      className="gold-grant__submit gold-grant__submit--quiet"
+          {canManageParty && (
+            <span className="gold-grant__anchor">
+              <button
+                type="button"
+                className={cx('gold-grant__open', grantOpen && 'gold-grant__open--on')}
+                aria-expanded={grantOpen}
+                aria-controls={grantOpen ? amountId : undefined}
+                aria-label="Ajustar el grupo"
+                disabled={busy}
+                onClick={() => setGrantOpen(open => !open)}
+              >
+                +
+              </button>
+              {grantOpen && (
+                <form className="gold-grant" onSubmit={giveGold}>
+                  <div className="gold-grant__head">
+                    <span className="gold-grant__mark" aria-hidden="true">{'\u269C'}</span>
+                    <p className="gold-grant__title">Grupo</p>
+                  </div>
+                  <div className="gold-grant__rule" aria-hidden="true" />
+                  <div className="gold-grant__fields">
+                    <label className="gold-grant__label" htmlFor={amountId}>Oro</label>
+                    <input
+                      id={amountId}
+                      className="gold-grant__input"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      step={1}
+                      placeholder="0"
+                      value={amount}
+                      autoFocus
                       disabled={busy}
-                      onClick={() => void changeGold(-1)}
-                    >
-                      Quitar
-                    </button>
+                      onChange={event => setAmount(event.target.value)}
+                    />
+                    <div className="gold-grant__row">
+                      <button type="submit" className="gold-grant__submit" disabled={busy}>
+                        {busy ? '\u2026' : 'Dar'}
+                      </button>
+                      <button
+                        type="button"
+                        className="gold-grant__submit gold-grant__submit--quiet"
+                        disabled={busy}
+                        onClick={() => void changeGold(-1)}
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                    <div className="gold-grant__rule gold-grant__rule--inset" aria-hidden="true" />
+                    <p className="gold-grant__label" id={`${amountId}-level`}>Nivel</p>
+                    <div className="gold-grant__level">
+                      <button
+                        type="button"
+                        className="gold-grant__step"
+                        aria-label="Bajar nivel"
+                        disabled={busy || level <= 1}
+                        onClick={() => void changeLevel(level - 1)}
+                      >
+                        {'\u2212'}
+                      </button>
+                      <span className="gold-grant__level-value" aria-labelledby={`${amountId}-level`}>{level}</span>
+                      <button
+                        type="button"
+                        className="gold-grant__step"
+                        aria-label="Subir nivel"
+                        disabled={busy || level >= MAX_ROLE_LEVEL}
+                        onClick={() => void changeLevel(level + 1)}
+                      >
+                        +
+                      </button>
+                    </div>
+                    {error && <p className="gold-grant__error" role="alert">{error}</p>}
                   </div>
-                  <div className="gold-grant__rule gold-grant__rule--inset" aria-hidden="true" />
-                  <p className="gold-grant__label" id={`${amountId}-level`}>Nivel</p>
-                  <div className="gold-grant__level">
-                    <button
-                      type="button"
-                      className="gold-grant__step"
-                      aria-label="Bajar nivel"
-                      disabled={busy || level <= 1}
-                      onClick={() => void changeLevel(level - 1)}
-                    >
-                      {'\u2212'}
-                    </button>
-                    <span className="gold-grant__level-value" aria-labelledby={`${amountId}-level`}>{level}</span>
-                    <button
-                      type="button"
-                      className="gold-grant__step"
-                      aria-label="Subir nivel"
-                      disabled={busy || level >= MAX_ROLE_LEVEL}
-                      onClick={() => void changeLevel(level + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  {error && <p className="gold-grant__error" role="alert">{error}</p>}
-                </div>
-              </form>
-            )}
-          </span>
+                </form>
+              )}
+            </span>
+          )}
         </div>
 
         <div className="header-divider" />

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
+import type { AppRole } from '../data/appRole';
 import { cx } from '../lib/cx';
 import type { NavItem } from './AppHeader';
 import './SideNav.css';
@@ -11,6 +12,8 @@ type Props<T extends string> = {
   /** Movil: cajon abierto encima del contenido. */
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  role: AppRole;
+  onChangeRole: () => void;
 };
 
 export default function SideNav<T extends string>({
@@ -18,6 +21,8 @@ export default function SideNav<T extends string>({
   expanded,
   mobileOpen,
   onCloseMobile,
+  role,
+  onChangeRole,
 }: Props<T>) {
   useEffect(() => {
     if (!mobileOpen) return;
@@ -62,6 +67,21 @@ export default function SideNav<T extends string>({
           ))}
         </ul>
 
+        <div className="side-nav__footer">
+          <div className="side-nav__rule" aria-hidden="true" />
+          <button
+            type="button"
+            className="side-nav__role"
+            title="Cambiar rol"
+            onClick={onChangeRole}
+          >
+            <span className="side-nav__icon" aria-hidden="true">{role === 'admin' ? '⚔' : '👤'}</span>
+            <span className="side-nav__label">
+              {role === 'admin' ? 'Admin' : 'User'}
+              <span className="side-nav__role-hint">cambiar</span>
+            </span>
+          </button>
+        </div>
       </nav>
     </>
   );

@@ -8,6 +8,7 @@ import {
   type HistoryKind,
 } from '../../data/history';
 import { useLiveRevision } from '../../data/live';
+import { useCanEdit } from '../../data/appRoleContext';
 import { cx } from '../../lib/cx';
 import './Historial.css';
 
@@ -85,6 +86,7 @@ const revertText = (entry: HistoryEntry): string => {
 };
 
 const Historial = () => {
+  const canEdit = useCanEdit();
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [filter, setFilter] = useState<Filter>('todo');
   const [loading, setLoading] = useState(true);
@@ -185,14 +187,18 @@ const Historial = () => {
                 {error && <p className="hist-row__error">{error}</p>}
               </div>
 
-              <button
-                type="button"
-                className="hist-revert"
-                disabled={entry.reverted || busyId === entry.id}
-                onClick={() => setPending(entry)}
-              >
-                {entry.reverted ? 'Revertido' : busyId === entry.id ? 'Revirtiendo' : 'Revertir'}
-              </button>
+              {canEdit ? (
+                <button
+                  type="button"
+                  className="hist-revert"
+                  disabled={entry.reverted || busyId === entry.id}
+                  onClick={() => setPending(entry)}
+                >
+                  {entry.reverted ? 'Revertido' : busyId === entry.id ? 'Revirtiendo' : 'Revertir'}
+                </button>
+              ) : (
+                entry.reverted ? <span className="hist-revert" style={{ opacity: 0.5 }}>Revertido</span> : null
+              )}
             </article>
           );
         })}

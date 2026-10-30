@@ -1,0 +1,103 @@
+.role-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 30%, rgba(201,168,76,0.12), transparent 55%),
+    rgba(8, 5, 2, 0.92);
+  backdrop-filter: blur(6px);
+}
+
+.role-picker__card {
+  width: min(420px, 100%);
+  padding: 36px 28px 28px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(201,168,76,0.08), transparent 55%),
+    linear-gradient(180deg, #1a1208 0%, #110d06 100%);
+  border: 1px solid rgba(201,168,76,0.35);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.65), inset 0 1px 0 rgba(232,201,106,0.08);
+}
+
+.role-picker__mark {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 28px;
+  color: var(--gold);
+  filter: drop-shadow(0 0 8px rgba(201,168,76,0.5));
+}
+
+.role-picker__title {
+  margin: 0 0 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--gold-bright);
+}
+
+.role-picker__hint {
+  margin: 0 0 28px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-dim);
+}
+
+.role-picker__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.role-picker__btn {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(201,168,76,0.25);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+
+.role-picker__btn:hover {
+  border-color: rgba(201,168,76,0.55);
+  background: rgba(201,168,76,0.08);
+  transform: translateY(-1px);
+}
+
+.role-picker__btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.role-picker__btn-icon {
+  grid-row: 1 / span 2;
+  font-size: 22px;
+  text-align: center;
+}
+
+.role-picker__btn-label {
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gold-bright);
+}
+
+.role-picker__btn-desc {
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+
+.role-picker__btn--admin .role-picker__btn-icon { color: var(--gold); }
+.role-picker__btn--user .role-picker__btn-icon { color: var(--ink); }

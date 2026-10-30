@@ -380,3 +380,4 @@
   .irs-layout { flex-direction: column; }
   .irs-title  { font-size: 20px; letter-spacing: 3px; }
 }
+.irs-readonly { margin: 8px 0 0; font-size: 13px; color: rgba(212,196,154,0.55); }

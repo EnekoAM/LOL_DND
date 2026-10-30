@@ -5,6 +5,7 @@ import { cx } from '../../lib/cx';
 import { draftToItemUpdate, itemToDraft, type ItemDraft } from './itemDraft';
 import ItemStock from './ItemStock';
 import { RARITIES, rarityClass } from './rarity';
+import { useCanEdit } from '../../data/appRoleContext';
 import { formatStatValue, getVisibleStats } from './stats';
 
 type Props = {
@@ -22,7 +23,7 @@ const EFFECTS = [
 const isEffectDefined = (text: string | undefined): boolean =>
   !!text && text.trim() !== '' && text.trim() !== '-';
 
-const ItemView = ({ item, onEdit }: { item: Item; onEdit: () => void }) => {
+const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; canEdit: boolean }) => {
   const effects = EFFECTS.filter(({ key }) => isEffectDefined(item.efecto?.[key]));
   const rarity = rarityClass(item.rareza);
 
@@ -69,9 +70,11 @@ const ItemView = ({ item, onEdit }: { item: Item; onEdit: () => void }) => {
         )}
       </ul>
 
-      <div className="item-edit__actions">
-        <button type="button" className="item-edit__btn" onClick={onEdit}>Editar</button>
-      </div>
+      {canEdit && (
+        <div className="item-edit__actions">
+          <button type="button" className="item-edit__btn" onClick={onEdit}>Editar</button>
+        </div>
+      )}
     </>
   );
 };
@@ -172,6 +175,7 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onSave, 
 };
 
 const ItemDetailModal = ({ item, onClose, onSaved }: Props) => {
+  const canEdit = useCanEdit();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<ItemDraft>(() => itemToDraft(item));
   const [saving, setSaving] = useState(false);
@@ -243,7 +247,7 @@ const ItemDetailModal = ({ item, onClose, onSaved }: Props) => {
             onCancel={cancelEditing}
           />
         ) : (
-          <ItemView item={item} onEdit={startEditing} />
+          <ItemView item={item} onEdit={startEditing} canEdit={canEdit} />
         )}
       </div>
 

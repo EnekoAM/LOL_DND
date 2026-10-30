@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useState, type ComponentType } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppHeader, { type NavItem } from './components/AppHeader';
+import RolePicker from './components/RolePicker';
 import SideNav from './components/SideNav';
+import { type AppRole, clearAppRole, readAppRole, saveAppRole, screenAllowed } from './data/appRole';
+import { AppRoleProvider } from './data/appRoleContext';
 import { startLiveSync, useLiveRevision } from './data/live';
 import Calculos from './features/calculos/Calculos';
 import Habilidades from './features/habilidades/Habilidades';
@@ -45,10 +48,16 @@ function useIsMobile() {
 function App() {
   const location = useLocation();
   const isMobile = useIsMobile();
+  const [role, setRole] = useState<AppRole | null>(() => readAppRole());
   const [navExpanded, setNavExpanded] = useState(() => localStorage.getItem(NAV_EXPANDED_KEY) !== '0');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const current = SCREENS.find(screen => location.pathname === `/${screen.id}`);
+  const visibleScreens = useMemo(
+    () => (role ? SCREENS.filter(screen => screenAllowed(role, screen.id)) : []),
+    [role],
+  );
+  const defaultPath = visibleScreens[0] ? `/${visibleScreens[0].id}` : '/players';
+  const current = visibleScreens.find(screen => location.pathname === `/${screen.id}`);
 
   useEffect(() => {
     localStorage.setItem(NAV_EXPANDED_KEY, navExpanded ? '1' : '0');
@@ -65,6 +74,17 @@ function App() {
 
   const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
 
+  const pickRole = useCallback((next: AppRole) => {
+    saveAppRole(next);
+    setRole(next);
+  }, []);
+
+  const changeRole = useCallback(() => {
+    clearAppRole();
+    setRole(null);
+    setMobileNavOpen(false);
+  }, []);
+
   // Repinta la pantalla cuando otra pestaña guarda algo (los datos viven fuera de React).
   useLiveRevision();
 
@@ -76,32 +96,41 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
+  if (!role) {
+    return <RolePicker onPick={pickRole} />;
+  }
+
   return (
+    <AppRoleProvider role={role}>
     <div className={navExpanded ? 'app-root app-root--nav-expanded' : 'app-root'}>
       <AppHeader
         current={current}
         menuOpen={isMobile ? mobileNavOpen : navExpanded}
         onToggleMenu={toggleMenu}
+        canManageParty={role === 'admin'}
       />
       <SideNav
-        items={SCREENS}
+        items={visibleScreens}
         expanded={navExpanded}
         mobileOpen={mobileNavOpen}
         onCloseMobile={closeMobileNav}
+        role={role}
+        onChangeRole={changeRole}
       />
 
       <main className="app-main">
         <Routes>
-          <Route path="/" element={<Navigate to="/items" replace />} />
-          {SCREENS.map(({ id, Component }) => (
+          <Route path="/" element={<Navigate to={defaultPath} replace />} />
+          {visibleScreens.map(({ id, Component }) => (
             <Route key={id} path={`/${id}`} element={<Component />} />
           ))}
-          <Route path="*" element={<Navigate to="/items" replace />} />
+          <Route path="*" element={<Navigate to={defaultPath} replace />} />
         </Routes>
       </main>
 
       <div className="app-bg" aria-hidden="true" />
     </div>
+    </AppRoleProvider>
   );
 }
 

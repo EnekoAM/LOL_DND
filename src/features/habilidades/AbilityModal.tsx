@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '../../components/Modal';
 import { saveChampionAbility, type Ability, type AbilityKey, type Champion } from '../../data/champions';
+import { useCanEdit } from '../../data/appRoleContext';
 import { cx } from '../../lib/cx';
 import { formatPercentList } from '../../lib/format';
 import { ABILITY_LABELS } from './championStyle';
@@ -23,7 +24,7 @@ type Props = {
 
 const listText = (values: number[] | undefined): string => (values ?? []).join(' / ');
 
-const AbilityView = ({ ability, onEdit }: { ability: Ability | null; onEdit: () => void }) => {
+const AbilityView = ({ ability, onEdit, canEdit }: { ability: Ability | null; onEdit: () => void; canEdit: boolean }) => {
   const damage = ability?.damage;
   const bonus = damageBonusOf(damage);
   const effects = ability?.effect ?? [];
@@ -32,9 +33,11 @@ const AbilityView = ({ ability, onEdit }: { ability: Ability | null; onEdit: () 
     return (
       <>
         <p className="hab-modal__desc">Esta habilidad no está definida.</p>
+        {canEdit && (
         <div className="hab-modal__actions">
           <button type="button" className="hab-modal__btn" onClick={onEdit}>Editar</button>
         </div>
+      )}
       </>
     );
   }
@@ -76,9 +79,11 @@ const AbilityView = ({ ability, onEdit }: { ability: Ability | null; onEdit: () 
         </div>
       )}
 
-      <div className="hab-modal__actions">
-        <button type="button" className="hab-modal__btn" onClick={onEdit}>Editar</button>
-      </div>
+      {canEdit && (
+        <div className="hab-modal__actions">
+          <button type="button" className="hab-modal__btn" onClick={onEdit}>Editar</button>
+        </div>
+      )}
     </>
   );
 };
@@ -202,6 +207,7 @@ const AbilityForm = ({
 };
 
 const AbilityModal = ({ champion, slot, onClose, onSaved }: Props) => {
+  const canEdit = useCanEdit();
   const ability = champion.abilities[slot] ?? null;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<AbilityDraft>(() => abilityToDraft(ability));
@@ -283,7 +289,7 @@ const AbilityModal = ({ champion, slot, onClose, onSaved }: Props) => {
             onCancel={cancelEditing}
           />
         ) : (
-          <AbilityView ability={ability} onEdit={startEditing} />
+          <AbilityView ability={ability} onEdit={startEditing} canEdit={canEdit} />
         )}
       </div>
       <div className="hab-modal__cap"><div className="hab-modal__rod" /></div>
