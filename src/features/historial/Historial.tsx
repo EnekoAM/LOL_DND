@@ -90,6 +90,7 @@ const entryKey = (entry: { id: string; kind: HistoryKind }) => `${entry.kind}:${
 
 const Historial = () => {
   const canEdit = useCanEdit();
+  const canRevert = (entry: HistoryEntry) => canEdit || entry.kind === 'compra' || entry.kind === 'venta';
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [filter, setFilter] = useState<Filter>('todo');
   const [loading, setLoading] = useState(true);
@@ -163,7 +164,7 @@ const Historial = () => {
   };
 
   const revert = async () => {
-    if (!pending || pending.reverted || busy) return;
+    if (!pending || pending.reverted || busy || !canRevert(pending)) return;
     const entry = pending;
     const key = entryKey(entry);
     setBusyId(entry.id);
@@ -313,7 +314,7 @@ const Historial = () => {
                 {error && <p className="hist-row__error">{error}</p>}
               </div>
 
-              {canEdit ? (
+              {canRevert(entry) ? (
                 <button
                   type="button"
                   className="hist-revert"
