@@ -37,10 +37,11 @@ const STATUS_BUSY: Record<TicketStatus, string> = {
   completed: 'Completando',
 };
 
-type Filter = 'all' | 'accepted' | 'rejected' | 'completed';
+type Filter = 'all' | 'pending' | 'accepted' | 'rejected' | 'completed';
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'Todos' },
+  { key: 'pending', label: 'Pendientes' },
   { key: 'accepted', label: 'Aceptados' },
   { key: 'rejected', label: 'Rechazados' },
   { key: 'completed', label: 'Completados' },
@@ -92,6 +93,7 @@ const Sugerencias = () => {
 
   const counts = useMemo<Record<Filter, number>>(() => ({
     all: tickets.length,
+    pending: tickets.filter(item => item.status === 'pending').length,
     accepted: tickets.filter(item => item.status === 'accepted').length,
     rejected: tickets.filter(item => item.status === 'rejected').length,
     completed: tickets.filter(item => item.status === 'completed').length,
