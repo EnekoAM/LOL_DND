@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useCanEdit } from '../../data/appRoleContext';
 import type { AbilityScoreKey, PlayerSheet } from '../../data/players';
 import {
   ABILITY_SCORES,
@@ -80,16 +81,47 @@ function fromDraft(draft: Draft, skills: PlayerSheet['skills']): PlayerSheet | s
   return sheet;
 }
 
-const ScoreCard = ({ label, score }: { label: string; score: AbilityScore }) => (
-  <div className="sheet-score">
-    <div className="sheet-score__label">{label}</div>
-    <div className="sheet-score__mod">{formatModifier(score.modifier)}</div>
-    <div className="sheet-score__value">{score.score}</div>
-  </div>
-);
+/** Tope del botón +1 (el editor admite hasta SCORE_MAX a mano). */
+const SCORE_RAISE_MAX = 20;
+
+const ScoreCard = ({
+  label,
+  score,
+  disabled,
+  onRaise,
+}: {
+  label: string;
+  score: AbilityScore;
+  disabled: boolean;
+  /** Sin onRaise (no admin) no se pinta el botón +1. */
+  onRaise?: () => void;
+}) => {
+  const atMax = score.score >= SCORE_RAISE_MAX;
+  return (
+    <div className="sheet-score">
+      <div className="sheet-score__label">{label}</div>
+      <div className="sheet-score__mod">{formatModifier(score.modifier)}</div>
+      <div className="sheet-score__value">{score.score}</div>
+      {onRaise && (
+        <button
+          type="button"
+          className="sheet-score__raise"
+          onClick={onRaise}
+          disabled={disabled || atMax}
+          aria-label={atMax ? `${label} al máximo (${SCORE_RAISE_MAX})` : `Subir ${label} a ${score.score + 1}`}
+          title={atMax ? `Máximo ${SCORE_RAISE_MAX}` : `Subir ${label} a ${score.score + 1}`}
+        >
+          {atMax ? 'MÁX' : '▲ +1'}
+        </button>
+      )}
+    </div>
+  );
+};
 
 /** Panel de características de la ficha: muestra FUE…CAR y permite editar rol, puntuaciones y extra. */
 const SheetEditor = ({ sheet, saving, error, onSave }: Props) => {
+  // +1 en características: solo admin.
+  const canRaise = useCanEdit();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => toDraft(sheet));
   const [localError, setLocalError] = useState<string | null>(null);
@@ -120,6 +152,24 @@ const SheetEditor = ({ sheet, saving, error, onSave }: Props) => {
     }
   };
 
+  // +1 a una característica y se guarda la ficha entera por la misma vía que el editor.
+  const raiseScore = async (key: AbilityScoreKey) => {
+    if (!canRaise || saving || editing || !sheet?.scores) return;
+    const current = sheet.scores[key];
+    if (typeof current !== 'number' || current >= SCORE_RAISE_MAX) return;
+    const scores = {} as Record<AbilityScoreKey, number>;
+    for (const { key: k } of ABILITY_SCORES) {
+      const value = sheet.scores[k];
+      scores[k] = typeof value === 'number' ? value : DEFAULT_SCORE;
+    }
+    scores[key] = current + 1;
+    setLocalError(null);
+    try {
+      await onSave({ ...sheet, scores });
+    } catch {
+      // Players muestra el error de guardado.
+    }
+  };
   const roleName = sheet ? findRoleTable(sheet.roleId)?.name ?? sheet.roleId : null;
   const hasScores = ABILITY_SCORES.some(({ key }) => abilityScore(sheet, key));
   const shownError = localError ?? error;
@@ -150,7 +200,15 @@ const SheetEditor = ({ sheet, saving, error, onSave }: Props) => {
           <div className="sheet-scores">
             {ABILITY_SCORES.map(({ key, label }) => {
               const score = abilityScore(sheet, key);
-              return score && <ScoreCard key={key} label={label} score={score} />;
+              return score && (
+                <ScoreCard
+                  key={key}
+                  label={label}
+                  score={score}
+                  disabled={saving}
+                  onRaise={canRaise ? () => void raiseScore(key) : undefined}
+                />
+              );
             })}
           </div>
         ) : (
