@@ -110,7 +110,6 @@ export default function AppHeader({ current, menuOpen, onToggleMenu, canManagePa
 
       <div className="header-stats">
         <div className="stat-gold" ref={grantRef}>
-          <span className="stat-gold__coin">{'\u269C'}</span>
           <span className="stat-gold__amount">{gold.toLocaleString('es-ES')}</span>
           <span className="stat-gold__label">oro</span>
           {canManageParty && (

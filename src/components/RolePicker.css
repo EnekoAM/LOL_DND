@@ -24,9 +24,10 @@
 
 .role-picker__mark {
   display: block;
-  margin-bottom: 12px;
-  font-size: 28px;
-  color: var(--gold);
+  width: 36px;
+  height: 41px;
+  margin: 0 auto 12px;
+  object-fit: contain;
   filter: drop-shadow(0 0 8px rgba(201,168,76,0.5));
 }
 

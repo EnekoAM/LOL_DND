@@ -46,7 +46,7 @@ export default function RolePicker({ onPick }: Props) {
   return (
     <div className="role-picker" role="dialog" aria-modal="true" aria-labelledby="role-picker-title">
       <div className="role-picker__card">
-        <span className="role-picker__mark" aria-hidden="true">{'\u269C'}</span>
+        <img className="role-picker__mark" src="/logo.png" alt="" width="36" height="41" decoding="async" />
         {askingPin ? (
           <form className="role-picker__pin" onSubmit={submitPin} noValidate>
             <h1 id="role-picker-title" className="role-picker__title">
