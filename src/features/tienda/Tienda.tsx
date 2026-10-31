@@ -84,6 +84,10 @@ const isPrismatic = (rareza: string): boolean =>
 const isStarter = (rareza: string): boolean =>
   rareza.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '') === 'inicial';
 
+/** Las botas no se compran: se mejoran en crafteo. La misma regla esta en server/store.ts. */
+const isBoots = (rareza: string): boolean =>
+  rareza.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '') === 'botas';
+
 /** La misma cuenta está en server/store.ts. El 70% se hace en enteros: 350 * 0.7 no es 245 en coma flotante. */
 const sellPrice = (cost: number): number => Math.round((cost * 70) / 100);
 
@@ -112,7 +116,7 @@ const Tienda = () => {
   const liveRevision = useLiveRevision('items', 'players');
 
   useEffect(() => {
-    if (mode === 'compra' && (isPrismatic(rarity) || (isStarter(rarity)))) setRarity('');
+    if (mode === 'compra' && (isPrismatic(rarity) || isStarter(rarity) || isBoots(rarity))) setRarity('');
   }, [mode, rarity]);
 
   useEffect(() => {
@@ -127,7 +131,7 @@ const Tienda = () => {
 
   const rarities = useMemo(() => {
     const present = new Set(
-      catalog.filter(item => mode !== 'compra' || (!isPrismatic(item.rareza) && !isStarter(item.rareza))).map(item => item.rareza),
+      catalog.filter(item => mode !== 'compra' || (!isPrismatic(item.rareza) && !isStarter(item.rareza) && !isBoots(item.rareza))).map(item => item.rareza),
     );
     return [...present].sort((a, b) => rarityRank(a) - rarityRank(b) || a.localeCompare(b, 'es'));
   }, [catalog, mode]);
@@ -138,7 +142,7 @@ const Tienda = () => {
     if (!matchesSearch(item.nombre, search)) return false;
     const stock = itemAvailability(item);
     if (mode === 'crafteo' && !canBeCrafted(item)) return false;
-    if (mode === 'compra' && (itemPrice(item) <= 0 || isPrismatic(item.rareza) || isStarter(item.rareza))) return false;
+    if (mode === 'compra' && (itemPrice(item) <= 0 || isPrismatic(item.rareza) || isStarter(item.rareza) || isBoots(item.rareza))) return false;
     if (mode === 'venta' && stock.available <= 0) return false;
     if (onlyOwned && stock.owned <= 0) return false;
     return true;
@@ -176,7 +180,7 @@ const Tienda = () => {
   };
 
   const addToCart = (item: Item) => {
-    if (mode === 'compra' && (isPrismatic(item.rareza) || isStarter(item.rareza))) return;
+    if (mode === 'compra' && (isPrismatic(item.rareza) || isStarter(item.rareza) || isBoots(item.rareza))) return;
     const available = itemAvailability(item).available;
     updateCart(current => {
       const existing = current.find(line => line.nombre === item.nombre);

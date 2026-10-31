@@ -13,7 +13,8 @@
     "migrate:loot": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/migrate-loot-rules.ts",
     "migrate:ranks": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/migrate-ability-ranks.ts",
     "migrate:skills": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/migrate-skills.ts",
-    "typecheck:server": "tsc -p tsconfig.server.json"
+    "typecheck:server": "tsc -p tsconfig.server.json",
+    "migrate:boots": "set NODE_OPTIONS=--use-system-ca&& tsx scripts/migrate-boots-quest.ts"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",

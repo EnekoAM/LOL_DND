@@ -197,6 +197,11 @@ function isStarter(rareza: unknown): boolean {
   return rarityKey(rareza) === 'inicial';
 }
 
+/** Las botas no se compran: se mejoran en crafteo (y con item de mision las tochas). */
+function isBoots(rareza: unknown): boolean {
+  return rarityKey(rareza) === 'botas';
+}
+
 /** Tarifa fija según la rareza del resultado. La misma tabla está en src/features/items/recipe.ts. */
 function rarityCraftGold(rareza: unknown): number {
   const key = rarityKey(rareza);
@@ -375,7 +380,7 @@ export async function tradeShop(order: ShopOrder) {
   for (const line of order.lines) {
     const doc = byKey.get(itemKey(line.nombre));
     if (!doc || typeof doc.nombre !== 'string') throw new HttpError(404, `No existe el item ${line.nombre}`);
-    if (order.mode === 'compra' && (numericCost(doc.coste) <= 0 || isPrismatic(doc.rareza) || isStarter(doc.rareza))) {
+    if (order.mode === 'compra' && (numericCost(doc.coste) <= 0 || isPrismatic(doc.rareza) || isStarter(doc.rareza) || isBoots(doc.rareza))) {
       throw new HttpError(400, `${doc.nombre} no se compra`);
     }
     const reserved = equipped.get(itemKey(doc.nombre)) ?? 0;
