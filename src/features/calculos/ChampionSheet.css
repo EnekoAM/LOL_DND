@@ -2,7 +2,7 @@
 .champ-sheet {
   position: relative;
   isolation: isolate;
-  min-height: calc(100vh - var(--header-height) - 48px);
+  min-height: 0;
 }
 
 .champ-sheet--bg::before {
@@ -146,4 +146,57 @@
 
 .calc-champ-pip--active-flag {
   /* reserved */
+}
+
+/* Escritorio: la ficha cabe en el área principal sin scroll de página.
+   Si algo no cabe (p. ej. edición de nivel/fondo), scrollea solo su panel. */
+@media (min-width: 901px) {
+  .calc-root--sheet {
+    height: var(--page-min-height);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .calc-root--sheet > .calc-section-title {
+    flex: none;
+    margin-bottom: 12px;
+  }
+
+  .champ-sheet {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: 12px;
+  }
+
+  .champ-sheet > .sheet-topbar {
+    flex: none;
+  }
+
+  .champ-sheet > .sheet-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .champ-sheet .sheet-side,
+  .champ-sheet .sheet-content {
+    position: relative;
+    top: auto;
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .champ-sheet .sheet-portrait {
+    width: min(100%, 30vh);
+    margin-inline: auto;
+  }
+
+  .champ-sheet .calc-grid {
+    margin-bottom: 0;
+  }
 }

@@ -38,7 +38,7 @@ const Calculos = () => {
     setDamageInputs(prev => ({ ...prev, ...patch }));
 
   return (
-    <div className="calc-root">
+    <div className={champion && !ability ? 'calc-root calc-root--sheet' : 'calc-root'}>
       {ability ? (
         <DamagePanel
           ability={ability}
