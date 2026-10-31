@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { DND_SKILLS, proficiencyBonus, type DndSkillKey, type DndSkillProficiencies } from '../../data/dndSkills';
 import type { PlayerSheet } from '../../data/players';
 import { cx } from '../../lib/cx';
@@ -18,24 +17,19 @@ const SHORT = Object.fromEntries(ABILITY_SCORES.map(({ key, short }) => [key, sh
 const formatModifier = (value: number): string => (value >= 0 ? `+${value}` : String(value));
 
 /** Habilidades D&D 5e (Acrobacias, Atletismo…): círculo de competencia + modificador. */
-const SheetSkills = ({ sheet, level, saving, error, onSave }: Props) => {
-  const [pending, setPending] = useState<DndSkillKey | null>(null);
+const SheetSkills = ({ sheet, level, error, onSave }: Props) => {
   const bonus = proficiencyBonus(level);
   const skills = sheet?.skills ?? {};
-  const busy = saving || pending !== null;
 
   const toggle = async (key: DndSkillKey) => {
-    if (!sheet || busy) return;
+    if (!sheet) return;
     const next: DndSkillProficiencies = { ...skills };
     if (next[key]) delete next[key];
     else next[key] = true;
-    setPending(key);
     try {
       await onSave({ ...sheet, skills: next });
     } catch {
       // Players muestra el error de guardado.
-    } finally {
-      setPending(null);
     }
   };
 
@@ -64,7 +58,7 @@ const SheetSkills = ({ sheet, level, saving, error, onSave }: Props) => {
                 type="button"
                 className={cx('sheet-skill__dot', proficient && 'sheet-skill__dot--on')}
                 onClick={() => toggle(key)}
-                disabled={!sheet || busy}
+                disabled={!sheet}
                 aria-pressed={proficient}
                 aria-label={`${proficient ? 'Quitar' : 'Marcar'} competencia en ${label}`}
                 title={proficient ? 'Competente (pulsa para quitar)' : 'Sin competencia (pulsa para marcar)'}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Ability } from '../../data/champions';
 import { PLAYERS, PLAYERS_HYDRATED_EVENT, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
 import type { RankedSlot } from '../../data/abilityRanks';
@@ -45,11 +45,20 @@ const Players = () => {
   }, [openName, restoring]);
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState(DEFAULT_DAMAGE_INPUTS);
-  const [saving, setSaving] = useState(false);
+  // Los guardados van en cola: cada clic cambia al momento solo lo pulsado, sin bloquear (ni apagar) el resto de la ficha.
+  const pendingRef = useRef(0);
+  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
+  const enqueue = <T,>(task: () => Promise<T>): Promise<T> => {
+    pendingRef.current += 1;
+    const run = queueRef.current.catch(() => undefined).then(task);
+    queueRef.current = run.catch(() => undefined);
+    return run.finally(() => { pendingRef.current -= 1; });
+  };
+  const sameName = (a: Player | null, name: string) => !!a && normalizeName(a.name) === normalizeName(name);
   // Otra pestaña guardó un jugador: la ficha abierta toma la versión nueva (salvo si aquí hay un guardado en curso).
   const playersRevision = useLiveRevision('players');
   useEffect(() => {
-    if (playersRevision === 0 || saving) return;
+    if (playersRevision === 0 || pendingRef.current > 0) return;
     setPlayer(current => (current ? findSaved(current.name) ?? current : current));
   }, [playersRevision]);
   const [equipError, setEquipError] = useState<string | null>(null);
@@ -77,18 +86,16 @@ const Players = () => {
 
   // Cambio rápido desde la propia ficha (sin volver a la lista); bloqueado mientras se guarda.
   const switchPlayer = (next: Player) => {
-    if (saving) return;
     setRestoring(false);
     setPlayer(findSaved(next.name) ?? next);
     clearErrors();
   };
 
-  const updatePlayerList = async (
+  const updatePlayerList = (
     patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'shortRestsUsed' | 'sheet'>>,
-  ) => {
-    if (!player || saving) return;
+  ): Promise<void> => {
+    if (!player) return Promise.resolve();
     const name = player.name;
-    const previous = player;
     const isCombat =
       'hp' in patch || 'actualHp' in patch || 'escudo' in patch || 'vidaTemporal' in patch
       || 'mana' in patch || 'actualMana' in patch || 'inspiration' in patch || 'shortRestsUsed' in patch;
@@ -105,66 +112,62 @@ const Players = () => {
           ...hpSyncPatch(player, playerMaxHp(nextSheet, nextEquipment)),
         }
       : patch;
-    setPlayer({ ...player, ...payload });
-    setSaving(true);
+    setPlayer(current => (sameName(current, name) && current ? { ...current, ...payload } : current));
     setEquipError(null);
     setBuildError(null);
     setCombatError(null);
     setSheetError(null);
-    try {
-      const saved = await savePlayerPatch(name, payload);
-      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? saved : current));
-    } catch (error) {
-      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? previous : current));
-      const message = error instanceof Error ? error.message : 'No se pudo guardar';
-      if ('equipamiento' in patch) setEquipError(message);
-      else if (isSheet) setSheetError(message);
-      else if (isCombat) setCombatError(message);
-      else setBuildError(message);
-      throw error;
-    } finally {
-      setSaving(false);
-    }
+    return enqueue(async () => {
+      try {
+        const saved = await savePlayerPatch(name, payload);
+        // Solo el último guardado pendiente pisa la ficha: así no parpadean los clics que aún esperan.
+        if (pendingRef.current === 1) setPlayer(current => (sameName(current, name) ? saved : current));
+      } catch (error) {
+        const lastSaved = findSaved(name);
+        if (lastSaved) setPlayer(current => (sameName(current, name) ? lastSaved : current));
+        const message = error instanceof Error ? error.message : 'No se pudo guardar';
+        if ('equipamiento' in patch) setEquipError(message);
+        else if (isSheet) setSheetError(message);
+        else if (isCombat) setCombatError(message);
+        else setBuildError(message);
+        throw error;
+      }
+    });
   };
-
   // Solo se manda el hueco cambiado: la API valida cada habilidad que recibe.
-  const changeAbility = async (slot: PlayerAbilitySlot, abilityName: string | null) => {
-    if (!player || saving) return;
+  const changeAbility = (slot: PlayerAbilitySlot, abilityName: string | null): Promise<void> => {
+    if (!player) return Promise.resolve();
     const name = player.name;
-    const previous = player;
-    setPlayer({ ...player, abilities: { ...player.abilities, [slot]: abilityName } });
-    setSaving(true);
+    setPlayer(current => (sameName(current, name) && current
+      ? { ...current, abilities: { ...current.abilities, [slot]: abilityName } }
+      : current));
     setAbilityError(null);
-    try {
-      const saved = await savePlayerPatch(name, { abilities: { [slot]: abilityName } });
-      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? saved : current));
-    } catch (error) {
-      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? previous : current));
-      setAbilityError(error instanceof Error ? error.message : 'No se pudo guardar');
-      throw error;
-    } finally {
-      setSaving(false);
-    }
+    return enqueue(async () => {
+      try {
+        const saved = await savePlayerPatch(name, { abilities: { [slot]: abilityName } });
+        if (pendingRef.current === 1) setPlayer(current => (sameName(current, name) ? saved : current));
+      } catch (error) {
+        const lastSaved = findSaved(name);
+        if (lastSaved) setPlayer(current => (sameName(current, name) ? lastSaved : current));
+        setAbilityError(error instanceof Error ? error.message : 'No se pudo guardar');
+        throw error;
+      }
+    });
   };
-
   // Sube o baja un rango; la API recalcula los puntos libres y rechaza si no quedan o la R está bloqueada.
-  const changeRank = async (slot: RankedSlot, rank: number) => {
-    if (!player || saving) return;
+  const changeRank = (slot: RankedSlot, rank: number): Promise<void> => {
+    if (!player) return Promise.resolve();
     const name = player.name;
-    const previous = player;
-    setSaving(true);
     setAbilityError(null);
-    try {
-      const saved = await savePlayerPatch(name, { abilityRanks: { [slot]: rank } });
-      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? saved : current));
-    } catch (error) {
-      setPlayer(current => (current && normalizeName(current.name) === normalizeName(name) ? previous : current));
-      setAbilityError(error instanceof Error ? error.message : 'No se pudo guardar');
-    } finally {
-      setSaving(false);
-    }
+    return enqueue(async () => {
+      try {
+        const saved = await savePlayerPatch(name, { abilityRanks: { [slot]: rank } });
+        setPlayer(current => (sameName(current, name) ? saved : current));
+      } catch (error) {
+        setAbilityError(error instanceof Error ? error.message : 'No se pudo guardar');
+      }
+    });
   };
-
   // Al abrir el cálculo desde la ficha, el nivel de habilidad parte del rango actual.
   const selectAbility = (selected: Ability, rank?: number) => {
     if (rank && rank > 0) setDamageInputs(prev => ({ ...prev, level: rank }));
@@ -192,7 +195,7 @@ const Players = () => {
           player={player}
           players={PLAYERS}
           onSwitchPlayer={switchPlayer}
-          saving={saving}
+          saving={false}
           equipError={equipError}
           buildError={buildError}
           combatError={combatError}
