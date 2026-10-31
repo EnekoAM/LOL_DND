@@ -719,3 +719,10 @@
   font-size: 13px;
   color: #e8a0a0;
 }
+
+.irs-reward-note {
+  margin: 0 0 12px;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(180, 220, 160, 0.9);
+}

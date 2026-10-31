@@ -27,21 +27,25 @@ const SPAWN_BUTTONS: (ButtonConfig & { type: SpawnType; token: SpawnTokenKind })
   { type: 'Epico', token: 'epico', className: 'irs-btn--spawn-epic', icon: '✨', label: 'Spawn Épico' },
 ];
 
-const ROLL_BUTTONS: (ButtonConfig & { rarity: LootRarity; token: SpawnTokenKind | null })[] = [
-  { rarity: 'basico', token: null, className: 'irs-btn--basic', icon: '○', label: 'Roll Básico' },
-  { rarity: 'epico', token: null, className: 'irs-btn--epic', icon: '◈', label: 'Roll Épico' },
+const ROLL_BUTTONS: (ButtonConfig & { rarity: LootRarity; token: SpawnTokenKind })[] = [
+  { rarity: 'basico', token: 'rollBasico', className: 'irs-btn--basic', icon: '○', label: 'Roll Básico' },
+  { rarity: 'epico', token: 'rollEpico', className: 'irs-btn--epic', icon: '◈', label: 'Roll Épico' },
   { rarity: 'legendario', token: 'legendario', className: 'irs-btn--legendary', icon: '🔥', label: 'Roll Legendario' },
 ];
 
-const TOKEN_LABEL: Record<SpawnTokenKind, string> = {
-  basico: 'Básico',
-  epico: 'Épico',
-  legendario: 'Legendario',
-};
+/** Tokens que el admin puede dar a mano (spawns + legendario). Los roll básico/épico salen de la ruleta. */
+const ADMIN_GRANT: { kind: SpawnTokenKind; label: string }[] = [
+  { kind: 'basico', label: 'Spawn Básico' },
+  { kind: 'epico', label: 'Spawn Épico' },
+  { kind: 'legendario', label: 'Legendario' },
+];
 
 type Selection =
   | { kind: 'spawn'; type: SpawnType; token: SpawnTokenKind }
-  | { kind: 'roll'; rarity: LootRarity; token: SpawnTokenKind | null };
+  | { kind: 'roll'; rarity: LootRarity; token: SpawnTokenKind };
+
+const spawnToRollToken = (type: SpawnType): SpawnTokenKind =>
+  (type === 'Basico' ? 'rollBasico' : 'rollEpico');
 
 const ItemRoll = () => {
   const canEdit = useCanEdit();
@@ -51,9 +55,8 @@ const ItemRoll = () => {
   const [selected, setSelected] = useState<Selection | null>(null);
   const [busyAction, setBusyAction] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const chainedSpawn = useRef<string | null>(null);
-  const lootRollRef = useRef(loot.roll);
-  lootRollRef.current = loot.roll;
+  const [rewardNote, setRewardNote] = useState<string | null>(null);
+  const awardedSpawn = useRef<string | null>(null);
 
   const busy = loot.rolling || spawn.spinning || busyAction;
 
@@ -61,9 +64,7 @@ const ItemRoll = () => {
 
   const canUseSelection = (sel: Selection): boolean => {
     if (canEdit) return true;
-    if (sel.kind === 'spawn') return tokenCount(sel.token) > 0;
-    if (sel.token) return tokenCount(sel.token) > 0;
-    return false;
+    return tokenCount(sel.token) > 0;
   };
 
   const canTirar = !busy && selected !== null && canUseSelection(selected);
@@ -73,28 +74,27 @@ const ItemRoll = () => {
     if (!canEdit && tokenCount(token) <= 0) return;
     setSelected({ kind: 'spawn', type, token });
     setActionError(null);
+    setRewardNote(null);
     spawn.preview(type);
   };
 
-  const selectRoll = (rarity: LootRarity, token: SpawnTokenKind | null) => {
+  const selectRoll = (rarity: LootRarity, token: SpawnTokenKind) => {
     if (busy) return;
-    if (!canEdit) {
-      if (!token || tokenCount(token) <= 0) return;
-    }
+    if (!canEdit && tokenCount(token) <= 0) return;
     setSelected({ kind: 'roll', rarity, token });
     setActionError(null);
+    setRewardNote(null);
   };
 
   const tirar = () => {
     if (!canTirar || !selected) return;
     setActionError(null);
+    setRewardNote(null);
     const run = async () => {
       setBusyAction(true);
       try {
         if (!canEdit) {
-          const kind = selected.kind === 'spawn' ? selected.token : selected.token;
-          if (!kind) throw new Error('Necesitas un token para tirar');
-          await spendSpawnToken(kind);
+          await spendSpawnToken(selected.token);
         }
         if (selected.kind === 'spawn') spawn.start(selected.type);
         else loot.roll(selected.rarity);
@@ -115,21 +115,22 @@ const ItemRoll = () => {
     });
   };
 
-  // Si el spawn sale bien, abre automáticamente la tirada de esa rareza.
+  // Ruleta en sí → token de roll (no abre la caja sola).
   useEffect(() => {
-    if (!spawn.outcome?.success || !spawn.outcome.type) return;
+    if (!spawn.outcome || spawn.outcome.success !== true || !spawn.outcome.type) return;
     const key = `${spawn.outcome.type}:${spawn.outcome.message}`;
-    if (chainedSpawn.current === key) return;
-    chainedSpawn.current = key;
-    const rarity: LootRarity = spawn.outcome.type === 'Basico' ? 'basico' : 'epico';
-    setSelected({ kind: 'roll', rarity, token: null });
-    lootRollRef.current(rarity);
+    if (awardedSpawn.current === key) return;
+    awardedSpawn.current = key;
+    const rollToken = spawnToRollToken(spawn.outcome.type);
+    const label = spawn.outcome.type === 'Basico' ? 'roll básico' : 'roll épico';
+    void adjustSpawnTokens(rollToken, 1)
+      .then(() => setRewardNote(`Token de ${label} ganado. Úsalo en el Roll correspondiente.`))
+      .catch((error: unknown) => {
+        setActionError(error instanceof Error ? error.message : 'No se pudo dar el token de roll');
+      });
   }, [spawn.outcome]);
 
   const mode = selected?.kind ?? null;
-  const visibleRolls = canEdit
-    ? ROLL_BUTTONS
-    : ROLL_BUTTONS.filter(btn => btn.token === 'legendario');
 
   return (
     <div className="irs-wrap">
@@ -137,22 +138,25 @@ const ItemRoll = () => {
         <div className="irs-header">
           <div className="irs-title">Tabla de Botín</div>
           <p className="irs-tokens">
-            Tokens:{' '}
-            <span>Básico ×{tokenCount('basico')}</span>
+            Spawn Básico ×{tokenCount('basico')}
             {' · '}
-            <span>Épico ×{tokenCount('epico')}</span>
+            Spawn Épico ×{tokenCount('epico')}
             {' · '}
-            <span>Legendario ×{tokenCount('legendario')}</span>
+            Roll Básico ×{tokenCount('rollBasico')}
+            {' · '}
+            Roll Épico ×{tokenCount('rollEpico')}
+            {' · '}
+            Legendario ×{tokenCount('legendario')}
           </p>
           {!canEdit && (
             <p className="irs-readonly">
-              Gasta un token para tirar (o guárdalo). El admin puede tirar siempre.
+              Spawn gasta token de spawn; si sale sí, ganas un token de roll. El roll gasta ese token. El admin tira siempre.
             </p>
           )}
           {canEdit && (
-            <div className="irs-token-grant" role="group" aria-label="Dar tokens de spawn">
+            <div className="irs-token-grant" role="group" aria-label="Dar tokens">
               <span className="irs-token-grant__label">Dar token</span>
-              {(Object.keys(TOKEN_LABEL) as SpawnTokenKind[]).map(kind => (
+              {ADMIN_GRANT.map(({ kind, label }) => (
                 <button
                   key={kind}
                   type="button"
@@ -160,7 +164,7 @@ const ItemRoll = () => {
                   disabled={busy}
                   onClick={() => grantToken(kind)}
                 >
-                  + {TOKEN_LABEL[kind]}
+                  + {label}
                 </button>
               ))}
             </div>
@@ -186,7 +190,7 @@ const ItemRoll = () => {
                   className={cx('irs-btn', className, isSel && 'irs-btn--selected')}
                   disabled={!allowed || (busy && !isSel)}
                   onClick={() => selectSpawn(type, token)}
-                  title={allowed ? undefined : 'Sin tokens'}
+                  title={allowed ? undefined : 'Sin tokens de spawn'}
                 >
                   <span className="irs-btn-icon">{icon}</span>
                   <span className="irs-btn-label">{label}</span>
@@ -199,10 +203,10 @@ const ItemRoll = () => {
 
             <div className="irs-sep" />
 
-            {visibleRolls.map(({ rarity, token, className, icon, label }) => {
+            {ROLL_BUTTONS.map(({ rarity, token, className, icon, label }) => {
               const isSel = selected?.kind === 'roll' && selected.rarity === rarity;
-              const have = token ? tokenCount(token) : null;
-              const allowed = canEdit || (token !== null && (have ?? 0) > 0);
+              const have = tokenCount(token);
+              const allowed = canEdit || have > 0;
               return (
                 <button
                   key={rarity}
@@ -212,12 +216,11 @@ const ItemRoll = () => {
                   className={cx('irs-btn', className, isSel && 'irs-btn--selected')}
                   disabled={!allowed || (busy && !isSel)}
                   onClick={() => selectRoll(rarity, token)}
-                  title={allowed ? undefined : 'Sin tokens'}
+                  title={allowed ? undefined : 'Sin tokens de roll'}
                 >
                   <span className="irs-btn-icon">{icon}</span>
                   <span className="irs-btn-label">{label}</span>
-                  {have !== null && <span className="irs-btn-badge">×{have}</span>}
-                  {canEdit && token === null && <span className="irs-btn-badge">admin</span>}
+                  <span className="irs-btn-badge">×{have}</span>
                 </button>
               );
             })}
@@ -237,6 +240,9 @@ const ItemRoll = () => {
 
         {actionError && (
           <p className="irs-action-error" role="alert">{actionError}</p>
+        )}
+        {rewardNote && !actionError && (
+          <p className="irs-reward-note" role="status">{rewardNote}</p>
         )}
 
         <div className="irs-stage">
@@ -269,7 +275,9 @@ const ItemRoll = () => {
                     spawn.outcome.success ? 'irs-spawn-result--ok' : 'irs-spawn-result--fail',
                   )}
                 >
-                  {spawn.outcome.message}
+                  {spawn.outcome.success
+                    ? `✦ Sale sí: token de ${spawn.outcome.type === 'Basico' ? 'roll básico' : 'roll épico'}`
+                    : spawn.outcome.message}
                 </div>
               )}
             </div>

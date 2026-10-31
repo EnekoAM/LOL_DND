@@ -1,4 +1,4 @@
-export type SpawnTokenKind = 'basico' | 'epico' | 'legendario';
+export type SpawnTokenKind = 'basico' | 'epico' | 'legendario' | 'rollBasico' | 'rollEpico';
 
 export type SpawnTokens = Record<SpawnTokenKind, number>;
 
@@ -10,7 +10,13 @@ export type Party = {
   spawnTokens: SpawnTokens;
 };
 
-const EMPTY_TOKENS: SpawnTokens = { basico: 0, epico: 0, legendario: 0 };
+const EMPTY_TOKENS: SpawnTokens = {
+  basico: 0,
+  epico: 0,
+  legendario: 0,
+  rollBasico: 0,
+  rollEpico: 0,
+};
 
 function normalizeTokens(raw: unknown): SpawnTokens {
   const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
@@ -19,6 +25,8 @@ function normalizeTokens(raw: unknown): SpawnTokens {
     basico: num(src.basico),
     epico: num(src.epico),
     legendario: num(src.legendario),
+    rollBasico: num(src.rollBasico),
+    rollEpico: num(src.rollEpico),
   };
 }
 
@@ -101,7 +109,7 @@ export async function savePartyLevel(level: number): Promise<void> {
   await patchParty({ level }, `Error al cambiar el nivel`);
 }
 
-/** Suma o resta tokens de spawn (admin). */
+/** Suma o resta tokens de spawn/roll (admin o premio de ruleta). */
 export async function adjustSpawnTokens(kind: SpawnTokenKind, amount: number): Promise<void> {
   await patchParty(
     { addSpawnTokens: { [kind]: amount } },

@@ -526,15 +526,23 @@ export async function updateRole(id: string, patch: RolePatch) {
   return getRole(id);
 }
 
-const EMPTY_SPAWN_TOKENS = { basico: 0, epico: 0, legendario: 0 } as const;
+const EMPTY_SPAWN_TOKENS = {
+  basico: 0,
+  epico: 0,
+  legendario: 0,
+  rollBasico: 0,
+  rollEpico: 0,
+} as const;
 
-function normalizeSpawnTokens(raw: unknown): { basico: number; epico: number; legendario: number } {
+function normalizeSpawnTokens(raw: unknown): typeof EMPTY_SPAWN_TOKENS {
   const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
   return {
     basico: num(src.basico),
     epico: num(src.epico),
     legendario: num(src.legendario),
+    rollBasico: num(src.rollBasico),
+    rollEpico: num(src.rollEpico),
   };
 }
 

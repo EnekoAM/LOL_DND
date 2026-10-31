@@ -18,7 +18,8 @@ export type HistoryKind = (typeof HISTORY_KINDS)[number];
 const EQUIPMENT_LIMIT = 7;
 const ABILITY_SLOTS = ['P', 'H1', 'H2', 'H3', 'R'] as const;
 
-export type SpawnTokenKind = RollRarity;
+const SPAWN_TOKEN_KINDS = ['basico', 'epico', 'legendario', 'rollBasico', 'rollEpico'] as const;
+export type SpawnTokenKind = (typeof SPAWN_TOKEN_KINDS)[number];
 
 export type PartyPatch = Partial<Record<(typeof PARTY_FIELDS)[number], number>> & {
   /** Suma o resta esta cantidad al oro del grupo, sin sustituir el saldo. */
@@ -192,7 +193,7 @@ export function parsePartyPatch(body: unknown): PartyPatch {
     const raw = source.addSpawnTokens as Record<string, unknown>;
     const addSpawnTokens: Partial<Record<SpawnTokenKind, number>> = {};
     for (const key of Object.keys(raw)) {
-      if (!ROLL_RARITIES.includes(key as SpawnTokenKind)) {
+      if (!SPAWN_TOKEN_KINDS.includes(key as SpawnTokenKind)) {
         throw new HttpError(400, `Rareza de token desconocida: ${key}`);
       }
       const value = raw[key];
@@ -207,7 +208,10 @@ export function parsePartyPatch(body: unknown): PartyPatch {
     patch.addSpawnTokens = addSpawnTokens;
   }
   if (source.spendSpawnToken !== undefined) {
-    patch.spendSpawnToken = rollRarity(source.spendSpawnToken, 'spendSpawnToken');
+    if (typeof source.spendSpawnToken !== 'string' || !SPAWN_TOKEN_KINDS.includes(source.spendSpawnToken as SpawnTokenKind)) {
+      throw new HttpError(400, 'spendSpawnToken tiene que ser basico, epico, legendario, rollBasico o rollEpico');
+    }
+    patch.spendSpawnToken = source.spendSpawnToken as SpawnTokenKind;
   }
   if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return patch;
