@@ -14,11 +14,11 @@ const INITIAL_PICKER_FILTER: ChampionPickerFilter = {
   region: '',
   role: '',
   onlyFavorites: false,
+  onlyLearned: false,
 };
 
 /**
- * Calculadora del DM: campeones y panel de daño.
- * Las fichas de player viven en la pantalla Players.
+ * Campeones: grid unificado (foto, rol, región, aprendidas) + detalle con daño y edición de habilidades.
  */
 const Calculos = () => {
   const [champion, setChampion] = useState<Champion | null>(null);
@@ -43,9 +43,14 @@ const Calculos = () => {
         />
       ) : (
         <>
-          <div className="calc-section-title">Calculadora por Campeón (DM)</div>
+          <div className="calc-section-title">Campeones</div>
           {champion ? (
-            <ChampionDetail champion={champion} onBack={() => setChampion(null)} onSelectAbility={setAbility} />
+            <ChampionDetail
+              champion={champion}
+              onBack={() => setChampion(null)}
+              onSelectAbility={setAbility}
+              onChampionChange={setChampion}
+            />
           ) : (
             <ChampionPicker
               filter={pickerFilter}
