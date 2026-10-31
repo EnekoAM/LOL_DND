@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { SpawnType } from '../../data/loot';
 import { rollPercent } from '../../lib/random';
 import { getSpawnChance } from './loot';
 import { buildSpawnSegments, pickSpawnTarget } from './spawnWheel';
 
 type SpawnRoll = {
+  id: number;
   type: SpawnType;
   success: boolean;
   target: number;
@@ -19,14 +20,16 @@ const describeOutcome = ({ type, success }: SpawnRoll): string => {
 export function useSpawnRoll() {
   const [segments, setSegments] = useState(() => buildSpawnSegments(getSpawnChance('Basico')));
   const [spawn, setSpawn] = useState<SpawnRoll | null>(null);
+  const nextId = useRef(0);
 
   const start = (type: SpawnType) => {
     if (spawn?.spinning) return;
     const chance = getSpawnChance(type);
     const nextSegments = buildSpawnSegments(chance);
     const success = rollPercent(chance);
+    const id = ++nextId.current;
     setSegments(nextSegments);
-    setSpawn({ type, success, target: pickSpawnTarget(nextSegments, success), spinning: true });
+    setSpawn({ id, type, success, target: pickSpawnTarget(nextSegments, success), spinning: true });
   };
 
   /** Muestra en la rueda los segmentos de un tipo sin girarla (al seleccionarlo). */
@@ -44,6 +47,7 @@ export function useSpawnRoll() {
     segments,
     spinTo: spawn?.spinning ? spawn.target : null,
     outcome: revealed && {
+      id: revealed.id,
       type: revealed.type,
       success: revealed.success,
       message: describeOutcome(revealed),
