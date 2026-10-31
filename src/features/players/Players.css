@@ -39,7 +39,7 @@
 }
 
 .sheet {
-  max-width: 1480px;
+  max-width: none;
   margin: 0 auto;
   padding: 12px 12px 32px;
   position: relative;
