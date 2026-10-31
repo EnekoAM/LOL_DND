@@ -31,7 +31,7 @@ type DiceTheme = {
 };
 
 const DICE_THEMES: DiceTheme[] = [
-  { id: 'default', label: 'Clásico', color: '#C9A84C' },
+  { id: 'default', label: 'Clásico', color: '#FFFFFF' },
   { id: 'smooth', label: 'Suave', color: '#C9A84C' },
   { id: 'rock', label: 'Piedra', color: '#b7aca1' },
   { id: 'rust', label: 'Óxido', color: '#aa4f4a' },
@@ -309,7 +309,7 @@ const Dados = () => {
           'default-extras',
           ...DICE_THEMES.map(entry => entry.id).filter(id => id !== initialTheme),
         ],
-        themeColor: themeColorOf(initialTheme) ?? '#C9A84C',
+        themeColor: themeColorOf(initialTheme) ?? '#FFFFFF',
         scale: 6,
         gravity: 1,
         friction: 0.8,
