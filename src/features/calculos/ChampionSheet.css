@@ -163,6 +163,15 @@
     margin-bottom: 12px;
   }
 
+  /* .sheet trae margin: 0 auto; como item flex eso anula el stretch y la ficha
+     se encogía a su ancho intrínseco (casi 0 por container-type en .sheet-content). */
+  .calc-root--sheet > .champ-sheet {
+    align-self: stretch;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
   .champ-sheet {
     flex: 1 1 auto;
     min-height: 0;
@@ -189,10 +198,12 @@
     max-height: 100%;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201, 168, 76, 0.35) transparent;
   }
 
   .champ-sheet .sheet-portrait {
-    width: min(100%, 30vh);
+    width: min(100%, 34vh);
     margin-inline: auto;
   }
 
