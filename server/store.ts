@@ -812,6 +812,7 @@ export async function updatePlayer(name: string, patch: PlayerPatch) {
   if (patch.mana !== undefined) $set.mana = patch.mana;
   if (patch.actualMana !== undefined) $set.actualMana = patch.actualMana;
   if (patch.inspiration !== undefined) $set.inspiration = patch.inspiration;
+  if (patch.shortRestsUsed !== undefined) $set.shortRestsUsed = patch.shortRestsUsed;
   if (patch.sheet === null) $unset.sheet = '';
   else if (patch.sheet) $set.sheet = patch.sheet;
   if (patch.basicAttack === null) $unset.basicAttack = '';

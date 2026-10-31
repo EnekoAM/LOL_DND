@@ -25,6 +25,7 @@ import { cx } from '../../lib/cx';
 import HpPanel, { type CombatPatch } from './HpPanel';
 import InspirationToggle from './InspirationToggle';
 import ManaPanel from './ManaPanel';
+import RestPanel from './RestPanel';
 import PlayerSwitcher from './PlayerSwitcher';
 import SheetAbilities from './SheetAbilities';
 import SheetEditor from './SheetEditor';
@@ -241,6 +242,16 @@ const PlayerSheet = ({
             <ManaPanel
               player={player}
               suggestedMax={suggestedMana}
+              saving={saving}
+              error={combatError}
+              onChange={onCombatChange}
+            />
+          </div>
+          <div className="sheet-panel sheet-side__rest">
+            <RestPanel
+              player={player}
+              maxHp={tableMaxHp ?? Math.max(0, Math.floor(suggestedMax))}
+              maxMana={typeof player.mana === 'number' && Number.isFinite(player.mana) ? player.mana : Math.max(0, Math.floor(suggestedMana))}
               saving={saving}
               error={combatError}
               onChange={onCombatChange}

@@ -10,6 +10,7 @@ export type CombatPatch = {
   mana?: number;
   actualMana?: number;
   inspiration?: boolean;
+  shortRestsUsed?: number;
 };
 
 type Props = {

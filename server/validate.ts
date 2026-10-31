@@ -18,7 +18,8 @@ export type HistoryKind = (typeof HISTORY_KINDS)[number];
 const EQUIPMENT_LIMIT = 7;
 const ABILITY_SLOTS = ['P', 'H1', 'H2', 'H3', 'R'] as const;
 
-const SPAWN_TOKEN_KINDS = ['basico', 'epico', 'legendario', 'rollBasico', 'rollEpico'] as const;
+const SPAWN_TOKEN_KINDS = ['basico', 'epico', 'legendario', 'rollBasico', 'rollEpico'] as const;
+
 export type SpawnTokenKind = (typeof SPAWN_TOKEN_KINDS)[number];
 
 export type PartyPatch = Partial<Record<(typeof PARTY_FIELDS)[number], number>> & {
@@ -54,6 +55,8 @@ export type PlayerPatch = {
   actualMana?: number;
   /** Inspiración D&D (sí/no). */
   inspiration?: boolean;
+  /** Descansos cortos usados desde el último largo (0–2). */
+  shortRestsUsed?: number;
   /** Ficha D&D (rol, características y extra). null la borra. */
   sheet?: PlayerSheet | null;
   /** Rangos de Q/W/E/R. Solo se mandan los huecos que cambian; el servidor valida contra el nivel. */
@@ -419,6 +422,13 @@ export function parsePlayerPatch(body: unknown): PlayerPatch {
   if ('inspiration' in source) {
     if (typeof source.inspiration !== 'boolean') throw new HttpError(400, 'inspiration tiene que ser true o false');
     patch.inspiration = source.inspiration;
+  }
+  if ('shortRestsUsed' in source) {
+    const value = source.shortRestsUsed;
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > 2) {
+      throw new HttpError(400, 'shortRestsUsed tiene que ser 0, 1 o 2');
+    }
+    patch.shortRestsUsed = value;
   }
   if ('sheet' in source) patch.sheet = source.sheet === null ? null : parsePlayerSheet(source.sheet);
   if ('abilityRanks' in source) patch.abilityRanks = abilityRanks(source.abilityRanks);

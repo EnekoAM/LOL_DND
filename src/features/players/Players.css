@@ -1218,3 +1218,62 @@
   opacity: 0.4;
   box-shadow: none;
 }
+.sheet-side__rest {
+  margin-top: 10px;
+}
+
+.sheet-rest__label {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold, #c9a84c);
+  margin-bottom: 4px;
+}
+
+.sheet-rest__meta {
+  font-size: 12px;
+  color: rgba(212, 196, 154, 0.7);
+  margin-bottom: 8px;
+}
+
+.sheet-rest__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sheet-rest__btn {
+  appearance: none;
+  flex: 1 1 120px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  background: linear-gradient(180deg, rgba(50, 38, 14, 0.95), rgba(22, 16, 6, 0.98));
+  color: var(--gold-bright, #f0d080);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sheet-rest__btn:hover:not(:disabled) {
+  border-color: var(--gold, #c9a84c);
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.3);
+}
+
+.sheet-rest__btn--long {
+  border-color: rgba(201, 168, 76, 0.65);
+}
+
+.sheet-rest__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.sheet-rest__error {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #e8a0a0;
+}
