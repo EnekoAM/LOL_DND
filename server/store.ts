@@ -4,7 +4,7 @@ import { HttpError, logError } from './errors';
 import { buildLootItems } from './lootItems';
 import { RANKED_SLOTS, canRaise, normalizeRanks, ultRankCap, unassignedPoints, type AbilityRanks } from './abilityRanks';
 import { LOOT_RULE_KEYS, parseLootRules } from './validate';
-import type { ChampionAbility, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput, TicketStatus } from './validate';
+import type { ChampionAbility, ChampionFieldsPatch, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput, TicketStatus } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -49,6 +49,24 @@ export async function updateChampionAbility(champion: string, slot: string, abil
     { _id: existing._id },
     { $set: { [`abilities.${slot}`]: ability, updatedAt: new Date().toISOString() } },
   );
+  return getChampions(String(existing.champion));
+}
+
+export async function updateChampionFields(champion: string, patch: ChampionFieldsPatch) {
+  const col = await collection('champions');
+  const existing = await col.findOne({ champion }, { collation: CI });
+  if (!existing) throw new HttpError(404, `No existe el campeón ${champion}`);
+  const $set: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+  const $unset: Record<string, ''> = {};
+  if (patch.level !== undefined) $set.level = patch.level;
+  if (patch.equipamiento !== undefined) $set.equipamiento = patch.equipamiento;
+  if (patch.background !== undefined) {
+    if (patch.background === null) $unset.background = '';
+    else $set.background = patch.background;
+  }
+  const update: Record<string, unknown> = { $set };
+  if (Object.keys($unset).length) update.$unset = $unset;
+  await col.updateOne({ _id: existing._id }, update);
   return getChampions(String(existing.champion));
 }
 

@@ -32,6 +32,18 @@ export type Champion = {
   region: string;
   role: string;
   image: string;
+  /** Nivel propio de la ficha DM (1–20). */
+  level?: number;
+  /** URL de imagen de fondo de la ficha. */
+  background?: string;
+  /** Equipo de prueba en la ficha del campeón. */
+  equipamiento?: string[];
+};
+
+export type ChampionFieldsPatch = {
+  level?: number;
+  background?: string | null;
+  equipamiento?: string[];
 };
 
 export type ChampionFilter = {
@@ -158,3 +170,29 @@ export async function saveChampionAbility(championName: string, slot: AbilityKey
   hydrateChampions(next.some(champion => normalizeName(champion.champion) === key) ? next : [...next, saved]);
   return saved;
 }
+
+function replaceChampion(saved: Champion, championName: string): Champion {
+  const key = normalizeName(championName);
+  const next = CHAMPIONS.map(champion => (normalizeName(champion.champion) === key ? saved : champion));
+  hydrateChampions(next.some(champion => normalizeName(champion.champion) === key) ? next : [...next, saved]);
+  return saved;
+}
+
+/** Guarda nivel, fondo o equipo de la ficha del campeón. */
+export async function saveChampionPatch(championName: string, patch: ChampionFieldsPatch): Promise<Champion> {
+  let response: Response;
+  try {
+    response = await fetch(`/api/champions?champion=${encodeURIComponent(championName)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+  } catch {
+    throw new Error('No se pudo contactar con la API. Arranca npm run dev:api');
+  }
+
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readError(body, `Error ${response.status} al guardar el campeón`));
+  return replaceChampion(body as Champion, championName);
+}
+

@@ -1,0 +1,92 @@
+/* Ficha básica de campeón (layout de players + fondo editable). */
+.champ-sheet {
+  position: relative;
+  isolation: isolate;
+}
+
+.champ-sheet--bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 10px;
+  background-image: var(--champ-sheet-bg);
+  background-size: cover;
+  background-position: center top;
+  opacity: 0.22;
+  pointer-events: none;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 92%);
+}
+
+.champ-sheet > * {
+  position: relative;
+  z-index: 1;
+}
+
+.champ-sheet .sheet-side {
+  background:
+    linear-gradient(180deg, rgba(201, 168, 76, 0.1), transparent 40%),
+    rgba(12, 8, 4, 0.88);
+  backdrop-filter: blur(4px);
+}
+
+.champ-sheet .sheet-content {
+  background: rgba(10, 8, 4, 0.55);
+  border: 1px solid rgba(201, 168, 76, 0.14);
+  border-radius: 8px;
+  padding: 12px;
+  backdrop-filter: blur(3px);
+}
+
+.champ-sheet__level-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.champ-sheet__level-input {
+  width: 72px;
+  padding: 8px 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  text-align: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  border-radius: 4px;
+}
+
+.champ-sheet__level-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2);
+}
+
+.champ-sheet__level-input:disabled {
+  opacity: 0.7;
+}
+
+.champ-sheet__level-hint {
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+
+.champ-sheet__bg-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 4px;
+}
+
+.champ-sheet__bg-input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.champ-sheet__bg-actions {
+  margin-top: 8px;
+}

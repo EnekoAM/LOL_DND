@@ -562,6 +562,72 @@ export function parseChampionAbilityPatch(body: unknown): ChampionAbilityPatch {
   return { slot: source.slot as ChampionSlot, ability };
 }
 
+export type ChampionFieldsPatch = {
+  level?: number;
+  background?: string | null;
+  equipamiento?: string[];
+};
+
+const CHAMPION_LEVEL_MIN = 1;
+const CHAMPION_LEVEL_MAX = 20;
+const CHAMPION_BACKGROUND_LIMIT = 2000;
+const CHAMPION_EQUIP_SLOTS = 7;
+
+/** Nivel, fondo o equipo del campeón (ficha DM). */
+export function parseChampionFieldsPatch(body: unknown): ChampionFieldsPatch {
+  const source = asObject(body);
+  const patch: ChampionFieldsPatch = {};
+  let touched = false;
+
+  if ('level' in source) {
+    if (typeof source.level !== 'number' || !Number.isInteger(source.level)) {
+      throw new HttpError(400, 'level tiene que ser un entero');
+    }
+    if (source.level < CHAMPION_LEVEL_MIN || source.level > CHAMPION_LEVEL_MAX) {
+      throw new HttpError(400, `level tiene que estar entre ${CHAMPION_LEVEL_MIN} y ${CHAMPION_LEVEL_MAX}`);
+    }
+    patch.level = source.level;
+    touched = true;
+  }
+
+  if ('background' in source) {
+    if (source.background === null || source.background === '') {
+      patch.background = null;
+      touched = true;
+    } else if (typeof source.background === 'string') {
+      const url = source.background.trim();
+      if (url.length > CHAMPION_BACKGROUND_LIMIT) {
+        throw new HttpError(400, `background puede tener como máximo ${CHAMPION_BACKGROUND_LIMIT} caracteres`);
+      }
+      patch.background = url || null;
+      touched = true;
+    } else {
+      throw new HttpError(400, 'background tiene que ser una URL o vacío');
+    }
+  }
+
+  if ('equipamiento' in source) {
+    if (!Array.isArray(source.equipamiento)) {
+      throw new HttpError(400, 'equipamiento tiene que ser una lista');
+    }
+    if (source.equipamiento.length > CHAMPION_EQUIP_SLOTS) {
+      throw new HttpError(400, `equipamiento admite como máximo ${CHAMPION_EQUIP_SLOTS} ítems`);
+    }
+    const items: string[] = [];
+    for (const entry of source.equipamiento) {
+      if (typeof entry !== 'string' || !entry.trim()) {
+        throw new HttpError(400, 'cada ítem del equipamiento tiene que ser un nombre');
+      }
+      items.push(entry.trim());
+    }
+    patch.equipamiento = items;
+    touched = true;
+  }
+
+  if (!touched) throw new HttpError(400, 'El parche del campeón no tiene campos reconocidos');
+  return patch;
+}
+
 export type ItemUpdate = {
   rareza: string;
   efecto: { pasiva: string; activa: string };

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Ability, Champion } from '../../data/champions';
 import { useStoredSet } from '../../hooks/useStoredSet';
-import ChampionDetail from './ChampionDetail';
+import ChampionSheet from './ChampionSheet';
 import ChampionPicker, { type ChampionPickerFilter } from './ChampionPicker';
 import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from './damage';
 import DamagePanel from './DamagePanel';
@@ -45,7 +45,7 @@ const Calculos = () => {
         <>
           <div className="calc-section-title">Campeones</div>
           {champion ? (
-            <ChampionDetail
+            <ChampionSheet
               champion={champion}
               onBack={() => setChampion(null)}
               onSelectAbility={setAbility}
