@@ -18,9 +18,15 @@ export type HistoryKind = (typeof HISTORY_KINDS)[number];
 const EQUIPMENT_LIMIT = 7;
 const ABILITY_SLOTS = ['P', 'H1', 'H2', 'H3', 'R'] as const;
 
+export type SpawnTokenKind = RollRarity;
+
 export type PartyPatch = Partial<Record<(typeof PARTY_FIELDS)[number], number>> & {
   /** Suma o resta esta cantidad al oro del grupo, sin sustituir el saldo. */
   addGold?: number;
+  /** Suma (o resta si es negativo) tokens de spawn por rareza. */
+  addSpawnTokens?: Partial<Record<SpawnTokenKind, number>>;
+  /** Gasta 1 token de esa rareza (falla si no queda ninguno). */
+  spendSpawnToken?: SpawnTokenKind;
 };
 
 export type BasicAttackEntry = { type: string; scaling: number[] };
@@ -178,6 +184,30 @@ export function parsePartyPatch(body: unknown): PartyPatch {
       throw new HttpError(400, 'No se puede fijar el oro y sumarlo a la vez');
     }
     patch.addGold = addGold;
+  }
+  if (source.addSpawnTokens !== undefined) {
+    if (!source.addSpawnTokens || typeof source.addSpawnTokens !== 'object' || Array.isArray(source.addSpawnTokens)) {
+      throw new HttpError(400, 'addSpawnTokens tiene que ser un objeto');
+    }
+    const raw = source.addSpawnTokens as Record<string, unknown>;
+    const addSpawnTokens: Partial<Record<SpawnTokenKind, number>> = {};
+    for (const key of Object.keys(raw)) {
+      if (!ROLL_RARITIES.includes(key as SpawnTokenKind)) {
+        throw new HttpError(400, `Rareza de token desconocida: ${key}`);
+      }
+      const value = raw[key];
+      if (typeof value !== 'number' || !Number.isInteger(value) || value === 0) {
+        throw new HttpError(400, `addSpawnTokens.${key} tiene que ser un entero distinto de 0`);
+      }
+      addSpawnTokens[key as SpawnTokenKind] = value;
+    }
+    if (Object.keys(addSpawnTokens).length === 0) {
+      throw new HttpError(400, 'addSpawnTokens no puede estar vacío');
+    }
+    patch.addSpawnTokens = addSpawnTokens;
+  }
+  if (source.spendSpawnToken !== undefined) {
+    patch.spendSpawnToken = rollRarity(source.spendSpawnToken, 'spendSpawnToken');
   }
   if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return patch;

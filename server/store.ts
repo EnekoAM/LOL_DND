@@ -526,16 +526,50 @@ export async function updateRole(id: string, patch: RolePatch) {
   return getRole(id);
 }
 
+const EMPTY_SPAWN_TOKENS = { basico: 0, epico: 0, legendario: 0 } as const;
+
+function normalizeSpawnTokens(raw: unknown): { basico: number; epico: number; legendario: number } {
+  const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
+  return {
+    basico: num(src.basico),
+    epico: num(src.epico),
+    legendario: num(src.legendario),
+  };
+}
+
 export async function getParty() {
   const doc = await (await singleton('party')).findOne({ _id: 'current' }, { projection: { _id: 0 } });
   if (!doc) throw new HttpError(404, 'No hay grupo. Ejecuta npm run seed');
-  return doc;
+  return { ...doc, spawnTokens: normalizeSpawnTokens((doc as { spawnTokens?: unknown }).spawnTokens) };
 }
 
 export async function updateParty(patch: PartyPatch) {
-  const { addGold, ...fields } = patch;
+  const { addGold, addSpawnTokens, spendSpawnToken, ...fields } = patch;
   const updatedAt = new Date().toISOString();
   const col = await singleton('party');
+
+  if (spendSpawnToken) {
+    if (Object.keys(fields).length || addGold !== undefined || addSpawnTokens) {
+      throw new HttpError(400, 'spendSpawnToken no se combina con otros cambios');
+    }
+    const tokenPath = `spawnTokens.${spendSpawnToken}`;
+    await col.updateOne(
+      { _id: 'current', spawnTokens: { $exists: false } },
+      { $set: { spawnTokens: { ...EMPTY_SPAWN_TOKENS } } },
+    );
+    const spent = await col.updateOne(
+      { _id: 'current', [tokenPath]: { $gte: 1 } },
+      { $inc: { [tokenPath]: -1 }, $set: { updatedAt } },
+    );
+    if (spent.modifiedCount !== 1) {
+      const current = await getParty();
+      const have = current.spawnTokens[spendSpawnToken] ?? 0;
+      throw new HttpError(400, `No quedan tokens ${spendSpawnToken} (tienes ${have})`);
+    }
+    return getParty();
+  }
+
   if (addGold !== undefined && addGold < 0) {
     const taken = -addGold;
     const takenResult = await col.updateOne(
@@ -551,10 +585,43 @@ export async function updateParty(patch: PartyPatch) {
     const have = typeof current.gold === 'number' ? current.gold : 0;
     throw new HttpError(400, `Falta oro (tienes ${have.toLocaleString('es-ES')}, quieres quitar ${taken.toLocaleString('es-ES')})`);
   }
-  const update: { $set: Record<string, unknown>; $inc?: { gold: number } } = {
+
+  const $inc: Record<string, number> = {};
+  if (addGold !== undefined) $inc.gold = addGold;
+  if (addSpawnTokens) {
+    await col.updateOne(
+      { _id: 'current', spawnTokens: { $exists: false } },
+      { $set: { spawnTokens: { ...EMPTY_SPAWN_TOKENS } } },
+    );
+    for (const [kind, amount] of Object.entries(addSpawnTokens)) {
+      if (amount === undefined) continue;
+      $inc[`spawnTokens.${kind}`] = amount;
+    }
+  }
+
+  // Evita tokens negativos al restar.
+  if (addSpawnTokens) {
+    for (const [kind, amount] of Object.entries(addSpawnTokens)) {
+      if (amount === undefined || amount >= 0) continue;
+      const path = `spawnTokens.${kind}`;
+      const taken = -amount;
+      const ok = await col.updateOne(
+        { _id: 'current', [path]: { $gte: taken } },
+        { $inc: { [path]: amount }, $set: { ...fields, updatedAt } },
+      );
+      if (ok.modifiedCount !== 1) {
+        const current = await getParty();
+        const have = current.spawnTokens[kind as keyof typeof current.spawnTokens] ?? 0;
+        throw new HttpError(400, `No se pueden quitar ${taken} tokens ${kind} (tienes ${have})`);
+      }
+      delete $inc[path];
+    }
+  }
+
+  const update: { $set: Record<string, unknown>; $inc?: Record<string, number> } = {
     $set: { ...fields, updatedAt },
   };
-  if (addGold !== undefined) update.$inc = { gold: addGold };
+  if (Object.keys($inc).length) update.$inc = $inc;
   const result = await col.updateOne({ _id: 'current' }, update);
   if (result.matchedCount === 0) throw new HttpError(404, 'No hay grupo. Ejecuta npm run seed');
   if (fields.level !== undefined) await reconcileAbilityRanks(fields.level);

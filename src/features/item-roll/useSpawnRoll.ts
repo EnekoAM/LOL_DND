@@ -43,7 +43,11 @@ export function useSpawnRoll() {
   return {
     segments,
     spinTo: spawn?.spinning ? spawn.target : null,
-    outcome: revealed && { success: revealed.success, message: describeOutcome(revealed) },
+    outcome: revealed && {
+      type: revealed.type,
+      success: revealed.success,
+      message: describeOutcome(revealed),
+    },
     spinning: !!spawn?.spinning,
     start,
     preview,

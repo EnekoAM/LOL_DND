@@ -665,3 +665,57 @@
 @media (prefers-reduced-motion: reduce) {
   .irs-btn--selected { transform: none; }
 }
+
+/* ─── SPAWN TOKENS ──────────────────────────────────────── */
+.irs-tokens {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: rgba(212, 196, 154, 0.75);
+  letter-spacing: 0.02em;
+}
+
+.irs-token-grant {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.irs-token-grant__label {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-right: 4px;
+}
+
+.irs-token-grant__btn {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  background: rgba(40, 30, 18, 0.55);
+  color: var(--gold-bright);
+  cursor: pointer;
+}
+
+.irs-token-grant__btn:hover:not(:disabled) {
+  border-color: rgba(201, 168, 76, 0.7);
+  background: rgba(60, 45, 25, 0.7);
+}
+
+.irs-token-grant__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.irs-action-error {
+  margin: 0 0 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #e8a0a0;
+}
