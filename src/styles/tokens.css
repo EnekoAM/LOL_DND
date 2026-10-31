@@ -3,6 +3,9 @@
   --sidenav-collapsed: 64px;
   --sidenav-expanded: 212px;
 
+  /* Altura útil bajo header + padding de .app-main (32+32). */
+  --page-min-height: calc(100vh - var(--header-height) - 64px);
+
   --gold:           #c9a84c;
   --gold-bright:    #e8c96a;
   --gold-dim:       #7a5f28;

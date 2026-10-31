@@ -2,6 +2,13 @@
   width: 100%;
   font-family: 'Crimson Text', Georgia, serif;
   color: var(--ink);
+  min-height: var(--page-min-height);
+  box-sizing: border-box;
+  padding: 18px 20px 22px;
+  background: linear-gradient(160deg, rgba(42, 28, 12, 0.88), rgba(16, 10, 4, 0.96));
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  border-radius: 6px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
 .players-picker__rol {
