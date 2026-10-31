@@ -8,6 +8,7 @@ import {
   type Champion,
   type ChampionFilter,
 } from '../../data/champions';
+import { useCanEdit } from '../../data/appRoleContext';
 import { useLiveRevision } from '../../data/live';
 import { cssVars } from '../../lib/cssVars';
 import { cx } from '../../lib/cx';
@@ -25,12 +26,20 @@ type Props = {
 };
 
 const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, onSelect }: Props) => {
+  const canEdit = useCanEdit();
   const liveRevision = useLiveRevision('champions');
-  const champions = useMemo(
-    () => filterChampions(CHAMPIONS, filter).filter(c => !filter.onlyFavorites || favorites.has(c.champion)),
-    [filter, favorites, liveRevision],
+  // Players solo ven campeones activos: el filtro se fuerza aquí y no pueden quitarlo.
+  const onlyActive = canEdit ? !!filter.onlyActive : true;
+  const visible = useMemo(
+    () => (canEdit ? CHAMPIONS : CHAMPIONS.filter(c => c.active === true)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [canEdit, liveRevision],
   );
-  const pinned = useMemo(() => CHAMPIONS.filter(c => favorites.has(c.champion)), [favorites, liveRevision]);
+  const champions = useMemo(
+    () => filterChampions(visible, { ...filter, onlyActive }).filter(c => !filter.onlyFavorites || favorites.has(c.champion)),
+    [visible, filter, onlyActive, favorites],
+  );
+  const pinned = useMemo(() => visible.filter(c => favorites.has(c.champion)), [visible, favorites]);
 
   return (
     <>
@@ -67,15 +76,17 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
             <option key={role} value={role}>{ROLE_ICONS[role] ?? ''} {role}</option>
           ))}
         </select>
-        <button
-          type="button"
-          className={cx('calc-learned-toggle', filter.onlyActive && 'calc-learned-toggle--on')}
-          aria-pressed={!!filter.onlyActive}
-          title="Solo campeones activos (visibles para players)"
-          onClick={() => onFilterChange({ onlyActive: !filter.onlyActive })}
-        >
-          Activos
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            className={cx('calc-learned-toggle', onlyActive && 'calc-learned-toggle--on')}
+            aria-pressed={onlyActive}
+            title="Solo campeones activos (visibles para players)"
+            onClick={() => onFilterChange({ onlyActive: !onlyActive })}
+          >
+            Activos
+          </button>
+        )}
         <button
           type="button"
           className={cx('calc-learned-toggle', filter.onlyLearned && 'calc-learned-toggle--on')}
@@ -131,7 +142,7 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
                   ? <img src={champion.image} alt="" />
                   : <span aria-hidden="true">{champion.champion.charAt(0)}</span>}
               </div>
-              {champion.active && <div className="calc-champ-card__active">Activo</div>}
+              {canEdit && champion.active && <div className="calc-champ-card__active">Activo</div>}
               <div className="calc-champ-card__meta">
                 <span className="calc-champ-card__region">{champion.region}</span>
                 <span className="calc-champ-card__role">

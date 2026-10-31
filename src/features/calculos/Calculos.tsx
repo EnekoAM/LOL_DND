@@ -23,10 +23,11 @@ const baseFilter = (onlyActive: boolean): ChampionPickerFilter => ({
  * Campeones: grid unificado (foto, rol, región, aprendidas) + detalle con daño y edición de habilidades.
  */
 const Calculos = () => {
-  const { role } = useAppRole();
-  const defaultOnlyActive = role !== 'admin';
-  const [champion, setChampion] = useState<Champion | null>(null);
-  const [pickerFilter, setPickerFilter] = useState(() => baseFilter(defaultOnlyActive));
+  const { canEdit } = useAppRole();
+  const [selectedChampion, setChampion] = useState<Champion | null>(null);
+  // Players nunca pueden abrir un campeón inactivo (p. ej. si el admin lo desactiva en vivo).
+  const champion = selectedChampion && (canEdit || selectedChampion.active === true) ? selectedChampion : null;
+  const [pickerFilter, setPickerFilter] = useState(() => baseFilter(!canEdit));
   const [favorites, toggleFavorite] = useStoredSet(FAVORITES_STORAGE_KEY);
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState(DEFAULT_DAMAGE_INPUTS);
