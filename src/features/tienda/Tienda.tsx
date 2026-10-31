@@ -36,6 +36,36 @@ type CartLine = {
   cantidad: number;
 };
 
+const CARTS_KEY = 'lol-dnd:shop-carts';
+
+const emptyCarts = (): Record<ShopMode, CartLine[]> => ({ compra: [], venta: [] });
+
+const isCartLine = (value: unknown): value is CartLine =>
+  !!value && typeof value === 'object'
+  && typeof (value as CartLine).nombre === 'string'
+  && typeof (value as CartLine).cantidad === 'number'
+  && Number.isFinite((value as CartLine).cantidad)
+  && (value as CartLine).cantidad >= 1;
+
+const readSavedCarts = (): Record<ShopMode, CartLine[]> => {
+  try {
+    const raw = sessionStorage.getItem(CARTS_KEY);
+    if (!raw) return emptyCarts();
+    const parsed = JSON.parse(raw) as Partial<Record<ShopMode, unknown>>;
+    const pick = (mode: ShopMode): CartLine[] => {
+      const list = parsed[mode];
+      if (!Array.isArray(list)) return [];
+      return list.filter(isCartLine).map(line => ({
+        nombre: line.nombre,
+        cantidad: Math.min(99, Math.floor(line.cantidad)),
+      }));
+    };
+    return { compra: pick('compra'), venta: pick('venta') };
+  } catch {
+    return emptyCarts();
+  }
+};
+
 const rarityRank = (rareza: string): number => {
   const index = RARITY_ORDER.findIndex(name => name.toLowerCase() === rareza.toLowerCase());
   return index === -1 ? RARITY_ORDER.length : index;
@@ -72,7 +102,7 @@ const Tienda = () => {
   const [onlyOwned, setOnlyOwned] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [mode, setMode] = useState<CounterMode>('compra');
-  const [carts, setCarts] = useState<Record<ShopMode, CartLine[]>>({ compra: [], venta: [] });
+  const [carts, setCarts] = useState<Record<ShopMode, CartLine[]>>(readSavedCarts);
   const [craftName, setCraftName] = useState<string | null>(null);
   const [stockRevision, setStockRevision] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -84,6 +114,11 @@ const Tienda = () => {
   useEffect(() => {
     if (mode === 'compra' && (isPrismatic(rarity) || (isStarter(rarity)))) setRarity('');
   }, [mode, rarity]);
+
+  useEffect(() => {
+    try { sessionStorage.setItem(CARTS_KEY, JSON.stringify(carts)); } catch { /* ignore */ }
+  }, [carts]);
+
 
   const catalog = useMemo(
     () => [...ITEMS].sort((a, b) => rarityRank(a.rareza) - rarityRank(b.rareza) || a.nombre.localeCompare(b.nombre, 'es')),
@@ -163,6 +198,11 @@ const Tienda = () => {
       if (cantidad < 1) return [];
       return [{ ...line, cantidad: Math.min(cantidad, cap) }];
     }));
+  };
+
+  const clearCart = () => {
+    if (mode === 'crafteo' || busy) return;
+    updateCart(() => []);
   };
 
   const craftSelected = async () => {
@@ -414,14 +454,24 @@ const Tienda = () => {
           {visibleNotice && (
             <p className={cx('shop-cart__note', `shop-cart__note--${visibleNotice.kind}`)}>{visibleNotice.text}</p>
           )}
-          <button
-            type="button"
-            className="shop-checkout"
-            disabled={busy || cart.length === 0 || !canPay || oversell}
-            onClick={() => { void checkout(); }}
-          >
-            {busy ? 'Cerrando' : mode === 'compra' ? 'Comprar' : 'Vender'}
-          </button>
+                    <div className="shop-cart__actions">
+            <button
+              type="button"
+              className="shop-cart-clear"
+              disabled={busy || cart.length === 0}
+              onClick={clearCart}
+            >
+              Vaciar carrito
+            </button>
+            <button
+              type="button"
+              className="shop-checkout"
+              disabled={busy || cart.length === 0 || !canPay || oversell}
+              onClick={() => { void checkout(); }}
+            >
+              {busy ? 'Cerrando' : mode === 'compra' ? 'Comprar' : 'Vender'}
+            </button>
+          </div>
         </section>
         )}
       </div>
