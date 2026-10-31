@@ -566,6 +566,7 @@ export type ChampionFieldsPatch = {
   level?: number;
   background?: string | null;
   equipamiento?: string[];
+  active?: boolean;
 };
 
 const CHAMPION_LEVEL_MIN = 1;
@@ -624,6 +625,14 @@ export function parseChampionFieldsPatch(body: unknown): ChampionFieldsPatch {
     touched = true;
   }
 
+
+  if ('active' in source) {
+    if (typeof source.active !== 'boolean') {
+      throw new HttpError(400, 'active tiene que ser verdadero o falso');
+    }
+    patch.active = source.active;
+    touched = true;
+  }
   if (!touched) throw new HttpError(400, 'El parche del campeón no tiene campos reconocidos');
   return patch;
 }

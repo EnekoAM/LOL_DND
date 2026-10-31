@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAppRole } from '../../data/appRoleContext';
 import type { Ability, Champion } from '../../data/champions';
 import { useStoredSet } from '../../hooks/useStoredSet';
 import ChampionSheet from './ChampionSheet';
@@ -9,20 +10,23 @@ import './Calculos.css';
 
 const FAVORITES_STORAGE_KEY = 'calc-champ-favorites';
 
-const INITIAL_PICKER_FILTER: ChampionPickerFilter = {
+const baseFilter = (onlyActive: boolean): ChampionPickerFilter => ({
   search: '',
   region: '',
   role: '',
   onlyFavorites: false,
   onlyLearned: false,
-};
+  onlyActive,
+});
 
 /**
  * Campeones: grid unificado (foto, rol, región, aprendidas) + detalle con daño y edición de habilidades.
  */
 const Calculos = () => {
+  const { role } = useAppRole();
+  const defaultOnlyActive = role !== 'admin';
   const [champion, setChampion] = useState<Champion | null>(null);
-  const [pickerFilter, setPickerFilter] = useState(INITIAL_PICKER_FILTER);
+  const [pickerFilter, setPickerFilter] = useState(() => baseFilter(defaultOnlyActive));
   const [favorites, toggleFavorite] = useStoredSet(FAVORITES_STORAGE_KEY);
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState(DEFAULT_DAMAGE_INPUTS);

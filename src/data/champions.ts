@@ -38,12 +38,15 @@ export type Champion = {
   background?: string;
   /** Equipo de prueba en la ficha del campeón. */
   equipamiento?: string[];
+  /** Visible para players cuando el filtro Activos está on. */
+  active?: boolean;
 };
 
 export type ChampionFieldsPatch = {
   level?: number;
   background?: string | null;
   equipamiento?: string[];
+  active?: boolean;
 };
 
 export type ChampionFilter = {
@@ -51,6 +54,7 @@ export type ChampionFilter = {
   region: string;
   role: string;
   onlyLearned?: boolean;
+  onlyActive?: boolean;
 };
 
 export const ABILITY_KEYS: AbilityKey[] = ['P', 'Q', 'W', 'E', 'R'];
@@ -135,12 +139,13 @@ export const learnedAbilities = (kind: AbilityKind, role?: string): AbilityRef[]
 const hasLearnedAbility = (champion: Champion): boolean =>
   ABILITY_KEYS.some(key => champion.abilities[key]?.learned === true);
 
-export const filterChampions = (champions: Champion[], { search, region, role, onlyLearned }: ChampionFilter): Champion[] =>
+export const filterChampions = (champions: Champion[], { search, region, role, onlyLearned, onlyActive }: ChampionFilter): Champion[] =>
   champions.filter(c =>
     matchesSearch(c.champion, search) &&
     (!region || c.region === region) &&
     (!role || c.role === role) &&
-    (!onlyLearned || hasLearnedAbility(c)),
+    (!onlyLearned || hasLearnedAbility(c)) &&
+    (!onlyActive || c.active === true),
   );
 
 function readError(body: unknown, fallback: string): string {

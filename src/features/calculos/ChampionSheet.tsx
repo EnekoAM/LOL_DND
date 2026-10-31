@@ -45,6 +45,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editMeta, setEditMeta] = useState(false);
   const [bgDraft, setBgDraft] = useState(champion.background ?? '');
   const [levelDraft, setLevelDraft] = useState(String(champion.level ?? 1));
 
@@ -52,11 +53,13 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
     setPortraitFailed(false);
     setBgDraft(champion.background ?? '');
     setLevelDraft(String(champion.level ?? 1));
+    setEditMeta(false);
   }, [champion.champion, champion.image, champion.background, champion.level]);
 
   const equipment = champion.equipamiento ?? [];
   const level = typeof champion.level === 'number' && champion.level >= 1 ? champion.level : 1;
   const background = champion.background?.trim() || '';
+  const isActive = champion.active === true;
 
   const persist = async (patch: Parameters<typeof saveChampionPatch>[1]) => {
     if (!canEdit || saving) return;
@@ -128,65 +131,90 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
           <div className="sheet-side__identity">
             <h1 className="sheet-side__name">{champion.champion}</h1>
             <div className="sheet-side__meta">
-              {champion.region} · {champion.role}
+              NVL {level} · {champion.region} · {champion.role}
             </div>
+            {isActive && <div className="champ-sheet__active-badge">Activo</div>}
           </div>
 
-          <div className="sheet-panel champ-sheet__level">
-            <div className="sheet-panel__title">Nivel</div>
-            <div className="champ-sheet__level-row">
-              <input
-                className="champ-sheet__level-input"
-                type="number"
-                min={1}
-                max={20}
-                step={1}
-                value={levelDraft}
-                disabled={!canEdit || saving}
-                aria-label="Nivel del campeón"
-                onChange={e => setLevelDraft(e.target.value)}
-                onBlur={() => { void saveLevel(); }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.currentTarget.blur();
-                  }
-                }}
-              />
-              <span className="champ-sheet__level-hint">1–20</span>
+          {canEdit && (
+            <div className="champ-sheet__toggles">
+              <button
+                type="button"
+                className={cx('champ-sheet__toggle', isActive && 'champ-sheet__toggle--on')}
+                aria-pressed={isActive}
+                disabled={saving}
+                title={isActive ? 'Ocultar a los players' : 'Mostrar a los players'}
+                onClick={() => { void persist({ active: !isActive }); }}
+              >
+                {isActive ? 'Activo para players' : 'Inactivo'}
+              </button>
+              <button
+                type="button"
+                className={cx('champ-sheet__toggle', editMeta && 'champ-sheet__toggle--on')}
+                aria-pressed={editMeta}
+                disabled={saving}
+                onClick={() => setEditMeta(open => !open)}
+              >
+                {editMeta ? 'Cerrar edición' : 'Editar nivel / fondo'}
+              </button>
             </div>
-          </div>
+          )}
 
-          <div className="sheet-panel champ-sheet__bg">
-            <div className="sheet-panel__title">Fondo</div>
-            <input
-              className="champ-sheet__bg-input"
-              type="url"
-              placeholder="URL de imagen de fondo"
-              value={bgDraft}
-              disabled={!canEdit || saving}
-              aria-label="URL del fondo de la ficha"
-              onChange={e => setBgDraft(e.target.value)}
-              onBlur={() => { void saveBackground(); }}
-              onKeyDown={e => {
-                if (e.key === 'Enter') e.currentTarget.blur();
-              }}
-            />
-            {canEdit && (
-              <div className="champ-sheet__bg-actions">
-                <button
-                  type="button"
-                  className="calc-ability-edit"
-                  disabled={saving || !bgDraft.trim()}
-                  onClick={() => {
-                    setBgDraft('');
-                    void persist({ background: null });
-                  }}
-                >
-                  Quitar fondo
-                </button>
+          {canEdit && editMeta && (
+            <>
+              <div className="sheet-panel champ-sheet__level">
+                <div className="sheet-panel__title">Nivel</div>
+                <div className="champ-sheet__level-row">
+                  <input
+                    className="champ-sheet__level-input"
+                    type="number"
+                    min={1}
+                    max={20}
+                    step={1}
+                    value={levelDraft}
+                    disabled={saving}
+                    aria-label="Nivel del campeón"
+                    onChange={e => setLevelDraft(e.target.value)}
+                    onBlur={() => { void saveLevel(); }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') e.currentTarget.blur();
+                    }}
+                  />
+                  <span className="champ-sheet__level-hint">1–20</span>
+                </div>
               </div>
-            )}
-          </div>
+
+              <div className="sheet-panel champ-sheet__bg">
+                <div className="sheet-panel__title">Fondo</div>
+                <input
+                  className="champ-sheet__bg-input"
+                  type="url"
+                  placeholder="URL de imagen de fondo"
+                  value={bgDraft}
+                  disabled={saving}
+                  aria-label="URL del fondo de la ficha"
+                  onChange={e => setBgDraft(e.target.value)}
+                  onBlur={() => { void saveBackground(); }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') e.currentTarget.blur();
+                  }}
+                />
+                <div className="champ-sheet__bg-actions">
+                  <button
+                    type="button"
+                    className="calc-ability-edit"
+                    disabled={saving || !bgDraft.trim()}
+                    onClick={() => {
+                      setBgDraft('');
+                      void persist({ background: null });
+                    }}
+                  >
+                    Quitar fondo
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {error && <p className="sheet-hp__error" role="alert">{error}</p>}
         </aside>

@@ -1198,3 +1198,16 @@
   letter-spacing: 0.5px;
   color: var(--gold-bright);
 }
+
+.calc-champ-card__active {
+  align-self: center;
+  padding: 2px 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #1a1208;
+  background: var(--gold-bright, #f0d27a);
+  border-radius: 999px;
+}

@@ -69,6 +69,15 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
         </select>
         <button
           type="button"
+          className={cx('calc-learned-toggle', filter.onlyActive && 'calc-learned-toggle--on')}
+          aria-pressed={!!filter.onlyActive}
+          title="Solo campeones activos (visibles para players)"
+          onClick={() => onFilterChange({ onlyActive: !filter.onlyActive })}
+        >
+          Activos
+        </button>
+        <button
+          type="button"
           className={cx('calc-learned-toggle', filter.onlyLearned && 'calc-learned-toggle--on')}
           aria-pressed={!!filter.onlyLearned}
           title="Solo con habilidades aprendidas"
@@ -122,6 +131,7 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
                   ? <img src={champion.image} alt="" />
                   : <span aria-hidden="true">{champion.champion.charAt(0)}</span>}
               </div>
+              {champion.active && <div className="calc-champ-card__active">Activo</div>}
               <div className="calc-champ-card__meta">
                 <span className="calc-champ-card__region">{champion.region}</span>
                 <span className="calc-champ-card__role">

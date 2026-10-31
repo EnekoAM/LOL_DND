@@ -59,6 +59,7 @@ export async function updateChampionFields(champion: string, patch: ChampionFiel
   const $set: Record<string, unknown> = { updatedAt: new Date().toISOString() };
   const $unset: Record<string, ''> = {};
   if (patch.level !== undefined) $set.level = patch.level;
+  if (patch.active !== undefined) $set.active = patch.active;
   if (patch.equipamiento !== undefined) $set.equipamiento = patch.equipamiento;
   if (patch.background !== undefined) {
     if (patch.background === null) $unset.background = '';
