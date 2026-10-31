@@ -118,7 +118,7 @@ const ItemRoll = () => {
   // Ruleta en sí → token de roll (no abre la caja sola).
   useEffect(() => {
     if (!spawn.outcome || spawn.outcome.success !== true || !spawn.outcome.type) return;
-    const key = `${spawn.outcome.type}:${spawn.outcome.message}`;
+    const key = String(spawn.outcome.id);
     if (awardedSpawn.current === key) return;
     awardedSpawn.current = key;
     const rollToken = spawnToRollToken(spawn.outcome.type);
