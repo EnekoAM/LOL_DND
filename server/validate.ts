@@ -31,7 +31,41 @@ export type PartyPatch = Partial<Record<(typeof PARTY_FIELDS)[number], number>> 
   spendSpawnToken?: SpawnTokenKind;
   /** Muestra la sección Aumentos a los players en la barra lateral. */
   aumentosForPlayers?: boolean;
+  /** Ruleta de aumentos: probabilidad (%) de cada rareza y coste en oro por tirada. */
+  aumentoRoll?: AumentoRollSettings;
 };
+
+/** Ruleta de aumentos: primero sale una rareza según estas probabilidades (suman 100) y luego 3 aumentos al azar de esa rareza. */
+export type AumentoRollSettings = {
+  probs: Record<AugmentRarity, number>;
+  cost: number;
+};
+
+function parseAumentoRoll(value: unknown): AumentoRollSettings {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'aumentoRoll tiene que ser un objeto');
+  }
+  const source = value as Record<string, unknown>;
+  const rawProbs = source.probs;
+  if (!rawProbs || typeof rawProbs !== 'object' || Array.isArray(rawProbs)) {
+    throw new HttpError(400, 'aumentoRoll.probs tiene que ser un objeto con plata, oro y prismatico');
+  }
+  const probs = {} as Record<AugmentRarity, number>;
+  for (const rarity of AUGMENT_RARITIES) {
+    const prob = (rawProbs as Record<string, unknown>)[rarity];
+    if (typeof prob !== 'number' || !Number.isInteger(prob) || prob < 0 || prob > 100) {
+      throw new HttpError(400, `La probabilidad de ${rarity} tiene que ser un entero de 0 a 100`);
+    }
+    probs[rarity] = prob;
+  }
+  const total = AUGMENT_RARITIES.reduce((sum, rarity) => sum + probs[rarity], 0);
+  if (total !== 100) throw new HttpError(400, `Las probabilidades tienen que sumar 100 (ahora suman ${total})`);
+  const cost = source.cost ?? 0;
+  if (typeof cost !== 'number' || !Number.isInteger(cost) || cost < 0) {
+    throw new HttpError(400, 'El coste de la tirada tiene que ser un entero de 0 o más');
+  }
+  return { probs, cost };
+}
 
 export type BasicAttackEntry = { type: string; scaling: number[] };
 /** Un tipo (formato antiguo) o varios (p. ej. AD + AP). */
@@ -329,6 +363,7 @@ export function parsePartyPatch(body: unknown): PartyPatch {
     }
     patch.aumentosForPlayers = source.aumentosForPlayers;
   }
+  if (source.aumentoRoll !== undefined) patch.aumentoRoll = parseAumentoRoll(source.aumentoRoll);
   if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return patch;
 }
@@ -1190,7 +1225,7 @@ export function parseHistoryRevertBatch(body: unknown): { id: string; kind: Hist
 export const AUGMENT_NAME_MAX = 80;
 export const AUGMENT_DESCRIPTION_MAX = 1000;
 
-/** Aumento del catálogo (colección augments). Los players lo comprarán con oro. */
+/** Aumento del catálogo (colección augments). Sin precio propio: salen en la ruleta según su rareza. */
 export const AUGMENT_RARITIES = ['plata', 'oro', 'prismatico'] as const;
 export type AugmentRarity = typeof AUGMENT_RARITIES[number];
 
@@ -1198,10 +1233,9 @@ export type AugmentInput = {
   rarity: AugmentRarity;
   name: string;
   description: string;
-  price: number;
 };
 
-/** POST /api/augments: { name, description?, price? }. Con partial (PATCH) todos opcionales. */
+/** POST /api/augments: { name, rarity?, description? }. price ya no se usa (se ignora). Con partial (PATCH) todos opcionales. */
 export function parseAugmentInput(body: unknown, partial: true): Partial<AugmentInput>;
 export function parseAugmentInput(body: unknown, partial?: false): AugmentInput;
 export function parseAugmentInput(body: unknown, partial = false): Partial<AugmentInput> {
@@ -1222,14 +1256,6 @@ export function parseAugmentInput(body: unknown, partial = false): Partial<Augme
     out.description = description;
   } else if (!partial) {
     out.description = '';
-  }
-  if (source.price !== undefined && source.price !== null) {
-    if (typeof source.price !== 'number' || !Number.isInteger(source.price) || source.price < 0) {
-      throw new HttpError(400, 'El precio tiene que ser un entero de 0 o más');
-    }
-    out.price = source.price;
-  } else if (!partial) {
-    out.price = 0;
   }
   if (source.rarity !== undefined && source.rarity !== null) {
     if (typeof source.rarity !== 'string' || !(AUGMENT_RARITIES as readonly string[]).includes(source.rarity)) {

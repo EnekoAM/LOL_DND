@@ -1,6 +1,6 @@
 import { readAppRole } from './appRole';
 
-/** Aumento del catálogo (colección augments en Mongo). Admin: alta/edición/borrado. Players: comprar (próximamente). */
+/** Aumento del catálogo (colección augments en Mongo). Admin: alta/edición/borrado. Sin precio propio: salen en la ruleta según su rareza. */
 export type AugmentRarity = 'plata' | 'oro' | 'prismatico';
 
 export const AUGMENT_RARITIES: { value: AugmentRarity; label: string }[] = [
@@ -16,8 +16,6 @@ export type Augment = {
   rarity: AugmentRarity;
   name: string;
   description: string;
-  /** Precio en oro. */
-  price: number;
   /** ISO. */
   createdAt: string;
 };
@@ -26,7 +24,6 @@ export type AugmentDraft = {
   rarity: AugmentRarity;
   name: string;
   description: string;
-  price: number;
 };
 
 export const AUGMENT_NAME_MAX = 80;
@@ -58,7 +55,6 @@ function normalize(raw: Augment): Augment {
     rarity: raw.rarity === 'oro' || raw.rarity === 'prismatico' ? raw.rarity : 'plata',
     name: typeof raw.name === 'string' ? raw.name : '',
     description: typeof raw.description === 'string' ? raw.description : '',
-    price: typeof raw.price === 'number' && Number.isFinite(raw.price) ? raw.price : 0,
     createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : '',
   };
 }
@@ -104,4 +100,26 @@ export async function deleteAugment(id: string): Promise<void> {
     method: 'DELETE',
     headers: { 'X-App-Role': 'admin' },
   }, 'al borrar el aumento');
+}
+
+/** Elige una rareza según las probabilidades (%) de la ruleta. */
+export function rollRarity(probs: Record<AugmentRarity, number>, random: () => number = Math.random): AugmentRarity {
+  const total = AUGMENT_RARITIES.reduce((sum, r) => sum + Math.max(0, probs[r.value] ?? 0), 0);
+  if (total <= 0) return 'plata';
+  let ticket = random() * total;
+  for (const { value } of AUGMENT_RARITIES) {
+    ticket -= Math.max(0, probs[value] ?? 0);
+    if (ticket < 0) return value;
+  }
+  return AUGMENT_RARITIES[AUGMENT_RARITIES.length - 1].value;
+}
+
+/** Hasta `count` aumentos distintos al azar de esa rareza. */
+export function pickAugments(list: Augment[], rarity: AugmentRarity, count = 3, random: () => number = Math.random): Augment[] {
+  const pool = list.filter(a => a.rarity === rarity);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count);
 }

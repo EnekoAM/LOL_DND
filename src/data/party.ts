@@ -10,7 +10,30 @@ export type Party = {
   spawnTokens: SpawnTokens;
   /** El admin ha habilitado la sección Aumentos para los players (barra lateral). */
   aumentosForPlayers: boolean;
+  /** Ruleta de aumentos: % de cada rareza (suman 100) y coste en oro por tirada. */
+  aumentoRoll: AumentoRoll;
 };
+
+export type AumentoRarityKey = 'plata' | 'oro' | 'prismatico';
+
+export type AumentoRoll = {
+  probs: Record<AumentoRarityKey, number>;
+  cost: number;
+};
+
+export const DEFAULT_AUMENTO_ROLL: AumentoRoll = { probs: { plata: 70, oro: 25, prismatico: 5 }, cost: 0 };
+
+function normalizeAumentoRoll(raw: unknown): AumentoRoll {
+  const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+  const probsSrc = src.probs && typeof src.probs === 'object' ? (src.probs as Record<string, unknown>) : null;
+  const pct = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.min(100, Math.floor(v)) : 0);
+  let probs = probsSrc
+    ? { plata: pct(probsSrc.plata), oro: pct(probsSrc.oro), prismatico: pct(probsSrc.prismatico) }
+    : { ...DEFAULT_AUMENTO_ROLL.probs };
+  if (probs.plata + probs.oro + probs.prismatico !== 100) probs = { ...DEFAULT_AUMENTO_ROLL.probs };
+  const cost = typeof src.cost === 'number' && Number.isFinite(src.cost) && src.cost >= 0 ? Math.floor(src.cost) : 0;
+  return { probs, cost };
+}
 
 const EMPTY_TOKENS: SpawnTokens = {
   basico: 0,
@@ -40,6 +63,7 @@ export let PARTY: Party = {
   expToNextLevel: 600,
   spawnTokens: { ...EMPTY_TOKENS },
   aumentosForPlayers: false,
+  aumentoRoll: DEFAULT_AUMENTO_ROLL,
 };
 
 const listeners = new Set<() => void>();
@@ -70,6 +94,10 @@ export function partyAumentosForPlayers(): boolean {
   return PARTY.aumentosForPlayers;
 }
 
+export function partyAumentoRoll(): AumentoRoll {
+  return PARTY.aumentoRoll;
+}
+
 function readError(body: unknown, fallback: string): string {
   if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string') return body.error;
   return fallback;
@@ -82,6 +110,7 @@ async function patchParty(
     addSpawnTokens?: Partial<SpawnTokens>;
     spendSpawnToken?: SpawnTokenKind;
     aumentosForPlayers?: boolean;
+    aumentoRoll?: AumentoRoll;
   },
   fallback: string,
 ): Promise<void> {
@@ -130,6 +159,11 @@ export async function saveAumentosForPlayers(enabled: boolean): Promise<void> {
   await patchParty({ aumentosForPlayers: enabled }, 'Error al cambiar la visibilidad de Aumentos');
 }
 
+/** Solo admin: guarda las probabilidades y el coste de la ruleta de aumentos. */
+export async function saveAumentoRoll(roll: AumentoRoll): Promise<void> {
+  await patchParty({ aumentoRoll: roll }, 'Error al guardar la ruleta de aumentos');
+}
+
 /** Gasta 1 token al tirar (jugador). */
 export async function spendSpawnToken(kind: SpawnTokenKind): Promise<void> {
   await patchParty({ spendSpawnToken: kind }, `Error al gastar token ${kind}`);
@@ -141,6 +175,16 @@ export function setPartyGold(gold: number): void {
   emitParty();
 }
 
+/** Mantiene la misma referencia si no cambia (useSyncExternalStore). */
+function sameRoll(prev: AumentoRoll, next: AumentoRoll): AumentoRoll {
+  return prev.cost === next.cost
+    && prev.probs.plata === next.probs.plata
+    && prev.probs.oro === next.probs.oro
+    && prev.probs.prismatico === next.probs.prismatico
+    ? prev
+    : next;
+}
+
 export function hydrateParty(party: Party): void {
   PARTY = {
     gold: party.gold,
@@ -149,6 +193,7 @@ export function hydrateParty(party: Party): void {
     expToNextLevel: party.expToNextLevel,
     spawnTokens: normalizeTokens(party.spawnTokens),
     aumentosForPlayers: party.aumentosForPlayers === true,
+    aumentoRoll: sameRoll(PARTY.aumentoRoll, normalizeAumentoRoll(party.aumentoRoll)),
   };
   emitParty();
 }

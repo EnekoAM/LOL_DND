@@ -567,6 +567,21 @@ const EMPTY_SPAWN_TOKENS = {
   rollEpico: 0,
 } as const;
 
+/** Probabilidades por defecto de la ruleta de aumentos (%). */
+const DEFAULT_AUMENTO_ROLL = { probs: { plata: 70, oro: 25, prismatico: 5 }, cost: 0 };
+
+function normalizeAumentoRoll(raw: unknown): typeof DEFAULT_AUMENTO_ROLL {
+  const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+  const probsSrc = src.probs && typeof src.probs === 'object' ? (src.probs as Record<string, unknown>) : null;
+  const pct = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.min(100, Math.floor(v)) : 0);
+  const probs = probsSrc
+    ? { plata: pct(probsSrc.plata), oro: pct(probsSrc.oro), prismatico: pct(probsSrc.prismatico) }
+    : { ...DEFAULT_AUMENTO_ROLL.probs };
+  if (probs.plata + probs.oro + probs.prismatico !== 100) Object.assign(probs, DEFAULT_AUMENTO_ROLL.probs);
+  const cost = typeof src.cost === 'number' && Number.isFinite(src.cost) && src.cost >= 0 ? Math.floor(src.cost) : 0;
+  return { probs, cost };
+}
+
 function normalizeSpawnTokens(raw: unknown): typeof EMPTY_SPAWN_TOKENS {
   const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
@@ -582,7 +597,11 @@ function normalizeSpawnTokens(raw: unknown): typeof EMPTY_SPAWN_TOKENS {
 export async function getParty() {
   const doc = await (await singleton('party')).findOne({ _id: 'current' }, { projection: { _id: 0 } });
   if (!doc) throw new HttpError(404, 'No hay grupo. Ejecuta npm run seed');
-  return { ...doc, spawnTokens: normalizeSpawnTokens((doc as { spawnTokens?: unknown }).spawnTokens) };
+  return {
+    ...doc,
+    spawnTokens: normalizeSpawnTokens((doc as { spawnTokens?: unknown }).spawnTokens),
+    aumentoRoll: normalizeAumentoRoll((doc as { aumentoRoll?: unknown }).aumentoRoll),
+  };
 }
 
 export async function updateParty(patch: PartyPatch) {
@@ -1229,7 +1248,6 @@ export type AugmentEntry = {
   rarity: 'plata' | 'oro' | 'prismatico';
   name: string;
   description: string;
-  price: number;
   createdAt: string;
 };
 
@@ -1244,7 +1262,6 @@ function toAugment(doc: Document): AugmentEntry {
     rarity: doc.rarity === 'oro' || doc.rarity === 'prismatico' ? doc.rarity : 'plata',
     name: typeof doc.name === 'string' ? doc.name : '',
     description: typeof doc.description === 'string' ? doc.description : '',
-    price: typeof doc.price === 'number' && Number.isFinite(doc.price) && doc.price >= 0 ? Math.floor(doc.price) : 0,
     createdAt: created.toISOString(),
   };
 }
@@ -1267,7 +1284,8 @@ export async function updateAugment(id: string, patch: Partial<AugmentInput>): P
   if (!ObjectId.isValid(id)) throw new HttpError(404, MISSING_AUGMENT);
   const col = await collection('augments');
   const _id = new ObjectId(id);
-  const result = await col.updateOne({ _id }, { $set: { ...patch, updatedAt: new Date() } });
+  // price era del formato antiguo (precio por aumento): se limpia al editar.
+  const result = await col.updateOne({ _id }, { $set: { ...patch, updatedAt: new Date() }, $unset: { price: '' } });
   if (result.matchedCount === 0) throw new HttpError(404, MISSING_AUGMENT);
   const doc = await col.findOne({ _id });
   if (!doc) throw new HttpError(404, MISSING_AUGMENT);

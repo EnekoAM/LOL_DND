@@ -206,14 +206,6 @@
   overflow-wrap: anywhere;
 }
 
-.aum-card__price {
-  flex: none;
-  font-family: 'Cinzel', serif;
-  font-size: 12px;
-  font-weight: 700;
-  color: #f5d77a;
-}
-
 .aum-card__desc {
   flex: 1;
   margin: 0;
@@ -369,3 +361,24 @@
 .aum-rarity--plata { color: #1d2230; background: linear-gradient(135deg, #e6ebf2, #9aa4b2); }
 .aum-rarity--oro { color: #3a2600; background: linear-gradient(135deg, #ffe08a, #d39b22); }
 .aum-rarity--prismatico { color: #1a1030; background: linear-gradient(90deg, #ff6ad5, #c774e8, #94d0ff, #7cf5c8, #ffe27a); }
+
+/* Ruleta de aumentos */
+.aum-roll { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 1px solid rgba(201, 168, 76, 0.3); background: rgba(0, 0, 0, 0.25); }
+.aum-roll__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.aum-roll__title { margin: 0; font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-bright, #e8c96a); }
+.aum-roll__cost { font-family: 'Cinzel', serif; font-size: 12px; font-weight: 700; color: #f5d77a; }
+.aum-roll__bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(201, 168, 76, 0.25); }
+.aum-roll__seg { flex-basis: 0; }
+.aum-roll__seg--plata { background: linear-gradient(135deg, #e6ebf2, #9aa4b2); }
+.aum-roll__seg--oro { background: linear-gradient(135deg, #ffe08a, #d39b22); }
+.aum-roll__seg--prismatico { background: linear-gradient(90deg, #ff6ad5, #c774e8, #94d0ff, #7cf5c8, #ffe27a); }
+.aum-roll__odds { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; padding: 0; list-style: none; }
+.aum-roll__odd { display: inline-flex; align-items: center; gap: 8px; font-family: 'Crimson Text', serif; font-size: 15px; color: rgba(232, 220, 190, 0.9); }
+.aum-roll__count { font-size: 13px; color: rgba(212, 196, 154, 0.55); }
+.aum-roll__how { margin: 0; font-family: 'Crimson Text', serif; font-size: 15px; color: rgba(212, 196, 154, 0.75); }
+.aum-roll__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.aum-roll__result { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px dashed rgba(201, 168, 76, 0.3); }
+.aum-roll__result-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; color: rgba(232, 220, 190, 0.9); }
+.aum-roll__sim { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212, 196, 154, 0.5); }
+.aum-roll__total { margin: 0; font-family: 'Cinzel', serif; font-size: 12px; font-weight: 700; color: #a6e0ae; }
+.aum-roll__total--bad { color: #f87171; }
