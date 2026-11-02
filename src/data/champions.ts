@@ -44,6 +44,7 @@ export type Champion = {
 
 export type ChampionFieldsPatch = {
   level?: number;
+  image?: string;
   background?: string | null;
   equipamiento?: string[];
   active?: boolean;

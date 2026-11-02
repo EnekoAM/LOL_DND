@@ -564,6 +564,7 @@ export function parseChampionAbilityPatch(body: unknown): ChampionAbilityPatch {
 
 export type ChampionFieldsPatch = {
   level?: number;
+  image?: string;
   background?: string | null;
   equipamiento?: string[];
   active?: boolean;
@@ -588,6 +589,18 @@ export function parseChampionFieldsPatch(body: unknown): ChampionFieldsPatch {
       throw new HttpError(400, `level tiene que estar entre ${CHAMPION_LEVEL_MIN} y ${CHAMPION_LEVEL_MAX}`);
     }
     patch.level = source.level;
+    touched = true;
+  }
+
+  if ('image' in source) {
+    if (typeof source.image !== 'string' || !source.image.trim()) {
+      throw new HttpError(400, 'image tiene que ser una URL');
+    }
+    const url = source.image.trim();
+    if (url.length > CHAMPION_BACKGROUND_LIMIT) {
+      throw new HttpError(400, `image puede tener como maximo ${CHAMPION_BACKGROUND_LIMIT} caracteres`);
+    }
+    patch.image = url;
     touched = true;
   }
 

@@ -95,22 +95,75 @@
   cursor: progress;
 }
 
-.champ-sheet__level-row {
+/* Lapiz sobre el retrato: abre la edicion de foto y fondo. */
+.champ-sheet__portrait {
+  position: relative;
+}
+
+.champ-sheet__portrait-edit {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  background: rgba(10, 8, 4, 0.78);
+  border-color: rgba(201, 168, 76, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.champ-sheet__portrait-edit--on {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: rgba(40, 30, 10, 0.9);
+}
+
+.champ-sheet__media {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.champ-sheet__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.champ-sheet__field-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* Nivel con el mismo formato que la ficha de players (NVL X) + lapiz al lado. */
+.champ-sheet__level {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
+  vertical-align: middle;
+}
+
+.champ-sheet__level-btn {
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
 }
 
 .champ-sheet__level-input {
-  width: 72px;
-  padding: 8px 10px;
-  font-family: 'Cinzel', serif;
-  font-size: 18px;
+  width: 48px;
+  padding: 1px 4px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--gold-bright);
   text-align: center;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(201, 168, 76, 0.4);
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(201, 168, 76, 0.5);
   border-radius: 4px;
 }
 
@@ -118,11 +171,6 @@
   outline: none;
   border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2);
-}
-
-.champ-sheet__level-hint {
-  font-size: 12px;
-  color: var(--ink-dim);
 }
 
 .champ-sheet__bg-input {
@@ -141,7 +189,9 @@
 }
 
 .champ-sheet__bg-actions {
-  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .calc-champ-pip--active-flag {
