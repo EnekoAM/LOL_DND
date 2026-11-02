@@ -93,7 +93,42 @@ const LOCKED_TABS: Partial<Record<SheetTab, PlayerUnlockKey>> = {
 const ADMIN_UNLOCKS: { key: PlayerUnlockKey; label: string; hint: string }[] = [
   { key: 'quest', label: 'Pestaña Quest', hint: 'Desbloquea la pestaña Quest' },
   { key: 'aumentos', label: 'Pestaña Aumentos', hint: 'Desbloquea la pestaña Aumentos' },
+  { key: 'questVisible', label: 'Quests visibles para players', hint: 'Si está apagado, los players no ven las quests aunque la pestaña esté desbloqueada' },
 ];
+
+/** questVisible es visible por defecto; el resto de desbloqueos empiezan apagados. */
+const unlockOn = (unlocks: PlayerUnlocks, key: PlayerUnlockKey): boolean =>
+  key === 'questVisible' ? unlocks.questVisible !== false : unlocks[key] === true;
+
+/** Aviso para el admin: ve el contenido aunque los players no puedan. */
+const AdminNotice = ({ locked, hidden, label, busy, onUnlock, onShow }: {
+  locked: boolean;
+  hidden: boolean;
+  label: string;
+  busy: boolean;
+  onUnlock: () => void;
+  onShow?: () => void;
+}) => {
+  if (!locked && !hidden) return null;
+  return (
+    <div className="sheet-admin-notice">
+      <TabLock className="sheet-admin-notice__icon" />
+      <span className="sheet-admin-notice__text">
+        Vista de admin · {locked && hidden ? `${label} bloqueado y oculto para players` : locked ? `${label} bloqueado para players` : `${label} oculto para players`}
+      </span>
+      {locked && (
+        <button type="button" className="sheet-quest__btn" disabled={busy} onClick={onUnlock}>
+          {busy ? 'Guardando…' : `Desbloquear ${label}`}
+        </button>
+      )}
+      {hidden && onShow && (
+        <button type="button" className="sheet-quest__btn" disabled={busy} onClick={onShow}>
+          {busy ? 'Guardando…' : 'Hacer visible'}
+        </button>
+      )}
+    </div>
+  );
+};
 
 const TabLock = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -211,10 +246,14 @@ const PlayerSheet = ({
     const key = LOCKED_TABS[id];
     return key !== undefined && unlocks[key] !== true;
   };
+  /** Toggle de visualización: si está apagado, los players no ven la pestaña Quest. */
+  const questsVisible = unlocks.questVisible !== false;
+  const tabHidden = (id: SheetTab): boolean => id === 'quest' && !questsVisible && !isAdmin;
   const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
   const [portraitFailed, setPortraitFailed] = useState(false);
   const tabKey = `playerSheetTab:${player.name}`;
-  const [tab, setTabState] = useState<SheetTab>(() => readTab(tabKey));
+  const [storedTab, setTabState] = useState<SheetTab>(() => readTab(tabKey));
+  const tab: SheetTab = tabHidden(storedTab) ? 'general' : storedTab;
   useEffect(() => {
     setTabState(readTab(tabKey));
   }, [tabKey]);
@@ -348,7 +387,7 @@ const PlayerSheet = ({
                   <label key={key} className="sheet-admin__row" title={hint}>
                     <input
                       type="checkbox"
-                      checked={unlocks[key] === true}
+                      checked={unlockOn(unlocks, key)}
                       disabled={unlockBusy}
                       onChange={event => void setUnlock(key, event.target.checked)}
                     />
@@ -363,8 +402,9 @@ const PlayerSheet = ({
 
         <div className="sheet-content">
           <div className="sheet-tabs" role="tablist" aria-label="Secciones de la ficha">
-            {TABS.map(entry => {
+            {TABS.filter(entry => !tabHidden(entry.id)).map(entry => {
               const locked = tabLocked(entry.id);
+              const hiddenForPlayers = isAdmin && entry.id === 'quest' && !questsVisible;
               return (
                 <button
                   key={entry.id}
@@ -372,11 +412,12 @@ const PlayerSheet = ({
                   role="tab"
                   aria-selected={tab === entry.id}
                   className={cx('sheet-tab', tab === entry.id && 'sheet-tab--active', locked && 'sheet-tab--locked')}
-                  title={locked ? 'Bloqueado · Completar quests para desbloquear' : undefined}
+                  title={locked ? 'Bloqueado · Completar quests para desbloquear' : hiddenForPlayers ? 'Oculto para players' : undefined}
                   onClick={() => setTab(entry.id)}
                 >
                   {locked && <TabLock className="sheet-tab__lock" />}
                   {entry.label}
+                  {hiddenForPlayers && <span className="sheet-tab__hidden" aria-label="Oculto para players">🚫</span>}
                 </button>
               );
             })}
@@ -506,28 +547,47 @@ const PlayerSheet = ({
             </section>
           )}
 
-          {(tab === 'quest' || tab === 'aumentos') && tabLocked(tab) && (
+          {(tab === 'quest' || tab === 'aumentos') && tabLocked(tab) && !isAdmin && (
             <LockedTab
               label={tab === 'quest' ? 'Quest' : 'Aumentos'}
-              canUnlock={isAdmin}
+              canUnlock={false}
               busy={unlockBusy}
               onUnlock={() => void setUnlock(tab, true)}
             />
           )}
 
-          {tab === 'quest' && !tabLocked('quest') && (
+          {tab === 'quest' && (!tabLocked('quest') || isAdmin) && (
             <section className="sheet-panel">
               <div className="sheet-panel__title">Quests</div>
+              {isAdmin && (
+                <AdminNotice
+                  locked={tabLocked('quest')}
+                  hidden={!questsVisible}
+                  label="Quest"
+                  busy={unlockBusy}
+                  onUnlock={() => void setUnlock('quest', true)}
+                  onShow={() => void setUnlock('questVisible', true)}
+                />
+              )}
               <ul className="sheet-quests">
-                <QuestList quests={player.quests ?? []} canEdit={canManageExtras} onChange={onQuestsChange} />
+                <QuestList quests={player.quests ?? []} canEdit={canManageExtras} showHidden={canManageExtras} onChange={onQuestsChange} />
               </ul>
               {unlockError && <p className="calc-build-error">{unlockError}</p>}
             </section>
           )}
 
-          {tab === 'aumentos' && !tabLocked('aumentos') && (
+          {tab === 'aumentos' && (!tabLocked('aumentos') || isAdmin) && (
             <section className="sheet-panel">
               <div className="sheet-panel__title">Aumentos</div>
+              {isAdmin && (
+                <AdminNotice
+                  locked={tabLocked('aumentos')}
+                  hidden={false}
+                  label="Aumentos"
+                  busy={unlockBusy}
+                  onUnlock={() => void setUnlock('aumentos', true)}
+                />
+              )}
               <AumentoList aumentos={player.aumentos ?? []} canEdit={canManageExtras} onChange={onAumentosChange} />
             </section>
           )}

@@ -86,11 +86,13 @@ const withOptional = <T extends { description?: string; reward?: string }>(base:
 type QuestProps = {
   quests: PlayerQuest[];
   canEdit: boolean;
+  /** Admin/editor: ve también las quests ocultas para players. */
+  showHidden?: boolean;
   onChange: (quests: PlayerQuest[]) => Promise<void>;
 };
 
 /** Quests añadidas por el admin (la «Quest de top» va aparte, ligada a unlocks.questTop). */
-export const QuestList = ({ quests, canEdit, onChange }: QuestProps) => {
+export const QuestList = ({ quests, canEdit, showHidden = canEdit, onChange }: QuestProps) => {
   const { busy, error, save } = useListSave(onChange);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -104,6 +106,17 @@ export const QuestList = ({ quests, canEdit, onChange }: QuestProps) => {
     if (await save(next)) setEditingId(null);
   };
   const toggle = (id: string) => void save(quests.map(q => (q.id === id ? { ...q, done: !q.done } : q)));
+  const toggleHidden = (id: string) =>
+    void save(
+      quests.map(q => {
+        if (q.id !== id) return q;
+        const next = { ...q };
+        if (q.hidden) delete next.hidden;
+        else next.hidden = true;
+        return next;
+      }),
+    );
+  const visible = showHidden ? quests : quests.filter(q => !q.hidden);
   const remove = (quest: PlayerQuest) => {
     if (!window.confirm(`¿Quitar la quest «${quest.name}»?`)) return;
     void save(quests.filter(q => q.id !== quest.id));
@@ -111,7 +124,8 @@ export const QuestList = ({ quests, canEdit, onChange }: QuestProps) => {
 
   return (
     <>
-      {quests.map(quest =>
+      {!canEdit && visible.length === 0 && <li className="calc-build-empty">Todavía no hay quests.</li>}
+      {visible.map(quest =>
         editingId === quest.id ? (
           <li key={quest.id} className="sheet-add">
             <EntryForm
@@ -126,10 +140,13 @@ export const QuestList = ({ quests, canEdit, onChange }: QuestProps) => {
             />
           </li>
         ) : (
-          <li key={quest.id} className={cx('sheet-quest', quest.done && 'sheet-quest--done')}>
+          <li key={quest.id} className={cx('sheet-quest', quest.done && 'sheet-quest--done', quest.hidden && 'sheet-quest--hidden')}>
             <span className="sheet-quest__mark" aria-hidden="true">{quest.done ? '✔' : '◇'}</span>
             <div className="sheet-quest__body">
-              <div className="sheet-quest__name">{quest.name}</div>
+              <div className="sheet-quest__name">
+                {quest.name}
+                {quest.hidden && <span className="sheet-quest__tag">Oculta para players</span>}
+              </div>
               {quest.description && <div className="sheet-quest__desc">{quest.description}</div>}
               {quest.reward && <div className="sheet-quest__reward">Recompensa: {quest.reward}</div>}
             </div>
@@ -137,6 +154,16 @@ export const QuestList = ({ quests, canEdit, onChange }: QuestProps) => {
               <div className="sheet-quest__actions">
                 <button type="button" className="sheet-quest__btn" disabled={busy} onClick={() => toggle(quest.id)}>
                   {quest.done ? 'Marcar pendiente' : 'Marcar completada'}
+                </button>
+                <button
+                  type="button"
+                  className="sheet-quest__btn"
+                  disabled={busy}
+                  title={quest.hidden ? 'Los players no la ven' : 'Los players la ven'}
+                  aria-pressed={!quest.hidden}
+                  onClick={() => toggleHidden(quest.id)}
+                >
+                  {quest.hidden ? '🚫 Oculta' : '👁 Visible'}
                 </button>
                 <button type="button" className="sheet-quest__btn" disabled={busy} title="Editar quest" onClick={() => setEditingId(quest.id)}>
                   ✎ Editar

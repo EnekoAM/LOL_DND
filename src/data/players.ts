@@ -55,6 +55,8 @@ export type PlayerUnlocks = {
   questTop?: boolean;
   /** Quest de top asignada a este jugador (se puede quitar). */
   questTopAssigned?: boolean;
+  /** Visualización de quests para players. false = ocultas aunque la pestaña esté desbloqueada (por defecto visibles). */
+  questVisible?: boolean;
 };
 
 export type PlayerUnlockKey = keyof PlayerUnlocks;
@@ -66,6 +68,8 @@ export type PlayerQuest = {
   description?: string;
   reward?: string;
   done: boolean;
+  /** Oculta para los players (el admin la sigue viendo). */
+  hidden?: boolean;
 };
 
 /** Aumento añadido desde la ficha (players.aumentos). */
