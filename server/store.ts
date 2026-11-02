@@ -4,7 +4,8 @@ import { HttpError, logError } from './errors';
 import { buildLootItems } from './lootItems';
 import { RANKED_SLOTS, canRaise, normalizeRanks, ultRankCap, unassignedPoints, type AbilityRanks } from './abilityRanks';
 import { LOOT_RULE_KEYS, parseLootRules } from './validate';
-import type { AugmentInput, MapPoiInput, MapPoiKind, MapPoiPatch, ChampionAbility, ChampionFieldsPatch, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput, TicketStatus } from './validate';
+import { FAQ_SEED } from './faqSeed';
+import type { AugmentInput, FaqInput, FaqPatch, MapPoiInput, MapPoiKind, MapPoiPatch, ChampionAbility, ChampionFieldsPatch, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput, TicketStatus } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -1318,7 +1319,7 @@ export async function deleteAugment(id: string): Promise<{ id: string }> {
 export async function mongoStatus() {
   const db = await getDb();
   await db.command({ ping: 1 });
-  const names = ['champions', 'items', 'players', 'roles', 'loot', 'party', 'rollHistoric', 'craftHistoric', 'buyHistoric', 'sellHistoric', 'tickets', 'augments'] as const;
+  const names = ['champions', 'items', 'players', 'roles', 'loot', 'party', 'rollHistoric', 'craftHistoric', 'buyHistoric', 'sellHistoric', 'tickets', 'augments', 'mapPois', 'faq'] as const;
   const counts = Object.fromEntries(
     await Promise.all(names.map(async name => [name, await db.collection(name).estimatedDocumentCount()] as const)),
   );
@@ -1426,5 +1427,111 @@ export async function deleteMapPoi(id: string): Promise<{ id: string }> {
   if (!ObjectId.isValid(id)) throw new HttpError(404, MISSING_MAP_POI);
   const result = await (await mapPois()).deleteOne({ _id: new ObjectId(id) });
   if (result.deletedCount === 0) throw new HttpError(404, MISSING_MAP_POI);
+  return { id };
+}
+
+// ── Mecánicas (FAQ) ──
+
+export type FaqEntry = {
+  id: string;
+  title: string;
+  body: string;
+  category?: string;
+  order: number;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+const MISSING_FAQ = 'No existe esa entrada de Mecánicas';
+const FAQ_ORDER_STEP = 10;
+
+function toFaq(doc: Document): FaqEntry {
+  const entry: FaqEntry = {
+    id: String(doc._id),
+    title: typeof doc.title === 'string' ? doc.title : '',
+    body: typeof doc.body === 'string' ? doc.body : '',
+    order: typeof doc.order === 'number' ? doc.order : 0,
+    createdAt: isoDate(doc.createdAt) ?? '',
+  };
+  if (typeof doc.category === 'string' && doc.category) entry.category = doc.category;
+  const updatedAt = isoDate(doc.updatedAt);
+  if (updatedAt) entry.updatedAt = updatedAt;
+  return entry;
+}
+
+let faqSeeded: Promise<void> | undefined;
+
+/** Siembra las entradas iniciales solo si la colección no existe (si el admin las borra todas, no vuelven). */
+async function faqCollection(): Promise<Collection> {
+  const db = await getDb();
+  faqSeeded ??= (async () => {
+    const exists = await db.listCollections({ name: 'faq' }, { nameOnly: true }).hasNext();
+    if (exists) return;
+    const now = new Date();
+    const docs = FAQ_SEED.map((seed, index) => {
+      const doc: Document = {
+        _id: new ObjectId(seed.id),
+        title: seed.title,
+        body: seed.body,
+        order: (index + 1) * FAQ_ORDER_STEP,
+        createdAt: now,
+      };
+      if (seed.category) doc.category = seed.category;
+      return doc;
+    });
+    try {
+      await db.collection('faq').insertMany(docs, { ordered: false });
+    } catch (error) {
+      // Otra petición sembró a la vez (ids fijos → clave duplicada): no pasa nada.
+      if ((error as { code?: number }).code !== 11000) throw error;
+    }
+  })().catch(error => {
+    faqSeeded = undefined;
+    throw error;
+  });
+  await faqSeeded;
+  return db.collection('faq');
+}
+
+export async function listFaq(): Promise<FaqEntry[]> {
+  const docs = await (await faqCollection()).find({}).sort({ order: 1, createdAt: 1, _id: 1 }).toArray();
+  return docs.map(toFaq);
+}
+
+/** Sin orden: va al final. */
+export async function createFaq(input: FaqInput): Promise<FaqEntry> {
+  const col = await faqCollection();
+  let order = input.order;
+  if (order === undefined) {
+    const last = await col.find({}).sort({ order: -1 }).limit(1).toArray();
+    const top = typeof last[0]?.order === 'number' ? last[0].order : 0;
+    order = top + FAQ_ORDER_STEP;
+  }
+  const doc: Document = { title: input.title, body: input.body, order, createdAt: new Date() };
+  if (input.category) doc.category = input.category;
+  const result = await col.insertOne(doc);
+  return toFaq({ ...doc, _id: result.insertedId });
+}
+
+export async function updateFaq(id: string, patch: FaqPatch): Promise<FaqEntry> {
+  if (!ObjectId.isValid(id)) throw new HttpError(404, MISSING_FAQ);
+  const col = await faqCollection();
+  const _id = new ObjectId(id);
+  const { category, ...rest } = patch;
+  const $set: Document = { ...rest, updatedAt: new Date() };
+  const update: Document = { $set };
+  if (category) $set.category = category;
+  else if (category === null) update.$unset = { category: '' };
+  const result = await col.updateOne({ _id }, update);
+  if (result.matchedCount === 0) throw new HttpError(404, MISSING_FAQ);
+  const doc = await col.findOne({ _id });
+  if (!doc) throw new HttpError(404, MISSING_FAQ);
+  return toFaq(doc);
+}
+
+export async function deleteFaq(id: string): Promise<{ id: string }> {
+  if (!ObjectId.isValid(id)) throw new HttpError(404, MISSING_FAQ);
+  const result = await (await faqCollection()).deleteOne({ _id: new ObjectId(id) });
+  if (result.deletedCount === 0) throw new HttpError(404, MISSING_FAQ);
   return { id };
 }

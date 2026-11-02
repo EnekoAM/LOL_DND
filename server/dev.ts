@@ -2,6 +2,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import augments from '../api/augments';
 import champions from '../api/champions';
 import craft from '../api/craft';
+import faq from '../api/faq';
 import health from '../api/health';
 import history from '../api/history';
 import items from '../api/items';
@@ -83,6 +84,11 @@ app.get('/api/map-pois', adapt(mapPois));
 app.post('/api/map-pois', adapt(mapPois));
 app.patch('/api/map-pois', adapt(mapPois));
 app.delete('/api/map-pois', adapt(mapPois));
+// Mecánicas (FAQ): leer cualquiera; crear/editar/borrar solo admin.
+app.get('/api/faq', adapt(faq));
+app.post('/api/faq', adapt(faq));
+app.patch('/api/faq', adapt(faq));
+app.delete('/api/faq', adapt(faq));
 app.get('/api/loot', adapt(loot));
 app.patch('/api/loot', adapt(loot));
 app.get('/api/party', adapt(party));

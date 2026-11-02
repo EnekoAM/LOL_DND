@@ -1418,3 +1418,70 @@ export function parseMapPoiPatch(body: unknown): MapPoiPatch {
   if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return patch;
 }
+
+/** Mecánicas (FAQ): leer cualquiera; crear/editar/borrar solo admin. */
+export const FAQ_TITLE_MAX = 120;
+export const FAQ_BODY_MAX = 4000;
+export const FAQ_CATEGORY_MAX = 40;
+export const FAQ_ORDER_MAX = 1_000_000;
+
+export type FaqInput = { title: string; body: string; category?: string; order?: number };
+export type FaqPatch = { title?: string; body?: string; category?: string | null; order?: number };
+
+function faqText(value: unknown, field: string, max: number, required: boolean): string {
+  if (typeof value !== 'string') throw new HttpError(400, `${field} tiene que ser un texto`);
+  const text = value.replace(/\r\n?/g, '\n').trim();
+  if (required && !text) throw new HttpError(400, field === 'title' ? 'Falta el título' : 'Falta el texto');
+  if (text.length > max) throw new HttpError(400, `${field} puede tener como máximo ${max} caracteres`);
+  return text;
+}
+
+function faqCategory(value: unknown): string | null {
+  if (value === null) return null;
+  const text = faqText(value, 'category', FAQ_CATEGORY_MAX, false);
+  if (/[\n\t]/.test(text)) throw new HttpError(400, 'category tiene que ser una sola línea');
+  return text || null;
+}
+
+function faqOrder(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > FAQ_ORDER_MAX) {
+    throw new HttpError(400, `order tiene que ser un entero entre 0 y ${FAQ_ORDER_MAX}`);
+  }
+  return value;
+}
+
+function faqKeys(source: Record<string, unknown>, allowed: string[]): void {
+  for (const key of Object.keys(source)) {
+    if (!allowed.includes(key)) throw new HttpError(400, `Campo desconocido: ${key}`);
+  }
+}
+
+export function parseFaqInput(body: unknown): FaqInput {
+  const source = asObject(body);
+  faqKeys(source, ['title', 'body', 'category', 'order']);
+  const title = faqText(source.title, 'title', FAQ_TITLE_MAX, true);
+  if (/\n/.test(title)) throw new HttpError(400, 'El título tiene que ser una sola línea');
+  const input: FaqInput = { title, body: faqText(source.body, 'body', FAQ_BODY_MAX, true) };
+  if (source.category !== undefined) {
+    const category = faqCategory(source.category);
+    if (category) input.category = category;
+  }
+  if (source.order !== undefined) input.order = faqOrder(source.order);
+  return input;
+}
+
+export function parseFaqPatch(body: unknown): FaqPatch {
+  const source = asObject(body);
+  faqKeys(source, ['id', 'title', 'body', 'category', 'order']);
+  const patch: FaqPatch = {};
+  if (source.title !== undefined) {
+    const title = faqText(source.title, 'title', FAQ_TITLE_MAX, true);
+    if (/\n/.test(title)) throw new HttpError(400, 'El título tiene que ser una sola línea');
+    patch.title = title;
+  }
+  if (source.body !== undefined) patch.body = faqText(source.body, 'body', FAQ_BODY_MAX, true);
+  if (source.category !== undefined) patch.category = faqCategory(source.category);
+  if (source.order !== undefined) patch.order = faqOrder(source.order);
+  if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
+  return patch;
+}
