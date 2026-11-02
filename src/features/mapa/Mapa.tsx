@@ -7,6 +7,7 @@ import { useLiveRevision } from '../../data/live';
 import { createMapPoi, deleteMapPoi, loadMapPois, updateMapPoi, type MapPoi } from '../../data/mapPois';
 import MapaPoiPanel, { type PoiFormDraft } from './MapaPoiPanel';
 import { MAP_PIXELS, POI_KINDS, RUNETERRA_POIS, poiIconSpec, type PoiKind, type RuneterraPoi } from './pois';
+import { YORDLE_PORTAL, YORDLE_PORTAL_ICON, portalDayKey, yordlePortalForDay, type YordlePortalDay } from './yordlePortal';
 import landmarks3d from './landmarks3d.json';
 import './Mapa.css';
 
@@ -114,6 +115,35 @@ function customIcon(poi: Pick<MapPoi, 'kind' | 'name'>, selected: boolean, ghost
   });
 }
 
+/** Portal yordle: escudo de Bandle con el brillo naranja del pin oficial. */
+function portalIcon(): L.DivIcon {
+  return L.divIcon({
+    className: 'mapa-poi mapa-poi--region mapa-portal',
+    html:
+      `<span class="mapa-portal__glow" aria-hidden="true"></span>` +
+      `<span class="mapa-poi__icon mapa-portal__icon" style="width:44px;height:50px">` +
+      `<img class="mapa-poi__img" src="${YORDLE_PORTAL_ICON}" alt="" draggable="false">` +
+      `</span>` +
+      `<span class="mapa-poi__label mapa-portal__label" style="top:28px">${escapeHtml(YORDLE_PORTAL.name)}</span>`,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  });
+}
+
+function portalPopup(day: YordlePortalDay): string {
+  const parts = [
+    `<div class="mapa-popup__kind">Portal yordle &middot; ${escapeHtml(YORDLE_PORTAL.region)}</div>`,
+    `<div class="mapa-popup__title">Portal de los yordles</div>`,
+    `<div class="mapa-popup__alt">Bandle City</div>`,
+    `<div class="mapa-popup__subtitle">${escapeHtml(YORDLE_PORTAL.subtitle)}</div>`,
+    `<p class="mapa-popup__text">${escapeHtml(YORDLE_PORTAL.description)}</p>`,
+    `<p class="mapa-popup__text mapa-portal__today">Hoy (${escapeHtml(day.dayLabel)}) está en la ubicación ${day.index + 1} de ${day.total}. ` +
+      `Cambia de sitio cada día a medianoche (hora de Madrid).</p>`,
+    `<a class="mapa-popup__link" href="${escapeHtml(YORDLE_PORTAL.link)}" target="_blank" rel="noreferrer">Ver en Universe &rarr;</a>`,
+  ];
+  return `<div class="mapa-popup">${parts.join('')}</div>`;
+}
+
 type Placing = { mode: 'new' } | { mode: 'move'; id: string } | null;
 
 export default function Mapa() {
@@ -142,6 +172,11 @@ export default function Mapa() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const mineRef = useRef<L.LayerGroup>(L.layerGroup());
+
+  // ── Portal yordle: un único pin que cambia de sitio cada día (misma posición para todos). ──
+  const [portalDay, setPortalDay] = useState<YordlePortalDay>(() => yordlePortalForDay());
+  const [showPortal, setShowPortal] = useState(true);
+  const portalRef = useRef<L.LayerGroup>(L.layerGroup());
   const party = pois.find(poi => poi.kind === 'party') ?? null;
   const selected = pois.find(poi => poi.id === selectedId) ?? null;
 
@@ -241,6 +276,7 @@ export default function Mapa() {
       const sprite = sprites[poi.slug];
       if (sprite) landmarkOverlay(poi, sprite).addTo(landmarks);
     }
+    portalRef.current.addTo(map);
     mineRef.current.addTo(map);
     // Modo «colocar»: el clic en el mapa fija el punto nuevo o la nueva posición del que se mueve.
     const onMapClick = (event: L.LeafletMouseEvent) => {
@@ -320,6 +356,28 @@ export default function Mapa() {
     }
   }, [pois, selectedId, isAdmin, busy, draft, showMine]);
 
+  // Al pasar la medianoche (Madrid) el portal salta a su ubicación del día nuevo.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPortalDay(current => (portalDayKey() === current.dayKey ? current : yordlePortalForDay()));
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const layer = portalRef.current;
+    layer.clearLayers();
+    if (!showPortal) return;
+    L.marker(pixelLatLng(portalDay.spot.x, portalDay.spot.y), {
+      icon: portalIcon(),
+      title: `${YORDLE_PORTAL.name} (hoy)`,
+      riseOnHover: true,
+      zIndexOffset: 1500,
+    })
+      .bindPopup(portalPopup(portalDay), { className: 'mapa-popup-wrap', maxWidth: 320, minWidth: 220 })
+      .addTo(layer);
+  }, [portalDay, showPortal]);
+
   // Cursor de cruz en modo colocar. Se toca classList a mano: el div es de Leaflet
   // (leaflet-container, leaflet-grab…) y un className de React le borraría esas clases.
   useEffect(() => {
@@ -355,6 +413,13 @@ export default function Mapa() {
     const map = mapRef.current;
     map.flyTo(pixelLatLng(party.x, party.y), Math.max(map.getZoom(), 3.5), { duration: 0.8 });
     setSelectedId(party.id);
+  };
+
+  const goToPortal = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    setShowPortal(true);
+    map.flyTo(pixelLatLng(portalDay.spot.x, portalDay.spot.y), Math.max(map.getZoom(), 3), { duration: 0.8 });
   };
 
   const startAdding = () => {
@@ -429,6 +494,15 @@ export default function Mapa() {
           >
             Puntos propios{pois.length ? ` (${pois.length})` : ''}
           </button>
+          <button
+            type="button"
+            className={cx('mapa-chip', 'mapa-chip--portal', showPortal && 'mapa-chip--on')}
+            aria-pressed={showPortal}
+            title="Cambia de ubicación cada día"
+            onClick={() => setShowPortal(on => !on)}
+          >
+            Portal yordle
+          </button>
         </div>
         <div className="mapa-actions">
           <button
@@ -439,6 +513,14 @@ export default function Mapa() {
             onClick={goToParty}
           >
             {'\u{1F6A9}'} Ir a la party
+          </button>
+          <button
+            type="button"
+            className="mapa-action"
+            title={`Ubicación de hoy (${portalDay.index + 1} de ${portalDay.total})`}
+            onClick={goToPortal}
+          >
+            {'\u{1F300}'} Ir al portal yordle
           </button>
           {isAdmin && (
             <button

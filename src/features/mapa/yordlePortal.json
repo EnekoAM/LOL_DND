@@ -1,0 +1,276 @@
+{
+ "source": "https://map.leagueoflegends.com/loc/pins-es_es.json (pin bandle-city: 66 posiciones) + content-panels-es_es.json. El mapa oficial elige una al azar en cada carga; aquí se elige una por día (Europe/Madrid) para que toda la mesa vea la misma.",
+ "conversion": "pixel 8192 = OX + S*x, OY - S*y (misma calibración que runeterraPois.json)",
+ "slug": "bandle-city",
+ "name": "Portal yordle",
+ "region": "Ciudad de Bandle",
+ "subtitle": "Tierra fantástica de un misticismo peculiar",
+ "description": "Hay muchas opiniones contradictorias sobre dónde se sitúa el hogar de los yordles, aunque no son pocos los que aseguran haber cruzado portales invisibles directos a una tierra de un misticismo peculiar. Se habla de un lugar donde la magia es libre, y los imprudentes pueden ser tentados por una miríada de maravillas y quedar atrapados en un sueño eterno.",
+ "link": "https://universe.leagueoflegends.com/es_ES/region/bandle-city/",
+ "spots": [
+  {
+   "x": 4370,
+   "y": 5598
+  },
+  {
+   "x": 4446,
+   "y": 5661
+  },
+  {
+   "x": 4585,
+   "y": 5649
+  },
+  {
+   "x": 4545,
+   "y": 5494
+  },
+  {
+   "x": 4394,
+   "y": 5427
+  },
+  {
+   "x": 4263,
+   "y": 5514
+  },
+  {
+   "x": 4219,
+   "y": 5689
+  },
+  {
+   "x": 4493,
+   "y": 5876
+  },
+  {
+   "x": 4760,
+   "y": 5840
+  },
+  {
+   "x": 4883,
+   "y": 5633
+  },
+  {
+   "x": 4772,
+   "y": 5319
+  },
+  {
+   "x": 4589,
+   "y": 5172
+  },
+  {
+   "x": 4326,
+   "y": 5113
+  },
+  {
+   "x": 4144,
+   "y": 5045
+  },
+  {
+   "x": 3897,
+   "y": 5260
+  },
+  {
+   "x": 3977,
+   "y": 5947
+  },
+  {
+   "x": 4144,
+   "y": 6166
+  },
+  {
+   "x": 4585,
+   "y": 6369
+  },
+  {
+   "x": 4990,
+   "y": 6337
+  },
+  {
+   "x": 5419,
+   "y": 5920
+  },
+  {
+   "x": 5499,
+   "y": 5530
+  },
+  {
+   "x": 5396,
+   "y": 5248
+  },
+  {
+   "x": 5209,
+   "y": 5013
+  },
+  {
+   "x": 4982,
+   "y": 4823
+  },
+  {
+   "x": 6612,
+   "y": 3443
+  },
+  {
+   "x": 6656,
+   "y": 3400
+  },
+  {
+   "x": 6584,
+   "y": 3360
+  },
+  {
+   "x": 6489,
+   "y": 3412
+  },
+  {
+   "x": 6457,
+   "y": 3519
+  },
+  {
+   "x": 6616,
+   "y": 3582
+  },
+  {
+   "x": 6707,
+   "y": 3539
+  },
+  {
+   "x": 6767,
+   "y": 3384
+  },
+  {
+   "x": 6743,
+   "y": 3062
+  },
+  {
+   "x": 6644,
+   "y": 2982
+  },
+  {
+   "x": 6512,
+   "y": 3002
+  },
+  {
+   "x": 6318,
+   "y": 3074
+  },
+  {
+   "x": 6214,
+   "y": 3221
+  },
+  {
+   "x": 6075,
+   "y": 3288
+  },
+  {
+   "x": 5984,
+   "y": 3392
+  },
+  {
+   "x": 5944,
+   "y": 3722
+  },
+  {
+   "x": 6012,
+   "y": 4032
+  },
+  {
+   "x": 6461,
+   "y": 4282
+  },
+  {
+   "x": 6954,
+   "y": 4250
+  },
+  {
+   "x": 7387,
+   "y": 3972
+  },
+  {
+   "x": 2717,
+   "y": 3356
+  },
+  {
+   "x": 2721,
+   "y": 3435
+  },
+  {
+   "x": 2856,
+   "y": 3420
+  },
+  {
+   "x": 2888,
+   "y": 3304
+  },
+  {
+   "x": 2756,
+   "y": 3209
+  },
+  {
+   "x": 2637,
+   "y": 3185
+  },
+  {
+   "x": 2526,
+   "y": 3292
+  },
+  {
+   "x": 2534,
+   "y": 3511
+  },
+  {
+   "x": 2673,
+   "y": 3741
+  },
+  {
+   "x": 3031,
+   "y": 3817
+  },
+  {
+   "x": 4946,
+   "y": 3511
+  },
+  {
+   "x": 3043,
+   "y": 3094
+  },
+  {
+   "x": 2653,
+   "y": 2954
+  },
+  {
+   "x": 2343,
+   "y": 2939
+  },
+  {
+   "x": 2073,
+   "y": 3165
+  },
+  {
+   "x": 1997,
+   "y": 3515
+  },
+  {
+   "x": 1985,
+   "y": 3817
+  },
+  {
+   "x": 2136,
+   "y": 4119
+  },
+  {
+   "x": 2768,
+   "y": 4314
+  },
+  {
+   "x": 3202,
+   "y": 4214
+  },
+  {
+   "x": 3559,
+   "y": 3896
+  },
+  {
+   "x": 3679,
+   "y": 3491
+  }
+ ]
+}
