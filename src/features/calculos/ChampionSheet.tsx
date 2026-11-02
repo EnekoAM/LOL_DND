@@ -22,6 +22,8 @@ import AbilityCard from './AbilityCard';
 import BuildPicker from './BuildPicker';
 import ItemTile from './ItemTile';
 import StatsTable from './StatsTable';
+import { playerTotalLine } from './playerTotals';
+import { STAT_COLUMNS, formatStat, type StatKey } from './statLine';
 import './ChampionSheet.css';
 
 type Props = {
@@ -37,6 +39,13 @@ const TABS: { id: SheetTab; label: string }[] = [
   { id: 'equipo', label: 'Equipo' },
   { id: 'desglose', label: 'Desglose' },
 ];
+
+const DEFENSE_KEYS: { key: StatKey; label: string }[] = [
+  { key: 'ac', label: 'CA' },
+  { key: 'mr', label: 'MR' },
+  { key: 'spe', label: 'Velocidad' },
+];
+const STAT_TITLES = Object.fromEntries(STAT_COLUMNS.map(column => [column.key, column.title])) as Record<StatKey, string>;
 
 const clampLevel = (value: number) => Math.min(20, Math.max(1, Math.floor(value)));
 
@@ -78,6 +87,9 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
   const roleName = roleTable?.name ?? champion.role;
   // La tabla de rol tiene menos niveles que la ficha (1-20): por encima se usa la última fila.
   const tableLevel = roleTable ? Math.min(level, roleTable.levels.length) : level;
+
+  // Mismo total que Desglose: base de la tabla de rol al nivel del campeón + equipo.
+  const total = playerTotalLine(roleId ? { roleId } : undefined, equipment, tableLevel);
 
   const persist = async (patch: Parameters<typeof saveChampionPatch>[1]) => {
     if (!canEdit || saving) return;
@@ -322,6 +334,38 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
               </form>
             )}
             {isActive && <div className="champ-sheet__active-badge">Activo</div>}
+          </div>
+
+          <div className="sheet-panel champ-sheet__stats" aria-label="Estadísticas">
+            <div className="champ-sheet__res" title={STAT_TITLES.hp}>
+              <div className="sheet-resource__top">
+                <span className="sheet-resource__label">Vida</span>
+                <span className="champ-sheet__res-value">{formatStat(total.hp)}</span>
+              </div>
+              <div className="sheet-resource__track" aria-hidden="true">
+                <div className="sheet-resource__fill champ-sheet__fill--hp" style={{ width: '100%' }} />
+              </div>
+            </div>
+            <div className="champ-sheet__res" title={STAT_TITLES.mana}>
+              <div className="sheet-resource__top">
+                <span className="sheet-resource__label">Maná</span>
+                <span className="champ-sheet__res-value">{formatStat(total.mana)}</span>
+              </div>
+              <div className="sheet-resource__track" aria-hidden="true">
+                <div className="sheet-resource__fill sheet-resource__fill--mana" style={{ width: '100%' }} />
+              </div>
+            </div>
+            <div className="sheet-defense champ-sheet__defense">
+              {DEFENSE_KEYS.map(({ key, label }) => (
+                <div key={key} className="sheet-defense__card" title={STAT_TITLES[key]}>
+                  <div className="sheet-defense__label">{label}</div>
+                  <div className="sheet-defense__value">{formatStat(total[key])}</div>
+                </div>
+              ))}
+            </div>
+            {!roleTable && (
+              <p className="champ-sheet__stats-note">Sin tabla de rol: solo suma el equipo.</p>
+            )}
           </div>
 
           {canEdit && (

@@ -194,6 +194,63 @@
   flex-wrap: wrap;
 }
 
+/* Estadísticas del campeón en la barra lateral (tabla de rol al nivel + equipo). */
+.champ-sheet__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(10, 8, 4, 0.55);
+  border-color: rgba(201, 168, 76, 0.22);
+}
+
+.champ-sheet__res .sheet-resource__top {
+  margin-bottom: 5px;
+}
+
+.champ-sheet__res-value {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  line-height: 1;
+}
+
+.champ-sheet__fill--hp {
+  background: linear-gradient(90deg, rgba(153, 27, 27, 0.9), rgba(220, 38, 38, 0.95));
+}
+
+.champ-sheet__defense {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.champ-sheet__defense .sheet-defense__card {
+  padding: 8px 4px;
+  min-width: 0;
+}
+
+.champ-sheet__defense .sheet-defense__label {
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.champ-sheet__defense .sheet-defense__value {
+  font-size: 18px;
+}
+
+.champ-sheet__stats-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ink-dim);
+  text-align: center;
+}
+
 .calc-champ-pip--active-flag {
   /* reserved */
 }
