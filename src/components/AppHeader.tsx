@@ -18,9 +18,14 @@ type Props = {
   onToggleMenu: () => void;
   /** Solo admin puede dar/quitar oro y cambiar el nivel del grupo. */
   canManageParty?: boolean;
+  /** User: con quién entró (nombre del player o «Invitado»). */
+  identityName?: string | null;
+  isGuest?: boolean;
+  /** Abre la ficha del player con el que entró. */
+  onOpenMySheet?: () => void;
 };
 
-export default function AppHeader({ current, menuOpen, onToggleMenu, canManageParty = false }: Props) {
+export default function AppHeader({ current, menuOpen, onToggleMenu, canManageParty = false, identityName, isGuest = false, onOpenMySheet }: Props) {
   const gold = useSyncExternalStore(subscribeParty, partyGold);
   const level = useSyncExternalStore(subscribeParty, partyLevel);
   const [grantOpen, setGrantOpen] = useState(false);
@@ -194,6 +199,23 @@ export default function AppHeader({ current, menuOpen, onToggleMenu, canManagePa
         <div className="header-divider" />
 
         <div className="stat-level">Nivel {level}</div>
+
+        {identityName && (
+          <>
+            <div className="header-divider" />
+            {onOpenMySheet ? (
+              <button type="button" className="header-me" title="Abrir mi ficha" onClick={onOpenMySheet}>
+                <span className="header-me__icon" aria-hidden="true">👤</span>
+                <span className="header-me__name">{identityName}</span>
+              </button>
+            ) : (
+              <span className={cx('header-me', isGuest && 'header-me--guest')} title="Entraste como invitado">
+                <span className="header-me__icon" aria-hidden="true">🕯</span>
+                <span className="header-me__name">{identityName}</span>
+              </span>
+            )}
+          </>
+        )}
       </div>
 
       {current && (

@@ -371,3 +371,28 @@
   .header-stats { gap: 10px; }
   .header-section__label { display: none; }
 }
+
+/* Con quién entró el User (player o invitado). */
+.header-me {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 180px;
+  padding: 4px 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--gold-bright);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+button.header-me { cursor: pointer; }
+button.header-me:hover { border-color: rgba(201, 168, 76, 0.7); background: rgba(201, 168, 76, 0.1); }
+.header-me__name { overflow: hidden; text-overflow: ellipsis; }
+.header-me--guest { color: var(--ink-dim); border-style: dashed; }
+@media (max-width: 520px) {
+  .header-me__name { max-width: 70px; }
+}

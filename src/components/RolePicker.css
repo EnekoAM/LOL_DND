@@ -189,3 +189,31 @@
 @media (prefers-reduced-motion: reduce) {
   .role-picker__pin-input--error { animation: none; }
 }
+/* ── ¿Quién eres? (User: player o invitado) ── */
+.role-picker__hint { overflow-wrap: anywhere; }
+.role-picker__players {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(52vh, 440px);
+  overflow-y: auto;
+  padding: 2px;
+  margin-bottom: 18px;
+}
+.role-picker__btn--player,
+.role-picker__btn--guest { padding: 10px 14px; }
+.role-picker__avatar {
+  grid-row: 1 / span 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  border: 1px solid rgba(201,168,76,0.35);
+  background: rgba(10,8,4,0.55);
+}
+.role-picker__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.role-picker__btn--guest { border-style: dashed; }
+.role-picker__btn--guest .role-picker__btn-icon { color: var(--ink-dim); }

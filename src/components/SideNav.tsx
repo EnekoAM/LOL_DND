@@ -13,6 +13,8 @@ type Props<T extends string> = {
   mobileOpen: boolean;
   onCloseMobile: () => void;
   role: AppRole;
+  /** User: nombre del player o «Invitado». */
+  identityName?: string | null;
   onChangeRole: () => void;
 };
 
@@ -22,6 +24,7 @@ export default function SideNav<T extends string>({
   mobileOpen,
   onCloseMobile,
   role,
+  identityName,
   onChangeRole,
 }: Props<T>) {
   useEffect(() => {
@@ -72,12 +75,12 @@ export default function SideNav<T extends string>({
           <button
             type="button"
             className="side-nav__role"
-            title="Cambiar rol"
+            title={role === 'admin' ? 'Cambiar rol' : 'Cambiar rol o player'}
             onClick={onChangeRole}
           >
             <span className="side-nav__icon" aria-hidden="true">{role === 'admin' ? '⚔' : '👤'}</span>
             <span className="side-nav__label">
-              {role === 'admin' ? 'Admin' : 'User'}
+              {role === 'admin' ? 'Admin' : identityName ? `User · ${identityName}` : 'User'}
               <span className="side-nav__role-hint">cambiar</span>
             </span>
           </button>

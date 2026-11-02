@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Modal from '../../components/Modal';
-import { useCanEdit } from '../../data/appRoleContext';
+import { useCanEdit, useMyPlayerName } from '../../data/appRoleContext';
 import { useLiveRevision } from '../../data/live';
 import {
   TICKET_AUTHOR_MAX,
@@ -59,7 +59,9 @@ const Sugerencias = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
-  const [author, setAuthor] = useState(() => localStorage.getItem(AUTHOR_KEY) ?? '');
+  const myName = useMyPlayerName();
+  // Si entró como player y nunca escribió un nombre, se propone el suyo.
+  const [author, setAuthor] = useState(() => localStorage.getItem(AUTHOR_KEY) || myName || '');
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState<Ticket | null>(null);

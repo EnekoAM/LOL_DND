@@ -1505,3 +1505,19 @@
 .sheet-quest__btn--danger:hover:not(:disabled) { background: rgba(140, 30, 22, 0.95); }
 .sheet-hint { list-style: none; font-size: 12px; font-style: italic; color: rgba(212, 196, 154, 0.6); padding: 2px 4px; }.sheet-add__check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(212, 196, 154, 0.85); }
 .sheet-add__select { width: auto; }
+
+/* Ficha del player con el que entró el User. */
+.players-picker--mine { border-color: rgba(232, 201, 106, 0.7) !important; box-shadow: 0 0 0 1px rgba(232, 201, 106, 0.3), 0 4px 16px rgba(232, 201, 106, 0.18); }
+.players-picker__mine {
+  margin: -2px auto 8px;
+  width: fit-content;
+  padding: 1px 8px;
+  border: 1px solid rgba(232, 201, 106, 0.55);
+  border-radius: 999px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+.sheet-side__mine { margin: 2px 0 4px; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-bright); }

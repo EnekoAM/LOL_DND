@@ -224,7 +224,8 @@ const PlayerSheet = ({
   onQuestsChange,
   onAumentosChange,
 }: Props) => {
-  const { role, canEdit } = useAppRole();
+  const { role, canEdit, playerName: myName } = useAppRole();
+  const isMine = !!myName && normalizeName(myName) === normalizeName(player.name);
   const isAdmin = role === 'admin';
   const canManageExtras = isAdmin || canEdit;
   const unlocks = player.unlocks ?? {};
@@ -343,6 +344,7 @@ const PlayerSheet = ({
           </div>
           <div className="sheet-side__identity">
             <h1 className="sheet-side__name">{player.name}</h1>
+            {isMine && <div className="sheet-side__mine">Tu ficha</div>}
             <div className="sheet-side__meta">
               NVL {level} · {player.rol?.trim() || 'Sin rol'}
             </div>

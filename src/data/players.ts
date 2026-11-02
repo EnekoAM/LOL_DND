@@ -160,6 +160,16 @@ export function playerPortraitUrl(image: string | undefined | null): string | nu
 export let PLAYERS: Player[] = [];
 export const PLAYERS_HYDRATED_EVENT = 'players:hydrated';
 
+/** Ficha abierta en Players (se recuerda al recargar). */
+export const OPEN_PLAYER_KEY = 'players.openPlayer';
+export const OPEN_PLAYER_EVENT = 'players:open';
+
+/** Deja abierta la ficha de `name` en Players (si Players ya está montado, la abre al momento). */
+export function openPlayerSheet(name: string): void {
+  try { localStorage.setItem(OPEN_PLAYER_KEY, name); } catch { /* ignore */ }
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent<string>(OPEN_PLAYER_EVENT, { detail: name }));
+}
+
 export function hydratePlayers(players: Player[]): void {
   PLAYERS = players;
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(PLAYERS_HYDRATED_EVENT));

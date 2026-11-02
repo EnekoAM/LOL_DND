@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ComponentType } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import AppHeader, { type NavItem } from './components/AppHeader';
 import RolePicker from './components/RolePicker';
 import SideNav from './components/SideNav';
-import { type AppRole, clearAppRole, readAppRole, saveAppRole, screenAllowed } from './data/appRole';
+import {
+  type AppIdentity,
+  type AppRole,
+  clearAppIdentity,
+  clearAppRole,
+  identityLabel,
+  readAppIdentity,
+  readAppRole,
+  saveAppIdentity,
+  saveAppRole,
+  screenAllowed,
+} from './data/appRole';
 import { AppRoleProvider } from './data/appRoleContext';
 import { startLiveSync, useLiveRevision } from './data/live';
 import { partyAumentosForPlayers, subscribeParty } from './data/party';
+import { PLAYERS, findPlayer, openPlayerSheet } from './data/players';
 import Aumentos from './features/aumentos/Aumentos';
 import Calculos from './features/calculos/Calculos';
 import Historial from './features/historial/Historial';
@@ -53,7 +65,12 @@ function useIsMobile() {
 function App() {
   const location = useLocation();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [role, setRole] = useState<AppRole | null>(() => readAppRole());
+  const [identity, setIdentity] = useState<AppIdentity | null>(() => readAppIdentity());
+  // User sin player elegido (o su player ya no existe): toca elegir otra vez «¿Quién eres?».
+  const needsIdentity = role === 'user'
+    && (!identity || (identity.kind === 'player' && !findPlayer(identity.name)));
   const [navExpanded, setNavExpanded] = useState(() => localStorage.getItem(NAV_EXPANDED_KEY) !== '0');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -85,16 +102,38 @@ function App() {
 
   const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
 
-  const pickRole = useCallback((next: AppRole) => {
+  const pickRole = useCallback((next: AppRole, who: AppIdentity | null) => {
     saveAppRole(next);
     setRole(next);
-  }, []);
+    if (next === 'user' && who) {
+      // Se guarda el nombre tal cual está en la lista de players.
+      const resolved: AppIdentity = who.kind === 'player' ? { kind: 'player', name: findPlayer(who.name)?.name ?? who.name } : who;
+      saveAppIdentity(resolved);
+      setIdentity(resolved);
+      if (resolved.kind === 'player') {
+        // Entra directo a su ficha.
+        openPlayerSheet(resolved.name);
+        navigate('/players');
+      }
+    } else {
+      clearAppIdentity();
+      setIdentity(null);
+    }
+  }, [navigate]);
 
   const changeRole = useCallback(() => {
     clearAppRole();
+    clearAppIdentity();
     setRole(null);
+    setIdentity(null);
     setMobileNavOpen(false);
   }, []);
+
+  const openMySheet = useCallback(() => {
+    if (identity?.kind !== 'player') return;
+    openPlayerSheet(identity.name);
+    navigate('/players');
+  }, [identity, navigate]);
 
   // Repinta la pantalla cuando otra pestaña guarda algo (los datos viven fuera de React).
   useLiveRevision();
@@ -107,18 +146,23 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
-  if (!role) {
-    return <RolePicker onPick={pickRole} />;
+  if (!role || needsIdentity) {
+    return <RolePicker onPick={pickRole} players={PLAYERS} startStep={needsIdentity ? 'player' : 'role'} />;
   }
 
+  const who = role === 'user' ? identity : null;
+
   return (
-    <AppRoleProvider role={role}>
+    <AppRoleProvider role={role} identity={who}>
     <div className={navExpanded ? 'app-root app-root--nav-expanded' : 'app-root'}>
       <AppHeader
         current={current}
         menuOpen={isMobile ? mobileNavOpen : navExpanded}
         onToggleMenu={toggleMenu}
         canManageParty={role === 'admin'}
+        identityName={identityLabel(who)}
+        isGuest={who?.kind === 'guest'}
+        onOpenMySheet={who?.kind === 'player' ? openMySheet : undefined}
       />
       <SideNav
         items={visibleScreens}
@@ -126,6 +170,7 @@ function App() {
         mobileOpen={mobileNavOpen}
         onCloseMobile={closeMobileNav}
         role={role}
+        identityName={identityLabel(who)}
         onChangeRole={changeRole}
       />
 

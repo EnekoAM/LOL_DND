@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Ability } from '../../data/champions';
-import { PLAYERS, PLAYERS_HYDRATED_EVENT, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
+import { useMyPlayerName } from '../../data/appRoleContext';
+import { OPEN_PLAYER_EVENT, OPEN_PLAYER_KEY, PLAYERS, PLAYERS_HYDRATED_EVENT, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
 import type { RankedSlot } from '../../data/abilityRanks';
 import { useLiveRevision } from '../../data/live';
 import { normalizeName } from '../../lib/text';
@@ -12,9 +13,9 @@ import '../calculos/Calculos.css';
 import PlayerSheet from './PlayerSheet';
 import './Players.css';
 
-const OPEN_PLAYER_KEY = 'players.openPlayer';
-
 const Players = () => {
+  const myName = useMyPlayerName();
+  const isMine = (name: string) => !!myName && normalizeName(name) === normalizeName(myName);
   const readSaved = () => {
     try { return localStorage.getItem(OPEN_PLAYER_KEY); } catch { return null; }
   };
@@ -43,6 +44,18 @@ const Players = () => {
       else localStorage.removeItem(OPEN_PLAYER_KEY);
     } catch { /* ignore */ }
   }, [openName, restoring]);
+  // «Mi ficha» desde la cabecera con Players ya abierto.
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const found = findSaved((event as CustomEvent<string>).detail ?? null);
+      if (!found) return;
+      setRestoring(false);
+      setAbility(null);
+      setPlayer(found);
+    };
+    window.addEventListener(OPEN_PLAYER_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_PLAYER_EVENT, onOpen);
+  }, []);
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState(DEFAULT_DAMAGE_INPUTS);
   // Los guardados van en cola: cada clic cambia al momento solo lo pulsado, sin bloquear (ni apagar) el resto de la ficha.
@@ -218,10 +231,12 @@ const Players = () => {
         <>
           <div className="calc-section-title">Fichas de personaje</div>
           <div className="calc-grid">
-            {PLAYERS.map(entry => {
+            {[...PLAYERS].sort((a, b) => Number(isMine(b.name)) - Number(isMine(a.name))).map(entry => {
               const portrait = playerPortraitUrl(entry.image);
+              const mine = isMine(entry.name);
               return (
-                <PickerCard key={entry.name} name={entry.name} onClick={() => setPlayer(entry)}>
+                <PickerCard key={entry.name} name={entry.name} className={mine ? 'players-picker--mine' : undefined} onClick={() => setPlayer(entry)}>
+                  {mine && <div className="players-picker__mine">Tu ficha</div>}
                   <div className="players-picker__portrait">
                     {portrait
                       ? <img src={portrait} alt="" onError={event => { event.currentTarget.style.display = 'none'; }} />
