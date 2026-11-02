@@ -36,6 +36,7 @@ import PlayerSwitcher from './PlayerSwitcher';
 import SheetAbilities from './SheetAbilities';
 import SheetEditor from './SheetEditor';
 import SheetSkills from './SheetSkills';
+import { SheetBackgroundButton, SheetBackgroundEditor, sheetBackgroundCss } from './SheetBackground';
 
 type Props = {
   player: Player;
@@ -61,6 +62,8 @@ type Props = {
   onQuestsChange: (quests: PlayerQuest[]) => Promise<void>;
   /** Solo admin: lista completa de aumentos. */
   onAumentosChange: (aumentos: PlayerAumento[]) => Promise<void>;
+  /** Fondo propio de esta ficha; null lo quita. */
+  onBackgroundChange: (background: string | null) => Promise<void>;
 };
 
 type SheetTab = 'general' | 'habilidades' | 'equipo' | 'build' | 'desglose' | 'quest' | 'aumentos';
@@ -223,6 +226,7 @@ const PlayerSheet = ({
   onUnlocksChange,
   onQuestsChange,
   onAumentosChange,
+  onBackgroundChange,
 }: Props) => {
   const { role, canEdit, playerName: myName } = useAppRole();
   const isMine = !!myName && normalizeName(myName) === normalizeName(player.name);
@@ -255,6 +259,8 @@ const PlayerSheet = ({
     !isAdmin && ((id === 'quest' && !questsVisible) || (id === 'aumentos' && !aumentosVisible));
   const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
   const [portraitFailed, setPortraitFailed] = useState(false);
+  const [editBackground, setEditBackground] = useState(false);
+  const background = player.background?.trim() || '';
   const tabKey = `playerSheetTab:${player.name}`;
   const [storedTab, setTabState] = useState<SheetTab>(() => readTab(tabKey));
   const tab: SheetTab = tabHidden(storedTab) ? 'general' : storedTab;
@@ -319,7 +325,10 @@ const PlayerSheet = ({
   const suggestedMana = typeof total.mana === 'number' && Number.isFinite(total.mana) ? total.mana : 0;
 
   return (
-    <div className="sheet">
+    <div
+      className={cx('sheet', background && 'sheet--bg')}
+      style={background ? { ['--sheet-bg' as string]: sheetBackgroundCss(background) } : undefined}
+    >
       <div className="sheet-topbar">
         <button type="button" className="calc-back-btn sheet-back" onClick={onBack}>
           ← Todas las fichas
@@ -334,14 +343,25 @@ const PlayerSheet = ({
 
       <div className="sheet-body">
         <aside className="sheet-side">
-          <div className="sheet-portrait">
+          <div className="sheet-portrait sheet-bg__portrait">
             <Portrait
               image={player.image}
               name={player.name}
               failed={portraitFailed}
               onFail={() => setPortraitFailed(true)}
             />
+            {canManageExtras && (
+              <SheetBackgroundButton open={editBackground} onToggle={() => setEditBackground(open => !open)} />
+            )}
           </div>
+          {canManageExtras && editBackground && (
+            <SheetBackgroundEditor
+              playerName={player.name}
+              background={background}
+              onSave={onBackgroundChange}
+              onClose={() => setEditBackground(false)}
+            />
+          )}
           <div className="sheet-side__identity">
             <h1 className="sheet-side__name">{player.name}</h1>
             {isMine && <div className="sheet-side__mine">Tu ficha</div>}

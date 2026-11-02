@@ -1521,3 +1521,132 @@
   color: var(--gold-bright);
 }
 .sheet-side__mine { margin: 2px 0 4px; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-bright); }
+
+/* ── Fondo propio de la ficha (uno por player; no afecta a campeones) ── */
+.sheet--bg {
+  isolation: isolate;
+}
+
+.sheet--bg::before,
+.sheet--bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.sheet--bg::before {
+  background-image: var(--sheet-bg);
+  background-size: cover;
+  background-position: center top;
+  opacity: 0.55;
+  mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+}
+
+.sheet--bg::after {
+  background: linear-gradient(180deg, rgba(8, 5, 2, 0.35), rgba(8, 5, 2, 0.72) 70%);
+}
+
+.sheet--bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+.sheet--bg .sheet-side {
+  background:
+    linear-gradient(180deg, rgba(201, 168, 76, 0.12), transparent 40%),
+    rgba(10, 7, 3, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.sheet--bg .sheet-content {
+  background: rgba(8, 5, 2, 0.62);
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  border-radius: 8px;
+  padding: 12px;
+  backdrop-filter: blur(5px);
+}
+
+/* Lápiz sobre el retrato. */
+.sheet-bg__portrait {
+  position: relative;
+}
+
+.sheet-bg__edit {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  background: rgba(10, 8, 4, 0.78);
+  border-color: rgba(201, 168, 76, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.sheet-bg__edit--on {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: rgba(40, 30, 10, 0.9);
+}
+
+.sheet-bg__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sheet-bg__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sheet-bg__label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.sheet-bg__input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 4px;
+}
+
+.sheet-bg__input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2);
+}
+
+.sheet-bg__hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.sheet-bg__error {
+  margin: 0;
+  font-size: 11px;
+  color: #e07a6a;
+}
+
+.sheet-bg__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

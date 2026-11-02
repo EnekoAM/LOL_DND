@@ -147,6 +147,8 @@ export type Player = {
   quests?: PlayerQuest[];
   /** Aumentos añadidos por el admin (pestaña Aumentos). */
   aumentos?: PlayerAumento[];
+  /** URL de la imagen de fondo de su ficha (solo la de este player). */
+  background?: string | null;
 };
 
 /** URL pública del retrato. Vacío si no hay imagen. */
@@ -199,6 +201,8 @@ export type PlayerListPatch = Partial<
   quests?: PlayerQuest[];
   /** Lista completa: sustituye la guardada. */
   aumentos?: PlayerAumento[];
+  /** Fondo de la ficha; null lo quita. */
+  background?: string | null;
 };
 
 /** Sustituye la build o el equipamiento y deja la copia en memoria alineada con lo guardado. */

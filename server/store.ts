@@ -867,6 +867,8 @@ export async function updatePlayer(name: string, patch: PlayerPatch) {
   }
   if (patch.quests) $set.quests = patch.quests;
   if (patch.aumentos) $set.aumentos = patch.aumentos;
+  if (patch.background === null) $unset.background = '';
+  else if (patch.background) $set.background = patch.background;
   if (patch.sheet === null) $unset.sheet = '';
   else if (patch.sheet) $set.sheet = patch.sheet;
   if (patch.basicAttack === null) $unset.basicAttack = '';

@@ -103,6 +103,8 @@ export type PlayerPatch = {
   quests?: PlayerQuest[];
   /** Aumentos añadidos desde la ficha (lista completa). */
   aumentos?: PlayerAumento[];
+  /** URL de la imagen de fondo de la ficha de este player. null la quita. */
+  background?: string | null;
 };
 
 export type PlayerQuest = { id: string; name: string; description?: string; reward?: string; done: boolean; hidden?: boolean };
@@ -605,6 +607,21 @@ function abilityRanks(value: unknown): Partial<Record<RankedSlot, number>> {
   return parsed;
 }
 
+const PLAYER_BACKGROUND_LIMIT = 2000;
+
+/** Fondo propio de la ficha: URL (o ruta) de imagen; vacío o null lo quita. */
+function playerBackground(value: unknown): string | null {
+  if (value === null) return null;
+  if (typeof value !== 'string') throw new HttpError(400, 'background tiene que ser una URL o vacío');
+  const url = value.trim();
+  if (url.length > PLAYER_BACKGROUND_LIMIT) {
+    throw new HttpError(400, `background puede tener como máximo ${PLAYER_BACKGROUND_LIMIT} caracteres`);
+  }
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u001f]/.test(url)) throw new HttpError(400, 'background no puede tener saltos de línea');
+  return url || null;
+}
+
 export function parsePlayerPatch(body: unknown): PlayerPatch {
   const source = asObject(body);
   const patch: PlayerPatch = {};
@@ -637,6 +654,7 @@ export function parsePlayerPatch(body: unknown): PlayerPatch {
   if ('unlocks' in source) patch.unlocks = playerUnlocks(source.unlocks);
   if ('quests' in source) patch.quests = playerQuests(source.quests);
   if ('aumentos' in source) patch.aumentos = playerAumentos(source.aumentos);
+  if ('background' in source) patch.background = playerBackground(source.background);
   if ('unassignedPoints' in source) {
     throw new HttpError(400, 'unassignedPoints se calcula (nivel − puntos gastados); cambia abilityRanks');
   }
