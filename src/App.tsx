@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ComponentType } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppHeader, { type NavItem } from './components/AppHeader';
 import RolePicker from './components/RolePicker';
@@ -6,6 +6,8 @@ import SideNav from './components/SideNav';
 import { type AppRole, clearAppRole, readAppRole, saveAppRole, screenAllowed } from './data/appRole';
 import { AppRoleProvider } from './data/appRoleContext';
 import { startLiveSync, useLiveRevision } from './data/live';
+import { partyAumentosForPlayers, subscribeParty } from './data/party';
+import Aumentos from './features/aumentos/Aumentos';
 import Calculos from './features/calculos/Calculos';
 import Historial from './features/historial/Historial';
 import ItemRoll from './features/item-roll/ItemRoll';
@@ -17,7 +19,7 @@ import Sugerencias from './features/sugerencias/Sugerencias';
 import Tienda from './features/tienda/Tienda';
 import './App.css';
 
-type ScreenId = 'items' | 'tienda' | 'players' | 'calculos' | 'item-roll' | 'dados' | 'mapa' | 'historial' | 'sugerencias';
+type ScreenId = 'items' | 'tienda' | 'players' | 'calculos' | 'aumentos' | 'item-roll' | 'dados' | 'mapa' | 'historial' | 'sugerencias';
 
 type Screen = NavItem<ScreenId> & { Component: ComponentType };
 
@@ -26,6 +28,7 @@ const SCREENS: Screen[] = [
   { id: 'tienda',      label: 'Tienda',      icon: '⚖',  Component: Tienda },
   { id: 'players',     label: 'Players',     icon: '👤', Component: Players },
   { id: 'calculos',    label: 'Campeones',   icon: '✦',  Component: Calculos },
+  { id: 'aumentos',    label: 'Aumentos',    icon: '✨',  Component: Aumentos },
   { id: 'item-roll',   label: 'Item Roll',   icon: '💎', Component: ItemRoll },
   { id: 'dados',       label: 'Dados',       icon: '🎲', Component: Dados },
   { id: 'mapa',        label: 'Mapa',        icon: '🗺️', Component: Mapa },
@@ -54,9 +57,15 @@ function App() {
   const [navExpanded, setNavExpanded] = useState(() => localStorage.getItem(NAV_EXPANDED_KEY) !== '0');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
+  // Aumentos: el admin siempre la ve; los players solo cuando el admin la habilita.
+  const aumentosForPlayers = useSyncExternalStore(subscribeParty, partyAumentosForPlayers);
+
   const visibleScreens = useMemo(
-    () => (role ? SCREENS.filter(screen => screenAllowed(role, screen.id)) : []),
-    [role],
+    () => (role
+      ? SCREENS.filter(screen =>
+        screenAllowed(role, screen.id) && (screen.id !== 'aumentos' || role === 'admin' || aumentosForPlayers))
+      : []),
+    [role, aumentosForPlayers],
   );
   const defaultPath = visibleScreens[0] ? `/${visibleScreens[0].id}` : '/players';
   const current = visibleScreens.find(screen => location.pathname === `/${screen.id}`);

@@ -8,6 +8,8 @@ export type Party = {
   exp: number;
   expToNextLevel: number;
   spawnTokens: SpawnTokens;
+  /** El admin ha habilitado la sección Aumentos para los players (barra lateral). */
+  aumentosForPlayers: boolean;
 };
 
 const EMPTY_TOKENS: SpawnTokens = {
@@ -37,6 +39,7 @@ export let PARTY: Party = {
   exp: 124,
   expToNextLevel: 600,
   spawnTokens: { ...EMPTY_TOKENS },
+  aumentosForPlayers: false,
 };
 
 const listeners = new Set<() => void>();
@@ -63,6 +66,10 @@ export function partySpawnTokens(): SpawnTokens {
   return PARTY.spawnTokens;
 }
 
+export function partyAumentosForPlayers(): boolean {
+  return PARTY.aumentosForPlayers;
+}
+
 function readError(body: unknown, fallback: string): string {
   if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string') return body.error;
   return fallback;
@@ -74,6 +81,7 @@ async function patchParty(
     level?: number;
     addSpawnTokens?: Partial<SpawnTokens>;
     spendSpawnToken?: SpawnTokenKind;
+    aumentosForPlayers?: boolean;
   },
   fallback: string,
 ): Promise<void> {
@@ -117,6 +125,11 @@ export async function adjustSpawnTokens(kind: SpawnTokenKind, amount: number): P
   );
 }
 
+/** Solo admin: muestra u oculta la sección Aumentos a los players. */
+export async function saveAumentosForPlayers(enabled: boolean): Promise<void> {
+  await patchParty({ aumentosForPlayers: enabled }, 'Error al cambiar la visibilidad de Aumentos');
+}
+
 /** Gasta 1 token al tirar (jugador). */
 export async function spendSpawnToken(kind: SpawnTokenKind): Promise<void> {
   await patchParty({ spendSpawnToken: kind }, `Error al gastar token ${kind}`);
@@ -135,6 +148,7 @@ export function hydrateParty(party: Party): void {
     exp: party.exp,
     expToNextLevel: party.expToNextLevel,
     spawnTokens: normalizeTokens(party.spawnTokens),
+    aumentosForPlayers: party.aumentosForPlayers === true,
   };
   emitParty();
 }

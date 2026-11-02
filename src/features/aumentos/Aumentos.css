@@ -1,0 +1,361 @@
+.aum-root {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: var(--page-min-height);
+  padding: 18px 20px 22px;
+  box-sizing: border-box;
+  background: linear-gradient(160deg, rgba(42, 28, 12, 0.88), rgba(16, 10, 4, 0.96));
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  border-radius: 6px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.aum-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.aum-head__title {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-bright, #e8c96a);
+}
+
+.aum-head__sub {
+  margin: 2px 0 0;
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  color: rgba(212, 196, 154, 0.65);
+}
+
+.aum-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Toggle visible/oculto para players */
+.aum-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.aum-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.aum-toggle__track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.aum-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(212, 196, 154, 0.6);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.aum-toggle--on .aum-toggle__track {
+  background: rgba(110, 190, 120, 0.25);
+  border-color: rgba(110, 190, 120, 0.7);
+}
+
+.aum-toggle--on .aum-toggle__thumb {
+  transform: translateX(16px);
+  background: #a6e0ae;
+}
+
+.aum-toggle input:focus-visible + .aum-toggle__track {
+  outline: 2px solid rgba(232, 201, 106, 0.6);
+  outline-offset: 2px;
+}
+
+.aum-toggle input:disabled + .aum-toggle__track {
+  opacity: 0.5;
+}
+
+.aum-toggle__label {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(212, 196, 154, 0.75);
+}
+
+.aum-toggle--on .aum-toggle__label {
+  color: #a6e0ae;
+}
+
+.aum-soon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px dashed rgba(232, 201, 106, 0.4);
+  background: rgba(0, 0, 0, 0.25);
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  color: rgba(212, 196, 154, 0.8);
+}
+
+.aum-soon p {
+  margin: 0;
+}
+
+.aum-soon__badge {
+  padding: 2px 10px;
+  border: 1px solid rgba(232, 201, 106, 0.6);
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold-bright, #e8c96a);
+}
+
+.aum-status {
+  margin: 0;
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  color: rgba(212, 196, 154, 0.7);
+}
+
+.aum-error {
+  margin: 0;
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  color: #f87171;
+}
+
+.aum-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+  color: rgba(212, 196, 154, 0.5);
+}
+
+.aum-empty__icon {
+  display: block;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.aum-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.aum-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: linear-gradient(160deg, rgba(42, 28, 12, 0.72), rgba(16, 10, 4, 0.9));
+  border: 1px solid rgba(201, 168, 76, 0.2);
+}
+
+.aum-card__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.aum-card__name {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gold-bright, #e8c96a);
+  overflow-wrap: anywhere;
+}
+
+.aum-card__price {
+  flex: none;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f5d77a;
+}
+
+.aum-card__desc {
+  flex: 1;
+  margin: 0;
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  line-height: 1.35;
+  color: rgba(212, 196, 154, 0.8);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.aum-card__desc--empty {
+  font-style: italic;
+  color: rgba(212, 196, 154, 0.4);
+}
+
+.aum-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.aum-btn,
+.aum-cancel {
+  flex: none;
+  padding: 8px 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.aum-btn {
+  border: 1px solid rgba(232, 201, 106, 0.55);
+  background: linear-gradient(135deg, #3a2408, #241406);
+  color: var(--gold-bright, #e8c96a);
+}
+
+.aum-btn.aum-btn--danger {
+  border-color: rgba(220, 100, 90, 0.6);
+  background: linear-gradient(135deg, #3a1610, #220c08);
+  color: #f3aca2;
+}
+
+.aum-cancel {
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(212, 196, 154, 0.8);
+}
+
+.aum-btn:disabled,
+.aum-cancel:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.aum-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.aum-modal {
+  width: min(460px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding: 18px 20px;
+  box-sizing: border-box;
+  background: linear-gradient(160deg, rgba(42, 28, 12, 0.98), rgba(16, 10, 4, 1));
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.aum-modal__text {
+  margin: 8px 0 14px;
+  font-family: 'Crimson Text', serif;
+  font-size: 16px;
+  color: rgba(212, 196, 154, 0.8);
+}
+
+.aum-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.aum-form__title {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-bright, #e8c96a);
+}
+
+.aum-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aum-field__label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(212, 196, 154, 0.55);
+}
+
+.aum-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  color: rgba(232, 220, 190, 0.9);
+  font-family: 'Crimson Text', serif;
+  font-size: 16px;
+  outline: none;
+}
+
+.aum-input:focus {
+  border-color: rgba(232, 201, 106, 0.55);
+}
+
+.aum-input--text {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.35;
+}
+
+.aum-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

@@ -1,4 +1,5 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
+import augments from '../api/augments';
 import champions from '../api/champions';
 import craft from '../api/craft';
 import health from '../api/health';
@@ -71,6 +72,11 @@ app.get('/api/tickets', adapt(tickets));
 app.post('/api/tickets', adapt(tickets));
 app.patch('/api/tickets', adapt(tickets));
 app.delete('/api/tickets', adapt(tickets));
+// Catálogo de aumentos: leer cualquiera; crear/editar/borrar solo admin (X-App-Role: admin).
+app.get('/api/augments', adapt(augments));
+app.post('/api/augments', adapt(augments));
+app.patch('/api/augments', adapt(augments));
+app.delete('/api/augments', adapt(augments));
 app.get('/api/loot', adapt(loot));
 app.patch('/api/loot', adapt(loot));
 app.get('/api/party', adapt(party));

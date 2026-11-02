@@ -29,6 +29,8 @@ export type PartyPatch = Partial<Record<(typeof PARTY_FIELDS)[number], number>> 
   addSpawnTokens?: Partial<Record<SpawnTokenKind, number>>;
   /** Gasta 1 token de esa rareza (falla si no queda ninguno). */
   spendSpawnToken?: SpawnTokenKind;
+  /** Muestra la sección Aumentos a los players en la barra lateral. */
+  aumentosForPlayers?: boolean;
 };
 
 export type BasicAttackEntry = { type: string; scaling: number[] };
@@ -320,6 +322,12 @@ export function parsePartyPatch(body: unknown): PartyPatch {
       throw new HttpError(400, 'spendSpawnToken tiene que ser basico, epico, legendario, rollBasico o rollEpico');
     }
     patch.spendSpawnToken = source.spendSpawnToken as SpawnTokenKind;
+  }
+  if (source.aumentosForPlayers !== undefined) {
+    if (typeof source.aumentosForPlayers !== 'boolean') {
+      throw new HttpError(400, 'aumentosForPlayers tiene que ser true o false');
+    }
+    patch.aumentosForPlayers = source.aumentosForPlayers;
   }
   if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return patch;
@@ -1176,5 +1184,49 @@ export function parseHistoryRevertBatch(body: unknown): { id: string; kind: Hist
     seen.add(key);
     out.push(entry);
   }
+  return out;
+}
+
+export const AUGMENT_NAME_MAX = 80;
+export const AUGMENT_DESCRIPTION_MAX = 1000;
+
+/** Aumento del catálogo (colección augments). Los players lo comprarán con oro. */
+export type AugmentInput = {
+  name: string;
+  description: string;
+  price: number;
+};
+
+/** POST /api/augments: { name, description?, price? }. Con partial (PATCH) todos opcionales. */
+export function parseAugmentInput(body: unknown, partial: true): Partial<AugmentInput>;
+export function parseAugmentInput(body: unknown, partial?: false): AugmentInput;
+export function parseAugmentInput(body: unknown, partial = false): Partial<AugmentInput> {
+  const source = asObject(body);
+  const out: Partial<AugmentInput> = {};
+  if (source.name !== undefined || !partial) {
+    if (typeof source.name !== 'string' || !source.name.trim()) throw new HttpError(400, 'Pon un nombre al aumento');
+    const name = source.name.trim();
+    if (name.length > AUGMENT_NAME_MAX) throw new HttpError(400, `El nombre admite como máximo ${AUGMENT_NAME_MAX} caracteres`);
+    out.name = name;
+  }
+  if (source.description !== undefined && source.description !== null) {
+    if (typeof source.description !== 'string') throw new HttpError(400, 'La descripción tiene que ser un texto');
+    const description = source.description.trim();
+    if (description.length > AUGMENT_DESCRIPTION_MAX) {
+      throw new HttpError(400, `La descripción admite como máximo ${AUGMENT_DESCRIPTION_MAX} caracteres`);
+    }
+    out.description = description;
+  } else if (!partial) {
+    out.description = '';
+  }
+  if (source.price !== undefined && source.price !== null) {
+    if (typeof source.price !== 'number' || !Number.isInteger(source.price) || source.price < 0) {
+      throw new HttpError(400, 'El precio tiene que ser un entero de 0 o más');
+    }
+    out.price = source.price;
+  } else if (!partial) {
+    out.price = 0;
+  }
+  if (partial && Object.keys(out).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return out;
 }

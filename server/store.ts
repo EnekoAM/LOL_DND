@@ -4,7 +4,7 @@ import { HttpError, logError } from './errors';
 import { buildLootItems } from './lootItems';
 import { RANKED_SLOTS, canRaise, normalizeRanks, ultRankCap, unassignedPoints, type AbilityRanks } from './abilityRanks';
 import { LOOT_RULE_KEYS, parseLootRules } from './validate';
-import type { ChampionAbility, ChampionFieldsPatch, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput, TicketStatus } from './validate';
+import type { AugmentInput, ChampionAbility, ChampionFieldsPatch, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput, TicketStatus } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -1224,10 +1224,65 @@ export async function deleteTicket(id: string): Promise<{ id: string }> {
   return { id };
 }
 
+export type AugmentEntry = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  createdAt: string;
+};
+
+function toAugment(doc: Document): AugmentEntry {
+  const created = doc.createdAt instanceof Date
+    ? doc.createdAt
+    : doc._id instanceof ObjectId
+      ? doc._id.getTimestamp()
+      : new Date(0);
+  return {
+    id: String(doc._id),
+    name: typeof doc.name === 'string' ? doc.name : '',
+    description: typeof doc.description === 'string' ? doc.description : '',
+    price: typeof doc.price === 'number' && Number.isFinite(doc.price) && doc.price >= 0 ? Math.floor(doc.price) : 0,
+    createdAt: created.toISOString(),
+  };
+}
+
+const MISSING_AUGMENT = 'No existe ese aumento';
+
+/** Catálogo de aumentos (colección augments), por nombre. */
+export async function listAugments(): Promise<AugmentEntry[]> {
+  const docs = await (await collection('augments')).find({}).sort({ name: 1, _id: 1 }).collation(CI).toArray();
+  return docs.map(toAugment);
+}
+
+export async function createAugment(input: AugmentInput): Promise<AugmentEntry> {
+  const doc: Document = { ...input, createdAt: new Date() };
+  const result = await (await collection('augments')).insertOne(doc);
+  return toAugment({ ...doc, _id: result.insertedId });
+}
+
+export async function updateAugment(id: string, patch: Partial<AugmentInput>): Promise<AugmentEntry> {
+  if (!ObjectId.isValid(id)) throw new HttpError(404, MISSING_AUGMENT);
+  const col = await collection('augments');
+  const _id = new ObjectId(id);
+  const result = await col.updateOne({ _id }, { $set: { ...patch, updatedAt: new Date() } });
+  if (result.matchedCount === 0) throw new HttpError(404, MISSING_AUGMENT);
+  const doc = await col.findOne({ _id });
+  if (!doc) throw new HttpError(404, MISSING_AUGMENT);
+  return toAugment(doc);
+}
+
+export async function deleteAugment(id: string): Promise<{ id: string }> {
+  if (!ObjectId.isValid(id)) throw new HttpError(404, MISSING_AUGMENT);
+  const result = await (await collection('augments')).deleteOne({ _id: new ObjectId(id) });
+  if (result.deletedCount === 0) throw new HttpError(404, MISSING_AUGMENT);
+  return { id };
+}
+
 export async function mongoStatus() {
   const db = await getDb();
   await db.command({ ping: 1 });
-  const names = ['champions', 'items', 'players', 'roles', 'loot', 'party', 'rollHistoric', 'craftHistoric', 'buyHistoric', 'sellHistoric', 'tickets'] as const;
+  const names = ['champions', 'items', 'players', 'roles', 'loot', 'party', 'rollHistoric', 'craftHistoric', 'buyHistoric', 'sellHistoric', 'tickets', 'augments'] as const;
   const counts = Object.fromEntries(
     await Promise.all(names.map(async name => [name, await db.collection(name).estimatedDocumentCount()] as const)),
   );
