@@ -94,11 +94,12 @@ const ADMIN_UNLOCKS: { key: PlayerUnlockKey; label: string; hint: string }[] = [
   { key: 'quest', label: 'Pestaña Quest', hint: 'Desbloquea la pestaña Quest' },
   { key: 'aumentos', label: 'Pestaña Aumentos', hint: 'Desbloquea la pestaña Aumentos' },
   { key: 'questVisible', label: 'Quests visibles para players', hint: 'Si está apagado, los players no ven las quests aunque la pestaña esté desbloqueada' },
+  { key: 'aumentosVisible', label: 'Aumentos visibles para players', hint: 'Si está apagado, los players no ven los aumentos aunque la pestaña esté desbloqueada' },
 ];
 
 /** questVisible es visible por defecto; el resto de desbloqueos empiezan apagados. */
 const unlockOn = (unlocks: PlayerUnlocks, key: PlayerUnlockKey): boolean =>
-  key === 'questVisible' ? unlocks.questVisible !== false : unlocks[key] === true;
+  key === 'questVisible' || key === 'aumentosVisible' ? unlocks[key] !== false : unlocks[key] === true;
 
 /** Aviso para el admin: ve el contenido aunque los players no puedan. */
 const AdminNotice = ({ locked, hidden, label, busy, onUnlock, onShow }: {
@@ -248,7 +249,9 @@ const PlayerSheet = ({
   };
   /** Toggle de visualización: si está apagado, los players no ven la pestaña Quest. */
   const questsVisible = unlocks.questVisible !== false;
-  const tabHidden = (id: SheetTab): boolean => id === 'quest' && !questsVisible && !isAdmin;
+  const aumentosVisible = unlocks.aumentosVisible !== false;
+  const tabHidden = (id: SheetTab): boolean =>
+    !isAdmin && ((id === 'quest' && !questsVisible) || (id === 'aumentos' && !aumentosVisible));
   const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
   const [portraitFailed, setPortraitFailed] = useState(false);
   const tabKey = `playerSheetTab:${player.name}`;
@@ -404,7 +407,7 @@ const PlayerSheet = ({
           <div className="sheet-tabs" role="tablist" aria-label="Secciones de la ficha">
             {TABS.filter(entry => !tabHidden(entry.id)).map(entry => {
               const locked = tabLocked(entry.id);
-              const hiddenForPlayers = isAdmin && entry.id === 'quest' && !questsVisible;
+              const hiddenForPlayers = isAdmin && ((entry.id === 'quest' && !questsVisible) || (entry.id === 'aumentos' && !aumentosVisible));
               return (
                 <button
                   key={entry.id}
@@ -582,13 +585,14 @@ const PlayerSheet = ({
               {isAdmin && (
                 <AdminNotice
                   locked={tabLocked('aumentos')}
-                  hidden={false}
+                  hidden={!aumentosVisible}
                   label="Aumentos"
                   busy={unlockBusy}
                   onUnlock={() => void setUnlock('aumentos', true)}
+                  onShow={() => void setUnlock('aumentosVisible', true)}
                 />
               )}
-              <AumentoList aumentos={player.aumentos ?? []} canEdit={canManageExtras} onChange={onAumentosChange} />
+              <AumentoList aumentos={player.aumentos ?? []} canEdit={canManageExtras} showHidden={canManageExtras} onChange={onAumentosChange} />
             </section>
           )}
         </div>

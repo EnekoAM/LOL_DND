@@ -70,7 +70,7 @@ export type PlayerPatch = {
 };
 
 export type PlayerQuest = { id: string; name: string; description?: string; reward?: string; done: boolean; hidden?: boolean };
-export type PlayerAumento = { id: string; name: string; description?: string };
+export type PlayerAumento = { id: string; name: string; description?: string; hidden?: boolean };
 
 const ENTRY_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const MAX_ENTRIES = 100;
@@ -136,15 +136,20 @@ function playerQuests(value: unknown): PlayerQuest[] {
 function playerAumentos(value: unknown): PlayerAumento[] {
   const list = entryList(value, 'aumentos').map((raw, index) => {
     const { id, name, description } = entryBase(raw, 'aumentos', index);
+    const hidden = (raw as Record<string, unknown>).hidden;
+    if (hidden !== undefined && typeof hidden !== 'boolean') {
+      throw new HttpError(400, `aumentos[${index}].hidden tiene que ser true o false`);
+    }
     const aumento: PlayerAumento = { id, name };
     if (description) aumento.description = description;
+    if (hidden === true) aumento.hidden = true;
     return aumento;
   });
   assertUniqueIds(list, 'aumentos');
   return list;
 }
 
-const PLAYER_UNLOCK_KEYS = ['quest', 'aumentos', 'questTop', 'questTopAssigned', 'questVisible'] as const;
+const PLAYER_UNLOCK_KEYS = ['quest', 'aumentos', 'questTop', 'questTopAssigned', 'questVisible', 'aumentosVisible'] as const;
 export type PlayerUnlockKey = (typeof PLAYER_UNLOCK_KEYS)[number];
 
 function playerUnlocks(value: unknown): Partial<Record<PlayerUnlockKey, boolean>> {
@@ -154,7 +159,7 @@ function playerUnlocks(value: unknown): Partial<Record<PlayerUnlockKey, boolean>
   const parsed: Partial<Record<PlayerUnlockKey, boolean>> = {};
   for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
     if (!PLAYER_UNLOCK_KEYS.includes(key as PlayerUnlockKey)) {
-      throw new HttpError(400, `Desbloqueo desconocido: ${key} (quest, aumentos, questTop o questVisible)`);
+      throw new HttpError(400, `Desbloqueo desconocido: ${key} (quest, aumentos, questTop, questVisible o aumentosVisible)`);
     }
     if (typeof raw !== 'boolean') throw new HttpError(400, `unlocks.${key} tiene que ser true o false`);
     parsed[key as PlayerUnlockKey] = raw;

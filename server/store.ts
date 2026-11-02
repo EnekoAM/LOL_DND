@@ -17,7 +17,7 @@ type PlayerDoc = Document & {
   sheet?: PlayerSheet;
   abilityRanks?: Partial<AbilityRanks>;
   unassignedPoints?: number;
-  unlocks?: Partial<Record<'quest' | 'aumentos' | 'questTop' | 'questTopAssigned' | 'questVisible', boolean>>;
+  unlocks?: Partial<Record<'quest' | 'aumentos' | 'questTop' | 'questTopAssigned' | 'questVisible' | 'aumentosVisible', boolean>>;
   quests?: PlayerPatch['quests'];
   aumentos?: PlayerPatch['aumentos'];
 };

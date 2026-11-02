@@ -198,10 +198,12 @@ export const QuestList = ({ quests, canEdit, showHidden = canEdit, onChange }: Q
 type AumentoProps = {
   aumentos: PlayerAumento[];
   canEdit: boolean;
+  /** Admin/editor: ve también los aumentos ocultos para players. */
+  showHidden?: boolean;
   onChange: (aumentos: PlayerAumento[]) => Promise<void>;
 };
 
-export const AumentoList = ({ aumentos, canEdit, onChange }: AumentoProps) => {
+export const AumentoList = ({ aumentos, canEdit, showHidden = canEdit, onChange }: AumentoProps) => {
   const { busy, error, save } = useListSave(onChange);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -214,6 +216,17 @@ export const AumentoList = ({ aumentos, canEdit, onChange }: AumentoProps) => {
     const next = aumentos.map(a => (a.id === id ? withOptional<PlayerAumento>({ ...a, name: values.name }, values, false) : a));
     if (await save(next)) setEditingId(null);
   };
+  const toggleHidden = (id: string) =>
+    void save(
+      aumentos.map(a => {
+        if (a.id !== id) return a;
+        const next = { ...a };
+        if (a.hidden) delete next.hidden;
+        else next.hidden = true;
+        return next;
+      }),
+    );
+  const visible = showHidden ? aumentos : aumentos.filter(a => !a.hidden);
   const remove = (aumento: PlayerAumento) => {
     if (!window.confirm(`¿Quitar el aumento «${aumento.name}»?`)) return;
     void save(aumentos.filter(a => a.id !== aumento.id));
@@ -221,11 +234,11 @@ export const AumentoList = ({ aumentos, canEdit, onChange }: AumentoProps) => {
 
   return (
     <ul className="sheet-quests">
-      {aumentos.length === 0 && !canEdit && <li className="calc-build-empty">Todavía no hay aumentos.</li>}
+      {visible.length === 0 && !canEdit && <li className="calc-build-empty">Todavía no hay aumentos.</li>}
       {aumentos.length === 0 && canEdit && !adding && (
         <li className="sheet-hint">Los aumentos que añadas tendrán Editar y Quitar.</li>
       )}
-      {aumentos.map(aumento =>
+      {visible.map(aumento =>
         editingId === aumento.id ? (
           <li key={aumento.id} className="sheet-add">
             <EntryForm
@@ -239,14 +252,27 @@ export const AumentoList = ({ aumentos, canEdit, onChange }: AumentoProps) => {
             />
           </li>
         ) : (
-          <li key={aumento.id} className="sheet-quest sheet-aumento">
+          <li key={aumento.id} className={cx('sheet-quest', 'sheet-aumento', aumento.hidden && 'sheet-quest--hidden')}>
             <span className="sheet-quest__mark" aria-hidden="true">✦</span>
             <div className="sheet-quest__body">
-              <div className="sheet-quest__name">{aumento.name}</div>
+              <div className="sheet-quest__name">
+                {aumento.name}
+                {aumento.hidden && <span className="sheet-quest__tag">Oculto para players</span>}
+              </div>
               {aumento.description && <div className="sheet-quest__desc">{aumento.description}</div>}
             </div>
             {canEdit && (
               <div className="sheet-quest__actions">
+                <button
+                  type="button"
+                  className="sheet-quest__btn"
+                  disabled={busy}
+                  title={aumento.hidden ? 'Los players no lo ven' : 'Los players lo ven'}
+                  aria-pressed={!aumento.hidden}
+                  onClick={() => toggleHidden(aumento.id)}
+                >
+                  {aumento.hidden ? '🚫 Oculto' : '👁 Visible'}
+                </button>
                 <button type="button" className="sheet-quest__btn" disabled={busy} title="Editar aumento" onClick={() => setEditingId(aumento.id)}>
                   ✎ Editar
                 </button>

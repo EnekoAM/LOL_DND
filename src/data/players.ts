@@ -57,6 +57,8 @@ export type PlayerUnlocks = {
   questTopAssigned?: boolean;
   /** Visualización de quests para players. false = ocultas aunque la pestaña esté desbloqueada (por defecto visibles). */
   questVisible?: boolean;
+  /** Visualización de aumentos para players (por defecto visibles). */
+  aumentosVisible?: boolean;
 };
 
 export type PlayerUnlockKey = keyof PlayerUnlocks;
@@ -77,6 +79,8 @@ export type PlayerAumento = {
   id: string;
   name: string;
   description?: string;
+  /** Oculto para los players (el admin lo sigue viendo). */
+  hidden?: boolean;
 };
 
 export type BasicAttackEntry = { type: string; scaling: number[] };
