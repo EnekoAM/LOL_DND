@@ -394,6 +394,7 @@ const PlayerSheet = ({
                 sheet={player.sheet}
                 equipment={player.equipamiento}
                 defaultOpen
+                lockFutureLevels
               />
             </section>
           )}

@@ -382,6 +382,77 @@
 
 .calc-sheet__row--current .calc-sheet__zero { color: rgba(232,201,106,0.35); }
 
+/* Tabla de rol en fichas de players: niveles aún no alcanzados, oscurecidos bajo un candado. */
+.calc-sheet-scroll--locks { position: relative; }
+
+.calc-sheet__row--locked th,
+.calc-sheet__row--locked td {
+  background: #070503;
+  color: rgba(212,196,154,0.32);
+}
+
+.calc-sheet__row--locked td {
+  filter: blur(1.6px);
+  user-select: none;
+}
+
+.calc-sheet__row--locked .calc-sheet__zero { color: rgba(212,196,154,0.14); }
+
+.calc-sheet__lock-mini {
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  color: rgba(201,168,76,0.55);
+}
+
+.calc-sheet__lock {
+  position: absolute;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5,3,1,0.15) 0%, rgba(5,3,1,0.55) 100%),
+    repeating-linear-gradient(135deg, rgba(201,168,76,0.035) 0 8px, transparent 8px 16px);
+  border-top: 1px solid rgba(201,168,76,0.28);
+  box-shadow: inset 0 10px 18px -12px rgba(0,0,0,0.9);
+}
+
+.calc-sheet__lock-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  border: 1px solid rgba(201,168,76,0.4);
+  background: rgba(14,10,5,0.92);
+  box-shadow: 0 0 18px rgba(0,0,0,0.7), 0 0 10px rgba(201,168,76,0.12);
+  white-space: nowrap;
+}
+
+.calc-sheet__lock-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--gold);
+  filter: drop-shadow(0 0 4px rgba(201,168,76,0.45));
+}
+
+.calc-sheet__lock-title {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+
+.calc-sheet__lock-sub {
+  font-size: 11px;
+  color: rgba(212,196,154,0.6);
+}
+
 .calc-scores {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));

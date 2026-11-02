@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react';
+import { useLayoutEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react';
 import { findItem } from '../../data/items';
 import { partyLevel, subscribeParty } from '../../data/party';
 import { cx } from '../../lib/cx';
@@ -32,6 +32,8 @@ type Props = {
   level?: number;
   /** Si true, la tabla de rol sale desplegada. */
   roleTableOpen?: boolean;
+  /** Si true (fichas de players), los niveles por encima del actual salen oscurecidos con candado. */
+  lockFutureLevels?: boolean;
 };
 
 type SheetRow = {
@@ -42,7 +44,51 @@ type SheetRow = {
   onClick?: () => void;
   passive?: string;
   active?: string;
+  /** Nivel aún no alcanzado: fila oscurecida bajo el candado. */
+  locked?: boolean;
 };
+
+const LockIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path
+      fill="currentColor"
+      d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Zm3 3.5a1.75 1.75 0 0 1 1 3.19V19h-2v-2.31a1.75 1.75 0 0 1 1-3.19Z"
+    />
+  </svg>
+);
+
+type LockArea = { top: number; height: number; width: number };
+
+/** Posición del bloque de filas bloqueadas dentro del scroll de la tabla. */
+function useLockArea(
+  scrollRef: RefObject<HTMLDivElement | null>,
+  tableRef: RefObject<HTMLTableElement | null>,
+  deps: unknown[],
+) {
+  const [area, setArea] = useState<LockArea | null>(null);
+  useLayoutEffect(() => {
+    const scroll = scrollRef.current;
+    const table = tableRef.current;
+    if (!scroll || !table) return undefined;
+    const measure = () => {
+      const first = table.querySelector<HTMLTableRowElement>('tr.calc-sheet__row--locked');
+      if (!first) {
+        setArea(null);
+        return;
+      }
+      const box = scroll.getBoundingClientRect();
+      const row = first.getBoundingClientRect();
+      const bottom = table.getBoundingClientRect().bottom;
+      setArea({ top: row.top - box.top + scroll.scrollTop, height: bottom - row.top, width: table.offsetWidth });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(table);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+  return area;
+}
 
 const hasEffect = (text: string | undefined): boolean => {
   const value = text?.trim();
@@ -81,48 +127,91 @@ const EffectCell = ({ text }: { text: string | undefined }) => {
   return <td className="calc-sheet__effect" title={text}>Sí</td>;
 };
 
-const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: boolean; className?: string }) => (
-  <div className={cx('calc-sheet-scroll', className)}>
-    <table className="calc-sheet">
-      <thead>
-        <tr>
-          <th>Origen</th>
-          {STAT_COLUMNS.map(column => (
-            <th key={column.key} title={column.title}>{column.label}</th>
-          ))}
-          {effects && (
-            <>
-              <th>PASIVA</th>
-              <th>ACTIVA</th>
-            </>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map(row => (
-          <tr key={row.key} className={cx(row.tone && `calc-sheet__row--${row.tone}`)}>
-            <th scope="row">
-              {row.onClick ? (
-                <button type="button" className="calc-sheet__label-btn" title={row.label} onClick={row.onClick}>
-                  {row.label}
-                </button>
-              ) : row.label}
-            </th>
-            <StatCells line={row.line} />
+const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: boolean; className?: string }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const lockedRows = rows.filter(row => row.locked);
+  const lockKey = lockedRows.map(row => row.key).join(',');
+  const lockArea = useLockArea(scrollRef, tableRef, [lockKey, rows.length]);
+  const firstLocked = lockedRows[0]?.label;
+
+  return (
+    <div ref={scrollRef} className={cx('calc-sheet-scroll', lockedRows.length > 0 && 'calc-sheet-scroll--locks', className)}>
+      <table ref={tableRef} className="calc-sheet">
+        <thead>
+          <tr>
+            <th>Origen</th>
+            {STAT_COLUMNS.map(column => (
+              <th key={column.key} title={column.title}>{column.label}</th>
+            ))}
             {effects && (
               <>
-                <EffectCell text={row.passive} />
-                <EffectCell text={row.active} />
+                <th>PASIVA</th>
+                <th>ACTIVA</th>
               </>
             )}
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+        </thead>
+        <tbody>
+          {rows.map(row => (
+            <tr
+              key={row.key}
+              className={cx(row.tone && `calc-sheet__row--${row.tone}`, row.locked && 'calc-sheet__row--locked')}
+              aria-disabled={row.locked || undefined}
+            >
+              <th scope="row">
+                {row.locked && <LockIcon className="calc-sheet__lock-mini" />}
+                {row.onClick ? (
+                  <button type="button" className="calc-sheet__label-btn" title={row.label} onClick={row.onClick}>
+                    {row.label}
+                  </button>
+                ) : row.label}
+              </th>
+              <StatCells line={row.line} />
+              {effects && (
+                <>
+                  <EffectCell text={row.passive} />
+                  <EffectCell text={row.active} />
+                </>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {lockArea && (
+        <div
+          className="calc-sheet__lock"
+          style={{ top: lockArea.top, height: lockArea.height, width: lockArea.width }}
+          aria-hidden="true"
+        >
+          <div className="calc-sheet__lock-badge">
+            <LockIcon className="calc-sheet__lock-icon" />
+            <span className="calc-sheet__lock-title">Bloqueado</span>
+            {firstLocked && (
+              <span className="calc-sheet__lock-sub">
+                {lockedRows.length === 1 ? firstLocked : `${firstLocked} – ${lockedRows[lockedRows.length - 1].label}`}
+                {' · sube de nivel para desbloquear'}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
-const RoleTablePanel = ({ roleId, level, defaultOpen = false }: { roleId: string; level?: number; defaultOpen?: boolean }) => {
+const RoleTablePanel = ({
+  roleId,
+  level,
+  defaultOpen = false,
+  lockLevel,
+}: {
+  roleId: string;
+  level?: number;
+  defaultOpen?: boolean;
+  /** Niveles por encima de este salen bloqueados (candado). */
+  lockLevel?: number;
+}) => {
   const [open, setOpen] = useState(defaultOpen);
   const [selectedId, setSelectedId] = useState(roleId);
   const role = findRoleTable(selectedId) ?? ROLE_TABLES[0];
@@ -160,6 +249,7 @@ const RoleTablePanel = ({ roleId, level, defaultOpen = false }: { roleId: string
               label: `Nv. ${rowLevel}`,
               line,
               tone: rowLevel === level && selectedId === roleId ? 'current' : undefined,
+              locked: lockLevel !== undefined && rowLevel > lockLevel,
             };
           })}
         />
@@ -168,7 +258,15 @@ const RoleTablePanel = ({ roleId, level, defaultOpen = false }: { roleId: string
   );
 };
 
-const StatsTable = ({ playerName, sheet, equipment, defaultOpen = false, level: levelOverride, roleTableOpen = false }: Props) => {
+const StatsTable = ({
+  playerName,
+  sheet,
+  equipment,
+  defaultOpen = false,
+  level: levelOverride,
+  roleTableOpen = false,
+  lockFutureLevels = false,
+}: Props) => {
   const [open, setOpen] = useState(defaultOpen);
   const partyLevelNow = useSyncExternalStore(subscribeParty, partyLevel);
   const level = sheet ? (levelOverride ?? partyLevelNow) : undefined;
@@ -243,6 +341,7 @@ const StatsTable = ({ playerName, sheet, equipment, defaultOpen = false, level: 
         roleId={sheet?.roleId ?? ROLE_TABLES[0].id}
         level={level}
         defaultOpen={roleTableOpen}
+        lockLevel={lockFutureLevels ? (level ?? partyLevelNow) : undefined}
       />
     </>
   );

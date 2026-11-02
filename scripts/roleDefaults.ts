@@ -1,4 +1,8 @@
 import type { RoleStatLine as StatLine, RoleTable } from '../server/validate';
+import { extendLevels } from './roleExtend';
+
+/** Niveles de cada tabla de rol (1-20). Las filas escritas abajo llegan al 18; el resto se prolonga con extendLevels(). */
+export const ROLE_MAX_LEVEL = 20;
 
 /**
  * Tablas de rol × nivel que antes vivían en src/features/calculos/roleTables.ts.
@@ -46,7 +50,7 @@ function row(
  * Ajusta la dureza global tocando HP_RAMP_START y HP_RAMP_STEP.
  */
 const HP_RAMP_START = 1.25; // multiplicador en nivel 1
-const HP_RAMP_STEP = 0.044; // +0,044 por nivel → ≈ ×2 en nivel 18
+const HP_RAMP_STEP = 0.044; // +0,044 por nivel → ≈ ×2 en nivel 18, ×2,09 en el 20
 const HP_TIER_STARTS = [6, 11, 16];
 
 function hpAt(base: number, level: number, tierBonus: number[] = []): number {
@@ -58,9 +62,12 @@ function hpAt(base: number, level: number, tierBonus: number[] = []): number {
   return Math.round((raw + base) * (HP_RAMP_START + (level - 1) * HP_RAMP_STEP));
 }
 
-/** Rellena el hp de cada nivel a partir de la vida base. tierBonus: incrementos extra en los niveles 6, 11 y 16. */
+/**
+ * Prolonga la tabla hasta ROLE_MAX_LEVEL (misma progresión que las últimas filas)
+ * y rellena el hp de cada nivel a partir de la vida base. tierBonus: incrementos extra en los niveles 6, 11 y 16.
+ */
 function withHp(levels: StatLine[], base: number, tierBonus: number[] = []): StatLine[] {
-  return levels.map((level, index) => ({ ...level, hp: hpAt(base, index + 1, tierBonus) }));
+  return extendLevels(levels, ROLE_MAX_LEVEL).map((level, index) => ({ ...level, hp: hpAt(base, index + 1, tierBonus) }));
 }
 
 const mago: StatLine[] = [
