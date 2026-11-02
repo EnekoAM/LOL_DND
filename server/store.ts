@@ -18,6 +18,8 @@ type PlayerDoc = Document & {
   abilityRanks?: Partial<AbilityRanks>;
   unassignedPoints?: number;
   unlocks?: Partial<Record<'quest' | 'aumentos' | 'questTop', boolean>>;
+  quests?: PlayerPatch['quests'];
+  aumentos?: PlayerPatch['aumentos'];
 };
 
 type StringIdDoc = Document & { _id: string };
@@ -844,6 +846,8 @@ export async function updatePlayer(name: string, patch: PlayerPatch) {
     // Mongo guarda el objeto entero: así un PATCH parcial no borra los demás desbloqueos.
     $set.unlocks = { ...current, ...patch.unlocks };
   }
+  if (patch.quests) $set.quests = patch.quests;
+  if (patch.aumentos) $set.aumentos = patch.aumentos;
   if (patch.sheet === null) $unset.sheet = '';
   else if (patch.sheet) $set.sheet = patch.sheet;
   if (patch.basicAttack === null) $unset.basicAttack = '';

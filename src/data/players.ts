@@ -57,6 +57,22 @@ export type PlayerUnlocks = {
 
 export type PlayerUnlockKey = keyof PlayerUnlocks;
 
+/** Quest añadida desde la ficha (players.quests). La «Quest de top» va aparte en unlocks.questTop. */
+export type PlayerQuest = {
+  id: string;
+  name: string;
+  description?: string;
+  reward?: string;
+  done: boolean;
+};
+
+/** Aumento añadido desde la ficha (players.aumentos). */
+export type PlayerAumento = {
+  id: string;
+  name: string;
+  description?: string;
+};
+
 export type BasicAttackEntry = { type: string; scaling: number[] };
 /** Un tipo (formato antiguo) o varios (p. ej. AD + AP). */
 export type BasicAttack = BasicAttackEntry | BasicAttackEntry[];
@@ -111,6 +127,10 @@ export type Player = {
   unassignedPoints?: number;
   /** Pestañas desbloqueadas y quest de top completada. */
   unlocks?: PlayerUnlocks;
+  /** Quests añadidas por el admin (pestaña Quest). */
+  quests?: PlayerQuest[];
+  /** Aumentos añadidos por el admin (pestaña Aumentos). */
+  aumentos?: PlayerAumento[];
 };
 
 /** URL pública del retrato. Vacío si no hay imagen. */
@@ -149,6 +169,10 @@ export type PlayerListPatch = Partial<
   abilityRanks?: Partial<Record<RankedSlot, number>>;
   /** Solo las claves que cambian; la API las fusiona con las guardadas. */
   unlocks?: PlayerUnlocks;
+  /** Lista completa: sustituye la guardada. */
+  quests?: PlayerQuest[];
+  /** Lista completa: sustituye la guardada. */
+  aumentos?: PlayerAumento[];
 };
 
 /** Sustituye la build o el equipamiento y deja la copia en memoria alineada con lo guardado. */

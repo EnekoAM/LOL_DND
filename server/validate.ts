@@ -63,7 +63,82 @@ export type PlayerPatch = {
   abilityRanks?: Partial<Record<RankedSlot, number>>;
   /** Desbloqueos (pestañas Quest/Aumentos y quest de top). Solo las claves que cambian. */
   unlocks?: Partial<Record<PlayerUnlockKey, boolean>>;
+  /** Quests añadidas desde la ficha (lista completa). La quest de top va en unlocks.questTop. */
+  quests?: PlayerQuest[];
+  /** Aumentos añadidos desde la ficha (lista completa). */
+  aumentos?: PlayerAumento[];
 };
+
+export type PlayerQuest = { id: string; name: string; description?: string; reward?: string; done: boolean };
+export type PlayerAumento = { id: string; name: string; description?: string };
+
+const ENTRY_ID = /^[A-Za-z0-9_-]{1,64}$/;
+const MAX_ENTRIES = 100;
+
+function entryText(raw: unknown, label: string, max: number, required: boolean): string | undefined {
+  if (raw === undefined || raw === null || raw === '') {
+    if (required) throw new HttpError(400, `Falta ${label}`);
+    return undefined;
+  }
+  if (typeof raw !== 'string') throw new HttpError(400, `${label} tiene que ser texto`);
+  const text = raw.trim();
+  if (!text) {
+    if (required) throw new HttpError(400, `Falta ${label}`);
+    return undefined;
+  }
+  if (text.length > max) throw new HttpError(400, `${label} admite como máximo ${max} caracteres`);
+  return text;
+}
+
+function entryBase(raw: unknown, field: string, index: number) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new HttpError(400, `${field}[${index}] tiene que ser un objeto`);
+  }
+  const source = raw as Record<string, unknown>;
+  if (typeof source.id !== 'string' || !ENTRY_ID.test(source.id)) {
+    throw new HttpError(400, `${field}[${index}].id no es válido`);
+  }
+  const name = entryText(source.name, `${field}[${index}].name`, 80, true) as string;
+  const description = entryText(source.description, `${field}[${index}].description`, 500, false);
+  return { source, id: source.id, name, description };
+}
+
+function entryList(value: unknown, field: string): unknown[] {
+  if (!Array.isArray(value)) throw new HttpError(400, `${field} tiene que ser una lista`);
+  if (value.length > MAX_ENTRIES) throw new HttpError(400, `${field} admite como máximo ${MAX_ENTRIES}`);
+  return value;
+}
+
+function assertUniqueIds(list: { id: string }[], field: string) {
+  if (new Set(list.map(entry => entry.id)).size !== list.length) throw new HttpError(400, `${field} tiene ids repetidos`);
+}
+
+function playerQuests(value: unknown): PlayerQuest[] {
+  const list = entryList(value, 'quests').map((raw, index) => {
+    const { source, id, name, description } = entryBase(raw, 'quests', index);
+    const reward = entryText(source.reward, `quests[${index}].reward`, 120, false);
+    if (source.done !== undefined && typeof source.done !== 'boolean') {
+      throw new HttpError(400, `quests[${index}].done tiene que ser true o false`);
+    }
+    const quest: PlayerQuest = { id, name, done: source.done === true };
+    if (description) quest.description = description;
+    if (reward) quest.reward = reward;
+    return quest;
+  });
+  assertUniqueIds(list, 'quests');
+  return list;
+}
+
+function playerAumentos(value: unknown): PlayerAumento[] {
+  const list = entryList(value, 'aumentos').map((raw, index) => {
+    const { id, name, description } = entryBase(raw, 'aumentos', index);
+    const aumento: PlayerAumento = { id, name };
+    if (description) aumento.description = description;
+    return aumento;
+  });
+  assertUniqueIds(list, 'aumentos');
+  return list;
+}
 
 const PLAYER_UNLOCK_KEYS = ['quest', 'aumentos', 'questTop'] as const;
 export type PlayerUnlockKey = (typeof PLAYER_UNLOCK_KEYS)[number];
@@ -454,6 +529,8 @@ export function parsePlayerPatch(body: unknown): PlayerPatch {
   if ('sheet' in source) patch.sheet = source.sheet === null ? null : parsePlayerSheet(source.sheet);
   if ('abilityRanks' in source) patch.abilityRanks = abilityRanks(source.abilityRanks);
   if ('unlocks' in source) patch.unlocks = playerUnlocks(source.unlocks);
+  if ('quests' in source) patch.quests = playerQuests(source.quests);
+  if ('aumentos' in source) patch.aumentos = playerAumentos(source.aumentos);
   if ('unassignedPoints' in source) {
     throw new HttpError(400, 'unassignedPoints se calcula (nivel − puntos gastados); cambia abilityRanks');
   }

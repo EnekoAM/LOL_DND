@@ -10,9 +10,12 @@ import {
   type Player,
   type PlayerAbilitySlot,
   type PlayerSheet as PlayerSheetData,
+  type PlayerAumento,
+  type PlayerQuest,
   type PlayerUnlockKey,
   type PlayerUnlocks,
 } from '../../data/players';
+import { AumentoList, QuestList } from './SheetExtras';
 import { normalizeName } from '../../lib/text';
 import BuildPicker from '../calculos/BuildPicker';
 import ItemTile, { type ItemTileState } from '../calculos/ItemTile';
@@ -54,6 +57,10 @@ type Props = {
   onRankChange: (slot: RankedSlot, rank: number) => Promise<void>;
   /** Solo admin: desbloquea pestañas o marca la quest de top (se manda el objeto completo). */
   onUnlocksChange: (unlocks: PlayerUnlocks) => Promise<void>;
+  /** Solo admin: lista completa de quests añadidas (sin la de top). */
+  onQuestsChange: (quests: PlayerQuest[]) => Promise<void>;
+  /** Solo admin: lista completa de aumentos. */
+  onAumentosChange: (aumentos: PlayerAumento[]) => Promise<void>;
 };
 
 type SheetTab = 'general' | 'habilidades' | 'equipo' | 'build' | 'desglose' | 'quest' | 'aumentos';
@@ -179,9 +186,12 @@ const PlayerSheet = ({
   onAbilityChange,
   onRankChange,
   onUnlocksChange,
+  onQuestsChange,
+  onAumentosChange,
 }: Props) => {
-  const { role } = useAppRole();
+  const { role, canEdit } = useAppRole();
   const isAdmin = role === 'admin';
+  const canManageExtras = isAdmin || canEdit;
   const unlocks = player.unlocks ?? {};
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
@@ -527,6 +537,7 @@ const PlayerSheet = ({
                     <span className="sheet-quest__state">{unlocks.questTop === true ? 'Completada' : 'Pendiente'}</span>
                   )}
                 </li>
+                <QuestList quests={player.quests ?? []} canEdit={canManageExtras} onChange={onQuestsChange} />
               </ul>
               {unlockError && <p className="calc-build-error">{unlockError}</p>}
             </section>
@@ -535,7 +546,7 @@ const PlayerSheet = ({
           {tab === 'aumentos' && !tabLocked('aumentos') && (
             <section className="sheet-panel">
               <div className="sheet-panel__title">Aumentos</div>
-              <p className="calc-build-empty">Todavía no hay aumentos.</p>
+              <AumentoList aumentos={player.aumentos ?? []} canEdit={canManageExtras} onChange={onAumentosChange} />
             </section>
           )}
         </div>

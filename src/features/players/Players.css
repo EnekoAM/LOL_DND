@@ -1424,3 +1424,48 @@
 .sheet-quest__state { font-size: 11px; color: rgba(212, 196, 154, 0.7); text-transform: uppercase; letter-spacing: 1px; }
 .sheet-quest--done .sheet-quest__state { color: #8fd88f; }
 .sheet-quest__btn { margin-top: 0; }
+
+/* Quests y aumentos añadidos desde la ficha (solo admin añade/borra). */
+.sheet-quest__desc { font-size: 12px; color: rgba(212, 196, 154, 0.78); margin: 2px 0; white-space: pre-wrap; }
+.sheet-quest__actions { display: flex; gap: 6px; align-items: center; flex: none; }
+.sheet-quest__btn--danger { padding: 6px 9px; border-color: rgba(200, 90, 80, 0.5); color: #e7a39b; }
+.sheet-quest__btn--ghost { background: transparent; }
+.sheet-aumento .sheet-quest__mark { color: #b49bff; }
+.sheet-add { list-style: none; }
+.sheet-add__open {
+  appearance: none;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px dashed rgba(201, 168, 76, 0.4);
+  border-radius: 6px;
+  background: rgba(10, 8, 4, 0.25);
+  color: var(--gold-bright);
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.sheet-add__open:hover { background: rgba(42, 24, 0, 0.55); }
+.sheet-add__form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 6px;
+  background: rgba(10, 8, 4, 0.45);
+}
+.sheet-add__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #f0e6c8;
+  font: inherit;
+  font-size: 12px;
+}
+.sheet-add__textarea { resize: vertical; min-height: 44px; }
+.sheet-add__row { display: flex; gap: 6px; justify-content: flex-end; }
+.sheet-add__row .sheet-quest__btn { margin-top: 0; }
