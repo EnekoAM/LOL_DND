@@ -10,6 +10,7 @@ import {
   loadNpcs,
   npcKindIcon,
   npcKindLabel,
+  npcCircleFrame,
   npcImageStyle,
   sortNpcs,
   type Npc,
@@ -172,7 +173,7 @@ const Npcs = () => {
               <PickerCard key={npc.id} name={npc.name} className="calc-card--champ" onClick={() => setSelectedId(npc.id)}>
                 <div className="calc-champ-card" style={cssVars({ '--champ-color': npc.kind === 'monstruo' ? '#8a1a1a' : regionColor(npc.region) })}>
                   <div className="calc-champ-card__portrait">
-                    {npc.image ? <img src={npc.image} alt="" style={npcImageStyle(npc.imageFrame)} /> : <span aria-hidden="true">{npc.name.charAt(0)}</span>}
+                    {npc.image ? <img src={npc.image} alt="" style={npcImageStyle(npcCircleFrame(npc))} /> : <span aria-hidden="true">{npc.name.charAt(0)}</span>}
                   </div>
                   {canEdit && npc.visible && <div className="calc-champ-card__active">Visible</div>}
                   <div className="calc-champ-card__meta">

@@ -65,14 +65,18 @@ export function npcImageStyle(frame: NpcImageFrame | null | undefined): CSSPrope
   };
 }
 
-function normalizeFrame(value: unknown): NpcImageFrame | null {
+function normalizeFrame(value: unknown, keepDefault = false): NpcImageFrame | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const { x, y, zoom } = value as Record<string, unknown>;
   const num = (raw: unknown, fallback: number, min: number, max: number) =>
     typeof raw === 'number' && Number.isFinite(raw) ? Math.min(max, Math.max(min, raw)) : fallback;
   const frame = { x: num(x, 50, 0, 100), y: num(y, 50, 0, 100), zoom: num(zoom, 1, NPC_ZOOM_MIN, NPC_ZOOM_MAX) };
-  return isDefaultFrame(frame) ? null : frame;
+  return !keepDefault && isDefaultFrame(frame) ? null : frame;
 }
+
+/** Encuadre de la tarjeta (círculo): el propio si está desvinculado, si no el de la ficha. */
+export const npcCircleFrame = (npc: Pick<Npc, 'imageFrame' | 'imageFrameCircle'>): NpcImageFrame | null =>
+  npc.imageFrameCircle ?? npc.imageFrame;
 
 export type Npc = {
   id: string;
@@ -85,6 +89,8 @@ export type Npc = {
   image: string;
   /** Encuadre de la foto; null = centrada. */
   imageFrame: NpcImageFrame | null;
+  /** Encuadre propio de la tarjeta (círculo); null = vinculado a imageFrame. */
+  imageFrameCircle: NpcImageFrame | null;
   background: string | null;
   description: string;
   stats: NpcStats;
@@ -112,6 +118,7 @@ export const emptyNpc = (kind: NpcKind = 'npc'): NpcInput => ({
   level: 1,
   image: '',
   imageFrame: null,
+  imageFrameCircle: null,
   background: null,
   description: '',
   stats: {},
@@ -153,6 +160,7 @@ function normalize(raw: Npc): Npc {
     level: typeof raw.level === 'number' ? raw.level : 1,
     image: text(raw.image),
     imageFrame: normalizeFrame(raw.imageFrame),
+    imageFrameCircle: normalizeFrame(raw.imageFrameCircle, true),
     background: typeof raw.background === 'string' && raw.background ? raw.background : null,
     description: text(raw.description),
     stats: raw.stats && typeof raw.stats === 'object' ? raw.stats : {},

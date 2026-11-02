@@ -222,3 +222,92 @@
   height: 100%;
   border: 0;
 }
+
+/* Encuadre: vincular / desvincular ficha (cuadrada) y tarjeta (circular) */
+.npc-framer__previews { align-items: stretch; }
+.npc-framer__pane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.npc-framer__pane:last-child { justify-content: center; }
+.npc-framer__label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(212, 196, 154, 0.6);
+}
+.npc-framer__card { touch-action: none; user-select: none; }
+.npc-framer__card--drag { cursor: grab; }
+.npc-framer__card--drag:active { cursor: grabbing; }
+.npc-framer__card img { pointer-events: none; }
+.npc-framer__target--on {
+  outline: 2px solid #c9a84c;
+  outline-offset: 3px;
+  box-shadow: 0 0 14px rgba(201, 168, 76, 0.45);
+}
+.npc-framer__linkcol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: none;
+}
+.npc-framer__chain {
+  width: 2px;
+  flex: 1;
+  min-height: 14px;
+  background: rgba(201, 168, 76, 0.7);
+}
+.npc-framer__previews--unlinked .npc-framer__chain {
+  background: repeating-linear-gradient(to bottom, rgba(212, 196, 154, 0.35) 0 4px, transparent 4px 8px);
+}
+.npc-framer__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px dashed rgba(212, 196, 154, 0.45);
+  background: rgba(10, 8, 4, 0.5);
+  color: rgba(212, 196, 154, 0.75);
+  font: inherit;
+  cursor: pointer;
+  min-width: 96px;
+}
+.npc-framer__link:hover { border-color: #c9a84c; color: #f0e3b8; }
+.npc-framer__link--on {
+  border-style: solid;
+  border-color: #c9a84c;
+  background: rgba(201, 168, 76, 0.18);
+  color: #f0e3b8;
+}
+.npc-framer__link-icon { font-size: 20px; line-height: 1; }
+.npc-framer__link:not(.npc-framer__link--on) .npc-framer__link-icon { opacity: 0.45; filter: grayscale(1); }
+.npc-framer__link-state { font-size: 12px; font-weight: 700; }
+.npc-framer__link-action {
+  font-size: 11px;
+  text-decoration: underline;
+  opacity: 0.8;
+}
+.npc-framer > .npc-framer__hint {
+  display: block;
+  max-width: none;
+  margin-top: 8px;
+}
+.npc-framer__targets { margin-top: 8px; }
+.npc-framer__editing {
+  font-size: 12px;
+  color: rgba(212, 196, 154, 0.7);
+}
+.npc-framer__editing strong { color: #f0e3b8; }
+@media (max-width: 520px) {
+  .npc-framer__linkcol { flex-direction: row; width: 100%; }
+  .npc-framer__chain { height: 2px; width: auto; min-height: 0; min-width: 14px; }
+  .npc-framer__previews--unlinked .npc-framer__chain {
+    background: repeating-linear-gradient(to right, rgba(212, 196, 154, 0.35) 0 4px, transparent 4px 8px);
+  }
+}
