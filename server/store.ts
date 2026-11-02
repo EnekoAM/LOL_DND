@@ -4,7 +4,7 @@ import { HttpError, logError } from './errors';
 import { buildLootItems } from './lootItems';
 import { RANKED_SLOTS, canRaise, normalizeRanks, ultRankCap, unassignedPoints, type AbilityRanks } from './abilityRanks';
 import { LOOT_RULE_KEYS, parseLootRules } from './validate';
-import type { AugmentInput, ChampionAbility, ChampionFieldsPatch, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput, TicketStatus } from './validate';
+import type { AugmentInput, MapPoiInput, MapPoiKind, MapPoiPatch, ChampionAbility, ChampionFieldsPatch, HistoryKind, ItemUpdate, LootRules, LootRulesPatch, PartyPatch, PlayerPatch, PlayerReplace, PlayerSheet, RolePatch, RollRecord, ShopOrder, TicketInput, TicketStatus } from './validate';
 
 const PUBLIC = { projection: { _id: 0, order: 0 } };
 const CI = { locale: 'es', strength: 2 } as const;
@@ -1328,4 +1328,103 @@ export async function mongoStatus() {
     writes: process.env.API_WRITE_KEY?.trim() ? 'protegidas' as const : 'abiertas' as const,
     counts,
   };
+}
+
+// ── Puntos de interés propios del mapa ──
+
+export type MapPoiEntry = {
+  id: string;
+  kind: MapPoiKind;
+  name: string;
+  note?: string;
+  x: number;
+  y: number;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+const MISSING_MAP_POI = 'No existe ese punto del mapa';
+
+function isoDate(value: unknown): string | undefined {
+  if (value instanceof Date) return value.toISOString();
+  return typeof value === 'string' ? value : undefined;
+}
+
+function toMapPoi(doc: Document): MapPoiEntry {
+  const entry: MapPoiEntry = {
+    id: String(doc._id),
+    kind: doc.kind === 'party' ? 'party' : 'poi',
+    name: typeof doc.name === 'string' ? doc.name : '',
+    x: typeof doc.x === 'number' ? doc.x : 0,
+    y: typeof doc.y === 'number' ? doc.y : 0,
+    createdAt: isoDate(doc.createdAt) ?? '',
+  };
+  if (typeof doc.note === 'string' && doc.note) entry.note = doc.note;
+  const updatedAt = isoDate(doc.updatedAt);
+  if (updatedAt) entry.updatedAt = updatedAt;
+  return entry;
+}
+
+async function mapPois(): Promise<Collection> {
+  return collection('mapPois');
+}
+
+export async function listMapPois(): Promise<MapPoiEntry[]> {
+  const docs = await (await mapPois()).find({}).sort({ createdAt: 1 }).toArray();
+  // La party primero; si por lo que sea hubiera varias, solo cuenta la más reciente.
+  const entries = docs.map(toMapPoi);
+  const parties = entries.filter(entry => entry.kind === 'party');
+  const party = parties.sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))[0];
+  return [...(party ? [party] : []), ...entries.filter(entry => entry.kind !== 'party')];
+}
+
+/**
+ * Crea un punto. La ubicación de la party es única: si ya existe, se mueve
+ * (y se actualizan nombre y nota) en vez de crear otra.
+ */
+export async function createMapPoi(input: MapPoiInput): Promise<{ poi: MapPoiEntry; replaced: boolean }> {
+  const col = await mapPois();
+  const now = new Date();
+  if (input.kind === 'party') {
+    const existing = await col.find({ kind: 'party' }).sort({ updatedAt: -1, createdAt: -1 }).toArray();
+    const keep = existing[0];
+    if (keep) {
+      const $set: Document = { name: input.name, x: input.x, y: input.y, updatedAt: now };
+      const update: Document = { $set };
+      if (input.note) $set.note = input.note;
+      else update.$unset = { note: '' };
+      await col.updateOne({ _id: keep._id }, update);
+      // Limpia duplicados antiguos (no debería haber).
+      if (existing.length > 1) await col.deleteMany({ kind: 'party', _id: { $ne: keep._id } });
+      const doc = await col.findOne({ _id: keep._id });
+      if (!doc) throw new HttpError(404, MISSING_MAP_POI);
+      return { poi: toMapPoi(doc), replaced: true };
+    }
+  }
+  const doc: Document = { ...input, createdAt: now };
+  const result = await col.insertOne(doc);
+  return { poi: toMapPoi({ ...doc, _id: result.insertedId }), replaced: false };
+}
+
+export async function updateMapPoi(id: string, patch: MapPoiPatch): Promise<MapPoiEntry> {
+  if (!ObjectId.isValid(id)) throw new HttpError(404, MISSING_MAP_POI);
+  const col = await mapPois();
+  const _id = new ObjectId(id);
+  const { note, ...rest } = patch;
+  const $set: Document = { ...rest, updatedAt: new Date() };
+  const update: Document = { $set };
+  if (note) $set.note = note;
+  else if (note === null) update.$unset = { note: '' };
+  const result = await col.updateOne({ _id }, update);
+  if (result.matchedCount === 0) throw new HttpError(404, MISSING_MAP_POI);
+  const doc = await col.findOne({ _id });
+  if (!doc) throw new HttpError(404, MISSING_MAP_POI);
+  return toMapPoi(doc);
+}
+
+export async function deleteMapPoi(id: string): Promise<{ id: string }> {
+  if (!ObjectId.isValid(id)) throw new HttpError(404, MISSING_MAP_POI);
+  const result = await (await mapPois()).deleteOne({ _id: new ObjectId(id) });
+  if (result.deletedCount === 0) throw new HttpError(404, MISSING_MAP_POI);
+  return { id };
 }

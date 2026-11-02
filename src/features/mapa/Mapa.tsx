@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { cx } from '../../lib/cx';
+import { useAppRole } from '../../data/appRoleContext';
+import { useLiveRevision } from '../../data/live';
+import { createMapPoi, deleteMapPoi, loadMapPois, updateMapPoi, type MapPoi } from '../../data/mapPois';
+import MapaPoiPanel, { type PoiFormDraft } from './MapaPoiPanel';
 import { MAP_PIXELS, POI_KINDS, RUNETERRA_POIS, poiIconSpec, type PoiKind, type RuneterraPoi } from './pois';
 import landmarks3d from './landmarks3d.json';
 import './Mapa.css';
@@ -87,6 +91,31 @@ function poiPopup(poi: RuneterraPoi): string {
 
 const ALL_KINDS = new Set<PoiKind>(POI_KINDS.map(kind => kind.id));
 
+/** Pixel del mapa 8192 → coordenada Leaflet (y al revés), igual que los puntos oficiales. */
+function pixelLatLng(x: number, y: number): L.LatLng {
+  return L.latLng(-y * UNITS_PER_PIXEL, x * UNITS_PER_PIXEL);
+}
+
+function latLngPixel(latlng: L.LatLng): { x: number; y: number } {
+  const clamp = (value: number) => Math.min(MAP_PIXELS, Math.max(0, Math.round(value * 10) / 10));
+  return { x: clamp(latlng.lng / UNITS_PER_PIXEL), y: clamp(-latlng.lat / UNITS_PER_PIXEL) };
+}
+
+/** Pin de los puntos propios: la party con bandera; el resto con chincheta. */
+function customIcon(poi: Pick<MapPoi, 'kind' | 'name'>, selected: boolean, ghost = false): L.DivIcon {
+  const party = poi.kind === 'party';
+  return L.divIcon({
+    className: cx('mapa-mine', party ? 'mapa-mine--party' : 'mapa-mine--poi', selected && 'mapa-mine--on', ghost && 'mapa-mine--ghost'),
+    html:
+      `<span class="mapa-mine__pin" aria-hidden="true">${party ? '\u{1F6A9}' : '\u{1F4CD}'}</span>` +
+      `<span class="mapa-mine__label">${escapeHtml(poi.name || (party ? 'Party' : 'Nuevo punto'))}</span>`,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  });
+}
+
+type Placing = { mode: 'new' } | { mode: 'move'; id: string } | null;
+
 export default function Mapa() {
   const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -98,6 +127,58 @@ export default function Mapa() {
   const [show3d, setShow3d] = useState(true);
   const show3dRef = useRef(show3d);
   show3dRef.current = show3d;
+
+  // ── Puntos propios (Mongo mapPois): todos los ven; solo el admin añade, mueve y borra. ──
+  const isAdmin = useAppRole().role === 'admin';
+  const poisRevision = useLiveRevision('mapPois');
+  const [pois, setPois] = useState<MapPoi[]>([]);
+  const [poisError, setPoisError] = useState<string | null>(null);
+  const [showMine, setShowMine] = useState(true);
+  const [placing, setPlacing] = useState<Placing>(null);
+  const placingRef = useRef<Placing>(null);
+  placingRef.current = placing;
+  const [draft, setDraft] = useState<PoiFormDraft | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const mineRef = useRef<L.LayerGroup>(L.layerGroup());
+  const party = pois.find(poi => poi.kind === 'party') ?? null;
+  const selected = pois.find(poi => poi.id === selectedId) ?? null;
+
+  const refreshPois = useCallback(async () => {
+    try {
+      setPois(await loadMapPois());
+      setPoisError(null);
+    } catch (error) {
+      setPoisError(error instanceof Error ? error.message : 'No se pudieron cargar los puntos del mapa');
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshPois();
+  }, [refreshPois, poisRevision]);
+
+  /** Guarda en la API y aplica la respuesta; los errores se muestran en el panel. */
+  const run = useCallback(async (task: () => Promise<void>) => {
+    setBusy(true);
+    setPoisError(null);
+    try {
+      await task();
+    } catch (error) {
+      setPoisError(error instanceof Error ? error.message : 'No se pudo guardar');
+      void refreshPois();
+    } finally {
+      setBusy(false);
+    }
+  }, [refreshPois]);
+
+  const movePoi = useCallback((id: string, x: number, y: number) => run(async () => {
+    const saved = await updateMapPoi(id, { x, y });
+    setPois(list => list.map(poi => (poi.id === id ? saved : poi)));
+    setNotice(saved.kind === 'party' ? 'Ubicación de la party movida' : `«${saved.name}» movido`);
+  }), [run]);
+  const movePoiRef = useRef(movePoi);
+  movePoiRef.current = movePoi;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -160,6 +241,20 @@ export default function Mapa() {
       const sprite = sprites[poi.slug];
       if (sprite) landmarkOverlay(poi, sprite).addTo(landmarks);
     }
+    mineRef.current.addTo(map);
+    // Modo «colocar»: el clic en el mapa fija el punto nuevo o la nueva posición del que se mueve.
+    const onMapClick = (event: L.LeafletMouseEvent) => {
+      const mode = placingRef.current;
+      if (!mode) return;
+      const { x, y } = latLngPixel(event.latlng);
+      if (mode.mode === 'new') {
+        setDraft(prev => ({ kind: prev?.kind ?? 'poi', name: prev?.name ?? '', note: prev?.note ?? '', x, y }));
+      } else {
+        void movePoiRef.current(mode.id, x, y);
+      }
+      setPlacing(null);
+    };
+    map.on('click', onMapClick);
     mapRef.current = map;
     const syncLayers = () => {
       syncPoiLayers(map, groups, shownRef.current);
@@ -178,6 +273,7 @@ export default function Mapa() {
     return () => {
       observer.disconnect();
       map.off('zoomend', syncLayers);
+      map.off('click', onMapClick);
       mapRef.current = null;
       map.remove();
     };
@@ -190,6 +286,99 @@ export default function Mapa() {
   useEffect(() => {
     if (mapRef.current) syncLandmarks(mapRef.current, landmarksRef.current, show3d);
   }, [show3d]);
+
+  // Pines propios: se rehacen al cambiar la lista, la selección o el borrador.
+  useEffect(() => {
+    const layer = mineRef.current;
+    layer.clearLayers();
+    if (!showMine) return;
+    for (const poi of pois) {
+      const marker = L.marker(pixelLatLng(poi.x, poi.y), {
+        icon: customIcon(poi, poi.id === selectedId),
+        title: poi.name,
+        draggable: isAdmin && !busy,
+        riseOnHover: true,
+        zIndexOffset: poi.kind === 'party' ? 2000 : 1000,
+        keyboard: true,
+      });
+      marker.on('click', () => {
+        setDraft(null);
+        setSelectedId(poi.id);
+      });
+      marker.on('dragend', () => {
+        const { x, y } = latLngPixel(marker.getLatLng());
+        void movePoiRef.current(poi.id, x, y);
+      });
+      marker.addTo(layer);
+    }
+    if (draft) {
+      L.marker(pixelLatLng(draft.x, draft.y), {
+        icon: customIcon({ kind: draft.kind, name: draft.name.trim() }, true, true),
+        interactive: false,
+        zIndexOffset: 3000,
+      }).addTo(layer);
+    }
+  }, [pois, selectedId, isAdmin, busy, draft, showMine]);
+
+  // Esc cancela el modo colocar.
+  useEffect(() => {
+    if (!placing) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPlacing(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [placing]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), 3500);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
+  // Si el punto seleccionado desaparece (borrado en otra pestaña), se cierra su panel.
+  useEffect(() => {
+    if (selectedId && !pois.some(poi => poi.id === selectedId)) setSelectedId(null);
+  }, [pois, selectedId]);
+
+  const goToParty = () => {
+    if (!party || !mapRef.current) return;
+    setShowMine(true);
+    const map = mapRef.current;
+    map.flyTo(pixelLatLng(party.x, party.y), Math.max(map.getZoom(), 3.5), { duration: 0.8 });
+    setSelectedId(party.id);
+  };
+
+  const startAdding = () => {
+    setSelectedId(null);
+    setShowMine(true);
+    setDraft(null);
+    setPlacing(current => (current?.mode === 'new' ? null : { mode: 'new' }));
+  };
+
+  const saveDraft = (next: PoiFormDraft) => run(async () => {
+    const { poi, replaced } = await createMapPoi(next);
+    setPois(list => {
+      const rest = list.filter(item => item.id !== poi.id && !(poi.kind === 'party' && item.kind === 'party'));
+      return poi.kind === 'party' ? [poi, ...rest] : [...rest, poi];
+    });
+    setDraft(null);
+    setSelectedId(poi.id);
+    setNotice(replaced ? 'La ubicación de la party se ha movido aquí' : poi.kind === 'party' ? 'Ubicación de la party guardada' : `«${poi.name}» añadido`);
+  });
+
+  const saveDetails = (id: string, patch: { name?: string; note?: string | null }) => run(async () => {
+    const saved = await updateMapPoi(id, patch);
+    setPois(list => list.map(poi => (poi.id === id ? saved : poi)));
+    setNotice('Punto guardado');
+  });
+
+  const removePoi = (id: string) => run(async () => {
+    await deleteMapPoi(id);
+    setPois(list => list.filter(poi => poi.id !== id));
+    setSelectedId(null);
+    setNotice('Punto borrado');
+  });
 
   const toggleKind = (kind: PoiKind) => {
     setShown(prev => {
@@ -224,10 +413,71 @@ export default function Mapa() {
           >
             Monumentos 3D
           </button>
+          <button
+            type="button"
+            className={cx('mapa-chip', 'mapa-chip--mine', showMine && 'mapa-chip--on')}
+            aria-pressed={showMine}
+            onClick={() => setShowMine(on => !on)}
+          >
+            Puntos propios{pois.length ? ` (${pois.length})` : ''}
+          </button>
         </div>
-        <span className="mapa-toolbar__hint">Acerca el zoom para ver ciudades y pueblos &middot; clic en un punto para info</span>
+        <div className="mapa-actions">
+          <button
+            type="button"
+            className="mapa-action"
+            disabled={!party}
+            title={party ? `Centrar en ${party.name}` : 'Todavía no hay ubicación de la party'}
+            onClick={goToParty}
+          >
+            {'\u{1F6A9}'} Ir a la party
+          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              className={cx('mapa-action', 'mapa-action--primary', placing?.mode === 'new' && 'mapa-action--on')}
+              aria-pressed={placing?.mode === 'new'}
+              disabled={busy}
+              onClick={startAdding}
+            >
+              {placing?.mode === 'new' ? 'Cancelar' : '＋ Añadir punto'}
+            </button>
+          )}
+        </div>
+        <span className="mapa-toolbar__hint">
+          {placing
+            ? placing.mode === 'new'
+              ? 'Haz clic en el mapa donde va el punto · Esc para cancelar'
+              : 'Haz clic en la nueva posición · Esc para cancelar'
+            : 'Acerca el zoom para ver ciudades y pueblos · clic en un punto para info'}
+        </span>
       </div>
-      <div ref={hostRef} className="mapa-canvas" />
+      <div className="mapa-stage">
+        <div ref={hostRef} className={cx('mapa-canvas', placing && 'mapa-canvas--placing')} />
+        {notice && <div className="mapa-notice" role="status">{notice}</div>}
+        {(draft || selected || poisError) && (
+          <MapaPoiPanel
+            key={draft ? 'draft' : selected?.id ?? 'error'}
+            draft={draft}
+            selected={draft ? null : selected}
+            party={party}
+            isAdmin={isAdmin}
+            busy={busy}
+            error={poisError}
+            onDraftChange={setDraft}
+            onSaveDraft={next => { void saveDraft(next); }}
+            onCancelDraft={() => setDraft(null)}
+            onRepick={() => setPlacing({ mode: 'new' })}
+            onSaveDetails={(id, patch) => { void saveDetails(id, patch); }}
+            onMove={id => setPlacing({ mode: 'move', id })}
+            onDelete={id => { void removePoi(id); }}
+            onClose={() => {
+              setSelectedId(null);
+              setPoisError(null);
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

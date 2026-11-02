@@ -1344,3 +1344,77 @@ export function parseAugmentInput(body: unknown, partial = false): Partial<Augme
   if (partial && Object.keys(out).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return out;
 }
+
+/** Puntos de interés propios del mapa. «party» = ubicación de la party (solo puede haber una). */
+export const MAP_POI_KINDS = ['party', 'poi'] as const;
+export type MapPoiKind = (typeof MAP_POI_KINDS)[number];
+/** Lado del mapa cosido en px (x/y van de 0 a este valor, origen arriba-izquierda). */
+export const MAP_POI_SIZE = 8192;
+export const MAP_POI_NAME_MAX = 60;
+export const MAP_POI_NOTE_MAX = 500;
+
+export type MapPoiInput = { kind: MapPoiKind; name: string; note?: string; x: number; y: number };
+export type MapPoiPatch = { name?: string; note?: string | null; x?: number; y?: number };
+
+function mapCoord(value: unknown, field: 'x' | 'y'): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > MAP_POI_SIZE) {
+    throw new HttpError(400, `${field} tiene que ser un número entre 0 y ${MAP_POI_SIZE}`);
+  }
+  return Math.round(value * 10) / 10;
+}
+
+function mapPoiName(value: unknown): string {
+  if (typeof value !== 'string') throw new HttpError(400, 'name tiene que ser un texto');
+  const name = value.trim();
+  if (!name) throw new HttpError(400, 'Falta el nombre del punto');
+  if (name.length > MAP_POI_NAME_MAX) throw new HttpError(400, `name puede tener como máximo ${MAP_POI_NAME_MAX} caracteres`);
+  return name;
+}
+
+function mapPoiNote(value: unknown): string | null {
+  if (value === null) return null;
+  if (typeof value !== 'string') throw new HttpError(400, 'note tiene que ser un texto');
+  const note = value.trim();
+  if (note.length > MAP_POI_NOTE_MAX) throw new HttpError(400, `note puede tener como máximo ${MAP_POI_NOTE_MAX} caracteres`);
+  return note || null;
+}
+
+function mapPoiKeys(source: Record<string, unknown>, allowed: string[]): void {
+  for (const key of Object.keys(source)) {
+    if (!allowed.includes(key)) throw new HttpError(400, `Campo desconocido: ${key}`);
+  }
+}
+
+export function parseMapPoiInput(body: unknown): MapPoiInput {
+  const source = asObject(body);
+  mapPoiKeys(source, ['kind', 'name', 'note', 'x', 'y']);
+  const kind = source.kind;
+  if (typeof kind !== 'string' || !MAP_POI_KINDS.includes(kind as MapPoiKind)) {
+    throw new HttpError(400, 'kind tiene que ser party o poi');
+  }
+  const input: MapPoiInput = {
+    kind: kind as MapPoiKind,
+    // La party puede ir sin nombre: se llama «Party».
+    name: kind === 'party' && (source.name === undefined || source.name === '') ? 'Party' : mapPoiName(source.name),
+    x: mapCoord(source.x, 'x'),
+    y: mapCoord(source.y, 'y'),
+  };
+  if (source.note !== undefined) {
+    const note = mapPoiNote(source.note);
+    if (note) input.note = note;
+  }
+  return input;
+}
+
+export function parseMapPoiPatch(body: unknown): MapPoiPatch {
+  const source = asObject(body);
+  if ('kind' in source) throw new HttpError(400, 'El tipo de un punto no se puede cambiar');
+  mapPoiKeys(source, ['id', 'name', 'note', 'x', 'y']);
+  const patch: MapPoiPatch = {};
+  if (source.name !== undefined) patch.name = mapPoiName(source.name);
+  if (source.note !== undefined) patch.note = mapPoiNote(source.note);
+  if (source.x !== undefined) patch.x = mapCoord(source.x, 'x');
+  if (source.y !== undefined) patch.y = mapCoord(source.y, 'y');
+  if (Object.keys(patch).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
+  return patch;
+}
