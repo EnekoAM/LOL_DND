@@ -198,8 +198,12 @@
     max-height: 100%;
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(201, 168, 76, 0.35) transparent;
+    scrollbar-width: none;
+  }
+
+  .champ-sheet .sheet-side::-webkit-scrollbar,
+  .champ-sheet .sheet-content::-webkit-scrollbar {
+    display: none;
   }
 
   .champ-sheet .sheet-portrait {

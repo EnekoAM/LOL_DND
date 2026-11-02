@@ -188,7 +188,7 @@ const Players = () => {
   }
 
   return (
-    <div className="players-root">
+    <div className={player ? 'players-root players-root--sheet' : 'players-root'}>
       {player ? (
         <PlayerSheet
           key={normalizeName(player.name)}
