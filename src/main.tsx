@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { loadCatalogs } from './data/load';
+import { installApiWakeIndicator } from './lib/apiWake';
 import { syncAllPlayerStats } from './features/calculos/playerTotals';
 import './index.css';
 
@@ -14,6 +15,9 @@ const setBootStatus = (text: string, error = false) => {
   if (bootStatus) bootStatus.textContent = text;
   if (error && bootRoot) bootRoot.classList.add('boot--error');
 };
+
+// Antes de la primera peticion: aviso si Render tarda en despertar.
+installApiWakeIndicator();
 
 loadCatalogs()
   .then(async () => {
