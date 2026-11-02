@@ -6,6 +6,7 @@ import {
   NPC_STATS,
   npcKindIcon,
   npcKindLabel,
+  npcImageStyle,
   updateNpc,
   type Npc,
   type NpcAbility,
@@ -126,7 +127,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
         <aside className="sheet-side">
           <div className="sheet-portrait champ-sheet__portrait">
             {npc.image && !portraitFailed ? (
-              <img className="sheet-portrait__img" src={npc.image} alt={npc.name} onError={() => setPortraitFailed(true)} />
+              <img className="sheet-portrait__img" src={npc.image} alt={npc.name} style={npcImageStyle(npc.imageFrame)} onError={() => setPortraitFailed(true)} />
             ) : (
               <div className="sheet-portrait__placeholder" aria-hidden="true">{npc.name.charAt(0) || '?'}</div>
             )}

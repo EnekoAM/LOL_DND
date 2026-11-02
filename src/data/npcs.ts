@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { readAppRole } from './appRole';
 import type { AbilityDamage, AbilityEffect } from './champions';
 
@@ -38,6 +39,41 @@ export type NpcAbility = {
   effect?: AbilityEffect[];
 };
 
+/** Encuadre de la foto: punto focal en % (0-100) y zoom (1 = sin zoom). */
+export type NpcImageFrame = { x: number; y: number; zoom: number };
+
+export const NPC_ZOOM_MIN = 1;
+export const NPC_ZOOM_MAX = 4;
+export const NPC_DEFAULT_FRAME: NpcImageFrame = { x: 50, y: 50, zoom: 1 };
+
+export const isDefaultFrame = (frame: NpcImageFrame | null | undefined): boolean =>
+  !frame || (frame.x === 50 && frame.y === 50 && frame.zoom === 1);
+
+/**
+ * Estilo del <img> de la foto con su encuadre. El contenedor tiene que tener overflow: hidden.
+ * object-position alinea el punto focal de la imagen con el mismo punto del marco y el zoom escala
+ * desde ahí, así se ve igual en la tarjeta (círculo) y en la ficha (cuadrado) a cualquier tamaño.
+ */
+export function npcImageStyle(frame: NpcImageFrame | null | undefined): CSSProperties | undefined {
+  if (isDefaultFrame(frame) || !frame) return undefined;
+  const position = `${frame.x}% ${frame.y}%`;
+  return {
+    objectFit: 'cover',
+    objectPosition: position,
+    transformOrigin: position,
+    transform: frame.zoom !== 1 ? `scale(${frame.zoom})` : undefined,
+  };
+}
+
+function normalizeFrame(value: unknown): NpcImageFrame | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const { x, y, zoom } = value as Record<string, unknown>;
+  const num = (raw: unknown, fallback: number, min: number, max: number) =>
+    typeof raw === 'number' && Number.isFinite(raw) ? Math.min(max, Math.max(min, raw)) : fallback;
+  const frame = { x: num(x, 50, 0, 100), y: num(y, 50, 0, 100), zoom: num(zoom, 1, NPC_ZOOM_MIN, NPC_ZOOM_MAX) };
+  return isDefaultFrame(frame) ? null : frame;
+}
+
 export type Npc = {
   id: string;
   name: string;
@@ -47,6 +83,8 @@ export type Npc = {
   region: string;
   level: number;
   image: string;
+  /** Encuadre de la foto; null = centrada. */
+  imageFrame: NpcImageFrame | null;
   background: string | null;
   description: string;
   stats: NpcStats;
@@ -73,6 +111,7 @@ export const emptyNpc = (kind: NpcKind = 'npc'): NpcInput => ({
   region: '',
   level: 1,
   image: '',
+  imageFrame: null,
   background: null,
   description: '',
   stats: {},
@@ -113,6 +152,7 @@ function normalize(raw: Npc): Npc {
     region: text(raw.region),
     level: typeof raw.level === 'number' ? raw.level : 1,
     image: text(raw.image),
+    imageFrame: normalizeFrame(raw.imageFrame),
     background: typeof raw.background === 'string' && raw.background ? raw.background : null,
     description: text(raw.description),
     stats: raw.stats && typeof raw.stats === 'object' ? raw.stats : {},

@@ -120,3 +120,105 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Foto: vista previa y ajuste de encuadre (editor) */
+.npc-framer__previews {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.npc-framer__sheet {
+  width: 180px;
+  flex: none;
+  touch-action: none;
+  user-select: none;
+}
+.npc-framer__sheet--drag { cursor: grab; }
+.npc-framer__sheet--drag:active { cursor: grabbing; }
+.npc-framer__sheet img { pointer-events: none; }
+.npc-framer__side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+}
+.npc-framer__card.calc-champ-card__portrait { margin: 0; }
+.npc-framer__hint {
+  font-size: 12px;
+  line-height: 1.35;
+  color: rgba(212, 196, 154, 0.6);
+  text-align: center;
+  max-width: 140px;
+}
+.npc-framer__error {
+  font-family: inherit;
+  font-size: 12px;
+  color: #e07a6a;
+  text-align: center;
+  padding: 8px;
+}
+.npc-framer__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.npc-framer__slider {
+  display: grid;
+  grid-template-columns: 80px 1fr 48px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(212, 196, 154, 0.8);
+}
+.npc-framer__slider input[type='range'] {
+  width: 100%;
+  accent-color: #c9a84c;
+}
+.npc-framer__slider output {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.npc-framer__reset {
+  align-self: flex-end;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+.npc-framer__bg {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  background: rgba(10, 8, 4, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -4px 0 4px;
+}
+.npc-framer__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+@media (max-width: 520px) {
+  .npc-framer__previews { flex-direction: column; align-items: center; }
+  .npc-framer__sheet { width: min(100%, 240px); }
+}
+
+/* Miniatura con encuadre en el modal de habilidad */
+.hab-modal__kicker .npc-thumb {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid rgba(201, 168, 76, 0.25);
+}
+.hab-modal__kicker .npc-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}

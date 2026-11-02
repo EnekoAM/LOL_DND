@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '../../components/Modal';
 import {
+  NPC_DEFAULT_FRAME,
   NPC_DESCRIPTION_MAX,
   NPC_KINDS,
   NPC_LEVEL_MAX,
@@ -9,6 +10,11 @@ import {
   NPC_NAME_MAX,
   NPC_STATS,
   NPC_TAG_MAX,
+  NPC_ZOOM_MAX,
+  NPC_ZOOM_MIN,
+  isDefaultFrame,
+  npcImageStyle,
+  type NpcImageFrame,
   type NpcInput,
   type NpcKind,
   type NpcStatKey,
@@ -32,15 +38,120 @@ type StatDraft = Record<NpcStatKey, string>;
 const toStatDraft = (stats: NpcStats): StatDraft =>
   Object.fromEntries(NPC_STATS.map(({ key }) => [key, stats[key] === undefined ? '' : String(stats[key])])) as StatDraft;
 
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const round = (value: number, step = 0.5) => Math.round(value / step) * step;
+
+type DragState = { pointerId: number; startX: number; startY: number; frame: NpcImageFrame; width: number; height: number };
+
+/** Vista previa de la foto (ficha + tarjeta) con encuadre arrastrable, sliders y zoom. */
+const PortraitFramer = ({ url, name, frame, onChange }: {
+  url: string;
+  name: string;
+  frame: NpcImageFrame;
+  onChange: (frame: NpcImageFrame) => void;
+}) => {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const drag = useRef<DragState | null>(null);
+  const failed = failedUrl === url;
+  const style = npcImageStyle(frame);
+
+  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (failed) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    drag.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, frame, width: rect.width, height: rect.height };
+  };
+  const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const state = drag.current;
+    if (!state || state.pointerId !== event.pointerId) return;
+    // Arrastrar la imagen hacia la derecha muestra más de su lado izquierdo (x baja).
+    const dx = ((event.clientX - state.startX) / state.width) * 100 / state.frame.zoom;
+    const dy = ((event.clientY - state.startY) / state.height) * 100 / state.frame.zoom;
+    onChange({
+      ...state.frame,
+      x: round(clamp(state.frame.x - dx, 0, 100)),
+      y: round(clamp(state.frame.y - dy, 0, 100)),
+    });
+  };
+  const endDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (drag.current?.pointerId === event.pointerId) drag.current = null;
+  };
+
+  return (
+    <div className="hab-modal__block npc-framer">
+      <span className="hab-modal__tag">Vista previa · Ajustar encuadre</span>
+      <div className="npc-framer__previews">
+        <div
+          className={cx('sheet-portrait', 'npc-framer__sheet', !failed && 'npc-framer__sheet--drag')}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          title={failed ? undefined : 'Arrastra para mover la imagen'}
+        >
+          {failed ? (
+            <div className="sheet-portrait__placeholder npc-framer__error">No se pudo cargar la imagen</div>
+          ) : (
+            <img
+              className="sheet-portrait__img"
+              src={url}
+              alt={name}
+              draggable={false}
+              style={style}
+              onError={() => setFailedUrl(url)}
+              onLoad={() => setFailedUrl(null)}
+            />
+          )}
+        </div>
+        <div className="npc-framer__side">
+          <div className="calc-champ-card__portrait npc-framer__card" aria-label="Vista en la tarjeta">
+            {!failed && <img src={url} alt="" draggable={false} style={style} />}
+          </div>
+          <span className="npc-framer__hint">Ficha y tarjeta.<br />Arrastra la imagen grande para moverla.</span>
+        </div>
+      </div>
+      <div className="npc-framer__controls">
+        <label className="npc-framer__slider">
+          <span>Horizontal</span>
+          <input type="range" min={0} max={100} step={0.5} value={frame.x} onChange={e => onChange({ ...frame, x: Number(e.target.value) })} />
+          <output>{Math.round(frame.x)}%</output>
+        </label>
+        <label className="npc-framer__slider">
+          <span>Vertical</span>
+          <input type="range" min={0} max={100} step={0.5} value={frame.y} onChange={e => onChange({ ...frame, y: Number(e.target.value) })} />
+          <output>{Math.round(frame.y)}%</output>
+        </label>
+        <label className="npc-framer__slider">
+          <span>Zoom</span>
+          <input type="range" min={NPC_ZOOM_MIN} max={NPC_ZOOM_MAX} step={0.05} value={frame.zoom} onChange={e => onChange({ ...frame, zoom: Number(e.target.value) })} />
+          <output>{frame.zoom.toFixed(2)}×</output>
+        </label>
+        <button
+          type="button"
+          className="hab-modal__btn hab-modal__btn--ghost npc-framer__reset"
+          disabled={isDefaultFrame(frame)}
+          onClick={() => onChange({ ...NPC_DEFAULT_FRAME })}
+        >
+          Centrar
+        </button>
+      </div>
+    </div>
+  );
+};
+
 /** Alta / edición de los datos del NPC (las habilidades se editan desde la ficha). */
 const NpcEditorModal = ({ title, initial, types, regions, submitLabel, onClose, onSubmit }: Props) => {
   const [draft, setDraft] = useState<NpcInput>(initial);
+  const [frame, setFrame] = useState<NpcImageFrame>(() => initial.imageFrame ?? { ...NPC_DEFAULT_FRAME });
   const [stats, setStats] = useState<StatDraft>(() => toStatDraft(initial.stats));
   const [level, setLevel] = useState(String(initial.level));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bgFailedUrl, setBgFailedUrl] = useState<string | null>(null);
 
   const change = (patch: Partial<NpcInput>) => setDraft(current => ({ ...current, ...patch }));
+  const imageUrl = draft.image.trim();
+  const backgroundUrl = draft.background?.trim() || '';
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -74,8 +185,9 @@ const NpcEditorModal = ({ title, initial, types, regions, submitLabel, onClose, 
         name,
         type: draft.type.trim(),
         region: draft.region.trim(),
-        image: draft.image.trim(),
-        background: draft.background?.trim() || null,
+        image: imageUrl,
+        imageFrame: imageUrl && !isDefaultFrame(frame) ? frame : null,
+        background: backgroundUrl || null,
         description: draft.description.trim(),
         level: parsedLevel,
         stats: nextStats,
@@ -133,10 +245,21 @@ const NpcEditorModal = ({ title, initial, types, regions, submitLabel, onClose, 
           <span>Foto (URL)</span>
           <input type="url" value={draft.image} placeholder="https://…" onChange={e => change({ image: e.target.value })} />
         </label>
+        {imageUrl && <PortraitFramer url={imageUrl} name={draft.name} frame={frame} onChange={setFrame} />}
+
         <label className="hab-field">
           <span>Fondo de la ficha (URL, opcional)</span>
           <input type="url" value={draft.background ?? ''} placeholder="https://…" onChange={e => change({ background: e.target.value })} />
         </label>
+        {backgroundUrl && (
+          <div className="npc-framer__bg" aria-label="Vista previa del fondo">
+            {bgFailedUrl === backgroundUrl ? (
+              <span className="npc-framer__error">No se pudo cargar el fondo</span>
+            ) : (
+              <img src={backgroundUrl} alt="" onError={() => setBgFailedUrl(backgroundUrl)} onLoad={() => setBgFailedUrl(null)} />
+            )}
+          </div>
+        )}
 
         <label className="hab-field">
           <span>Descripción / trasfondo</span>
