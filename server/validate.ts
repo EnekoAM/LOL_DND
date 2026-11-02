@@ -140,7 +140,7 @@ function playerAumentos(value: unknown): PlayerAumento[] {
   return list;
 }
 
-const PLAYER_UNLOCK_KEYS = ['quest', 'aumentos', 'questTop'] as const;
+const PLAYER_UNLOCK_KEYS = ['quest', 'aumentos', 'questTop', 'questTopAssigned'] as const;
 export type PlayerUnlockKey = (typeof PLAYER_UNLOCK_KEYS)[number];
 
 function playerUnlocks(value: unknown): Partial<Record<PlayerUnlockKey, boolean>> {

@@ -53,6 +53,8 @@ export type PlayerUnlocks = {
   quest?: boolean;
   aumentos?: boolean;
   questTop?: boolean;
+  /** Quest de top asignada a este jugador (se puede quitar). */
+  questTopAssigned?: boolean;
 };
 
 export type PlayerUnlockKey = keyof PlayerUnlocks;
