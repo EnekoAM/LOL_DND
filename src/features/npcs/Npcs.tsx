@@ -32,6 +32,11 @@ type Filter = { search: string; kind: NpcKind | ''; type: string; region: string
 
 const BASE_FILTER: Filter = { search: '', kind: '', type: '', region: '', onlyVisible: false };
 
+/** Valor del filtro Tipo/Región para «Sin tipo» / «Sin región» (NPCs con ese campo vacío). */
+const NONE = '__none__';
+const matchesTag = (value: string, wanted: string) =>
+  !wanted || (wanted === NONE ? !value.trim() : value === wanted);
+
 const uniqueSorted = (values: string[]) =>
   [...new Set(values.map(v => v.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
@@ -79,8 +84,8 @@ const Npcs = () => {
     () => visible.filter(n =>
       matchesSearch(n.name, filter.search) &&
       (!filter.kind || n.kind === filter.kind) &&
-      (!filter.type || n.type === filter.type) &&
-      (!filter.region || n.region === filter.region) &&
+      matchesTag(n.type, filter.type) &&
+      matchesTag(n.region, filter.region) &&
       (!filter.onlyVisible || n.visible)),
     [visible, filter],
   );
@@ -144,10 +149,12 @@ const Npcs = () => {
             </select>
             <select className="calc-select-dmg" value={filter.type} onChange={e => update({ type: e.target.value })}>
               <option value="">Tipo</option>
+              <option value={NONE}>Sin tipo</option>
               {types.map(type => <option key={type} value={type}>{type}</option>)}
             </select>
             <select className="calc-select-dmg" value={filter.region} onChange={e => update({ region: e.target.value })}>
               <option value="">Región</option>
+              <option value={NONE}>Sin región</option>
               {regions.map(region => <option key={region} value={region}>{region}</option>)}
             </select>
             </>
