@@ -1,17 +1,16 @@
-import { AUGMENT_LEVEL_COUNT } from '../../data/augments';
 import './AugmentLevels.css';
 
 type Props = {
-  /** Efectos de nivel 1, 2 y 3 del aumento. */
+  /** Efectos de nivel 1.. (hasta 3) del aumento; un texto vacío es un nivel sin efecto propio. */
   levels: string[];
   /** Nivel actual del aumento (si alguien lo tiene); se resalta y los demás quedan atenuados. */
   current?: number;
 };
 
-/** Insignia «Niveles 1–3» o «Nivel N/3» (nivel del aumento, no del player). */
-export const AugmentLevelBadge = ({ current }: { current?: number }) => (
+/** Insignia «Niveles 1–N» o «Nivel X/N» (nivel del aumento, no del player). N = último nivel con efecto. */
+export const AugmentLevelBadge = ({ max, current }: { max: number; current?: number }) => (
   <span className="aug-lvl-badge" title="Nivel del aumento (aparte del nivel del player)">
-    {current ? `Nivel ${current}/${AUGMENT_LEVEL_COUNT}` : `Niveles 1–${AUGMENT_LEVEL_COUNT}`}
+    {current ? `Nivel ${current}/${max}` : max > 1 ? `Niveles 1–${max}` : 'Nivel 1'}
   </span>
 );
 
@@ -24,7 +23,7 @@ const AugmentLevelList = ({ levels, current }: Props) => (
       return (
         <li key={level} className={`aug-lvl${state}`}>
           <span className="aug-lvl__num">Nv {level}</span>
-          <span className="aug-lvl__text">{effect}</span>
+          <span className={`aug-lvl__text${effect ? '' : ' aug-lvl__text--empty'}`}>{effect || 'Sin efecto propio'}</span>
         </li>
       );
     })}

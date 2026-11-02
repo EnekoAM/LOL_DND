@@ -1248,7 +1248,7 @@ export type AugmentEntry = {
   rarity: 'plata' | 'oro' | 'prismatico';
   name: string;
   description: string;
-  /** Efectos de nivel 1, 2 y 3 (solo aumentos con niveles). */
+  /** Efectos de nivel 1, 2 y 3 (solo aumentos con niveles; 1-3 textos, puede haber vacíos en medio). */
   levels?: string[];
   createdAt: string;
 };
@@ -1266,7 +1266,7 @@ function toAugment(doc: Document): AugmentEntry {
     description: typeof doc.description === 'string' ? doc.description : '',
     createdAt: created.toISOString(),
   };
-  if (Array.isArray(doc.levels) && doc.levels.length === 3 && doc.levels.every((t: unknown) => typeof t === 'string')) {
+  if (Array.isArray(doc.levels) && doc.levels.length >= 1 && doc.levels.length <= 3 && doc.levels.every((t: unknown) => typeof t === 'string')) {
     entry.levels = doc.levels as string[];
   }
   return entry;

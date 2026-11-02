@@ -120,24 +120,30 @@ export type PlayerAumento = {
   level?: number;
 };
 
-/** Los aumentos con niveles tienen exactamente 3 (nivel del aumento, aparte del nivel del player). */
+/** Los aumentos con niveles tienen hasta 3 (nivel del aumento, aparte del nivel del player). */
 export const AUGMENT_LEVEL_COUNT = 3;
 export const AUGMENT_LEVEL_EFFECT_MAX = 500;
 
-/** Lista de 3 efectos (nivel 1, 2 y 3), todos con texto. null/false = sin niveles. */
+/**
+ * Efectos de nivel 1, 2 y 3 (hasta 3 textos; los vacíos valen). Se quitan los vacíos del final:
+ * el nivel máximo del aumento es el último nivel con efecto. Sin ningún efecto (o null/false) = sin niveles.
+ */
 function parseAugmentLevels(value: unknown, label: string): string[] | null {
   if (value === null || value === false) return null;
-  if (!Array.isArray(value) || value.length !== AUGMENT_LEVEL_COUNT) {
-    throw new HttpError(400, `${label} tiene que ser una lista con los efectos de nivel 1, 2 y 3`);
+  if (!Array.isArray(value) || value.length > AUGMENT_LEVEL_COUNT) {
+    throw new HttpError(400, `${label} tiene que ser una lista con hasta 3 efectos (nivel 1, 2 y 3)`);
   }
-  return value.map((raw, index) => {
-    if (typeof raw !== 'string' || !raw.trim()) throw new HttpError(400, `Falta el efecto de nivel ${index + 1}`);
+  const levels = value.map((raw, index) => {
+    if (raw === null || raw === undefined) return '';
+    if (typeof raw !== 'string') throw new HttpError(400, `El efecto de nivel ${index + 1} tiene que ser texto`);
     const text = raw.trim();
     if (text.length > AUGMENT_LEVEL_EFFECT_MAX) {
       throw new HttpError(400, `El efecto de nivel ${index + 1} admite como máximo ${AUGMENT_LEVEL_EFFECT_MAX} caracteres`);
     }
     return text;
   });
+  while (levels.length > 0 && !levels[levels.length - 1]) levels.pop();
+  return levels.length > 0 ? levels : null;
 }
 
 const ENTRY_ID = /^[A-Za-z0-9_-]{1,64}$/;
@@ -224,7 +230,8 @@ function playerAumentos(value: unknown): PlayerAumento[] {
         throw new HttpError(400, `aumentos[${index}].level tiene que ser 1, 2 o 3`);
       }
       aumento.levels = levels;
-      aumento.level = level;
+      // No pasa del último nivel con efecto.
+      aumento.level = Math.min(level, levels.length);
     }
     return aumento;
   });

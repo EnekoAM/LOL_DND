@@ -29,7 +29,7 @@ export type AugmentDraft = {
   rarity: AugmentRarity;
   name: string;
   description: string;
-  /** 3 efectos (nivel 1, 2 y 3) o null si el aumento no tiene niveles. */
+  /** Hasta 3 efectos (nivel 1, 2 y 3; puede haber vacíos) o null si el aumento no tiene niveles. */
   levels: string[] | null;
 };
 
@@ -39,16 +39,23 @@ export const AUGMENT_DESCRIPTION_MAX = 1000;
 export const AUGMENT_LEVEL_COUNT = 3;
 export const AUGMENT_LEVEL_EFFECT_MAX = 500;
 
-/** Normaliza levels: exactamente 3 textos o undefined (sin niveles). */
+/**
+ * Normaliza levels: 1-3 textos (puede haber niveles vacíos en medio) o undefined (sin niveles).
+ * El nivel máximo del aumento es levels.length (último nivel con efecto).
+ */
 export function augmentLevels(value: unknown): string[] | undefined {
-  return Array.isArray(value) && value.length === AUGMENT_LEVEL_COUNT && value.every(t => typeof t === 'string')
-    ? (value as string[])
-    : undefined;
+  if (!Array.isArray(value) || !value.every(t => typeof t === 'string')) return undefined;
+  const levels = (value as string[]).slice(0, AUGMENT_LEVEL_COUNT);
+  while (levels.length > 0 && !levels[levels.length - 1].trim()) levels.pop();
+  return levels.length > 0 ? levels : undefined;
 }
 
-/** Nivel actual válido (1-3) de un aumento con niveles. */
-export const clampAugmentLevel = (level: unknown): number =>
-  typeof level === 'number' && Number.isInteger(level) ? Math.min(AUGMENT_LEVEL_COUNT, Math.max(1, level)) : 1;
+/** Del formulario (3 casillas) a lo que se guarda: sin vacíos al final; null si no hay ningún efecto. */
+export const levelsFromForm = (slots: string[]): string[] | null => augmentLevels(slots.map(t => t.trim())) ?? null;
+
+/** Nivel actual válido (1..max) de un aumento con niveles. */
+export const clampAugmentLevel = (level: unknown, max: number = AUGMENT_LEVEL_COUNT): number =>
+  typeof level === 'number' && Number.isInteger(level) ? Math.min(Math.max(1, max), Math.max(1, level)) : 1;
 
 const OFFLINE = 'No se pudo contactar con la API. Arranca npm run dev:api';
 const ADMIN_ONLY = 'Solo el admin puede gestionar los aumentos';

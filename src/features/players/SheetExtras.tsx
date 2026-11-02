@@ -4,6 +4,7 @@ import {
   AUGMENT_LEVEL_EFFECT_MAX,
   augmentLevels,
   clampAugmentLevel,
+  levelsFromForm,
   loadAugments,
   type Augment,
 } from '../../data/augments';
@@ -228,8 +229,8 @@ const aumentoValues = (aumento?: PlayerAumento): AumentoValues => ({
   description: aumento?.description ?? '',
   catalogId: aumento?.catalogId ?? '',
   leveled: Boolean(aumento?.levels),
-  levels: aumento?.levels ? [...aumento.levels] : emptyLevels(),
-  level: clampAugmentLevel(aumento?.level),
+  levels: emptyLevels().map((_, i) => aumento?.levels?.[i] ?? ''),
+  level: clampAugmentLevel(aumento?.level, aumento?.levels?.length),
 });
 
 /** Monta el aumento de la ficha a partir del formulario (sin claves vacías). */
@@ -241,9 +242,11 @@ const buildAumento = (base: PlayerAumento, values: AumentoValues): PlayerAumento
   delete next.level;
   if (values.description) next.description = values.description;
   if (values.catalogId) next.catalogId = values.catalogId;
-  if (values.leveled) {
-    next.levels = values.levels.map(t => t.trim());
-    next.level = clampAugmentLevel(values.level);
+  // Sin ningún efecto rellenado = sin niveles.
+  const levels = values.leveled ? levelsFromForm(values.levels) : null;
+  if (levels) {
+    next.levels = levels;
+    next.level = clampAugmentLevel(values.level, levels.length);
   }
   return next;
 };
@@ -285,15 +288,16 @@ const AumentoForm = ({ initial, withCatalog, submitLabel, busy, onSubmit, onCanc
       description: augment.description,
       catalogId: augment.id,
       leveled: Boolean(augment.levels),
-      levels: augment.levels ? [...augment.levels] : emptyLevels(),
+      levels: emptyLevels().map((_, i) => augment.levels?.[i] ?? ''),
       level: 1,
     });
   };
 
-  const levelsMissing = values.leveled && values.levels.some(t => !t.trim());
+  /** Nivel máximo según los efectos rellenados (mínimo 1). */
+  const maxLevel = levelsFromForm(values.levels)?.length ?? 1;
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!values.name.trim() || levelsMissing || busy) return;
+    if (!values.name.trim() || busy) return;
     void onSubmit({ ...values, name: values.name.trim(), description: values.description.trim() });
   };
 
@@ -331,7 +335,7 @@ const AumentoForm = ({ initial, withCatalog, submitLabel, busy, onSubmit, onCanc
             <textarea
               key={index}
               className="sheet-add__input sheet-add__textarea"
-              placeholder={`Efecto nivel ${index + 1}`}
+              placeholder={`Efecto nivel ${index + 1} (opcional)`}
               aria-label={`Efecto nivel ${index + 1}`}
               value={effect}
               maxLength={AUGMENT_LEVEL_EFFECT_MAX}
@@ -341,14 +345,14 @@ const AumentoForm = ({ initial, withCatalog, submitLabel, busy, onSubmit, onCanc
           ))}
           <label className="sheet-add__check">
             Nivel actual del aumento
-            <select className="sheet-add__input sheet-add__select" value={values.level} onChange={e => set({ level: Number(e.target.value) })}>
-              {Array.from({ length: AUGMENT_LEVEL_COUNT }, (_, i) => i + 1).map(n => <option key={n} value={n}>Nivel {n}</option>)}
+            <select className="sheet-add__input sheet-add__select" value={Math.min(values.level, maxLevel)} onChange={e => set({ level: Number(e.target.value) })}>
+              {Array.from({ length: maxLevel }, (_, i) => i + 1).map(n => <option key={n} value={n}>Nivel {n}</option>)}
             </select>
           </label>
         </>
       )}
       <div className="sheet-add__row">
-        <button type="submit" className="sheet-quest__btn" disabled={busy || !values.name.trim() || levelsMissing}>
+        <button type="submit" className="sheet-quest__btn" disabled={busy || !values.name.trim()}>
           {busy ? 'Guardando…' : submitLabel}
         </button>
         <button type="button" className="sheet-quest__btn sheet-quest__btn--ghost" disabled={busy} onClick={onCancel}>
@@ -373,7 +377,7 @@ export const AumentoList = ({ aumentos, canEdit, showHidden = canEdit, onChange 
   };
   /** Sube o baja el nivel del aumento (1-3), aparte del nivel del player. */
   const shiftLevel = (id: string, delta: number) =>
-    void save(aumentos.map(a => (a.id === id && a.levels ? { ...a, level: clampAugmentLevel(clampAugmentLevel(a.level) + delta) } : a)));
+    void save(aumentos.map(a => (a.id === id && a.levels ? { ...a, level: clampAugmentLevel(clampAugmentLevel(a.level, a.levels.length) + delta, a.levels.length) } : a)));
   const toggleHidden = (id: string) =>
     void save(
       aumentos.map(a => {
@@ -411,14 +415,15 @@ export const AumentoList = ({ aumentos, canEdit, showHidden = canEdit, onChange 
           );
         }
         const levels = augmentLevels(aumento.levels);
-        const level = clampAugmentLevel(aumento.level);
+        const maxLevel = levels?.length ?? 1;
+        const level = clampAugmentLevel(aumento.level, maxLevel);
         return (
           <li key={aumento.id} className={cx('sheet-quest', 'sheet-aumento', aumento.hidden && 'sheet-quest--hidden')}>
             <span className="sheet-quest__mark" aria-hidden="true">✦</span>
             <div className="sheet-quest__body">
               <div className="sheet-quest__name">
                 {aumento.name}
-                {levels && <AugmentLevelBadge current={level} />}
+                {levels && <AugmentLevelBadge max={maxLevel} current={level} />}
                 {aumento.hidden && <span className="sheet-quest__tag">Oculto para players</span>}
               </div>
               {aumento.description && <div className="sheet-quest__desc">{aumento.description}</div>}
@@ -426,7 +431,7 @@ export const AumentoList = ({ aumentos, canEdit, showHidden = canEdit, onChange 
             </div>
             {canEdit && (
               <div className="sheet-quest__actions">
-                {levels && (
+                {levels && maxLevel > 1 && (
                   <>
                     <button
                       type="button"
@@ -441,11 +446,11 @@ export const AumentoList = ({ aumentos, canEdit, showHidden = canEdit, onChange 
                     <button
                       type="button"
                       className="sheet-quest__btn"
-                      disabled={busy || level >= AUGMENT_LEVEL_COUNT}
+                      disabled={busy || level >= maxLevel}
                       title="Subir un nivel el aumento (no el player)"
                       onClick={() => shiftLevel(aumento.id, 1)}
                     >
-                      {level >= AUGMENT_LEVEL_COUNT ? 'Nivel máx.' : `▲ Subir a nivel ${level + 1}`}
+                      {level >= maxLevel ? 'Nivel máx.' : `▲ Subir a nivel ${level + 1}`}
                     </button>
                   </>
                 )}

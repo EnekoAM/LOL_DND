@@ -57,3 +57,4 @@
 .aug-lvl--current .aug-lvl__num { color: var(--gold-bright, #e8c96a); }
 .aug-lvl--past { opacity: 0.55; }
 .aug-lvl--next { opacity: 0.45; }
+.aug-lvl__text--empty { font-style: italic; opacity: 0.6; }

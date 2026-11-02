@@ -11,6 +11,7 @@ import {
   type AugmentRarity,
   createAugment,
   deleteAugment,
+  levelsFromForm,
   loadAugments,
   pickAugments,
   rollRarity,
@@ -30,7 +31,7 @@ import {
 import AugmentLevelList, { AugmentLevelBadge } from './AugmentLevels';
 import './Aumentos.css';
 
-/** Borrador del formulario: los 3 efectos se guardan aunque se apague «Con niveles» (por si se vuelve a encender). */
+/** Borrador del formulario: 3 casillas (opcionales) que se guardan aunque se apague «Con niveles» (por si se vuelve a encender). */
 type FormDraft = { rarity: AugmentRarity; name: string; description: string; leveled: boolean; levels: string[] };
 
 const EMPTY_LEVELS = (): string[] => Array.from({ length: AUGMENT_LEVEL_COUNT }, () => '');
@@ -174,7 +175,7 @@ const Aumentos = () => {
         name: augment.name,
         description: augment.description,
         leveled: Boolean(augment.levels),
-        levels: augment.levels ? [...augment.levels] : EMPTY_LEVELS(),
+        levels: EMPTY_LEVELS().map((_, i) => augment.levels?.[i] ?? ''),
       },
     });
   };
@@ -189,7 +190,6 @@ const Aumentos = () => {
         : current,
     );
 
-  const levelsMissing = Boolean(editing?.draft.leveled && editing.draft.levels.some(t => !t.trim()));
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -198,17 +198,14 @@ const Aumentos = () => {
       rarity: editing.draft.rarity,
       name: editing.draft.name.trim(),
       description: editing.draft.description.trim(),
-      levels: editing.draft.leveled ? editing.draft.levels.map(t => t.trim()) : null,
+      // Sin ningún efecto rellenado = sin niveles (un solo efecto).
+      levels: editing.draft.leveled ? levelsFromForm(editing.draft.levels) : null,
     };
     if (!draft.name) {
       setFormError('Pon un nombre al aumento');
       return;
     }
-    const missing = draft.levels?.findIndex(t => !t) ?? -1;
-    if (missing >= 0) {
-      setFormError(`Falta el efecto de nivel ${missing + 1}`);
-      return;
-    }
+
     setSaving(true);
     setFormError(null);
     try {
@@ -341,7 +338,7 @@ const Aumentos = () => {
                   <article key={option.id} className={`aum-card aum-card--${option.rarity}`}>
                     <h3 className="aum-card__name">
                       {option.name}
-                      {option.levels && <AugmentLevelBadge />}
+                      {option.levels && <AugmentLevelBadge max={option.levels.length} />}
                     </h3>
                     {(option.description || !option.levels) && (
                       <p className={`aum-card__desc${option.description ? '' : ' aum-card__desc--empty'}`}>
@@ -382,7 +379,7 @@ const Aumentos = () => {
               <span className={`aum-rarity aum-rarity--${augment.rarity}`}>{rarityLabel(augment.rarity)}</span>
               <div className="aum-card__top">
                 <h3 className="aum-card__name">{augment.name}</h3>
-                {augment.levels && <AugmentLevelBadge />}
+                {augment.levels && <AugmentLevelBadge max={augment.levels.length} />}
               </div>
               {(augment.description || !augment.levels) && (
                 <p className={`aum-card__desc${augment.description ? '' : ' aum-card__desc--empty'}`}>
@@ -468,17 +465,16 @@ const Aumentos = () => {
             {editing.draft.leveled && (
               <>
                 <p className="aum-modal__text">
-                  Nivel del aumento, no del player: empieza en nivel 1 y el admin lo sube a 2 y 3 desde la ficha.
+                  Nivel del aumento, no del player: empieza en nivel 1 y el admin lo sube desde la ficha. Rellena solo los niveles que quieras; el nivel máximo es el último con efecto. Sin ningún efecto se guarda como aumento sin niveles.
                 </p>
                 {editing.draft.levels.map((effect, index) => (
                   <label key={index} className="aum-field">
-                    <span className="aum-field__label">Efecto nivel {index + 1}</span>
+                    <span className="aum-field__label">Efecto nivel {index + 1} (opcional)</span>
                     <textarea
                       className="aum-input aum-input--text aum-input--level"
                       value={effect}
                       maxLength={AUGMENT_LEVEL_EFFECT_MAX}
                       rows={2}
-                      required
                       placeholder={`Qué hace a nivel ${index + 1}`}
                       onChange={event => setLevelEffect(index, event.target.value)}
                     />
@@ -491,7 +487,7 @@ const Aumentos = () => {
               <button type="button" className="aum-cancel" disabled={saving} onClick={() => setEditing(null)}>
                 Cancelar
               </button>
-              <button type="submit" className="aum-btn" disabled={saving || !editing.draft.name.trim() || levelsMissing}>
+              <button type="submit" className="aum-btn" disabled={saving || !editing.draft.name.trim()}>
                 {saving ? 'Guardando' : editing.id ? 'Guardar' : 'Añadir'}
               </button>
             </div>
