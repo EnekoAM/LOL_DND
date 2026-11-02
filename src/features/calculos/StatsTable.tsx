@@ -32,7 +32,7 @@ type Props = {
   level?: number;
   /** Si true, la tabla de rol sale desplegada. */
   roleTableOpen?: boolean;
-  /** Si true (fichas de players), los niveles por encima del actual salen oscurecidos con candado. */
+  /** Si true (fichas de players), los niveles 19 y 20 salen oscurecidos con candado. */
   lockFutureLevels?: boolean;
 };
 
@@ -47,6 +47,9 @@ type SheetRow = {
   /** Nivel aún no alcanzado: fila oscurecida bajo el candado. */
   locked?: boolean;
 };
+
+/** Niveles bloqueados por quests en fichas de players (19 y 20). */
+const QUEST_LOCK_FROM = 19;
 
 const LockIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -190,7 +193,7 @@ const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: bo
             {firstLocked && (
               <span className="calc-sheet__lock-sub">
                 {lockedRows.length === 1 ? firstLocked : `${firstLocked} – ${lockedRows[lockedRows.length - 1].label}`}
-                {' · sube de nivel para desbloquear'}
+                {' · Completar quests para desbloquear'}
               </span>
             )}
           </div>
@@ -341,7 +344,7 @@ const StatsTable = ({
         roleId={sheet?.roleId ?? ROLE_TABLES[0].id}
         level={level}
         defaultOpen={roleTableOpen}
-        lockLevel={lockFutureLevels ? (level ?? partyLevelNow) : undefined}
+        lockLevel={lockFutureLevels ? QUEST_LOCK_FROM - 1 : undefined}
       />
     </>
   );
