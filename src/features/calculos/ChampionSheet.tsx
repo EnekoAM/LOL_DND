@@ -5,8 +5,11 @@ import {
   type Ability,
   type AbilityKey,
   type Champion,
+  championRoleId,
+  roleCategoryFor,
   saveChampionPatch,
 } from '../../data/champions';
+import { ROLE_TABLES, findRoleTable } from '../../data/roles';
 import { useCanEdit } from '../../data/appRoleContext';
 import { findItem } from '../../data/items';
 import { EQUIPMENT_SLOTS } from '../../data/players';
@@ -50,13 +53,15 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
   const [imageDraft, setImageDraft] = useState(champion.image ?? '');
   const [bgDraft, setBgDraft] = useState(champion.background ?? '');
   const [levelDraft, setLevelDraft] = useState(String(champion.level ?? 1));
+  const [roleDraft, setRoleDraft] = useState(() => championRoleId(champion));
 
   useEffect(() => {
     setPortraitFailed(false);
     setImageDraft(champion.image ?? '');
     setBgDraft(champion.background ?? '');
     setLevelDraft(String(champion.level ?? 1));
-  }, [champion.champion, champion.image, champion.background, champion.level]);
+    setRoleDraft(championRoleId(champion));
+  }, [champion.champion, champion.image, champion.background, champion.level, champion.roleId, champion.role]);
 
   // Al cambiar de campeon se cierran los editores abiertos.
   useEffect(() => {
@@ -68,6 +73,11 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
   const level = typeof champion.level === 'number' && champion.level >= 1 ? champion.level : 1;
   const background = champion.background?.trim() || '';
   const isActive = champion.active === true;
+  const roleId = championRoleId(champion);
+  const roleTable = findRoleTable(roleId);
+  const roleName = roleTable?.name ?? champion.role;
+  // La tabla de rol tiene menos niveles que la ficha (1-20): por encima se usa la última fila.
+  const tableLevel = roleTable ? Math.min(level, roleTable.levels.length) : level;
 
   const persist = async (patch: Parameters<typeof saveChampionPatch>[1]) => {
     if (!canEdit || saving) return;
@@ -89,12 +99,20 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
     const next = Number.isFinite(parsed) ? clampLevel(parsed) : level;
     setLevelDraft(String(next));
     setEditLevel(false);
-    if (next === level) return;
-    await persist({ level: next });
+    const patch: Parameters<typeof saveChampionPatch>[1] = {};
+    if (next !== level) patch.level = next;
+    if (roleDraft && (roleDraft !== roleId || champion.roleId !== roleDraft)) {
+      patch.roleId = roleDraft;
+      const category = roleCategoryFor(roleDraft, champion.role);
+      if (category && category !== champion.role) patch.role = category;
+    }
+    if (Object.keys(patch).length === 0) return;
+    await persist(patch).catch(() => undefined);
   };
 
   const cancelLevel = () => {
     setLevelDraft(String(level));
+    setRoleDraft(roleId);
     setEditLevel(false);
   };
 
@@ -227,37 +245,22 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
             <h1 className="sheet-side__name">{champion.champion}</h1>
             <div className="sheet-side__meta">
               <span className="champ-sheet__level">
-                NVL{' '}
-                {canEdit && editLevel ? (
-                  <input
-                    className="champ-sheet__level-input"
-                    type="number"
-                    min={1}
-                    max={20}
-                    step={1}
-                    value={levelDraft}
-                    disabled={saving}
-                    autoFocus
-                    aria-label="Nivel del campeon (1-20)"
-                    onChange={e => setLevelDraft(e.target.value)}
-                    onBlur={() => { void saveLevel(); }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') e.currentTarget.blur();
-                      if (e.key === 'Escape') cancelLevel();
-                    }}
-                  />
-                ) : (
-                  level
-                )}
-                {canEdit && !editLevel && (
+                NVL {level}
+                {canEdit && (
                   <button
                     type="button"
-                    className="sheet-hp__icon-btn champ-sheet__level-btn"
-                    aria-label="Editar nivel"
-                    title="Editar nivel"
+                    className={cx('sheet-hp__icon-btn', 'champ-sheet__level-btn', editLevel && 'champ-sheet__portrait-edit--on')}
+                    aria-label="Editar nivel y rol"
+                    aria-pressed={editLevel}
+                    title="Editar nivel y rol"
                     disabled={saving}
                     onClick={() => {
+                      if (editLevel) {
+                        cancelLevel();
+                        return;
+                      }
                       setLevelDraft(String(level));
+                      setRoleDraft(roleId);
                       setEditLevel(true);
                     }}
                   >
@@ -265,8 +268,59 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                   </button>
                 )}
               </span>
-              {' \u00B7 '}{champion.region}{' \u00B7 '}{champion.role}
+              {' \u00B7 '}{champion.region}{' \u00B7 '}{roleName}
             </div>
+            {canEdit && editLevel && (
+              <form
+                className="sheet-panel champ-sheet__media champ-sheet__level-panel"
+                onSubmit={e => {
+                  e.preventDefault();
+                  void saveLevel();
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Escape') cancelLevel();
+                }}
+              >
+                <label className="champ-sheet__field">
+                  <span className="champ-sheet__field-label">Nivel (1-20)</span>
+                  <input
+                    className="champ-sheet__bg-input"
+                    type="number"
+                    min={1}
+                    max={20}
+                    step={1}
+                    value={levelDraft}
+                    disabled={saving}
+                    autoFocus
+                    aria-label="Nivel del campeón (1-20)"
+                    onChange={e => setLevelDraft(e.target.value)}
+                  />
+                </label>
+                <label className="champ-sheet__field">
+                  <span className="champ-sheet__field-label">Rol (tabla de rol)</span>
+                  <select
+                    className="champ-sheet__bg-input"
+                    value={roleDraft}
+                    disabled={saving}
+                    aria-label="Rol del campeón"
+                    onChange={e => setRoleDraft(e.target.value)}
+                  >
+                    {!findRoleTable(roleDraft) && roleDraft && <option value={roleDraft}>{roleDraft}</option>}
+                    {ROLE_TABLES.map(option => (
+                      <option key={option.id} value={option.id}>{option.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="champ-sheet__bg-actions">
+                  <button type="button" className="calc-ability-edit" onClick={cancelLevel}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="calc-ability-edit" disabled={saving}>
+                    {saving ? 'Guardando' : 'Guardar'}
+                  </button>
+                </div>
+              </form>
+            )}
             {isActive && <div className="champ-sheet__active-badge">Activo</div>}
           </div>
 
@@ -371,7 +425,14 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
           )}
 
           {tab === 'desglose' && (
-            <StatsTable playerName={champion.champion} equipment={equipment} defaultOpen />
+            <StatsTable
+              playerName={champion.champion}
+              sheet={roleId ? { roleId } : undefined}
+              level={tableLevel}
+              equipment={equipment}
+              defaultOpen
+              roleTableOpen
+            />
           )}
         </div>
       </div>

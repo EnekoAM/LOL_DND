@@ -564,6 +564,10 @@ export function parseChampionAbilityPatch(body: unknown): ChampionAbilityPatch {
 
 export type ChampionFieldsPatch = {
   level?: number;
+  /** Id de la tabla de rol (colección roles), p. ej. "luchador-ad". */
+  roleId?: string;
+  /** Categoría del campeón (Luchador, Mago...). */
+  role?: string;
   image?: string;
   background?: string | null;
   equipamiento?: string[];
@@ -638,6 +642,20 @@ export function parseChampionFieldsPatch(body: unknown): ChampionFieldsPatch {
     touched = true;
   }
 
+
+  if ('roleId' in source) {
+    const roleId = typeof source.roleId === 'string' ? source.roleId.trim() : '';
+    if (!ROLE_ID.test(roleId)) throw new HttpError(400, 'roleId tiene que ser un id de rol (p. ej. luchador-ad)');
+    patch.roleId = roleId;
+    touched = true;
+  }
+
+  if ('role' in source) {
+    const role = typeof source.role === 'string' ? source.role.trim() : '';
+    if (!role || role.length > 40) throw new HttpError(400, 'role tiene que ser un texto de 1 a 40 caracteres');
+    patch.role = role;
+    touched = true;
+  }
 
   if ('active' in source) {
     if (typeof source.active !== 'boolean') {

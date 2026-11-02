@@ -55,9 +55,9 @@ const LINE_TO_STORED: Record<StatKey, Exclude<PlayerStatsKey, 'nivel'>> = {
 };
 
 /** Misma suma que la fila Total de Cálculos (base de rol + equipo + extra). */
-export function playerTotalLine(sheet: PlayerSheet | undefined, equipment: string[]): StatLine {
+export function playerTotalLine(sheet: PlayerSheet | undefined, equipment: string[], level?: number): StatLine {
   const parts: StatLine[] = [];
-  const base = sheet ? sheetBase(sheet) : undefined;
+  const base = sheet ? sheetBase(sheet, level) : undefined;
   if (base) parts.push(base);
   for (const name of equipment) {
     const item = findItem(name);

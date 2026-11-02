@@ -34,8 +34,9 @@ export function sheetLevel(): number {
   return PARTY.level;
 }
 
-export function sheetBase(sheet: PlayerSheet): StatLine | undefined {
-  return findRoleTable(sheet.roleId)?.levels[sheetLevel() - 1];
+/** Fila de la tabla de rol al nivel dado (por defecto el del grupo). */
+export function sheetBase(sheet: PlayerSheet, level: number = sheetLevel()): StatLine | undefined {
+  return findRoleTable(sheet.roleId)?.levels[level - 1];
 }
 
 const STAT_KEYS = new Set<string>(STAT_COLUMNS.map(column => column.key));

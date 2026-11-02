@@ -28,6 +28,10 @@ type Props = {
   equipment: string[];
   /** Si true, la ficha de estadísticas sale desplegada. */
   defaultOpen?: boolean;
+  /** Nivel propio (fichas de campeón). Sin él se usa el nivel del grupo. */
+  level?: number;
+  /** Si true, la tabla de rol sale desplegada. */
+  roleTableOpen?: boolean;
 };
 
 type SheetRow = {
@@ -118,8 +122,8 @@ const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: bo
   </div>
 );
 
-const RoleTablePanel = ({ roleId, level }: { roleId: string; level?: number }) => {
-  const [open, setOpen] = useState(false);
+const RoleTablePanel = ({ roleId, level, defaultOpen = false }: { roleId: string; level?: number; defaultOpen?: boolean }) => {
+  const [open, setOpen] = useState(defaultOpen);
   const [selectedId, setSelectedId] = useState(roleId);
   const role = findRoleTable(selectedId) ?? ROLE_TABLES[0];
 
@@ -164,10 +168,11 @@ const RoleTablePanel = ({ roleId, level }: { roleId: string; level?: number }) =
   );
 };
 
-const StatsTable = ({ playerName, sheet, equipment, defaultOpen = false }: Props) => {
+const StatsTable = ({ playerName, sheet, equipment, defaultOpen = false, level: levelOverride, roleTableOpen = false }: Props) => {
   const [open, setOpen] = useState(defaultOpen);
   const partyLevelNow = useSyncExternalStore(subscribeParty, partyLevel);
-  const base = sheet ? sheetBase(sheet) : undefined;
+  const level = sheet ? (levelOverride ?? partyLevelNow) : undefined;
+  const base = sheet ? sheetBase(sheet, level) : undefined;
   const extra = sheetExtra(sheet);
 
   if (!sheet && equipment.length === 0) {
@@ -190,8 +195,7 @@ const StatsTable = ({ playerName, sheet, equipment, defaultOpen = false }: Props
     };
   });
 
-  const level = sheet ? partyLevelNow : undefined;
-  const total = playerTotalLine(sheet, equipment);
+  const total = playerTotalLine(sheet, equipment, level);
 
   const rows: SheetRow[] = [
     { key: 'total', label: 'Total', line: total, tone: 'total' },
@@ -238,6 +242,7 @@ const StatsTable = ({ playerName, sheet, equipment, defaultOpen = false }: Props
         key={`${playerName}-${sheet?.roleId ?? ''}`}
         roleId={sheet?.roleId ?? ROLE_TABLES[0].id}
         level={level}
+        defaultOpen={roleTableOpen}
       />
     </>
   );

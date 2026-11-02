@@ -1,4 +1,5 @@
 import { matchesSearch, normalizeName } from '../lib/text';
+import { ROLE_TABLES, findRoleTable } from './roles';
 
 export type AbilityKey = 'P' | 'Q' | 'W' | 'E' | 'R';
 
@@ -34,6 +35,8 @@ export type Champion = {
   image: string;
   /** Nivel propio de la ficha DM (1–20). */
   level?: number;
+  /** Tabla de rol asignada (colección roles). Sin ella se deduce de `role`. */
+  roleId?: string;
   /** URL de imagen de fondo de la ficha. */
   background?: string;
   /** Equipo de prueba en la ficha del campeón. */
@@ -44,6 +47,8 @@ export type Champion = {
 
 export type ChampionFieldsPatch = {
   level?: number;
+  roleId?: string;
+  role?: string;
   image?: string;
   background?: string | null;
   equipamiento?: string[];
@@ -85,6 +90,41 @@ export let CHAMPIONS: Champion[] = [];
 export let CHAMPION_REGIONS: string[] = [];
 
 export const CHAMPION_ROLES = ['Luchador', 'Mago', 'Tirador', 'Tanque', 'Asesino', 'Soporte'];
+
+/** Tabla por defecto de cada categoría cuando el campeón aún no tiene roleId. */
+const DEFAULT_ROLE_ID: Record<string, string> = {
+  luchador: 'luchador-ad',
+  mago: 'mago',
+  tirador: 'tirador',
+  tanque: 'tanque',
+  asesino: 'asesino-ad',
+  soporte: 'support',
+  support: 'support',
+};
+
+/** Categoría (Luchador, Mago...) que corresponde a una tabla de rol. */
+const ROLE_CATEGORY_BY_PREFIX: [string, string][] = [
+  ['luchador', 'Luchador'],
+  ['mago', 'Mago'],
+  ['tirador', 'Tirador'],
+  ['tanque', 'Tanque'],
+  ['asesino', 'Asesino'],
+  ['support', 'Soporte'],
+  ['soporte', 'Soporte'],
+];
+
+export function roleCategoryFor(roleId: string, fallback = ''): string {
+  const id = roleId.trim().toLowerCase();
+  return ROLE_CATEGORY_BY_PREFIX.find(([prefix]) => id.startsWith(prefix))?.[1] ?? fallback;
+}
+
+/** Tabla de rol del campeón: la guardada, o la de su categoría, o la primera. */
+export function championRoleId(champion: Pick<Champion, 'roleId' | 'role'>): string {
+  if (champion.roleId && findRoleTable(champion.roleId)) return champion.roleId;
+  const byRole = DEFAULT_ROLE_ID[(champion.role ?? '').trim().toLowerCase()];
+  if (byRole && findRoleTable(byRole)) return byRole;
+  return champion.roleId || byRole || ROLE_TABLES[0]?.id || '';
+}
 
 const foldName = (name: string): string =>
   name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
