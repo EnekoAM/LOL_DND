@@ -3,6 +3,8 @@ import Modal from '../../components/Modal';
 import { useCanEdit } from '../../data/appRoleContext';
 import {
   AUGMENT_DESCRIPTION_MAX,
+  AUGMENT_LEVEL_COUNT,
+  AUGMENT_LEVEL_EFFECT_MAX,
   AUGMENT_NAME_MAX,
   AUGMENT_RARITIES,
   rarityLabel,
@@ -25,16 +27,22 @@ import {
   subscribeParty,
   type AumentoRoll,
 } from '../../data/party';
+import AugmentLevelList, { AugmentLevelBadge } from './AugmentLevels';
 import './Aumentos.css';
 
-const EMPTY_DRAFT: AugmentDraft = { rarity: 'plata', name: '', description: '' };
+/** Borrador del formulario: los 3 efectos se guardan aunque se apague «Con niveles» (por si se vuelve a encender). */
+type FormDraft = { rarity: AugmentRarity; name: string; description: string; leveled: boolean; levels: string[] };
+
+const EMPTY_LEVELS = (): string[] => Array.from({ length: AUGMENT_LEVEL_COUNT }, () => '');
+
+const EMPTY_DRAFT: FormDraft = { rarity: 'plata', name: '', description: '', leveled: false, levels: EMPTY_LEVELS() };
 
 const sortByName = (list: Augment[]): Augment[] =>
   [...list].sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
 
 const formatGold = (value: number) => value.toLocaleString('es-ES');
 
-type Editing = { id: string | null; draft: AugmentDraft };
+type Editing = { id: string | null; draft: FormDraft };
 
 /** Resultado de la ruleta: rareza que tocó y hasta 3 aumentos de esa rareza. */
 type RollResult = { rarity: AugmentRarity; options: Augment[] };
@@ -154,16 +162,34 @@ const Aumentos = () => {
 
   const openNew = () => {
     setFormError(null);
-    setEditing({ id: null, draft: { ...EMPTY_DRAFT } });
+    setEditing({ id: null, draft: { ...EMPTY_DRAFT, levels: EMPTY_LEVELS() } });
   };
 
   const openEdit = (augment: Augment) => {
     setFormError(null);
-    setEditing({ id: augment.id, draft: { rarity: augment.rarity, name: augment.name, description: augment.description } });
+    setEditing({
+      id: augment.id,
+      draft: {
+        rarity: augment.rarity,
+        name: augment.name,
+        description: augment.description,
+        leveled: Boolean(augment.levels),
+        levels: augment.levels ? [...augment.levels] : EMPTY_LEVELS(),
+      },
+    });
   };
 
-  const setDraft = (patch: Partial<AugmentDraft>) =>
+  const setDraft = (patch: Partial<FormDraft>) =>
     setEditing(current => (current ? { ...current, draft: { ...current.draft, ...patch } } : current));
+
+  const setLevelEffect = (index: number, text: string) =>
+    setEditing(current =>
+      current
+        ? { ...current, draft: { ...current.draft, levels: current.draft.levels.map((t, i) => (i === index ? text : t)) } }
+        : current,
+    );
+
+  const levelsMissing = Boolean(editing?.draft.leveled && editing.draft.levels.some(t => !t.trim()));
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -172,9 +198,15 @@ const Aumentos = () => {
       rarity: editing.draft.rarity,
       name: editing.draft.name.trim(),
       description: editing.draft.description.trim(),
+      levels: editing.draft.leveled ? editing.draft.levels.map(t => t.trim()) : null,
     };
     if (!draft.name) {
       setFormError('Pon un nombre al aumento');
+      return;
+    }
+    const missing = draft.levels?.findIndex(t => !t) ?? -1;
+    if (missing >= 0) {
+      setFormError(`Falta el efecto de nivel ${missing + 1}`);
       return;
     }
     setSaving(true);
@@ -213,7 +245,7 @@ const Aumentos = () => {
           <h2 className="aum-head__title">Aumentos</h2>
           <p className="aum-head__sub">
             {isAdmin
-              ? 'Catálogo de aumentos. Los players los consiguen con la ruleta: sale una rareza y eligen entre 3 de esa rareza.'
+              ? 'Catálogo de aumentos. Los players los consiguen con la ruleta: sale una rareza y eligen entre 3 de esa rareza. Algunos pueden tener niveles propios (1, 2 y 3).'
               : 'Tira la ruleta: según la rareza que toque, podrás elegir entre 3 aumentos al azar de esa rareza.'}
           </p>
         </div>
@@ -307,10 +339,16 @@ const Aumentos = () => {
               <div className="aum-grid">
                 {rollResult.options.map(option => (
                   <article key={option.id} className={`aum-card aum-card--${option.rarity}`}>
-                    <h3 className="aum-card__name">{option.name}</h3>
-                    <p className={`aum-card__desc${option.description ? '' : ' aum-card__desc--empty'}`}>
-                      {option.description || 'Sin descripción'}
-                    </p>
+                    <h3 className="aum-card__name">
+                      {option.name}
+                      {option.levels && <AugmentLevelBadge />}
+                    </h3>
+                    {(option.description || !option.levels) && (
+                      <p className={`aum-card__desc${option.description ? '' : ' aum-card__desc--empty'}`}>
+                        {option.description || 'Sin descripción'}
+                      </p>
+                    )}
+                    {option.levels && <AugmentLevelList levels={option.levels} />}
                   </article>
                 ))}
               </div>
@@ -344,10 +382,14 @@ const Aumentos = () => {
               <span className={`aum-rarity aum-rarity--${augment.rarity}`}>{rarityLabel(augment.rarity)}</span>
               <div className="aum-card__top">
                 <h3 className="aum-card__name">{augment.name}</h3>
+                {augment.levels && <AugmentLevelBadge />}
               </div>
-              <p className={`aum-card__desc${augment.description ? '' : ' aum-card__desc--empty'}`}>
-                {augment.description || 'Sin descripción'}
-              </p>
+              {(augment.description || !augment.levels) && (
+                <p className={`aum-card__desc${augment.description ? '' : ' aum-card__desc--empty'}`}>
+                  {augment.description || 'Sin descripción'}
+                </p>
+              )}
+              {augment.levels && <AugmentLevelList levels={augment.levels} />}
               {error && <p className="aum-error">{error}</p>}
               <div className="aum-card__actions">
                 {isAdmin ? (
@@ -398,23 +440,58 @@ const Aumentos = () => {
                 {AUGMENT_RARITIES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
             </label>
+            <label
+              className={`aum-toggle${editing.draft.leveled ? ' aum-toggle--on' : ''}`}
+              title="El aumento tiene sus propios niveles 1, 2 y 3 (aparte del nivel del player)"
+            >
+              <input
+                type="checkbox"
+                checked={editing.draft.leveled}
+                onChange={event => setDraft({ leveled: event.target.checked })}
+              />
+              <span className="aum-toggle__track" aria-hidden="true"><span className="aum-toggle__thumb" /></span>
+              <span className="aum-toggle__label">
+                {editing.draft.leveled ? 'Con niveles (1, 2 y 3)' : 'Sin niveles: un solo efecto'}
+              </span>
+            </label>
             <label className="aum-field">
-              <span className="aum-field__label">Descripción</span>
+              <span className="aum-field__label">{editing.draft.leveled ? 'Descripción general (opcional)' : 'Descripción'}</span>
               <textarea
                 className="aum-input aum-input--text"
                 value={editing.draft.description}
                 maxLength={AUGMENT_DESCRIPTION_MAX}
-                rows={5}
-                placeholder="Qué hace el aumento"
+                rows={editing.draft.leveled ? 2 : 5}
+                placeholder={editing.draft.leveled ? 'Idea común a todos los niveles' : 'Qué hace el aumento'}
                 onChange={event => setDraft({ description: event.target.value })}
               />
             </label>
+            {editing.draft.leveled && (
+              <>
+                <p className="aum-modal__text">
+                  Nivel del aumento, no del player: empieza en nivel 1 y el admin lo sube a 2 y 3 desde la ficha.
+                </p>
+                {editing.draft.levels.map((effect, index) => (
+                  <label key={index} className="aum-field">
+                    <span className="aum-field__label">Efecto nivel {index + 1}</span>
+                    <textarea
+                      className="aum-input aum-input--text aum-input--level"
+                      value={effect}
+                      maxLength={AUGMENT_LEVEL_EFFECT_MAX}
+                      rows={2}
+                      required
+                      placeholder={`Qué hace a nivel ${index + 1}`}
+                      onChange={event => setLevelEffect(index, event.target.value)}
+                    />
+                  </label>
+                ))}
+              </>
+            )}
             {formError && <p className="aum-error">{formError}</p>}
             <div className="aum-form__actions">
               <button type="button" className="aum-cancel" disabled={saving} onClick={() => setEditing(null)}>
                 Cancelar
               </button>
-              <button type="submit" className="aum-btn" disabled={saving || !editing.draft.name.trim()}>
+              <button type="submit" className="aum-btn" disabled={saving || !editing.draft.name.trim() || levelsMissing}>
                 {saving ? 'Guardando' : editing.id ? 'Guardar' : 'Añadir'}
               </button>
             </div>

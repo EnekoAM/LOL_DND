@@ -106,7 +106,39 @@ export type PlayerPatch = {
 };
 
 export type PlayerQuest = { id: string; name: string; description?: string; reward?: string; done: boolean; hidden?: boolean };
-export type PlayerAumento = { id: string; name: string; description?: string; hidden?: boolean };
+/**
+ * Aumento en la ficha. levels: efectos de nivel 1, 2 y 3 del propio aumento (no del player).
+ * level: nivel actual del aumento (1-3), solo si tiene levels. catalogId: aumento del catálogo del que salió (opcional).
+ */
+export type PlayerAumento = {
+  id: string;
+  name: string;
+  description?: string;
+  hidden?: boolean;
+  catalogId?: string;
+  levels?: string[];
+  level?: number;
+};
+
+/** Los aumentos con niveles tienen exactamente 3 (nivel del aumento, aparte del nivel del player). */
+export const AUGMENT_LEVEL_COUNT = 3;
+export const AUGMENT_LEVEL_EFFECT_MAX = 500;
+
+/** Lista de 3 efectos (nivel 1, 2 y 3), todos con texto. null/false = sin niveles. */
+function parseAugmentLevels(value: unknown, label: string): string[] | null {
+  if (value === null || value === false) return null;
+  if (!Array.isArray(value) || value.length !== AUGMENT_LEVEL_COUNT) {
+    throw new HttpError(400, `${label} tiene que ser una lista con los efectos de nivel 1, 2 y 3`);
+  }
+  return value.map((raw, index) => {
+    if (typeof raw !== 'string' || !raw.trim()) throw new HttpError(400, `Falta el efecto de nivel ${index + 1}`);
+    const text = raw.trim();
+    if (text.length > AUGMENT_LEVEL_EFFECT_MAX) {
+      throw new HttpError(400, `El efecto de nivel ${index + 1} admite como máximo ${AUGMENT_LEVEL_EFFECT_MAX} caracteres`);
+    }
+    return text;
+  });
+}
 
 const ENTRY_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const MAX_ENTRIES = 100;
@@ -171,14 +203,29 @@ function playerQuests(value: unknown): PlayerQuest[] {
 
 function playerAumentos(value: unknown): PlayerAumento[] {
   const list = entryList(value, 'aumentos').map((raw, index) => {
-    const { id, name, description } = entryBase(raw, 'aumentos', index);
-    const hidden = (raw as Record<string, unknown>).hidden;
+    const { source, id, name, description } = entryBase(raw, 'aumentos', index);
+    const hidden = source.hidden;
     if (hidden !== undefined && typeof hidden !== 'boolean') {
       throw new HttpError(400, `aumentos[${index}].hidden tiene que ser true o false`);
     }
     const aumento: PlayerAumento = { id, name };
     if (description) aumento.description = description;
     if (hidden === true) aumento.hidden = true;
+    if (source.catalogId !== undefined && source.catalogId !== null && source.catalogId !== '') {
+      if (typeof source.catalogId !== 'string' || !ENTRY_ID.test(source.catalogId)) {
+        throw new HttpError(400, `aumentos[${index}].catalogId no es válido`);
+      }
+      aumento.catalogId = source.catalogId;
+    }
+    const levels = source.levels === undefined ? null : parseAugmentLevels(source.levels, `aumentos[${index}].levels`);
+    if (levels) {
+      const level = source.level === undefined || source.level === null ? 1 : source.level;
+      if (typeof level !== 'number' || !Number.isInteger(level) || level < 1 || level > AUGMENT_LEVEL_COUNT) {
+        throw new HttpError(400, `aumentos[${index}].level tiene que ser 1, 2 o 3`);
+      }
+      aumento.levels = levels;
+      aumento.level = level;
+    }
     return aumento;
   });
   assertUniqueIds(list, 'aumentos');
@@ -1233,9 +1280,11 @@ export type AugmentInput = {
   rarity: AugmentRarity;
   name: string;
   description: string;
+  /** Efectos de nivel 1, 2 y 3 del aumento (aparte del nivel del player). null = aumento sin niveles. */
+  levels: string[] | null;
 };
 
-/** POST /api/augments: { name, rarity?, description? }. price ya no se usa (se ignora). Con partial (PATCH) todos opcionales. */
+/** POST /api/augments: { name, rarity?, description?, levels? (3 efectos o null) }. price ya no se usa (se ignora). Con partial (PATCH) todos opcionales. */
 export function parseAugmentInput(body: unknown, partial: true): Partial<AugmentInput>;
 export function parseAugmentInput(body: unknown, partial?: false): AugmentInput;
 export function parseAugmentInput(body: unknown, partial = false): Partial<AugmentInput> {
@@ -1265,6 +1314,8 @@ export function parseAugmentInput(body: unknown, partial = false): Partial<Augme
   } else if (!partial) {
     out.rarity = 'plata';
   }
+  if (source.levels !== undefined) out.levels = parseAugmentLevels(source.levels, 'levels');
+  else if (!partial) out.levels = null;
   if (partial && Object.keys(out).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return out;
 }

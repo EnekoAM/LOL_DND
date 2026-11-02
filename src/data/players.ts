@@ -81,6 +81,12 @@ export type PlayerAumento = {
   description?: string;
   /** Oculto para los players (el admin lo sigue viendo). */
   hidden?: boolean;
+  /** Aumento del catálogo (augments) del que se copió, si salió de ahí. */
+  catalogId?: string;
+  /** Aumento con niveles: efecto de nivel 1, 2 y 3 del aumento (no del player). */
+  levels?: string[];
+  /** Nivel actual del aumento (1-3); solo con levels. Empieza en 1. */
+  level?: number;
 };
 
 export type BasicAttackEntry = { type: string; scaling: number[] };

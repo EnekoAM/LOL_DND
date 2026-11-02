@@ -16,6 +16,11 @@ export type Augment = {
   rarity: AugmentRarity;
   name: string;
   description: string;
+  /**
+   * Solo aumentos con niveles: efecto de nivel 1, 2 y 3 del propio aumento
+   * (se sube aparte del nivel del player/campeón).
+   */
+  levels?: string[];
   /** ISO. */
   createdAt: string;
 };
@@ -24,10 +29,26 @@ export type AugmentDraft = {
   rarity: AugmentRarity;
   name: string;
   description: string;
+  /** 3 efectos (nivel 1, 2 y 3) o null si el aumento no tiene niveles. */
+  levels: string[] | null;
 };
 
 export const AUGMENT_NAME_MAX = 80;
 export const AUGMENT_DESCRIPTION_MAX = 1000;
+/** Niveles de un aumento con niveles (1, 2 y 3). No tiene nada que ver con el nivel del player. */
+export const AUGMENT_LEVEL_COUNT = 3;
+export const AUGMENT_LEVEL_EFFECT_MAX = 500;
+
+/** Normaliza levels: exactamente 3 textos o undefined (sin niveles). */
+export function augmentLevels(value: unknown): string[] | undefined {
+  return Array.isArray(value) && value.length === AUGMENT_LEVEL_COUNT && value.every(t => typeof t === 'string')
+    ? (value as string[])
+    : undefined;
+}
+
+/** Nivel actual válido (1-3) de un aumento con niveles. */
+export const clampAugmentLevel = (level: unknown): number =>
+  typeof level === 'number' && Number.isInteger(level) ? Math.min(AUGMENT_LEVEL_COUNT, Math.max(1, level)) : 1;
 
 const OFFLINE = 'No se pudo contactar con la API. Arranca npm run dev:api';
 const ADMIN_ONLY = 'Solo el admin puede gestionar los aumentos';
@@ -50,13 +71,16 @@ async function call(path: string, init: RequestInit | undefined, fallback: strin
 }
 
 function normalize(raw: Augment): Augment {
-  return {
+  const augment: Augment = {
     id: String(raw.id),
     rarity: raw.rarity === 'oro' || raw.rarity === 'prismatico' ? raw.rarity : 'plata',
     name: typeof raw.name === 'string' ? raw.name : '',
     description: typeof raw.description === 'string' ? raw.description : '',
     createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : '',
   };
+  const levels = augmentLevels(raw.levels);
+  if (levels) augment.levels = levels;
+  return augment;
 }
 
 function asAugment(body: unknown): Augment {

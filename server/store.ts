@@ -1248,6 +1248,8 @@ export type AugmentEntry = {
   rarity: 'plata' | 'oro' | 'prismatico';
   name: string;
   description: string;
+  /** Efectos de nivel 1, 2 y 3 (solo aumentos con niveles). */
+  levels?: string[];
   createdAt: string;
 };
 
@@ -1257,13 +1259,17 @@ function toAugment(doc: Document): AugmentEntry {
     : doc._id instanceof ObjectId
       ? doc._id.getTimestamp()
       : new Date(0);
-  return {
+  const entry: AugmentEntry = {
     id: String(doc._id),
     rarity: doc.rarity === 'oro' || doc.rarity === 'prismatico' ? doc.rarity : 'plata',
     name: typeof doc.name === 'string' ? doc.name : '',
     description: typeof doc.description === 'string' ? doc.description : '',
     createdAt: created.toISOString(),
   };
+  if (Array.isArray(doc.levels) && doc.levels.length === 3 && doc.levels.every((t: unknown) => typeof t === 'string')) {
+    entry.levels = doc.levels as string[];
+  }
+  return entry;
 }
 
 const MISSING_AUGMENT = 'No existe ese aumento';
@@ -1275,7 +1281,9 @@ export async function listAugments(): Promise<AugmentEntry[]> {
 }
 
 export async function createAugment(input: AugmentInput): Promise<AugmentEntry> {
-  const doc: Document = { ...input, createdAt: new Date() };
+  const { levels, ...rest } = input;
+  const doc: Document = { ...rest, createdAt: new Date() };
+  if (levels) doc.levels = levels;
   const result = await (await collection('augments')).insertOne(doc);
   return toAugment({ ...doc, _id: result.insertedId });
 }
@@ -1285,7 +1293,13 @@ export async function updateAugment(id: string, patch: Partial<AugmentInput>): P
   const col = await collection('augments');
   const _id = new ObjectId(id);
   // price era del formato antiguo (precio por aumento): se limpia al editar.
-  const result = await col.updateOne({ _id }, { $set: { ...patch, updatedAt: new Date() }, $unset: { price: '' } });
+  // levels: null quita los niveles (vuelve a un solo efecto).
+  const { levels, ...rest } = patch;
+  const $set: Document = { ...rest, updatedAt: new Date() };
+  const $unset: Document = { price: '' };
+  if (levels) $set.levels = levels;
+  else if (levels === null) $unset.levels = '';
+  const result = await col.updateOne({ _id }, { $set, $unset });
   if (result.matchedCount === 0) throw new HttpError(404, MISSING_AUGMENT);
   const doc = await col.findOne({ _id });
   if (!doc) throw new HttpError(404, MISSING_AUGMENT);

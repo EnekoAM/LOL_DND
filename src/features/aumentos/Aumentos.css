@@ -382,3 +382,6 @@
 .aum-roll__sim { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(212, 196, 154, 0.5); }
 .aum-roll__total { margin: 0; font-family: 'Cinzel', serif; font-size: 12px; font-weight: 700; color: #a6e0ae; }
 .aum-roll__total--bad { color: #f87171; }
+
+/* Efectos por nivel en el formulario: textarea más baja. */
+.aum-input--level { min-height: 56px; }
