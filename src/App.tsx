@@ -27,12 +27,13 @@ import Dados from './features/dados/Dados';
 import Items from './features/items/Items';
 import Mapa from './features/mapa/Mapa';
 import Mecanicas from './features/mecanicas/Mecanicas';
+import Npcs from './features/npcs/Npcs';
 import Players from './features/players/Players';
 import Sugerencias from './features/sugerencias/Sugerencias';
 import Tienda from './features/tienda/Tienda';
 import './App.css';
 
-type ScreenId = 'items' | 'tienda' | 'players' | 'calculos' | 'aumentos' | 'item-roll' | 'dados' | 'mapa' | 'mecanicas' | 'historial' | 'sugerencias';
+type ScreenId = 'items' | 'tienda' | 'players' | 'calculos' | 'npcs' | 'aumentos' | 'item-roll' | 'dados' | 'mapa' | 'mecanicas' | 'historial' | 'sugerencias';
 
 type Screen = NavItem<ScreenId> & { Component: ComponentType };
 
@@ -41,6 +42,7 @@ const SCREENS: Screen[] = [
   { id: 'tienda',      label: 'Tienda',      icon: '⚖',  Component: Tienda },
   { id: 'players',     label: 'Players',     icon: '👤', Component: Players },
   { id: 'calculos',    label: 'Campeones',   icon: '✦',  Component: Calculos },
+  { id: 'npcs',        label: 'NPCs',        icon: '🐉', Component: Npcs },
   { id: 'aumentos',    label: 'Aumentos',    icon: '✨',  Component: Aumentos },
   { id: 'item-roll',   label: 'Item Roll',   icon: '💎', Component: ItemRoll },
   { id: 'dados',       label: 'Dados',       icon: '🎲', Component: Dados },

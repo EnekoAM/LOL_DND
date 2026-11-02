@@ -1,0 +1,122 @@
+/* NPCs / Monstruos: reutiliza Calculos.css, ChampionSheet.css, Players.css y Habilidades.css. */
+
+.npc-new-btn {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.npc-card__abilities {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.6);
+  text-align: center;
+  padding: 4px 0 2px;
+}
+
+.npc-ability__preview {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(212, 196, 154, 0.75);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.npc-ability__desc,
+.npc-sheet__description {
+  white-space: pre-wrap;
+}
+
+.npc-sheet__description {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.npc-ability-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 110px;
+  border-style: dashed;
+  cursor: pointer;
+  color: rgba(201, 168, 76, 0.75);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: transparent;
+}
+
+.npc-ability-add__plus {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.npc-sheet__stats {
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+}
+
+.npc-sheet__admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.npc-sheet__confirm {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.npc-btn--danger {
+  border-color: rgba(248, 113, 113, 0.6) !important;
+  color: #f87171 !important;
+}
+
+.npc-kind-switch {
+  display: flex;
+  gap: 8px;
+}
+
+.npc-kind-switch__btn {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(212, 196, 154, 0.7);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+}
+
+.npc-kind-switch__btn--on {
+  border-color: rgba(201, 168, 76, 0.7);
+  color: var(--gold-bright, #f0d78c);
+  background: rgba(201, 168, 76, 0.12);
+}
+
+.npc-editor__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 80px;
+  gap: 10px;
+}
+
+.npc-editor__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .npc-editor__row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
