@@ -28,9 +28,12 @@ import NpcSheet from './NpcSheet';
 import '../calculos/Calculos.css';
 import './Npcs.css';
 
-type Filter = { search: string; kind: NpcKind | ''; type: string; region: string; onlyVisible: boolean };
+/** '' = todos; visible / hidden = solo visibles / solo ocultos a los players (filtro de admin). */
+type Visibility = '' | 'visible' | 'hidden';
 
-const BASE_FILTER: Filter = { search: '', kind: '', type: '', region: '', onlyVisible: false };
+type Filter = { search: string; kind: NpcKind | ''; type: string; region: string; visibility: Visibility };
+
+const BASE_FILTER: Filter = { search: '', kind: '', type: '', region: '', visibility: '' };
 
 /** Valor del filtro Tipo/Región para «Sin tipo» / «Sin región» (NPCs con ese campo vacío). */
 const NONE = '__none__';
@@ -86,7 +89,7 @@ const Npcs = () => {
       (!filter.kind || n.kind === filter.kind) &&
       matchesTag(n.type, filter.type) &&
       matchesTag(n.region, filter.region) &&
-      (!filter.onlyVisible || n.visible)),
+      (!filter.visibility || n.visible === (filter.visibility === 'visible'))),
     [visible, filter],
   );
 
@@ -160,15 +163,26 @@ const Npcs = () => {
             </>
             )}
             {canEdit && (
-              <button
-                type="button"
-                className={cx('calc-learned-toggle', filter.onlyVisible && 'calc-learned-toggle--on')}
-                aria-pressed={filter.onlyVisible}
-                title="Solo los visibles para players"
-                onClick={() => update({ onlyVisible: !filter.onlyVisible })}
-              >
-                Visibles
-              </button>
+              <>
+                <button
+                  type="button"
+                  className={cx('calc-learned-toggle', filter.visibility === 'visible' && 'calc-learned-toggle--on')}
+                  aria-pressed={filter.visibility === 'visible'}
+                  title="Solo los visibles para players"
+                  onClick={() => update({ visibility: filter.visibility === 'visible' ? '' : 'visible' })}
+                >
+                  Visibles
+                </button>
+                <button
+                  type="button"
+                  className={cx('calc-learned-toggle', filter.visibility === 'hidden' && 'calc-learned-toggle--on')}
+                  aria-pressed={filter.visibility === 'hidden'}
+                  title="Solo los ocultos a los players"
+                  onClick={() => update({ visibility: filter.visibility === 'hidden' ? '' : 'hidden' })}
+                >
+                  No visibles
+                </button>
+              </>
             )}
             {canEdit && (
               <button type="button" className="calc-learned-toggle calc-learned-toggle--on npc-new-btn" onClick={() => setCreating(true)}>
