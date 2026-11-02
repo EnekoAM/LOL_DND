@@ -1469,3 +1469,9 @@
 .sheet-add__textarea { resize: vertical; min-height: 44px; }
 .sheet-add__row { display: flex; gap: 6px; justify-content: flex-end; }
 .sheet-add__row .sheet-quest__btn { margin-top: 0; }
+
+/* Quitar/Editar bien visibles en quests y aumentos personalizados. */
+.sheet-quest__actions { flex-wrap: wrap; justify-content: flex-end; }
+.sheet-quest__btn--danger { padding: 6px 12px; background: rgba(90, 20, 15, 0.85); border-color: rgba(220, 100, 90, 0.75); color: #ffc2bb; font-weight: 600; }
+.sheet-quest__btn--danger:hover:not(:disabled) { background: rgba(140, 30, 22, 0.95); }
+.sheet-hint { list-style: none; font-size: 12px; font-style: italic; color: rgba(212, 196, 154, 0.6); padding: 2px 4px; }
