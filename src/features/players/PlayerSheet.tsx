@@ -232,6 +232,9 @@ const PlayerSheet = ({
   const isMine = !!myName && normalizeName(myName) === normalizeName(player.name);
   const isAdmin = role === 'admin';
   const canManageExtras = isAdmin || canEdit;
+  // La ficha (PG, maná, fondo…) la edita cualquiera que la abre: User, invitado y admin, como hasta ahora.
+  // canEdit (solo admin) es para mutaciones globales y extras como quests/aumentos.
+  const canEditSheet = true;
   const unlocks = player.unlocks ?? {};
   /** 19–20 se desbloquean al completar una quest cuyo nombre contenga «top» (p. ej. «Quest de top»). */
   const topUnlocked = unlocks.questTop === true || (player.quests ?? []).some(q => q.done && /\btop\b/i.test(q.name));
@@ -350,11 +353,11 @@ const PlayerSheet = ({
               failed={portraitFailed}
               onFail={() => setPortraitFailed(true)}
             />
-            {canManageExtras && (
+            {canEditSheet && (
               <SheetBackgroundButton open={editBackground} onToggle={() => setEditBackground(open => !open)} />
             )}
           </div>
-          {canManageExtras && editBackground && (
+          {canEditSheet && editBackground && (
             <SheetBackgroundEditor
               playerName={player.name}
               background={background}
