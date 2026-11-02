@@ -93,6 +93,7 @@ const LOCKED_TABS: Partial<Record<SheetTab, PlayerUnlockKey>> = {
 const ADMIN_UNLOCKS: { key: PlayerUnlockKey; label: string; hint: string }[] = [
   { key: 'quest', label: 'Pestaña Quest', hint: 'Desbloquea la pestaña Quest' },
   { key: 'aumentos', label: 'Pestaña Aumentos', hint: 'Desbloquea la pestaña Aumentos' },
+  { key: 'questTopAssigned', label: 'Quest de top asignada', hint: 'Muestra la Quest de top en la pestaña Quest de este jugador' },
   { key: 'questTop', label: 'Quest de top completada', hint: 'Desbloquea los niveles 19 y 20 de la tabla de rol' },
 ];
 
