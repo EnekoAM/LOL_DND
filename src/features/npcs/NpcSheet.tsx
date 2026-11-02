@@ -8,6 +8,7 @@ import {
   npcKindLabel,
   npcImageStyle,
   updateNpc,
+  updateNpcAsPlayer,
   type Npc,
   type NpcAbility,
   type NpcInput,
@@ -17,6 +18,7 @@ import { cx } from '../../lib/cx';
 import AbilityCard from '../calculos/AbilityCard';
 import NpcAbilityModal from './NpcAbilityModal';
 import NpcEditorModal from './NpcEditorModal';
+import NpcPlayerEditModal from './NpcPlayerEditModal';
 
 type Props = {
   npc: Npc;
@@ -43,9 +45,10 @@ const toInput = ({ id: _id, createdAt: _c, updatedAt: _u, ...rest }: Npc): NpcIn
 
 const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbility }: Props) => {
   const canEdit = useCanEdit();
-  const [tab, setTab] = useState<SheetTab>('habilidades');
+  const [tab, setTab] = useState<SheetTab>(canEdit ? 'habilidades' : 'descripcion');
   const [portraitFailed, setPortraitFailed] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [playerEditing, setPlayerEditing] = useState(false);
   const [abilityOpen, setAbilityOpen] = useState<AbilityOpen>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -57,14 +60,25 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
 
   useEffect(() => {
     setEditing(false);
+    setPlayerEditing(false);
     setAbilityOpen(null);
     setConfirmDelete(false);
     setError(null);
   }, [npc.id]);
 
+  // Players: sin pestaña de habilidades (ni modales abiertos si el admin cambia de rol en vivo).
+  useEffect(() => {
+    if (canEdit) return;
+    setTab('descripcion');
+    setAbilityOpen(null);
+    setEditing(false);
+  }, [canEdit]);
+
   const background = npc.background?.trim() || '';
-  const stats = NPC_STATS.filter(({ key }) => typeof npc.stats[key] === 'number');
+  // Players no ven stats (la API ya no se las manda): vida, resistencias… van en la descripción.
+  const stats = canEdit ? NPC_STATS.filter(({ key }) => typeof npc.stats[key] === 'number') : [];
   const meta = [npc.type, npc.region].filter(Boolean);
+  const tabs = canEdit ? TABS : TABS.filter(entry => entry.id === 'descripcion');
 
   const persist = async (patch: NpcPatch) => {
     setSaving(true);
@@ -135,11 +149,13 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
 
           <div className="sheet-side__identity">
             <h1 className="sheet-side__name">{npc.name}</h1>
-            <div className="sheet-side__meta">
-              <span className="champ-sheet__level">NVL {npc.level}</span>
-              {' \u00B7 '}{npcKindIcon(npc.kind)} {npcKindLabel(npc.kind)}
-              {meta.map(text => <span key={text}>{' \u00B7 '}{text}</span>)}
-            </div>
+            {canEdit && (
+              <div className="sheet-side__meta">
+                <span className="champ-sheet__level">NVL {npc.level}</span>
+                {' \u00B7 '}{npcKindIcon(npc.kind)} {npcKindLabel(npc.kind)}
+                {meta.map(text => <span key={text}>{' \u00B7 '}{text}</span>)}
+              </div>
+            )}
             {canEdit && npc.visible && <div className="champ-sheet__active-badge">Visible</div>}
           </div>
 
@@ -188,12 +204,20 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
             </div>
           )}
 
+          {!canEdit && (
+            <div className="champ-sheet__toggles npc-sheet__admin">
+              <button type="button" className="champ-sheet__toggle" disabled={saving} onClick={() => setPlayerEditing(true)}>
+                ✎ Editar descripción
+              </button>
+            </div>
+          )}
+
           {error && <p className="sheet-hp__error" role="alert">{error}</p>}
         </aside>
 
         <div className="sheet-content">
           <div className="sheet-tabs" role="tablist" aria-label="Secciones de la ficha">
-            {TABS.map(entry => (
+            {tabs.map(entry => (
               <button
                 key={entry.id}
                 type="button"
@@ -208,7 +232,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
             ))}
           </div>
 
-          {tab === 'habilidades' && (
+          {tab === 'habilidades' && canEdit && (
             <>
               {npc.abilities.length === 0 && !canEdit && (
                 <p className="calc-build-empty">Este NPC no tiene habilidades.</p>
@@ -263,7 +287,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
         </div>
       </div>
 
-      {abilityOpen && openAbility !== undefined && (
+      {canEdit && abilityOpen && openAbility !== undefined && (
         <NpcAbilityModal
           key={abilityOpen.id}
           npc={npc}
@@ -276,7 +300,18 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
         />
       )}
 
-      {editing && (
+      {playerEditing && !canEdit && (
+        <NpcPlayerEditModal
+          npc={npc}
+          onClose={() => setPlayerEditing(false)}
+          onSubmit={async patch => {
+            onChange(await updateNpcAsPlayer(npc.id, patch));
+            setPlayerEditing(false);
+          }}
+        />
+      )}
+
+      {editing && canEdit && (
         <NpcEditorModal
           title={`Editar ${npc.name}`}
           initial={toInput(npc)}

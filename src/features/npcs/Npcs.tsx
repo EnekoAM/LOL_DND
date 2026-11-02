@@ -90,7 +90,7 @@ const Npcs = () => {
   const replace = (saved: Npc) =>
     setNpcs(prev => sortNpcs(prev.some(n => n.id === saved.id) ? prev.map(n => (n.id === saved.id ? saved : n)) : [...prev, saved]));
 
-  if (ability) {
+  if (ability && canEdit) {
     return (
       <div className="calc-root">
         <DamagePanel
@@ -136,6 +136,8 @@ const Npcs = () => {
                 <button type="button" className="search-clear" aria-label="Borrar búsqueda" title="Borrar" onClick={() => update({ search: '' })}>×</button>
               )}
             </span>
+            {canEdit && (
+            <>
             <select className="calc-select-dmg" value={filter.kind} onChange={e => update({ kind: e.target.value as NpcKind | '' })}>
               <option value="">Clase</option>
               {NPC_KINDS.map(kind => <option key={kind.value} value={kind.value}>{kind.icon} {kind.label}</option>)}
@@ -148,6 +150,8 @@ const Npcs = () => {
               <option value="">Región</option>
               {regions.map(region => <option key={region} value={region}>{region}</option>)}
             </select>
+            </>
+            )}
             {canEdit && (
               <button
                 type="button"
@@ -176,15 +180,20 @@ const Npcs = () => {
                     {npc.image ? <img src={npc.image} alt="" style={npcImageStyle(npcCircleFrame(npc))} /> : <span aria-hidden="true">{npc.name.charAt(0)}</span>}
                   </div>
                   {canEdit && npc.visible && <div className="calc-champ-card__active">Visible</div>}
-                  <div className="calc-champ-card__meta">
-                    <span className="calc-champ-card__region">{npc.region || `NVL ${npc.level}`}</span>
-                    <span className="calc-champ-card__role">{npcKindIcon(npc.kind)} {npc.type || npcKindLabel(npc.kind)}</span>
-                  </div>
-                  <div className="npc-card__abilities">
-                    {npc.abilities.length === 0
-                      ? 'Sin habilidades'
-                      : `${npc.abilities.length} habilidad${npc.abilities.length === 1 ? '' : 'es'}`}
-                  </div>
+                  {/* Players: solo nombre y foto en la tarjeta; tipo, región, nivel y habilidades quedan ocultos. */}
+                  {canEdit && (
+                    <>
+                      <div className="calc-champ-card__meta">
+                        <span className="calc-champ-card__region">{npc.region || `NVL ${npc.level}`}</span>
+                        <span className="calc-champ-card__role">{npcKindIcon(npc.kind)} {npc.type || npcKindLabel(npc.kind)}</span>
+                      </div>
+                      <div className="npc-card__abilities">
+                        {npc.abilities.length === 0
+                          ? 'Sin habilidades'
+                          : `${npc.abilities.length} habilidad${npc.abilities.length === 1 ? '' : 'es'}`}
+                      </div>
+                    </>
+                  )}
                 </div>
               </PickerCard>
             ))}

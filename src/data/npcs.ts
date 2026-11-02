@@ -2,7 +2,11 @@ import type { CSSProperties } from 'react';
 import { readAppRole } from './appRole';
 import type { AbilityDamage, AbilityEffect } from './champions';
 
-/** NPCs y monstruos (colección npcs en Mongo). Admin: alta/edición/borrado; players solo ven los visibles. */
+/**
+ * NPCs y monstruos (colección npcs en Mongo). Admin: alta/edición/borrado y todo a la vista.
+ * Players: solo los visibles, en ficha reducida (nombre, foto y descripción; sin habilidades ni stats)
+ * y solo pueden editar la descripción.
+ */
 export type NpcKind = 'npc' | 'monstruo';
 
 export const NPC_KINDS: { value: NpcKind; label: string; icon: string }[] = [
@@ -205,6 +209,17 @@ export async function updateNpc(id: string, patch: NpcPatch): Promise<Npc> {
   return asNpc(await call(`/api/npcs?id=${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: ADMIN_JSON,
+    body: JSON.stringify(patch),
+  }, 'al guardar el NPC'));
+}
+
+/** Edición de un player: solo la descripción (vida, resistencias… van dentro del texto). */
+export type NpcPlayerPatch = { description: string };
+
+export async function updateNpcAsPlayer(id: string, patch: NpcPlayerPatch): Promise<Npc> {
+  return asNpc(await call(`/api/npcs?id=${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),
   }, 'al guardar el NPC'));
 }
