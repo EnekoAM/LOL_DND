@@ -36,7 +36,7 @@ function ensureElement(): HTMLDivElement {
   el.hidden = true;
   el.innerHTML =
     '<div class="api-wake__card">' +
-    '<span class="api-wake__spinner" aria-hidden="true"></span>' +
+    '<img class="api-wake__spinner" src="/logo.png" alt="" width="42" height="48" aria-hidden="true" />' +
     '<p class="api-wake__title">Despertando Render\u2026</p>' +
     '<p class="api-wake__sub">El servidor estaba dormido; puede tardar hasta un minuto.</p>' +
     '</div>';
