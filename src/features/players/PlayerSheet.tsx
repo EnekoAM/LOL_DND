@@ -93,8 +93,6 @@ const LOCKED_TABS: Partial<Record<SheetTab, PlayerUnlockKey>> = {
 const ADMIN_UNLOCKS: { key: PlayerUnlockKey; label: string; hint: string }[] = [
   { key: 'quest', label: 'Pestaña Quest', hint: 'Desbloquea la pestaña Quest' },
   { key: 'aumentos', label: 'Pestaña Aumentos', hint: 'Desbloquea la pestaña Aumentos' },
-  { key: 'questTopAssigned', label: 'Quest de top asignada', hint: 'Muestra la Quest de top en la pestaña Quest de este jugador' },
-  { key: 'questTop', label: 'Quest de top completada', hint: 'Desbloquea los niveles 19 y 20 de la tabla de rol' },
 ];
 
 const TabLock = ({ className }: { className?: string }) => (
@@ -194,7 +192,8 @@ const PlayerSheet = ({
   const isAdmin = role === 'admin';
   const canManageExtras = isAdmin || canEdit;
   const unlocks = player.unlocks ?? {};
-  const questTopAssigned = unlocks.questTopAssigned === true || unlocks.questTop === true;
+  /** 19–20 se desbloquean al completar una quest cuyo nombre contenga «top» (p. ej. «Quest de top»). */
+  const topUnlocked = unlocks.questTop === true || (player.quests ?? []).some(q => q.done && /\btop\b/i.test(q.name));
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const setUnlock = async (key: PlayerUnlockKey, value: boolean) => {
@@ -502,7 +501,7 @@ const PlayerSheet = ({
                 sheet={player.sheet}
                 equipment={player.equipamiento}
                 defaultOpen
-                lockFutureLevels={unlocks.questTop !== true}
+                lockFutureLevels={!topUnlocked}
               />
             </section>
           )}
@@ -520,54 +519,6 @@ const PlayerSheet = ({
             <section className="sheet-panel">
               <div className="sheet-panel__title">Quests</div>
               <ul className="sheet-quests">
-                {questTopAssigned ? (
-                <li className={cx('sheet-quest', unlocks.questTop === true && 'sheet-quest--done')}>
-                  <span className="sheet-quest__mark" aria-hidden="true">{unlocks.questTop === true ? '✔' : '◇'}</span>
-                  <div className="sheet-quest__body">
-                    <div className="sheet-quest__name">Quest de top</div>
-                    <div className="sheet-quest__reward">Recompensa: desbloquea los niveles 19 y 20</div>
-                  </div>
-                  {isAdmin ? (
-                    <>
-                      <button
-                        type="button"
-                        className="sheet-quest__btn"
-                        disabled={unlockBusy}
-                        onClick={() => void setUnlock('questTop', unlocks.questTop !== true)}
-                      >
-                        {unlocks.questTop === true ? 'Marcar pendiente' : 'Marcar completada'}
-                      </button>
-                      <button
-                        type="button"
-                        className="sheet-quest__btn sheet-quest__btn--danger"
-                        disabled={unlockBusy}
-                        onClick={() => {
-                          if (!window.confirm('¿Quitar la Quest de top a este jugador? Los niveles 19 y 20 volverán a bloquearse.')) return;
-                          void (async () => {
-                            if (unlocks.questTop === true) await setUnlock('questTop', false);
-                            await setUnlock('questTopAssigned', false);
-                          })();
-                        }}
-                      >
-                        ✕ Quitar
-                      </button>
-                    </>
-                  ) : (
-                    <span className="sheet-quest__state">{unlocks.questTop === true ? 'Completada' : 'Pendiente'}</span>
-                  )}
-                </li>
-                ) : isAdmin ? (
-                  <li className="sheet-quest">
-                    <button
-                      type="button"
-                      className="sheet-quest__btn"
-                      disabled={unlockBusy}
-                      onClick={() => void setUnlock('questTopAssigned', true)}
-                    >
-                      + Añadir Quest de top
-                    </button>
-                  </li>
-                ) : null}
                 <QuestList quests={player.quests ?? []} canEdit={canManageExtras} onChange={onQuestsChange} />
               </ul>
               {unlockError && <p className="calc-build-error">{unlockError}</p>}

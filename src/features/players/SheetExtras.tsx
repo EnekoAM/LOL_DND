@@ -152,7 +152,7 @@ export const QuestList = ({ quests, canEdit, onChange }: QuestProps) => {
         ),
       )}
       {canEdit && quests.length === 0 && !adding && (
-        <li className="sheet-hint">Las quests que añadas tendrán Editar y Quitar.</li>
+        <li className="sheet-hint">Las quests que añadas tendrán Editar y Quitar. Si el nombre incluye «top» (p. ej. «Quest de top»), al completarla se desbloquean los niveles 19 y 20.</li>
       )}
       {canEdit && (
         <li className="sheet-add">
