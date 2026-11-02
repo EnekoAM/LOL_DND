@@ -320,6 +320,14 @@ export default function Mapa() {
     }
   }, [pois, selectedId, isAdmin, busy, draft, showMine]);
 
+  // Cursor de cruz en modo colocar. Se toca classList a mano: el div es de Leaflet
+  // (leaflet-container, leaflet-grab…) y un className de React le borraría esas clases.
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    host.classList.toggle('mapa-canvas--placing', placing !== null);
+  }, [placing]);
+
   // Esc cancela el modo colocar.
   useEffect(() => {
     if (!placing) return;
@@ -453,7 +461,7 @@ export default function Mapa() {
         </span>
       </div>
       <div className="mapa-stage">
-        <div ref={hostRef} className={cx('mapa-canvas', placing && 'mapa-canvas--placing')} />
+        <div ref={hostRef} className="mapa-canvas" />
         {notice && <div className="mapa-notice" role="status">{notice}</div>}
         {(draft || selected || poisError) && (
           <MapaPoiPanel
