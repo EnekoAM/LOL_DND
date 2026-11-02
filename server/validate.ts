@@ -61,7 +61,28 @@ export type PlayerPatch = {
   sheet?: PlayerSheet | null;
   /** Rangos de Q/W/E/R. Solo se mandan los huecos que cambian; el servidor valida contra el nivel. */
   abilityRanks?: Partial<Record<RankedSlot, number>>;
+  /** Desbloqueos (pestañas Quest/Aumentos y quest de top). Solo las claves que cambian. */
+  unlocks?: Partial<Record<PlayerUnlockKey, boolean>>;
 };
+
+const PLAYER_UNLOCK_KEYS = ['quest', 'aumentos', 'questTop'] as const;
+export type PlayerUnlockKey = (typeof PLAYER_UNLOCK_KEYS)[number];
+
+function playerUnlocks(value: unknown): Partial<Record<PlayerUnlockKey, boolean>> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new HttpError(400, 'unlocks tiene que ser un objeto');
+  }
+  const parsed: Partial<Record<PlayerUnlockKey, boolean>> = {};
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!PLAYER_UNLOCK_KEYS.includes(key as PlayerUnlockKey)) {
+      throw new HttpError(400, `Desbloqueo desconocido: ${key} (quest, aumentos o questTop)`);
+    }
+    if (typeof raw !== 'boolean') throw new HttpError(400, `unlocks.${key} tiene que ser true o false`);
+    parsed[key as PlayerUnlockKey] = raw;
+  }
+  if (Object.keys(parsed).length === 0) throw new HttpError(400, 'unlocks está vacío');
+  return parsed;
+}
 
 export type PlayerReplace = {
   basicAttack?: BasicAttack;
@@ -432,6 +453,7 @@ export function parsePlayerPatch(body: unknown): PlayerPatch {
   }
   if ('sheet' in source) patch.sheet = source.sheet === null ? null : parsePlayerSheet(source.sheet);
   if ('abilityRanks' in source) patch.abilityRanks = abilityRanks(source.abilityRanks);
+  if ('unlocks' in source) patch.unlocks = playerUnlocks(source.unlocks);
   if ('unassignedPoints' in source) {
     throw new HttpError(400, 'unassignedPoints se calcula (nivel − puntos gastados); cambia abilityRanks');
   }

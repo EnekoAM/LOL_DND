@@ -32,7 +32,7 @@ type Props = {
   level?: number;
   /** Si true, la tabla de rol sale desplegada. */
   roleTableOpen?: boolean;
-  /** Si true (fichas de players), los niveles 19 y 20 salen oscurecidos con candado. */
+  /** Si true (fichas de players sin la quest de top), los niveles 19 y 20 salen oscurecidos con candado. */
   lockFutureLevels?: boolean;
 };
 
@@ -193,7 +193,7 @@ const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: bo
             {firstLocked && (
               <span className="calc-sheet__lock-sub">
                 {lockedRows.length === 1 ? firstLocked : `${firstLocked} – ${lockedRows[lockedRows.length - 1].label}`}
-                {' · Completar quests para desbloquear'}
+                {' · Completar la quest de top para desbloquear'}
               </span>
             )}
           </div>

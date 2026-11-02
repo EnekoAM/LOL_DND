@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { Ability } from '../../data/champions';
 import { findItem } from '../../data/items';
 import type { RankedSlot } from '../../data/abilityRanks';
+import { useAppRole } from '../../data/appRoleContext';
 import { partyLevel, subscribeParty } from '../../data/party';
 import {
   EQUIPMENT_SLOTS,
@@ -9,6 +10,8 @@ import {
   type Player,
   type PlayerAbilitySlot,
   type PlayerSheet as PlayerSheetData,
+  type PlayerUnlockKey,
+  type PlayerUnlocks,
 } from '../../data/players';
 import { normalizeName } from '../../lib/text';
 import BuildPicker from '../calculos/BuildPicker';
@@ -49,10 +52,12 @@ type Props = {
   onSheetChange: (sheet: PlayerSheetData) => Promise<void>;
   onAbilityChange: (slot: PlayerAbilitySlot, name: string | null) => Promise<void>;
   onRankChange: (slot: RankedSlot, rank: number) => Promise<void>;
+  /** Solo admin: desbloquea pestañas o marca la quest de top (se manda el objeto completo). */
+  onUnlocksChange: (unlocks: PlayerUnlocks) => Promise<void>;
 };
 
-type SheetTab = 'general' | 'habilidades' | 'equipo' | 'build' | 'desglose';
-const SHEET_TABS: SheetTab[] = ['general', 'habilidades', 'equipo', 'build', 'desglose'];
+type SheetTab = 'general' | 'habilidades' | 'equipo' | 'build' | 'desglose' | 'quest' | 'aumentos';
+const SHEET_TABS: SheetTab[] = ['general', 'habilidades', 'equipo', 'build', 'desglose', 'quest', 'aumentos'];
 const readTab = (key: string): SheetTab => {
   try {
     const v = localStorage.getItem(key) as SheetTab | null;
@@ -68,7 +73,53 @@ const TABS: { id: SheetTab; label: string }[] = [
   { id: 'equipo', label: 'Equipo' },
   { id: 'build', label: 'Build' },
   { id: 'desglose', label: 'Desglose' },
+  { id: 'quest', label: 'Quest' },
+  { id: 'aumentos', label: 'Aumentos' },
 ];
+
+/** Pestañas con candado hasta que el admin las desbloquea (players.unlocks). */
+const LOCKED_TABS: Partial<Record<SheetTab, PlayerUnlockKey>> = {
+  quest: 'quest',
+  aumentos: 'aumentos',
+};
+
+const ADMIN_UNLOCKS: { key: PlayerUnlockKey; label: string; hint: string }[] = [
+  { key: 'quest', label: 'Pestaña Quest', hint: 'Desbloquea la pestaña Quest' },
+  { key: 'aumentos', label: 'Pestaña Aumentos', hint: 'Desbloquea la pestaña Aumentos' },
+  { key: 'questTop', label: 'Quest de top completada', hint: 'Desbloquea los niveles 19 y 20 de la tabla de rol' },
+];
+
+const TabLock = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path
+      fill="currentColor"
+      d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 1 1 6 0v3H9Zm3 3.5a1.75 1.75 0 0 1 1 3.19V19h-2v-2.31a1.75 1.75 0 0 1 1-3.19Z"
+    />
+  </svg>
+);
+
+const LockedTab = ({
+  label,
+  canUnlock,
+  busy,
+  onUnlock,
+}: {
+  label: string;
+  canUnlock: boolean;
+  busy: boolean;
+  onUnlock: () => void;
+}) => (
+  <section className="sheet-panel sheet-locked">
+    <TabLock className="sheet-locked__icon" />
+    <div className="sheet-locked__title">{label} bloqueado</div>
+    <p className="sheet-locked__sub">Completar quests para desbloquear</p>
+    {canUnlock && (
+      <button type="button" className="sheet-locked__btn" disabled={busy} onClick={onUnlock}>
+        {busy ? 'Guardando…' : `Desbloquear ${label}`}
+      </button>
+    )}
+  </section>
+);
 
 const DEFENSE_KEYS: { key: StatKey; label: string }[] = [
   { key: 'ac', label: 'CA' },
@@ -127,7 +178,28 @@ const PlayerSheet = ({
   onSheetChange,
   onAbilityChange,
   onRankChange,
+  onUnlocksChange,
 }: Props) => {
+  const { role } = useAppRole();
+  const isAdmin = role === 'admin';
+  const unlocks = player.unlocks ?? {};
+  const [unlockBusy, setUnlockBusy] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const setUnlock = async (key: PlayerUnlockKey, value: boolean) => {
+    setUnlockBusy(true);
+    setUnlockError(null);
+    try {
+      await onUnlocksChange({ ...unlocks, [key]: value });
+    } catch (error) {
+      setUnlockError(error instanceof Error ? error.message : 'No se pudo guardar');
+    } finally {
+      setUnlockBusy(false);
+    }
+  };
+  const tabLocked = (id: SheetTab): boolean => {
+    const key = LOCKED_TABS[id];
+    return key !== undefined && unlocks[key] !== true;
+  };
   const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
   const [portraitFailed, setPortraitFailed] = useState(false);
   const tabKey = `playerSheetTab:${player.name}`;
@@ -257,22 +329,46 @@ const PlayerSheet = ({
               onChange={onCombatChange}
             />
           </div>
+          {isAdmin && (
+            <div className="sheet-panel sheet-side__admin">
+              <div className="sheet-panel__title">Admin · Desbloqueos</div>
+              <div className="sheet-admin">
+                {ADMIN_UNLOCKS.map(({ key, label, hint }) => (
+                  <label key={key} className="sheet-admin__row" title={hint}>
+                    <input
+                      type="checkbox"
+                      checked={unlocks[key] === true}
+                      disabled={unlockBusy}
+                      onChange={event => void setUnlock(key, event.target.checked)}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+              {unlockError && <p className="calc-build-error">{unlockError}</p>}
+            </div>
+          )}
         </aside>
 
         <div className="sheet-content">
           <div className="sheet-tabs" role="tablist" aria-label="Secciones de la ficha">
-            {TABS.map(entry => (
-              <button
-                key={entry.id}
-                type="button"
-                role="tab"
-                aria-selected={tab === entry.id}
-                className={cx('sheet-tab', tab === entry.id && 'sheet-tab--active')}
-                onClick={() => setTab(entry.id)}
-              >
-                {entry.label}
-              </button>
-            ))}
+            {TABS.map(entry => {
+              const locked = tabLocked(entry.id);
+              return (
+                <button
+                  key={entry.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === entry.id}
+                  className={cx('sheet-tab', tab === entry.id && 'sheet-tab--active', locked && 'sheet-tab--locked')}
+                  title={locked ? 'Bloqueado · Completar quests para desbloquear' : undefined}
+                  onClick={() => setTab(entry.id)}
+                >
+                  {locked && <TabLock className="sheet-tab__lock" />}
+                  {entry.label}
+                </button>
+              );
+            })}
           </div>
 
           {tab === 'general' && (
@@ -394,8 +490,52 @@ const PlayerSheet = ({
                 sheet={player.sheet}
                 equipment={player.equipamiento}
                 defaultOpen
-                lockFutureLevels
+                lockFutureLevels={unlocks.questTop !== true}
               />
+            </section>
+          )}
+
+          {(tab === 'quest' || tab === 'aumentos') && tabLocked(tab) && (
+            <LockedTab
+              label={tab === 'quest' ? 'Quest' : 'Aumentos'}
+              canUnlock={isAdmin}
+              busy={unlockBusy}
+              onUnlock={() => void setUnlock(tab, true)}
+            />
+          )}
+
+          {tab === 'quest' && !tabLocked('quest') && (
+            <section className="sheet-panel">
+              <div className="sheet-panel__title">Quests</div>
+              <ul className="sheet-quests">
+                <li className={cx('sheet-quest', unlocks.questTop === true && 'sheet-quest--done')}>
+                  <span className="sheet-quest__mark" aria-hidden="true">{unlocks.questTop === true ? '✔' : '◇'}</span>
+                  <div className="sheet-quest__body">
+                    <div className="sheet-quest__name">Quest de top</div>
+                    <div className="sheet-quest__reward">Recompensa: desbloquea los niveles 19 y 20</div>
+                  </div>
+                  {isAdmin ? (
+                    <button
+                      type="button"
+                      className="sheet-quest__btn"
+                      disabled={unlockBusy}
+                      onClick={() => void setUnlock('questTop', unlocks.questTop !== true)}
+                    >
+                      {unlocks.questTop === true ? 'Marcar pendiente' : 'Marcar completada'}
+                    </button>
+                  ) : (
+                    <span className="sheet-quest__state">{unlocks.questTop === true ? 'Completada' : 'Pendiente'}</span>
+                  )}
+                </li>
+              </ul>
+              {unlockError && <p className="calc-build-error">{unlockError}</p>}
+            </section>
+          )}
+
+          {tab === 'aumentos' && !tabLocked('aumentos') && (
+            <section className="sheet-panel">
+              <div className="sheet-panel__title">Aumentos</div>
+              <p className="calc-build-empty">Todavía no hay aumentos.</p>
             </section>
           )}
         </div>

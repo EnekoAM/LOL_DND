@@ -1348,3 +1348,79 @@
     margin-top: 10px;
   }
 }
+/* Pestañas con candado (Quest, Aumentos) hasta que el admin las desbloquea. */
+.sheet-tab--locked {
+  color: rgba(212, 196, 154, 0.32);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.sheet-tab--locked.sheet-tab--active { color: rgba(240, 220, 160, 0.6); }
+.sheet-tab__lock { width: 11px; height: 11px; flex: none; }
+
+.sheet-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 220px;
+  text-align: center;
+  background: repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.35) 0 10px, rgba(0, 0, 0, 0.5) 10px 20px);
+}
+.sheet-locked__icon { width: 34px; height: 34px; color: var(--gold); opacity: 0.85; }
+.sheet-locked__title {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+.sheet-locked__sub { margin: 0; font-size: 12px; color: rgba(212, 196, 154, 0.6); }
+.sheet-locked__btn,
+.sheet-quest__btn {
+  appearance: none;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border: 1px solid rgba(201, 168, 76, 0.45);
+  border-radius: 5px;
+  background: rgba(42, 24, 0, 0.85);
+  color: var(--gold-bright);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.sheet-locked__btn:disabled,
+.sheet-quest__btn:disabled { opacity: 0.5; cursor: default; }
+
+.sheet-admin { display: flex; flex-direction: column; gap: 6px; }
+.sheet-admin__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(212, 196, 154, 0.85);
+  cursor: pointer;
+}
+.sheet-admin__row input { accent-color: var(--gold); }
+
+.sheet-quests { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.sheet-quest {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  border-radius: 6px;
+  background: rgba(10, 8, 4, 0.4);
+}
+.sheet-quest--done { border-color: rgba(120, 200, 120, 0.45); }
+.sheet-quest__mark { color: var(--gold); font-size: 16px; width: 18px; text-align: center; }
+.sheet-quest--done .sheet-quest__mark { color: #8fd88f; }
+.sheet-quest__body { flex: 1; min-width: 0; }
+.sheet-quest__name { font-family: 'Cinzel', serif; color: var(--gold-bright); font-size: 13px; }
+.sheet-quest__reward { font-size: 11px; color: rgba(212, 196, 154, 0.6); }
+.sheet-quest__state { font-size: 11px; color: rgba(212, 196, 154, 0.7); text-transform: uppercase; letter-spacing: 1px; }
+.sheet-quest--done .sheet-quest__state { color: #8fd88f; }
+.sheet-quest__btn { margin-top: 0; }

@@ -44,6 +44,19 @@ export type PlayerSheet = {
   skills?: DndSkillProficiencies;
 };
 
+/**
+ * Desbloqueos de la ficha (players.unlocks en Mongo). Solo los cambia el admin.
+ * - quest / aumentos: pestañas de la ficha (con candado hasta desbloquearlas).
+ * - questTop: «Quest de top» completada → desbloquea los niveles 19 y 20 de la tabla de rol.
+ */
+export type PlayerUnlocks = {
+  quest?: boolean;
+  aumentos?: boolean;
+  questTop?: boolean;
+};
+
+export type PlayerUnlockKey = keyof PlayerUnlocks;
+
 export type BasicAttackEntry = { type: string; scaling: number[] };
 /** Un tipo (formato antiguo) o varios (p. ej. AD + AP). */
 export type BasicAttack = BasicAttackEntry | BasicAttackEntry[];
@@ -96,6 +109,8 @@ export type Player = {
   abilityRanks?: AbilityRanks;
   /** Puntos de habilidad libres = nivel del grupo − puntos gastados (lo calcula la API). */
   unassignedPoints?: number;
+  /** Pestañas desbloqueadas y quest de top completada. */
+  unlocks?: PlayerUnlocks;
 };
 
 /** URL pública del retrato. Vacío si no hay imagen. */
@@ -132,6 +147,8 @@ export type PlayerListPatch = Partial<
   sheet?: PlayerSheet | null;
   /** Solo los huecos que cambian; la API valida puntos y desbloqueos de la R. */
   abilityRanks?: Partial<Record<RankedSlot, number>>;
+  /** Solo las claves que cambian; la API las fusiona con las guardadas. */
+  unlocks?: PlayerUnlocks;
 };
 
 /** Sustituye la build o el equipamiento y deja la copia en memoria alineada con lo guardado. */

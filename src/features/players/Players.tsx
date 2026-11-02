@@ -92,7 +92,7 @@ const Players = () => {
   };
 
   const updatePlayerList = (
-    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'shortRestsUsed' | 'sheet'>>,
+    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'shortRestsUsed' | 'sheet' | 'unlocks'>>,
   ): Promise<void> => {
     if (!player) return Promise.resolve();
     const name = player.name;
@@ -126,7 +126,8 @@ const Players = () => {
         const lastSaved = findSaved(name);
         if (lastSaved) setPlayer(current => (sameName(current, name) ? lastSaved : current));
         const message = error instanceof Error ? error.message : 'No se pudo guardar';
-        if ('equipamiento' in patch) setEquipError(message);
+        if ('unlocks' in patch) { /* el panel de admin muestra su propio error */ }
+        else if ('equipamiento' in patch) setEquipError(message);
         else if (isSheet) setSheetError(message);
         else if (isCombat) setCombatError(message);
         else setBuildError(message);
@@ -207,6 +208,7 @@ const Players = () => {
           onBuildChange={build => { void updatePlayerList({ build }); }}
           onCombatChange={combat => updatePlayerList(combat)}
           onSheetChange={sheet => updatePlayerList({ sheet })}
+          onUnlocksChange={unlocks => updatePlayerList({ unlocks })}
           onAbilityChange={changeAbility}
           onRankChange={changeRank}
         />
