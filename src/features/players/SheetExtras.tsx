@@ -64,7 +64,7 @@ export const QuestList = ({ quests, canEdit, onChange }: QuestProps) => {
   const toggle = (id: string) =>
     void save(quests.map(q => (q.id === id ? { ...q, done: !q.done } : q)));
   const remove = (quest: PlayerQuest) => {
-    if (!window.confirm(`¿Borrar la quest «${quest.name}»?`)) return;
+    if (!window.confirm(`¿Quitar la quest «${quest.name}»?`)) return;
     void save(quests.filter(q => q.id !== quest.id));
   };
 
@@ -87,11 +87,11 @@ export const QuestList = ({ quests, canEdit, onChange }: QuestProps) => {
                 type="button"
                 className="sheet-quest__btn sheet-quest__btn--danger"
                 disabled={busy}
-                title="Borrar quest"
+                title="Quitar quest"
                 aria-label={`Borrar ${quest.name}`}
                 onClick={() => remove(quest)}
               >
-                ✕
+                ✕ Quitar
               </button>
             </div>
           ) : (
@@ -175,7 +175,7 @@ export const AumentoList = ({ aumentos, canEdit, onChange }: AumentoProps) => {
   };
 
   const remove = (aumento: PlayerAumento) => {
-    if (!window.confirm(`¿Borrar el aumento «${aumento.name}»?`)) return;
+    if (!window.confirm(`¿Quitar el aumento «${aumento.name}»?`)) return;
     void save(aumentos.filter(a => a.id !== aumento.id));
   };
 
@@ -194,12 +194,12 @@ export const AumentoList = ({ aumentos, canEdit, onChange }: AumentoProps) => {
               type="button"
               className="sheet-quest__btn sheet-quest__btn--danger"
               disabled={busy}
-              title="Borrar aumento"
+              title="Quitar aumento"
               aria-label={`Borrar ${aumento.name}`}
               onClick={() => remove(aumento)}
             >
-              ✕
-            </button>
+                ✕ Quitar
+              </button>
           )}
         </li>
       ))}
