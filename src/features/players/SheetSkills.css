@@ -74,3 +74,37 @@
   text-align: right;
   min-width: 28px;
 }
+/* Orden de habilidades: A-Z / Bonus. */
+.sheet-skills-sort {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.sheet-skills-sort + .sheet-panel__meta {
+  margin-left: 0;
+}
+
+.sheet-skills-sort__btn {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  background: transparent;
+  color: rgba(212, 196, 154, 0.5);
+  cursor: pointer;
+}
+
+.sheet-skills-sort__btn:hover {
+  color: var(--ink);
+  border-color: rgba(201, 168, 76, 0.5);
+}
+
+.sheet-skills-sort__btn--on {
+  color: var(--gold-bright, #f0d27a);
+  border-color: rgba(201, 168, 76, 0.6);
+  background: rgba(201, 168, 76, 0.1);
+}

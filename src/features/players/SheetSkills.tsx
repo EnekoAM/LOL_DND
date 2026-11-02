@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { DND_SKILLS, proficiencyBonus, type DndSkillKey, type DndSkillProficiencies } from '../../data/dndSkills';
 import type { PlayerSheet } from '../../data/players';
 import { cx } from '../../lib/cx';
@@ -14,12 +15,33 @@ type Props = {
 
 const SHORT = Object.fromEntries(ABILITY_SCORES.map(({ key, short }) => [key, short]));
 
+type SkillSort = 'bonus' | 'alpha';
+const SORT_KEY = 'lol-app.sheetSkills.sort';
+
+const readSort = (): SkillSort => {
+  try {
+    return localStorage.getItem(SORT_KEY) === 'alpha' ? 'alpha' : 'bonus';
+  } catch {
+    return 'bonus';
+  }
+};
+
 const formatModifier = (value: number): string => (value >= 0 ? `+${value}` : String(value));
 
 /** Habilidades D&D 5e (Acrobacias, Atletismo…): círculo de competencia + modificador. */
 const SheetSkills = ({ sheet, level, error, onSave }: Props) => {
   const bonus = proficiencyBonus(level);
   const skills = sheet?.skills ?? {};
+  const [sort, setSort] = useState<SkillSort>(readSort);
+
+  const changeSort = (next: SkillSort) => {
+    setSort(next);
+    try {
+      localStorage.setItem(SORT_KEY, next);
+    } catch {
+      // ignore
+    }
+  };
 
   const toggle = async (key: DndSkillKey) => {
     if (!sheet) return;
@@ -37,6 +59,26 @@ const SheetSkills = ({ sheet, level, error, onSave }: Props) => {
     <section className="sheet-panel sheet-general__combat sheet-general__skills">
       <div className="sheet-panel__title">
         Habilidades
+        <span className="sheet-skills-sort" role="group" aria-label="Ordenar habilidades">
+          <button
+            type="button"
+            className={cx('sheet-skills-sort__btn', sort === 'alpha' && 'sheet-skills-sort__btn--on')}
+            aria-pressed={sort === 'alpha'}
+            onClick={() => changeSort('alpha')}
+            title="Ordenar alfabéticamente"
+          >
+            A-Z
+          </button>
+          <button
+            type="button"
+            className={cx('sheet-skills-sort__btn', sort === 'bonus' && 'sheet-skills-sort__btn--on')}
+            aria-pressed={sort === 'bonus'}
+            onClick={() => changeSort('bonus')}
+            title="Ordenar por bonus (mayor primero)"
+          >
+            Bonus
+          </button>
+        </span>
         <span className="sheet-panel__meta" title="Bono de competencia por nivel">
           Comp. {formatModifier(bonus)}
         </span>
@@ -50,7 +92,11 @@ const SheetSkills = ({ sheet, level, error, onSave }: Props) => {
           const value = modOf(ability) + (proficient ? bonus : 0);
           return { key, label, ability, proficient, value };
         })
-          .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, 'es'))
+          .sort((a, b) =>
+            sort === 'alpha'
+              ? a.label.localeCompare(b.label, 'es')
+              : b.value - a.value || a.label.localeCompare(b.label, 'es'),
+          )
           .map(({ key, label, ability, proficient, value }) => {
           return (
             <li key={key} className={cx('sheet-skill', proficient && 'sheet-skill--prof')}>
