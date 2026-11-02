@@ -1,7 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/players/:name", "destination": "/api/players?name=:name" },
-    { "source": "/api/roles/:id", "destination": "/api/roles?id=:id" },
+    { "source": "/api/:path*", "destination": "https://lol-dnd-server.onrender.com/api/:path*" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
