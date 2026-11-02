@@ -1,8 +1,19 @@
 import { readAppRole } from './appRole';
 
 /** Aumento del catálogo (colección augments en Mongo). Admin: alta/edición/borrado. Players: comprar (próximamente). */
+export type AugmentRarity = 'plata' | 'oro' | 'prismatico';
+
+export const AUGMENT_RARITIES: { value: AugmentRarity; label: string }[] = [
+  { value: 'plata', label: 'Plata' },
+  { value: 'oro', label: 'Oro' },
+  { value: 'prismatico', label: 'Prismático' },
+];
+
+export const rarityLabel = (r: AugmentRarity) => AUGMENT_RARITIES.find(x => x.value === r)?.label ?? 'Plata';
+
 export type Augment = {
   id: string;
+  rarity: AugmentRarity;
   name: string;
   description: string;
   /** Precio en oro. */
@@ -12,6 +23,7 @@ export type Augment = {
 };
 
 export type AugmentDraft = {
+  rarity: AugmentRarity;
   name: string;
   description: string;
   price: number;
@@ -43,6 +55,7 @@ async function call(path: string, init: RequestInit | undefined, fallback: strin
 function normalize(raw: Augment): Augment {
   return {
     id: String(raw.id),
+    rarity: raw.rarity === 'oro' || raw.rarity === 'prismatico' ? raw.rarity : 'plata',
     name: typeof raw.name === 'string' ? raw.name : '',
     description: typeof raw.description === 'string' ? raw.description : '',
     price: typeof raw.price === 'number' && Number.isFinite(raw.price) ? raw.price : 0,

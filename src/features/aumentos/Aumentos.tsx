@@ -4,6 +4,9 @@ import { useCanEdit } from '../../data/appRoleContext';
 import {
   AUGMENT_DESCRIPTION_MAX,
   AUGMENT_NAME_MAX,
+  AUGMENT_RARITIES,
+  rarityLabel,
+  type AugmentRarity,
   createAugment,
   deleteAugment,
   loadAugments,
@@ -15,7 +18,7 @@ import { useLiveRevision } from '../../data/live';
 import { partyAumentosForPlayers, saveAumentosForPlayers, subscribeParty } from '../../data/party';
 import './Aumentos.css';
 
-const EMPTY_DRAFT: AugmentDraft = { name: '', description: '', price: 0 };
+const EMPTY_DRAFT: AugmentDraft = { rarity: 'plata', name: '', description: '', price: 0 };
 
 const sortByName = (list: Augment[]): Augment[] =>
   [...list].sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -80,7 +83,7 @@ const Aumentos = () => {
 
   const openEdit = (augment: Augment) => {
     setFormError(null);
-    setEditing({ id: augment.id, draft: { name: augment.name, description: augment.description, price: augment.price } });
+    setEditing({ id: augment.id, draft: { rarity: augment.rarity, name: augment.name, description: augment.description, price: augment.price } });
   };
 
   const setDraft = (patch: Partial<AugmentDraft>) =>
@@ -90,6 +93,7 @@ const Aumentos = () => {
     event.preventDefault();
     if (!editing || saving) return;
     const draft: AugmentDraft = {
+      rarity: editing.draft.rarity,
       name: editing.draft.name.trim(),
       description: editing.draft.description.trim(),
       price: Math.max(0, Math.floor(Number(editing.draft.price) || 0)),
@@ -183,7 +187,8 @@ const Aumentos = () => {
           const error = rowError?.id === augment.id ? rowError.text : null;
           const busy = busyId === augment.id;
           return (
-            <article key={augment.id} className="aum-card">
+            <article key={augment.id} className={`aum-card aum-card--${augment.rarity}`}>
+              <span className={`aum-rarity aum-rarity--${augment.rarity}`}>{rarityLabel(augment.rarity)}</span>
               <div className="aum-card__top">
                 <h3 className="aum-card__name">{augment.name}</h3>
                 <span className="aum-card__price" title="Precio en oro">{formatGold(augment.price)} 🪙</span>
@@ -234,6 +239,16 @@ const Aumentos = () => {
                 placeholder="Nombre del aumento"
                 onChange={event => setDraft({ name: event.target.value })}
               />
+            </label>
+            <label className="aum-field">
+              <span className="aum-field__label">Rareza</span>
+              <select
+                className="aum-input"
+                value={editing.draft.rarity}
+                onChange={event => setDraft({ rarity: event.target.value as AugmentRarity })}
+              >
+                {AUGMENT_RARITIES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+              </select>
             </label>
             <label className="aum-field">
               <span className="aum-field__label">Precio (oro)</span>

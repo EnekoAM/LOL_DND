@@ -359,3 +359,13 @@
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* Rarezas: plata, oro, prismático */
+.aum-card--plata { border-color: rgba(200, 208, 220, 0.55); box-shadow: 0 0 0 1px rgba(200, 208, 220, 0.15), 0 4px 14px rgba(180, 190, 205, 0.12); }
+.aum-card--oro { border-color: rgba(232, 185, 72, 0.75); box-shadow: 0 0 0 1px rgba(232, 185, 72, 0.25), 0 4px 18px rgba(232, 185, 72, 0.22); }
+.aum-card--prismatico { position: relative; border-color: transparent; background-clip: padding-box; box-shadow: 0 4px 22px rgba(170, 120, 255, 0.3); }
+.aum-card--prismatico::before { content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, #ff6ad5, #c774e8, #8795e8, #94d0ff, #7cf5c8, #ffe27a); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+.aum-rarity { align-self: flex-start; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.aum-rarity--plata { color: #1d2230; background: linear-gradient(135deg, #e6ebf2, #9aa4b2); }
+.aum-rarity--oro { color: #3a2600; background: linear-gradient(135deg, #ffe08a, #d39b22); }
+.aum-rarity--prismatico { color: #1a1030; background: linear-gradient(90deg, #ff6ad5, #c774e8, #94d0ff, #7cf5c8, #ffe27a); }

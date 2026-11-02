@@ -1226,6 +1226,7 @@ export async function deleteTicket(id: string): Promise<{ id: string }> {
 
 export type AugmentEntry = {
   id: string;
+  rarity: 'plata' | 'oro' | 'prismatico';
   name: string;
   description: string;
   price: number;
@@ -1240,6 +1241,7 @@ function toAugment(doc: Document): AugmentEntry {
       : new Date(0);
   return {
     id: String(doc._id),
+    rarity: doc.rarity === 'oro' || doc.rarity === 'prismatico' ? doc.rarity : 'plata',
     name: typeof doc.name === 'string' ? doc.name : '',
     description: typeof doc.description === 'string' ? doc.description : '',
     price: typeof doc.price === 'number' && Number.isFinite(doc.price) && doc.price >= 0 ? Math.floor(doc.price) : 0,

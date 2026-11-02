@@ -1191,7 +1191,11 @@ export const AUGMENT_NAME_MAX = 80;
 export const AUGMENT_DESCRIPTION_MAX = 1000;
 
 /** Aumento del catálogo (colección augments). Los players lo comprarán con oro. */
+export const AUGMENT_RARITIES = ['plata', 'oro', 'prismatico'] as const;
+export type AugmentRarity = typeof AUGMENT_RARITIES[number];
+
 export type AugmentInput = {
+  rarity: AugmentRarity;
   name: string;
   description: string;
   price: number;
@@ -1226,6 +1230,14 @@ export function parseAugmentInput(body: unknown, partial = false): Partial<Augme
     out.price = source.price;
   } else if (!partial) {
     out.price = 0;
+  }
+  if (source.rarity !== undefined && source.rarity !== null) {
+    if (typeof source.rarity !== 'string' || !(AUGMENT_RARITIES as readonly string[]).includes(source.rarity)) {
+      throw new HttpError(400, 'La rareza tiene que ser plata, oro o prismatico');
+    }
+    out.rarity = source.rarity as AugmentRarity;
+  } else if (!partial) {
+    out.rarity = 'plata';
   }
   if (partial && Object.keys(out).length === 0) throw new HttpError(400, 'No hay campos para actualizar');
   return out;
