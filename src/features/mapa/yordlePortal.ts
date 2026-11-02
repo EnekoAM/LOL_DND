@@ -18,7 +18,20 @@ export const YORDLE_PORTAL = {
   spots: data.spots as YordlePortalSpot[],
 };
 
-export const YORDLE_PORTAL_ICON = `${import.meta.env.BASE_URL}assets/runeterra/icons/regions/bandle-city.png`;
+/**
+ * Arte del portal oficial (no el escudo de Bandle): el glifo es assets/images/fx/bandle-mask.jpg
+ * de map.leagueoflegends.com tenido con su color 0xFF8018 (blanco al pasar el raton, como alli),
+ * y las chispas usan assets/images/fx/particle.jpg. Ver yordlePortalFx.ts.
+ */
+const FX_BASE = `${import.meta.env.BASE_URL}assets/runeterra/fx`;
+export const YORDLE_PORTAL_ART = {
+  glyph: `${FX_BASE}/yordle-portal.png`,
+  glyphHover: `${FX_BASE}/yordle-portal-hover.png`,
+  mask: `${FX_BASE}/yordle-portal-mask.png`,
+  particle: `${FX_BASE}/yordle-particle.png`,
+};
+/** El plano del portal mide 20 unidades de Riot = 20 * S px en el mapa de 8192. */
+export const YORDLE_PORTAL_PIXELS = 79.5;
 
 const TIME_ZONE = 'Europe/Madrid';
 /** Paso coprimo con 66: recorre las 66 posiciones sin repetir y cada dia salta lejos. */

@@ -7,7 +7,8 @@ import { useLiveRevision } from '../../data/live';
 import { createMapPoi, deleteMapPoi, loadMapPois, updateMapPoi, type MapPoi } from '../../data/mapPois';
 import MapaPoiPanel, { type PoiFormDraft } from './MapaPoiPanel';
 import { MAP_PIXELS, POI_KINDS, RUNETERRA_POIS, poiIconSpec, type PoiKind, type RuneterraPoi } from './pois';
-import { YORDLE_PORTAL, YORDLE_PORTAL_ICON, portalDayKey, yordlePortalForDay, type YordlePortalDay } from './yordlePortal';
+import { YORDLE_PORTAL, YORDLE_PORTAL_ART, YORDLE_PORTAL_PIXELS, portalDayKey, yordlePortalForDay, type YordlePortalDay } from './yordlePortal';
+import { startYordlePortalFx } from './yordlePortalFx';
 import landmarks3d from './landmarks3d.json';
 import './Mapa.css';
 
@@ -115,19 +116,25 @@ function customIcon(poi: Pick<MapPoi, 'kind' | 'name'>, selected: boolean, ghost
   });
 }
 
-/** Portal yordle: escudo de Bandle con el brillo naranja del pin oficial. */
+/** Portal yordle: el glifo y las chispas del portal del mapa oficial (no el escudo de Bandle). */
 function portalIcon(): L.DivIcon {
   return L.divIcon({
-    className: 'mapa-poi mapa-poi--region mapa-portal',
+    className: 'mapa-poi mapa-portal',
     html:
-      `<span class="mapa-portal__glow" aria-hidden="true"></span>` +
-      `<span class="mapa-poi__icon mapa-portal__icon" style="width:44px;height:50px">` +
-      `<img class="mapa-poi__img" src="${YORDLE_PORTAL_ICON}" alt="" draggable="false">` +
+      `<span class="mapa-portal__art">` +
+      `<img class="mapa-portal__glyph" src="${YORDLE_PORTAL_ART.glyph}" alt="" draggable="false">` +
+      `<img class="mapa-portal__glyph mapa-portal__glyph--hover" src="${YORDLE_PORTAL_ART.glyphHover}" alt="" draggable="false">` +
+      `<canvas class="mapa-portal__fx" width="192" height="192"></canvas>` +
       `</span>` +
-      `<span class="mapa-poi__label mapa-portal__label" style="top:28px">${escapeHtml(YORDLE_PORTAL.name)}</span>`,
+      `<span class="mapa-poi__label mapa-portal__label">${escapeHtml(YORDLE_PORTAL.name)}</span>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   });
+}
+
+/** Tamaño en pantalla: el real del portal (20 unidades de Riot) con un mínimo para verlo de lejos. */
+function portalScreenSize(zoom: number): number {
+  return Math.round(Math.min(360, Math.max(64, YORDLE_PORTAL_PIXELS * 2 ** (zoom - 4))));
 }
 
 function portalPopup(day: YordlePortalDay): string {
@@ -368,7 +375,8 @@ export default function Mapa() {
     const layer = portalRef.current;
     layer.clearLayers();
     if (!showPortal) return;
-    L.marker(pixelLatLng(portalDay.spot.x, portalDay.spot.y), {
+    const map = mapRef.current;
+    const marker = L.marker(pixelLatLng(portalDay.spot.x, portalDay.spot.y), {
       icon: portalIcon(),
       title: `${YORDLE_PORTAL.name} (hoy)`,
       riseOnHover: true,
@@ -376,6 +384,18 @@ export default function Mapa() {
     })
       .bindPopup(portalPopup(portalDay), { className: 'mapa-popup-wrap', maxWidth: 320, minWidth: 220 })
       .addTo(layer);
+    const element = marker.getElement();
+    const canvas = element?.querySelector('canvas');
+    const stopFx = canvas ? startYordlePortalFx(canvas, YORDLE_PORTAL_ART.mask, YORDLE_PORTAL_ART.particle) : () => {};
+    const resize = () => {
+      if (map && element) element.style.setProperty('--portal-size', `${portalScreenSize(map.getZoom())}px`);
+    };
+    resize();
+    map?.on('zoom', resize);
+    return () => {
+      stopFx();
+      map?.off('zoom', resize);
+    };
   }, [portalDay, showPortal]);
 
   // Cursor de cruz en modo colocar. Se toca classList a mano: el div es de Leaflet
