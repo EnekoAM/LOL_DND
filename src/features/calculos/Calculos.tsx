@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppRole } from '../../data/appRoleContext';
 import { CHAMPIONS, type Ability, type Champion } from '../../data/champions';
 import { OPEN_RELATED_EVENT, takePendingOpen, type RelationRef } from '../../data/relations';
 import { normalizeName } from '../../lib/text';
 import { useStoredSet } from '../../hooks/useStoredSet';
 import ChampionSheet from './ChampionSheet';
+import { CHAMPIONS_PATH, championSlugPath, championUrl, findChampionBySlug, normalizeSplat } from './championRoute';
 import ChampionPicker, { type ChampionPickerFilter } from './ChampionPicker';
 import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from './damage';
 import DamagePanel from './DamagePanel';
@@ -29,10 +31,15 @@ const baseFilter = (onlyActive: boolean): ChampionPickerFilter => ({
  */
 const Calculos = () => {
   const { canEdit } = useAppRole();
+  const navigate = useNavigate();
+  // Lo que va tras /champions/ (vacío = lista). La URL manda: /champions/<región>/<rol>/<nombre>.
+  const splat = normalizeSplat(useParams()['*'] ?? '');
+  const [selectedChampion, setChampion] = useState<Champion | null>(null);
   // Si se llegó desde «Relaciones» de otra ficha, se abre directamente ese campeón.
-  const [selectedChampion, setChampion] = useState<Champion | null>(() => findChampion(takePendingOpen('champion')));
+  const [pendingName, setPendingName] = useState<string | null>(() => takePendingOpen('champion'));
   // Players nunca pueden abrir un campeón inactivo (p. ej. si el admin lo desactiva en vivo).
-  const champion = selectedChampion && (canEdit || selectedChampion.active === true) ? selectedChampion : null;
+  const canOpen = (entry: Champion) => canEdit || entry.active === true;
+  const champion = splat && selectedChampion && canOpen(selectedChampion) ? selectedChampion : null;
   const [pickerFilter, setPickerFilter] = useState(() => baseFilter(!canEdit));
   const [favorites, toggleFavorite] = useStoredSet(FAVORITES_STORAGE_KEY);
   const [ability, setAbility] = useState<Ability | null>(null);
@@ -43,15 +50,49 @@ const Calculos = () => {
     const onOpen = (event: Event) => {
       const ref = (event as CustomEvent<RelationRef>).detail;
       if (ref?.kind !== 'champion') return;
-      const next = findChampion(takePendingOpen('champion'));
-      if (next) {
-        setAbility(null);
-        setChampion(next);
-      }
+      const name = takePendingOpen('champion');
+      if (name) setPendingName(name);
     };
     window.addEventListener(OPEN_RELATED_EVENT, onOpen);
     return () => window.removeEventListener(OPEN_RELATED_EVENT, onOpen);
   }, []);
+
+  // URL → ficha abierta (enlace directo, atrás/adelante del navegador, cambios de región o rol).
+  useEffect(() => {
+    if (!splat) {
+      setChampion(null);
+      setAbility(null);
+      return;
+    }
+    if (selectedChampion && canOpen(selectedChampion) && championSlugPath(selectedChampion) === splat) return;
+    const found = findChampionBySlug(CHAMPIONS, splat);
+    if (!found || !canOpen(found)) {
+      navigate(CHAMPIONS_PATH, { replace: true });
+      return;
+    }
+    if (!selectedChampion || normalizeName(selectedChampion.champion) !== normalizeName(found.champion)) setAbility(null);
+    setChampion(found);
+    // Ruta canónica (p. ej. si cambió la región/rol o el enlace venía en otro formato).
+    if (championSlugPath(found) !== splat) navigate(championUrl(found), { replace: true });
+  }, [splat, selectedChampion, canEdit, navigate]);
+
+  // Campeón pendiente desde «Relaciones»: se navega a su URL.
+  useEffect(() => {
+    if (!pendingName) return;
+    setPendingName(null);
+    const target = findChampion(pendingName);
+    if (target && canOpen(target)) {
+      setAbility(null);
+      setChampion(target);
+      navigate(championUrl(target), { replace: true });
+    }
+  }, [pendingName, navigate]);
+
+  const openChampion = (target: Champion) => {
+    setAbility(null);
+    setChampion(target);
+    navigate(championUrl(target));
+  };
 
   const updatePickerFilter = (patch: Partial<ChampionPickerFilter>) =>
     setPickerFilter(prev => ({ ...prev, ...patch }));
@@ -73,7 +114,7 @@ const Calculos = () => {
           {champion ? (
             <ChampionSheet
               champion={champion}
-              onBack={() => setChampion(null)}
+              onBack={() => navigate(CHAMPIONS_PATH)}
               onSelectAbility={setAbility}
               onChampionChange={setChampion}
             />
@@ -83,7 +124,7 @@ const Calculos = () => {
               onFilterChange={updatePickerFilter}
               favorites={favorites}
               onToggleFavorite={toggleFavorite}
-              onSelect={setChampion}
+              onSelect={openChampion}
             />
           )}
         </>

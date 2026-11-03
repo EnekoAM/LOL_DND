@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ComponentType } from 'react';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import AppHeader, { type NavItem } from './components/AppHeader';
 import RolePicker from './components/RolePicker';
 import SideNav from './components/SideNav';
@@ -33,7 +33,7 @@ import Sugerencias from './features/sugerencias/Sugerencias';
 import Tienda from './features/tienda/Tienda';
 import './App.css';
 
-type ScreenId = 'items' | 'tienda' | 'players' | 'calculos' | 'npcs' | 'aumentos' | 'item-roll' | 'dados' | 'mapa' | 'mecanicas' | 'historial' | 'sugerencias';
+type ScreenId = 'items' | 'tienda' | 'players' | 'champions' | 'npcs' | 'aumentos' | 'item-roll' | 'dados' | 'mapa' | 'mecanicas' | 'historial' | 'sugerencias';
 
 type Screen = NavItem<ScreenId> & { Component: ComponentType };
 
@@ -41,7 +41,7 @@ const SCREENS: Screen[] = [
   { id: 'items',       label: 'Items',       icon: '⚔',  Component: Items },
   { id: 'tienda',      label: 'Tienda',      icon: '⚖',  Component: Tienda },
   { id: 'players',     label: 'Players',     icon: '👤', Component: Players },
-  { id: 'calculos',    label: 'Campeones',   icon: '✦',  Component: Calculos },
+  { id: 'champions',   label: 'Campeones',   icon: '✦',  Component: Calculos },
   { id: 'npcs',        label: 'NPCs',        icon: '🐉', Component: Npcs },
   { id: 'aumentos',    label: 'Aumentos',    icon: '✨',  Component: Aumentos },
   { id: 'item-roll',   label: 'Item Roll',   icon: '💎', Component: ItemRoll },
@@ -54,6 +54,13 @@ const SCREENS: Screen[] = [
 
 const NAV_EXPANDED_KEY = 'lol-dnd:sidenav-expanded';
 const MOBILE_QUERY = '(max-width: 768px)';
+
+/** Redirige /calculos/<resto> a /champions/<resto> conservando ?query y #hash. */
+function LegacyChampionsRedirect() {
+  const rest = useParams()['*'] ?? '';
+  const { search, hash } = useLocation();
+  return <Navigate to={`/champions${rest ? `/${rest}` : ''}${search}${hash}`} replace />;
+}
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
@@ -182,7 +189,9 @@ function App() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Navigate to={defaultPath} replace />} />
-          <Route path="/habilidades" element={<Navigate to="/calculos" replace />} />
+          <Route path="/habilidades" element={<Navigate to="/champions" replace />} />
+          {/* Ruta antigua de Campeones: /calculos[/...] → /champions[/...]. */}
+          <Route path="/calculos/*" element={<LegacyChampionsRedirect />} />
           {/* /* para sub-rutas (p. ej. la ficha de un NPC en /npcs/<región>/<tipo>/<nombre>). */}
           {visibleScreens.map(({ id, Component }) => (
             <Route key={id} path={`/${id}/*`} element={<Component />} />

@@ -147,4 +147,4 @@ export function takePendingOpen(kind: RelationKind): string | null {
   return id;
 }
 
-export const RELATION_SCREEN_PATH: Record<RelationKind, string> = { champion: '/calculos', npc: '/npcs' };
+export const RELATION_SCREEN_PATH: Record<RelationKind, string> = { champion: '/champions', npc: '/npcs' };
