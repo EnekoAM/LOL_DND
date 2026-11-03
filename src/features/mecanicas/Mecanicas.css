@@ -339,8 +339,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(3px);
+  background: rgba(0, 0, 0, 0.82);
 }
 
 .mec-modal {

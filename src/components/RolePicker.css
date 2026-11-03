@@ -7,8 +7,7 @@
   padding: 24px;
   background:
     radial-gradient(ellipse 70% 50% at 50% 30%, rgba(201,168,76,0.12), transparent 55%),
-    rgba(8, 5, 2, 0.92);
-  backdrop-filter: blur(6px);
+    rgba(8, 5, 2, 0.97);
 }
 
 .role-picker__card {

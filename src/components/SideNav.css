@@ -157,8 +157,7 @@
     position: fixed;
     inset: var(--header-height) 0 0 0;
     z-index: 9997;
-    background: rgba(6,4,2,0.6);
-    backdrop-filter: blur(2px);
+    background: rgba(6,4,2,0.72);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
