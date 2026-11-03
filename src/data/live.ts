@@ -53,6 +53,27 @@ export function useLiveRevision(...resources: LiveResource[]): number {
   );
 }
 
+/**
+ * Avisa a esta pestaña de un cambio hecho en memoria fuera de una pantalla
+ * (p. ej. las stats que se alinean en segundo plano al arrancar) para que repinte.
+ */
+export function notifyLocalChange(...resources: LiveResource[]): void {
+  if (resources.length > 0) bump(resources);
+}
+
+/** Suscripción cruda a cualquier cambio en vivo (para useSyncExternalStore con selector). */
+export function subscribeLive(listener: () => void): () => void {
+  return subscribe(listener);
+}
+
+/** Como useLiveRevision, pero con la lista vacía no se suscribe a nada (en vez de a todo). */
+export function useLiveRevisionOf(resources: readonly LiveResource[]): number {
+  const key = resources.join(',');
+  return useSyncExternalStore(subscribe, () =>
+    key ? key.split(',').reduce((sum, resource) => sum + revisions[resource as LiveResource], 0) : 0,
+  );
+}
+
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path);
   if (!response.ok) throw new Error(`Error ${response.status} en ${path}`);

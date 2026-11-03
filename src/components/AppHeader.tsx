@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { adjustPartyGold, partyGold, partyLevel, savePartyLevel, subscribeParty } from '../data/party';
 import { syncAllPlayerStats } from '../features/calculos/playerTotals';
+import { notifyLocalChange } from '../data/live';
 import { MAX_ROLE_LEVEL } from '../data/roles';
 import { cx } from '../lib/cx';
 import './AppHeader.css';
@@ -86,7 +87,8 @@ export default function AppHeader({ current, menuOpen, onToggleMenu, canManagePa
     try {
       await savePartyLevel(next);
       try {
-        await syncAllPlayerStats();
+        const saved = await syncAllPlayerStats();
+        if (saved > 0) notifyLocalChange('players');
       } catch {
         // El nivel ya esta guardado; las stats se recalcularan al tocar el equipo.
       }

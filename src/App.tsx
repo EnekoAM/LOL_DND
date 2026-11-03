@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ComponentType } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ComponentType } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import AppHeader, { type NavItem } from './components/AppHeader';
 import RolePicker from './components/RolePicker';
@@ -16,40 +16,49 @@ import {
   screenAllowed,
 } from './data/appRole';
 import { AppRoleProvider } from './data/appRoleContext';
-import { startLiveSync, useLiveRevision } from './data/live';
+import { startLiveSync, subscribeLive, useLiveRevision, useLiveRevisionOf, type LiveResource } from './data/live';
 import { partyAumentosForPlayers, subscribeParty } from './data/party';
 import { PLAYERS, findPlayer, openPlayerSheet } from './data/players';
 import Aumentos from './features/aumentos/Aumentos';
 import Calculos from './features/calculos/Calculos';
 import Historial from './features/historial/Historial';
 import ItemRoll from './features/item-roll/ItemRoll';
-import Dados from './features/dados/Dados';
 import Items from './features/items/Items';
-import Mapa from './features/mapa/Mapa';
 import Mecanicas from './features/mecanicas/Mecanicas';
 import Npcs from './features/npcs/Npcs';
 import Players from './features/players/Players';
 import Sugerencias from './features/sugerencias/Sugerencias';
-import Tienda from './features/tienda/Tienda';
 import './App.css';
+
+// Pantallas pesadas (Leaflet, dados 3D, tienda) en su propio chunk: solo se bajan al abrirlas.
+const Dados = lazy(() => import('./features/dados/Dados'));
+const Mapa = lazy(() => import('./features/mapa/Mapa'));
+const Tienda = lazy(() => import('./features/tienda/Tienda'));
 
 type ScreenId = 'items' | 'tienda' | 'players' | 'champions' | 'npcs' | 'aumentos' | 'item-roll' | 'dados' | 'mapa' | 'mecanicas' | 'historial' | 'sugerencias';
 
-type Screen = NavItem<ScreenId> & { Component: ComponentType };
+type Screen = NavItem<ScreenId> & {
+  Component: ComponentType;
+  /**
+   * Recursos en vivo que lee la pantalla (los datos viven fuera de React): si otra pestaña cambia
+   * uno, se repinta solo esa pantalla, no toda la app.
+   */
+  live: LiveResource[];
+};
 
 const SCREENS: Screen[] = [
-  { id: 'items',       label: 'Items',       icon: '⚔',  Component: Items },
-  { id: 'tienda',      label: 'Tienda',      icon: '⚖',  Component: Tienda },
-  { id: 'players',     label: 'Players',     icon: '👤', Component: Players },
-  { id: 'champions',   label: 'Campeones',   icon: '✦',  Component: Calculos },
-  { id: 'npcs',        label: 'NPCs',        icon: '🐉', Component: Npcs },
-  { id: 'aumentos',    label: 'Aumentos',    icon: '✨',  Component: Aumentos },
-  { id: 'item-roll',   label: 'Item Roll',   icon: '💎', Component: ItemRoll },
-  { id: 'dados',       label: 'Dados',       icon: '🎲', Component: Dados },
-  { id: 'mapa',        label: 'Mapa',        icon: '🗺️', Component: Mapa },
-  { id: 'mecanicas',   label: 'Mecánicas',   icon: '📖', Component: Mecanicas },
-  { id: 'historial',   label: 'Historial',   icon: '📜', Component: Historial },
-  { id: 'sugerencias', label: 'Sugerencias', icon: '💡', Component: Sugerencias },
+  { id: 'items',       label: 'Items',       icon: '⚔',  Component: Items, live: ['items', 'players'] },
+  { id: 'tienda',      label: 'Tienda',      icon: '⚖',  Component: Tienda, live: ['items', 'players'] },
+  { id: 'players',     label: 'Players',     icon: '👤', Component: Players, live: ['players', 'items', 'champions', 'roles', 'augments', 'relations', 'npcs'] },
+  { id: 'champions',   label: 'Campeones',   icon: '✦',  Component: Calculos, live: ['champions', 'items', 'players', 'roles', 'relations', 'npcs'] },
+  { id: 'npcs',        label: 'NPCs',        icon: '🐉', Component: Npcs, live: ['npcs', 'champions', 'relations', 'players'] },
+  { id: 'aumentos',    label: 'Aumentos',    icon: '✨',  Component: Aumentos, live: ['augments', 'players'] },
+  { id: 'item-roll',   label: 'Item Roll',   icon: '💎', Component: ItemRoll, live: ['loot', 'items', 'players'] },
+  { id: 'dados',       label: 'Dados',       icon: '🎲', Component: Dados, live: [] },
+  { id: 'mapa',        label: 'Mapa',        icon: '🗺️', Component: Mapa, live: ['mapPois'] },
+  { id: 'mecanicas',   label: 'Mecánicas',   icon: '📖', Component: Mecanicas, live: ['faq'] },
+  { id: 'historial',   label: 'Historial',   icon: '📜', Component: Historial, live: ['history', 'items', 'players'] },
+  { id: 'sugerencias', label: 'Sugerencias', icon: '💡', Component: Sugerencias, live: ['tickets'] },
 ];
 
 const NAV_EXPANDED_KEY = 'lol-dnd:sidenav-expanded';
@@ -60,6 +69,22 @@ function LegacyChampionsRedirect() {
   const rest = useParams()['*'] ?? '';
   const { search, hash } = useLocation();
   return <Navigate to={`/champions${rest ? `/${rest}` : ''}${search}${hash}`} replace />;
+}
+
+/** Pantalla de la ruta: se suscribe solo a sus recursos en vivo y carga en diferido si es lazy. */
+function LiveScreen({ Component, live }: Pick<Screen, 'Component' | 'live'>) {
+  useLiveRevisionOf(live);
+  return (
+    <Suspense fallback={<div className="app-route-loading" role="status">Cargando…</div>}>
+      <Component />
+    </Suspense>
+  );
+}
+
+/** RolePicker con la lista de players al día (si otra pestaña añade o renombra alguno). */
+function LiveRolePicker(props: Omit<Parameters<typeof RolePicker>[0], 'players'>) {
+  useLiveRevision('players');
+  return <RolePicker {...props} players={PLAYERS} />;
 }
 
 function useIsMobile() {
@@ -80,8 +105,14 @@ function App() {
   const [role, setRole] = useState<AppRole | null>(() => readAppRole());
   const [identity, setIdentity] = useState<AppIdentity | null>(() => readAppIdentity());
   // User sin player elegido (o su player ya no existe): toca elegir otra vez «¿Quién eres?».
+  // Solo repinta App si cambia que el player elegido exista (no con cada cambio de players).
+  const identityPlayer = identity?.kind === 'player' ? identity.name : null;
+  const identityPlayerExists = useSyncExternalStore(
+    subscribeLive,
+    () => identityPlayer === null || !!findPlayer(identityPlayer),
+  );
   const needsIdentity = role === 'user'
-    && (!identity || (identity.kind === 'player' && !findPlayer(identity.name)));
+    && (!identity || (identity.kind === 'player' && !identityPlayerExists));
   const [navExpanded, setNavExpanded] = useState(() => localStorage.getItem(NAV_EXPANDED_KEY) !== '0');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -147,9 +178,6 @@ function App() {
     navigate('/players');
   }, [identity, navigate]);
 
-  // Repinta la pantalla cuando otra pestaña guarda algo (los datos viven fuera de React).
-  useLiveRevision();
-
   useEffect(() => {
     startLiveSync();
   }, []);
@@ -159,7 +187,7 @@ function App() {
   }, [location.pathname]);
 
   if (!role || needsIdentity) {
-    return <RolePicker onPick={pickRole} players={PLAYERS} startStep={needsIdentity ? 'player' : 'role'} />;
+    return <LiveRolePicker onPick={pickRole} startStep={needsIdentity ? 'player' : 'role'} />;
   }
 
   const who = role === 'user' ? identity : null;
@@ -193,8 +221,8 @@ function App() {
           {/* Ruta antigua de Campeones: /calculos[/...] → /champions[/...]. */}
           <Route path="/calculos/*" element={<LegacyChampionsRedirect />} />
           {/* /* para sub-rutas (p. ej. la ficha de un NPC en /npcs/<región>/<tipo>/<nombre>). */}
-          {visibleScreens.map(({ id, Component }) => (
-            <Route key={id} path={`/${id}/*`} element={<Component />} />
+          {visibleScreens.map(({ id, Component, live }) => (
+            <Route key={id} path={`/${id}/*`} element={<LiveScreen Component={Component} live={live} />} />
           ))}
           <Route path="*" element={<Navigate to={defaultPath} replace />} />
         </Routes>

@@ -26,6 +26,17 @@
 }
 
 /* ── MAIN ── */
+/* Mientras baja el chunk de una pantalla diferida (Mapa, Dados, Tienda). */
+.app-route-loading {
+  padding: 48px 16px;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  color: var(--gold, #c9a84c);
+  opacity: 0.8;
+}
+
 .app-main {
   position: relative;
   z-index: 1;

@@ -120,13 +120,25 @@ export async function syncPlayerStats(
   await savePlayerPatch(playerName, { stats: playerStatsDocument(sheet, equipment), ...hp });
 }
 
+/** ¿El total guardado ya coincide con el calculado? */
+function sameStats(saved: Player['stats'], next: PlayerStats): boolean {
+  if (!saved) return false;
+  return PLAYER_STATS_KEYS.every(key => saved[key] === next[key]);
+}
+
 /**
  * Recalcula y guarda el total (y los PG máximos) de todos los players con ficha (p. ej. al cambiar el nivel).
  * Los que aún no tienen `sheet` en Mongo no se tocan, para no pisar su total sin la base de rol.
+ * Solo se hace PATCH de los que de verdad cambian (así no se avisa a las otras pestañas por nada).
+ * Devuelve cuántos players se guardaron.
  */
-export async function syncAllPlayerStats(): Promise<void> {
-  await Promise.all(
-    PLAYERS.filter(player => player.sheet)
-      .map(player => syncPlayerStats(player.name, player.sheet, player.equipamiento, player)),
-  );
+export async function syncAllPlayerStats(): Promise<number> {
+  const saves = PLAYERS.filter(player => player.sheet).flatMap(player => {
+    const stats = playerStatsDocument(player.sheet, player.equipamiento);
+    const hp = hpSyncPatch(player, playerMaxHp(player.sheet, player.equipamiento));
+    if (!hp && sameStats(player.stats, stats)) return [];
+    return [savePlayerPatch(player.name, { stats, ...hp })];
+  });
+  await Promise.all(saves);
+  return saves.length;
 }
