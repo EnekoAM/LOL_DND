@@ -7,14 +7,12 @@ import {
   EVENT_TITLE_MAX,
   createEvent,
   deleteEvent,
-  formatEventDate,
   loadEvents,
   reorderEvents,
   sortEvents,
   updateEvent,
   type CampaignEvent,
   type EventDraft,
-  type EventStatus,
 } from '../../data/events';
 import { useLiveRevision } from '../../data/live';
 import { cx } from '../../lib/cx';
@@ -22,15 +20,14 @@ import FaqText from '../mecanicas/FaqText';
 import '../mecanicas/Mecanicas.css';
 import './Eventos.css';
 
-type Filter = 'todos' | EventStatus;
+/** Solo admin: los players ya solo reciben los visibles. Visible = ya pasó; oculto = planeado. */
+type Filter = 'todos' | 'visibles' | 'ocultos';
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'todos', label: 'Todos' },
-  { id: 'pasado', label: 'Pasados' },
-  { id: 'futuro', label: 'Futuros' },
+  { id: 'visibles', label: 'Visibles' },
+  { id: 'ocultos', label: 'Ocultos' },
 ];
-
-const STATUS_LABEL: Record<EventStatus, string> = { pasado: 'Pasado', futuro: 'Futuro' };
 
 /** Sin tildes ni mayúsculas, para buscar «dragon» y encontrar «Dragón». */
 const fold = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
@@ -40,25 +37,19 @@ type Editing = {
   /** Solo al crear: se inserta debajo de este evento. */
   afterId?: string;
   draft: EventDraft;
-  /** Si el admin tocó «Visible para players», cambiar de pasado a futuro ya no lo cambia solo. */
-  visibilityTouched: boolean;
 };
 
-const emptyDraft = (status: EventStatus = 'pasado'): EventDraft => ({
+const emptyDraft = (visibleToPlayers = false): EventDraft => ({
   title: '',
   body: '',
-  status,
   session: '',
-  date: '',
-  visibleToPlayers: status === 'pasado',
+  visibleToPlayers,
 });
 
 const draftOf = (event: CampaignEvent): EventDraft => ({
   title: event.title,
   body: event.body,
-  status: event.status,
   session: event.session ?? '',
-  date: event.date ?? '',
   visibleToPlayers: event.visibleToPlayers,
 });
 
@@ -108,7 +99,8 @@ const Eventos = () => {
   const visible = useMemo(() => {
     const needle = fold(query.trim());
     return events.filter(event => {
-      if (filter !== 'todos' && event.status !== filter) return false;
+      if (filter === 'visibles' && !event.visibleToPlayers) return false;
+      if (filter === 'ocultos' && event.visibleToPlayers) return false;
       if (!needle) return true;
       return fold(`${event.title}\n${event.body}\n${event.session ?? ''}`).includes(needle);
     });
@@ -116,8 +108,8 @@ const Eventos = () => {
 
   const counts = useMemo(() => ({
     todos: events.length,
-    pasado: events.filter(event => event.status === 'pasado').length,
-    futuro: events.filter(event => event.status === 'futuro').length,
+    visibles: events.filter(event => event.visibleToPlayers).length,
+    ocultos: events.filter(event => !event.visibleToPlayers).length,
   }), [events]);
 
   const searching = query.trim() !== '';
@@ -219,9 +211,7 @@ const Eventos = () => {
         const saved = await updateEvent(id, {
           title: draft.title.trim(),
           body: draft.body.trim(),
-          status: draft.status,
           session: draft.session.trim() || null,
-          date: draft.date || null,
           visibleToPlayers: draft.visibleToPlayers,
         });
         setEvents(list => sortEvents(list.map(item => (item.id === id ? saved : item))));
@@ -246,23 +236,15 @@ const Eventos = () => {
     });
   };
 
-  const startCreate = (afterId?: string, status?: EventStatus) => {
+  /** Nuevo evento: oculto (planeado) salvo que se inserte debajo de uno visible o se esté viendo «Visibles». */
+  const startCreate = (afterId?: string, visibleToPlayers?: boolean) => {
     setError(null);
-    const fallback: EventStatus = filter === 'futuro' ? 'futuro' : 'pasado';
-    setEditing({ id: null, afterId, draft: emptyDraft(status ?? fallback), visibilityTouched: false });
+    setEditing({ id: null, afterId, draft: emptyDraft(visibleToPlayers ?? filter === 'visibles') });
   };
 
   const draft = editing?.draft;
   const setDraft = (patch: Partial<EventDraft>) =>
-    setEditing(current => {
-      if (!current) return current;
-      const next = { ...current.draft, ...patch };
-      // Por defecto: los pasados se ven, los futuros son solo del admin.
-      if (patch.status && !current.visibilityTouched && patch.visibleToPlayers === undefined) {
-        next.visibleToPlayers = patch.status === 'pasado';
-      }
-      return { ...current, draft: next, visibilityTouched: current.visibilityTouched || patch.visibleToPlayers !== undefined };
-    });
+    setEditing(current => (current ? { ...current, draft: { ...current.draft, ...patch } } : current));
 
   const afterTitle = editing?.afterId ? events.find(event => event.id === editing.afterId)?.title : undefined;
 
@@ -273,7 +255,7 @@ const Eventos = () => {
           <h2 className="mec-head__title">📅 Eventos</h2>
           <p className="mec-head__lead">
             {canEdit
-              ? 'La historia de la campaña: lo que ha pasado en las sesiones y lo que está por venir. Arrastra (o usa ↑ ↓) para ordenar la línea temporal.'
+              ? 'La historia de la campaña. Visible = ya ha pasado (lo ven los players); oculto = planeado, solo lo ves tú. Arrastra (o usa ↑ ↓) para ordenar.'
               : 'La historia de la campaña, sesión a sesión. Pulsa un evento para leerlo.'}
           </p>
         </div>
@@ -293,6 +275,7 @@ const Eventos = () => {
           aria-label="Buscar en los eventos"
           onChange={change => setQuery(change.target.value)}
         />
+        {canEdit && (
         <div className="mec-cats" role="tablist" aria-label="Filtrar eventos">
           {FILTERS.map(item => (
             <button
@@ -307,6 +290,7 @@ const Eventos = () => {
             </button>
           ))}
         </div>
+        )}
         {visible.length > 0 && (
           <button type="button" className="mec-link" onClick={toggleAll}>
             {allOpen ? 'Cerrar todo' : 'Abrir todo'}
@@ -341,12 +325,11 @@ const Eventos = () => {
               key={event.id}
               className={cx(
                 'ev-item',
-                `ev-item--${event.status}`,
+                event.visibleToPlayers ? 'ev-item--visible' : 'ev-item--planned',
                 isOpen && 'ev-item--open',
                 dragId === event.id && 'ev-item--dragging',
                 dropBefore && 'ev-item--drop-before',
                 dropAfter && 'ev-item--drop-after',
-                canEdit && !event.visibleToPlayers && 'ev-item--hidden',
               )}
               draggable={canDrag}
               onDragStart={drag => onDragStart(drag, event.id)}
@@ -369,8 +352,6 @@ const Eventos = () => {
                   </button>
                   <div className="ev-card__meta">
                     {event.session && <span className="ev-chip">{event.session}</span>}
-                    {event.date && <span className="ev-chip ev-chip--date">{formatEventDate(event.date)}</span>}
-                    <span className={cx('ev-chip', `ev-chip--${event.status}`)}>{STATUS_LABEL[event.status]}</span>
                   </div>
                   {canEdit && (
                     <div className="mec-item__admin ev-card__admin">
@@ -385,14 +366,14 @@ const Eventos = () => {
                       </button>
                       <button type="button" className="mec-icon" title="Subir" aria-label="Subir" disabled={busy || index <= 0} onClick={() => move(event, -1)}>↑</button>
                       <button type="button" className="mec-icon" title="Bajar" aria-label="Bajar" disabled={busy || index >= events.length - 1} onClick={() => move(event, 1)}>↓</button>
-                      <button type="button" className="mec-icon" title="Insertar un evento debajo" aria-label="Insertar debajo" disabled={busy} onClick={() => startCreate(event.id, event.status)}>＋</button>
+                      <button type="button" className="mec-icon" title="Insertar un evento debajo" aria-label="Insertar debajo" disabled={busy} onClick={() => startCreate(event.id, event.visibleToPlayers)}>＋</button>
                       <button
                         type="button"
                         className="mec-icon"
                         title="Editar"
                         aria-label="Editar"
                         disabled={busy}
-                        onClick={() => { setError(null); setEditing({ id: event.id, draft: draftOf(event), visibilityTouched: true }); }}
+                        onClick={() => { setError(null); setEditing({ id: event.id, draft: draftOf(event) }); }}
                       >
                         ✎
                       </button>
@@ -431,55 +412,27 @@ const Eventos = () => {
                 onChange={change => setDraft({ title: change.target.value })}
               />
             </label>
-            <div className="mec-field">
-              <span className="mec-field__label">Tipo</span>
-              <div className="mec-cats" role="radiogroup" aria-label="Tipo de evento">
-                {(['pasado', 'futuro'] as const).map(status => (
-                  <button
-                    key={status}
-                    type="button"
-                    role="radio"
-                    aria-checked={draft.status === status}
-                    className={cx('mec-cat', draft.status === status && 'mec-cat--on')}
-                    onClick={() => setDraft({ status })}
-                  >
-                    {status === 'pasado' ? 'Pasado (ya ocurrió)' : 'Futuro (planeado)'}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="ev-form-row">
-              <label className="mec-field">
-                <span className="mec-field__label">Sesión o etiqueta (opcional)</span>
-                <input
-                  className="mec-input"
-                  type="text"
-                  value={draft.session}
-                  maxLength={EVENT_SESSION_MAX}
-                  placeholder="Sesión 4"
-                  onChange={change => setDraft({ session: change.target.value })}
-                />
-              </label>
-              <label className="mec-field">
-                <span className="mec-field__label">Fecha (opcional)</span>
-                <input
-                  className="mec-input"
-                  type="date"
-                  value={draft.date}
-                  onChange={change => setDraft({ date: change.target.value })}
-                />
-              </label>
-            </div>
+            <label className="mec-field">
+              <span className="mec-field__label">Sesión o etiqueta (opcional)</span>
+              <input
+                className="mec-input"
+                type="text"
+                value={draft.session}
+                maxLength={EVENT_SESSION_MAX}
+                placeholder="Sesión 4"
+                onChange={change => setDraft({ session: change.target.value })}
+              />
+            </label>
             <label className="ev-check">
               <input
                 type="checkbox"
                 checked={draft.visibleToPlayers}
                 onChange={change => setDraft({ visibleToPlayers: change.target.checked })}
               />
-              <span>Visible para los players{draft.status === 'futuro' && !draft.visibleToPlayers ? ' (ahora solo lo ves tú)' : ''}</span>
+              <span>{draft.visibleToPlayers ? 'Visible para los players: ya ha pasado' : 'Oculto: planeado, solo lo ves tú'}</span>
             </label>
             <label className="mec-field">
-              <span className="mec-field__label">Qué pasó / qué va a pasar (opcional)</span>
+              <span className="mec-field__label">Descripción (opcional)</span>
               <textarea
                 className="mec-input mec-input--body"
                 value={draft.body}

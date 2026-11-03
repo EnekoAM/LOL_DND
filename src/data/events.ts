@@ -1,22 +1,19 @@
 import { readAppRole } from './appRole';
 
 /**
- * Eventos de la campaña (Mongo: events): lo que pasó en cada sesión y lo que el admin
- * planea. El orden de la línea temporal es explícito (order), no la fecha.
+ * Eventos de la campaña (Mongo: events). Atemporales: sin fecha ni estado.
+ * Visible para players = ya ha pasado; oculto = planeado (solo el admin lo ve).
+ * El orden de la línea temporal es explícito (order).
  * Leer: todos (players solo los visibles). Crear/editar/reordenar/borrar: solo admin.
  */
-export type EventStatus = 'pasado' | 'futuro';
-
 export type CampaignEvent = {
   id: string;
   title: string;
   /** Formato ligero de Mecánicas: párrafos, «- » listas, «1. » numeradas y **negrita**. */
   body: string;
-  status: EventStatus;
   /** Etiqueta libre: «Sesión 3», «Día 12 del viaje»… */
   session?: string;
-  /** AAAA-MM-DD */
-  date?: string;
+  /** true = ya ha pasado (lo ven los players); false = planeado. */
   visibleToPlayers: boolean;
   order: number;
   createdAt: string;
@@ -26,9 +23,7 @@ export type CampaignEvent = {
 export type EventDraft = {
   title: string;
   body: string;
-  status: EventStatus;
   session: string;
-  date: string;
   visibleToPlayers: boolean;
 };
 
@@ -65,18 +60,15 @@ function normalize(raw: unknown): CampaignEvent | null {
   if (!raw || typeof raw !== 'object') return null;
   const source = raw as Record<string, unknown>;
   if (typeof source.id !== 'string') return null;
-  const status: EventStatus = source.status === 'futuro' ? 'futuro' : 'pasado';
   const event: CampaignEvent = {
     id: source.id,
     title: typeof source.title === 'string' ? source.title : '',
     body: typeof source.body === 'string' ? source.body : '',
-    status,
-    visibleToPlayers: typeof source.visibleToPlayers === 'boolean' ? source.visibleToPlayers : status === 'pasado',
+    visibleToPlayers: source.visibleToPlayers === true,
     order: typeof source.order === 'number' ? source.order : 0,
     createdAt: typeof source.createdAt === 'string' ? source.createdAt : '',
   };
   if (typeof source.session === 'string' && source.session) event.session = source.session;
-  if (typeof source.date === 'string' && source.date) event.date = source.date;
   if (typeof source.updatedAt === 'string') event.updatedAt = source.updatedAt;
   return event;
 }
@@ -105,11 +97,9 @@ export async function createEvent(draft: EventDraft, afterId?: string): Promise<
   const payload: Record<string, unknown> = {
     title: draft.title.trim(),
     body: draft.body.trim(),
-    status: draft.status,
     visibleToPlayers: draft.visibleToPlayers,
   };
   if (draft.session.trim()) payload.session = draft.session.trim();
-  if (draft.date) payload.date = draft.date;
   if (afterId) payload.afterId = afterId;
   return asEvent(await call('/api/events', { method: 'POST', headers: ADMIN_JSON, body: JSON.stringify(payload) }, 'al guardar el evento'));
 }
@@ -117,9 +107,7 @@ export async function createEvent(draft: EventDraft, afterId?: string): Promise<
 export type EventPatch = Partial<{
   title: string;
   body: string;
-  status: EventStatus;
   session: string | null;
-  date: string | null;
   visibleToPlayers: boolean;
 }>;
 
@@ -141,11 +129,4 @@ export async function reorderEvents(ids: string[]): Promise<CampaignEvent[]> {
 export async function deleteEvent(id: string): Promise<void> {
   assertAdmin();
   await call(`/api/events?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: { 'X-App-Role': 'admin' } }, 'al borrar el evento');
-}
-
-/** «2026-11-03» → «3 nov 2026». */
-export function formatEventDate(date: string): string {
-  const [y, m, d] = date.split('-').map(Number);
-  if (!y || !m || !d) return date;
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
