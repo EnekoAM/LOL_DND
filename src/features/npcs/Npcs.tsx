@@ -18,6 +18,7 @@ import {
   type Npc,
   type NpcKind,
 } from '../../data/npcs';
+import Pagination, { pageSlice } from '../../components/Pagination';
 import { cssVars } from '../../lib/cssVars';
 import { cx } from '../../lib/cx';
 import { matchesSearch } from '../../lib/text';
@@ -67,6 +68,8 @@ const Npcs = () => {
     if (id) setPendingId(id);
   }, []);
   const [filter, setFilter] = useState<Filter>(BASE_FILTER);
+  // Página del grid (50 por página); vuelve a 1 al cambiar filtros.
+  const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState<DamageInputs>(DEFAULT_DAMAGE_INPUTS);
@@ -158,7 +161,12 @@ const Npcs = () => {
     [visible, filter],
   );
 
-  const update = (patch: Partial<Filter>) => setFilter(prev => ({ ...prev, ...patch }));
+  const pageItems = useMemo(() => pageSlice(shown, page), [shown, page]);
+
+  const update = (patch: Partial<Filter>) => {
+    setFilter(prev => ({ ...prev, ...patch }));
+    setPage(1);
+  };
 
   const replace = (saved: Npc) =>
     setNpcs(prev => sortNpcs(prev.some(n => n.id === saved.id) ? prev.map(n => (n.id === saved.id ? saved : n)) : [...prev, saved]));
@@ -259,8 +267,10 @@ const Npcs = () => {
 
           {loadError && <p className="sheet-hp__error" role="alert">{loadError}</p>}
 
+          <Pagination page={page} total={shown.length} onChange={setPage} />
+
           <div className="calc-grid">
-            {shown.map(npc => (
+            {pageItems.map(npc => (
               <PickerCard key={npc.id} name={npc.name} className="calc-card--champ" onClick={() => openNpc(npc)}>
                 <div className="calc-champ-card" style={cssVars({ '--champ-color': npc.kind === 'monstruo' ? '#8a1a1a' : regionColor(npc.region) })}>
                   <div className="calc-champ-card__portrait">
@@ -285,6 +295,8 @@ const Npcs = () => {
               </PickerCard>
             ))}
           </div>
+
+          <Pagination page={page} total={shown.length} onChange={setPage} scrollOnChange />
 
           {!loading && shown.length === 0 && (
             <div className="calc-champ-empty">

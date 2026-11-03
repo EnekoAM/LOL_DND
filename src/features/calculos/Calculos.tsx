@@ -46,6 +46,8 @@ const Calculos = () => {
   const canOpen = (entry: Champion) => canEdit || entry.active === true;
   const champion = splat && selectedChampion && canOpen(selectedChampion) ? selectedChampion : null;
   const [pickerFilter, setPickerFilter] = useState(() => baseFilter(!canEdit));
+  // Página del grid (50 por página). Se conserva al abrir/cerrar una ficha; vuelve a 1 al cambiar filtros.
+  const [pickerPage, setPickerPage] = useState(1);
   const [favorites, toggleFavorite] = useStoredSet(FAVORITES_STORAGE_KEY);
   const [ability, setAbility] = useState<Ability | null>(null);
   const [damageInputs, setDamageInputs] = useState(DEFAULT_DAMAGE_INPUTS);
@@ -99,8 +101,10 @@ const Calculos = () => {
     navigate(championUrl(target));
   };
 
-  const updatePickerFilter = (patch: Partial<ChampionPickerFilter>) =>
+  const updatePickerFilter = (patch: Partial<ChampionPickerFilter>) => {
     setPickerFilter(prev => ({ ...prev, ...patch }));
+    setPickerPage(1);
+  };
   const updateDamageInputs = (patch: Partial<DamageInputs>) =>
     setDamageInputs(prev => ({ ...prev, ...patch }));
 
@@ -130,6 +134,8 @@ const Calculos = () => {
               favorites={favorites}
               onToggleFavorite={toggleFavorite}
               onSelect={openChampion}
+              page={pickerPage}
+              onPageChange={setPickerPage}
             />
           )}
         </>

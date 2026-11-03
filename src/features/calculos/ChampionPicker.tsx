@@ -13,6 +13,7 @@ import { useLiveRevision } from '../../data/live';
 import { cssVars } from '../../lib/cssVars';
 import { cx } from '../../lib/cx';
 import { ROLE_ICONS, regionColor } from '../habilidades/championStyle';
+import Pagination, { pageSlice } from '../../components/Pagination';
 import PickerCard from './PickerCard';
 
 export type ChampionPickerFilter = ChampionFilter & { onlyFavorites: boolean };
@@ -23,9 +24,11 @@ type Props = {
   favorites: Set<string>;
   onToggleFavorite: (championName: string) => void;
   onSelect: (champion: Champion) => void;
+  page: number;
+  onPageChange: (page: number) => void;
 };
 
-const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, onSelect }: Props) => {
+const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, onSelect, page, onPageChange }: Props) => {
   const canEdit = useCanEdit();
   const liveRevision = useLiveRevision('champions');
   // Players solo ven campeones activos: el filtro se fuerza aquí y no pueden quitarlo.
@@ -39,6 +42,7 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
     () => filterChampions(visible, { ...filter, onlyActive }).filter(c => !filter.onlyFavorites || favorites.has(c.champion)),
     [visible, filter, onlyActive, favorites],
   );
+  const pageItems = useMemo(() => pageSlice(champions, page), [champions, page]);
   const pinned = useMemo(() => visible.filter(c => favorites.has(c.champion)), [visible, favorites]);
 
   return (
@@ -121,8 +125,10 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
         </div>
       )}
 
+      <Pagination page={page} total={champions.length} onChange={onPageChange} />
+
       <div className="calc-grid">
-        {champions.map(champion => (
+        {pageItems.map(champion => (
           <PickerCard key={champion.champion} name={champion.champion} className="calc-card--champ" onClick={() => onSelect(champion)}>
             <div
               className="calc-champ-card"
@@ -177,6 +183,8 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
           </PickerCard>
         ))}
       </div>
+
+      <Pagination page={page} total={champions.length} onChange={onPageChange} scrollOnChange />
 
       {champions.length === 0 && (
         <div className="calc-champ-empty">
