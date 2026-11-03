@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useCanEdit } from '../../data/appRoleContext';
 import type { Ability } from '../../data/champions';
 import { useLiveRevision } from '../../data/live';
+import { OPEN_RELATED_EVENT, takePendingOpen, type RelationRef } from '../../data/relations';
 import {
   NPC_KINDS,
   createNpc,
@@ -52,7 +53,8 @@ const Npcs = () => {
   const [npcs, setNpcs] = useState<Npc[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Si se llegó desde «Relaciones» de otra ficha, se abre directamente ese NPC.
+  const [selectedId, setSelectedId] = useState<string | null>(() => takePendingOpen('npc'));
   const [filter, setFilter] = useState<Filter>(BASE_FILTER);
   const [creating, setCreating] = useState(false);
   const [ability, setAbility] = useState<Ability | null>(null);
@@ -76,6 +78,21 @@ const Npcs = () => {
       active = false;
     };
   }, [revision, canEdit]);
+
+  // Relaciones dentro de la misma pantalla: abrir otro NPC.
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const ref = (event as CustomEvent<RelationRef>).detail;
+      if (ref?.kind !== 'npc') return;
+      const id = takePendingOpen('npc');
+      if (id) {
+        setAbility(null);
+        setSelectedId(id);
+      }
+    };
+    window.addEventListener(OPEN_RELATED_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_RELATED_EVENT, onOpen);
+  }, []);
 
   // Players nunca ven un NPC oculto (p. ej. si el admin lo oculta en vivo).
   const visible = useMemo(() => (canEdit ? npcs : npcs.filter(n => n.visible)), [npcs, canEdit]);

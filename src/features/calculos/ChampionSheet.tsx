@@ -16,6 +16,7 @@ import { EQUIPMENT_SLOTS } from '../../data/players';
 import { cx } from '../../lib/cx';
 import { normalizeName } from '../../lib/text';
 import AbilityModal from '../habilidades/AbilityModal';
+import RelationsPanel from '../relaciones/RelationsPanel';
 import '../habilidades/Habilidades.css';
 import '../players/Players.css';
 import AbilityCard from './AbilityCard';
@@ -33,11 +34,12 @@ type Props = {
   onChampionChange: (champion: Champion) => void;
 };
 
-type SheetTab = 'habilidades' | 'equipo' | 'desglose';
+type SheetTab = 'habilidades' | 'equipo' | 'desglose' | 'relaciones';
 const TABS: { id: SheetTab; label: string }[] = [
   { id: 'habilidades', label: 'Habilidades' },
   { id: 'equipo', label: 'Equipo' },
   { id: 'desglose', label: 'Desglose' },
+  { id: 'relaciones', label: 'Relaciones' },
 ];
 
 const DEFENSE_KEYS: { key: StatKey; label: string }[] = [
@@ -466,6 +468,10 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                 )}
               </div>
             </section>
+          )}
+
+          {tab === 'relaciones' && (
+            <RelationsPanel self={{ kind: 'champion', id: champion.champion }} selfName={champion.champion} />
           )}
 
           {tab === 'desglose' && (
