@@ -15,9 +15,9 @@ import { hydrateRoles, type RoleTable } from './roles';
  * Transporte: si /api/live-token dice que hay Ably (ABLY_API_KEY en el servidor),
  * se usa Ably (también en Vercel). Si no, el WebSocket local de `npm run dev:api` (/ws).
  */
-export type LiveResource = 'party' | 'players' | 'items' | 'loot' | 'roles' | 'champions' | 'history' | 'tickets' | 'augments' | 'mapPois' | 'faq' | 'npcs' | 'relations' | 'playerNotes';
+export type LiveResource = 'party' | 'players' | 'items' | 'loot' | 'roles' | 'champions' | 'history' | 'tickets' | 'augments' | 'mapPois' | 'faq' | 'npcs' | 'relations' | 'playerNotes' | 'events';
 
-const ALL_RESOURCES: LiveResource[] = ['party', 'players', 'items', 'loot', 'roles', 'champions', 'history', 'tickets', 'augments', 'mapPois', 'faq', 'npcs', 'relations', 'playerNotes'];
+const ALL_RESOURCES: LiveResource[] = ['party', 'players', 'items', 'loot', 'roles', 'champions', 'history', 'tickets', 'augments', 'mapPois', 'faq', 'npcs', 'relations', 'playerNotes', 'events'];
 
 /** Id de esta pestaña. Viaja en X-Client-Id para no recargar lo que acabamos de guardar nosotros. */
 export const CLIENT_ID: string =
@@ -26,7 +26,7 @@ export const CLIENT_ID: string =
     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
 const revisions: Record<LiveResource, number> = {
-  party: 0, players: 0, items: 0, loot: 0, roles: 0, champions: 0, history: 0, tickets: 0, augments: 0, mapPois: 0, faq: 0, npcs: 0, relations: 0, playerNotes: 0,
+  party: 0, players: 0, items: 0, loot: 0, roles: 0, champions: 0, history: 0, tickets: 0, augments: 0, mapPois: 0, faq: 0, npcs: 0, relations: 0, playerNotes: 0, events: 0,
 };
 let totalRevision = 0;
 const listeners = new Set<() => void>();
@@ -95,6 +95,7 @@ async function reload(resource: LiveResource): Promise<void> {
     case 'faq': return; // Mecánicas también.
     case 'npcs': return; // NPCs vuelve a pedir su lista al ver la revisión.
     case 'relations': return; // Las fichas vuelven a pedir sus relaciones al ver la revisión.
+    case 'events': return; // Eventos vuelve a pedir su lista al ver la revisión.
     case 'playerNotes': return; // Cada panel de notas vuelve a pedir la suya (el aviso no lleva texto).
   }
 }

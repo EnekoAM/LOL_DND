@@ -1,0 +1,298 @@
+/* Eventos reutiliza la base de Mecánicas (mec-*); aquí solo la línea temporal. */
+
+.ev-hint {
+  margin: 0;
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  font-style: italic;
+  color: rgba(212, 196, 154, 0.6);
+}
+
+.ev-timeline {
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 44px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Raya vertical de la línea temporal. */
+.ev-timeline::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 15px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(201, 168, 76, 0.5), rgba(201, 168, 76, 0.12));
+}
+
+.ev-item {
+  position: relative;
+}
+
+.ev-dot {
+  position: absolute;
+  top: 9px;
+  left: -44px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1006;
+  background: linear-gradient(135deg, #e8c96a, #c9a84c);
+  border: 2px solid #1a1006;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(232, 201, 106, 0.5);
+}
+
+.ev-item--futuro .ev-dot {
+  color: #cfe0ff;
+  background: #16203a;
+  border: 2px dashed rgba(140, 175, 255, 0.75);
+  box-shadow: none;
+}
+
+.ev-card {
+  background: linear-gradient(160deg, rgba(42, 28, 12, 0.72), rgba(16, 10, 4, 0.9));
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  border-radius: 4px;
+  transition: border-color 0.15s;
+}
+
+.ev-item--futuro .ev-card {
+  background: linear-gradient(160deg, rgba(20, 26, 44, 0.75), rgba(10, 12, 22, 0.92));
+  border-style: dashed;
+  border-color: rgba(140, 175, 255, 0.28);
+}
+
+.ev-card:hover,
+.ev-item--open .ev-card {
+  border-color: rgba(201, 168, 76, 0.38);
+}
+
+.ev-item--futuro .ev-card:hover,
+.ev-item--futuro.ev-item--open .ev-card {
+  border-color: rgba(140, 175, 255, 0.55);
+}
+
+.ev-item--hidden .ev-card {
+  opacity: 0.7;
+}
+
+.ev-item--dragging {
+  opacity: 0.4;
+}
+
+.ev-item--drop-before::before,
+.ev-item--drop-after::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  right: 0;
+  height: 3px;
+  background: #e8c96a;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(232, 201, 106, 0.6);
+}
+
+.ev-item--drop-before::before {
+  top: -7px;
+}
+
+.ev-item--drop-after::after {
+  bottom: -7px;
+}
+
+.ev-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ev-item[draggable='true'] .ev-card__head {
+  cursor: grab;
+}
+
+.ev-grip {
+  flex: none;
+  padding-left: 10px;
+  font-size: 16px;
+  color: rgba(201, 168, 76, 0.55);
+  user-select: none;
+}
+
+.ev-card__toggle {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ev-item--open .mec-item__chevron {
+  transform: rotate(90deg);
+}
+
+.ev-card__title {
+  flex: 1;
+  min-width: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--gold-bright, #e8c96a);
+}
+
+.ev-item--futuro .ev-card__title {
+  color: #cfe0ff;
+}
+
+.ev-card__meta {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ev-chip {
+  padding: 2px 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(212, 196, 154, 0.7);
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ev-chip--date {
+  text-transform: none;
+  letter-spacing: 0.5px;
+}
+
+.ev-chip--pasado {
+  color: #1a1006;
+  background: rgba(232, 201, 106, 0.85);
+  border-color: transparent;
+}
+
+.ev-chip--futuro {
+  color: #cfe0ff;
+  background: rgba(70, 100, 180, 0.35);
+  border-color: rgba(140, 175, 255, 0.5);
+}
+
+.ev-card__admin {
+  align-items: center;
+}
+
+.ev-vis {
+  height: 28px;
+  padding: 0 9px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ev-vis--on {
+  color: #b8e6a0;
+  border-color: rgba(120, 190, 90, 0.5);
+}
+
+.ev-vis--off {
+  color: rgba(212, 196, 154, 0.6);
+}
+
+.ev-vis:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ev-card__body {
+  padding: 0 18px 14px 36px;
+  border-top: 1px solid rgba(201, 168, 76, 0.1);
+}
+
+.ev-card__empty {
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.ev-form-row {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 12px;
+}
+
+.ev-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Crimson Text', serif;
+  font-size: 16px;
+  color: var(--ink, #d4c49a);
+  cursor: pointer;
+}
+
+.ev-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: #c9a84c;
+}
+
+@media (max-width: 700px) {
+  .ev-timeline {
+    padding-left: 34px;
+  }
+
+  .ev-timeline::before {
+    left: 11px;
+  }
+
+  .ev-dot {
+    left: -34px;
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .ev-card__body {
+    padding-left: 18px;
+  }
+
+  .ev-card__meta {
+    padding: 0 14px 8px;
+  }
+
+  .ev-card__admin {
+    padding: 0 10px 10px;
+    flex-wrap: wrap;
+  }
+
+  .ev-form-row {
+    grid-template-columns: 1fr;
+  }
+}
