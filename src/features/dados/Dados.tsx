@@ -305,10 +305,9 @@ const Dados = () => {
         container: '#dados-box',
         assetPath: '/assets/dice-box/',
         theme: initialTheme,
-        preloadThemes: [
-          'default-extras',
-          ...DICE_THEMES.map(entry => entry.id).filter(id => id !== initialTheme),
-        ],
+        // Solo el tema elegido (theme) y la moneda (default-extras, que arrastra a default).
+        // El resto se descarga al cambiar de tema (updateConfig lo carga bajo demanda).
+        preloadThemes: ['default-extras'],
         themeColor: themeColorOf(initialTheme) ?? '#FFFFFF',
         scale: 6,
         gravity: 1,
