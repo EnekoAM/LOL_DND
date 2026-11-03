@@ -17,7 +17,6 @@ import { cx } from '../../lib/cx';
 import { normalizeName } from '../../lib/text';
 import AbilityModal from '../habilidades/AbilityModal';
 import RelationsPanel from '../relaciones/RelationsPanel';
-import { useRelationsTabVisible } from '../relaciones/useRelationsTab';
 import '../habilidades/Habilidades.css';
 import '../players/Players.css';
 import AbilityCard from './AbilityCard';
@@ -55,12 +54,6 @@ const clampLevel = (value: number) => Math.min(20, Math.max(1, Math.floor(value)
 const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: Props) => {
   const canEdit = useCanEdit();
   const [tab, setTab] = useState<SheetTab>('habilidades');
-  const showRelations = useRelationsTabVisible();
-  const tabs = showRelations ? TABS : TABS.filter(entry => entry.id !== 'relaciones');
-  // Si el admin oculta Relaciones con la pestaña abierta, el player vuelve a Habilidades.
-  useEffect(() => {
-    if (!showRelations) setTab(current => (current === 'relaciones' ? 'habilidades' : current));
-  }, [showRelations]);
   const [portraitFailed, setPortraitFailed] = useState(false);
   const [editSlot, setEditSlot] = useState<AbilityKey | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -397,7 +390,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
 
         <div className="sheet-content">
           <div className="sheet-tabs" role="tablist" aria-label="Secciones de la ficha">
-            {tabs.map(entry => (
+            {TABS.map(entry => (
               <button
                 key={entry.id}
                 type="button"
@@ -477,7 +470,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
             </section>
           )}
 
-          {tab === 'relaciones' && showRelations && (
+          {tab === 'relaciones' && (
             <RelationsPanel self={{ kind: 'champion', id: champion.champion }} selfName={champion.champion} />
           )}
 

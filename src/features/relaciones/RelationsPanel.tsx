@@ -1,9 +1,8 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCanEdit } from '../../data/appRoleContext';
 import { useLiveRevision } from '../../data/live';
 import { npcImageStyle } from '../../data/npcs';
-import { partyRelationsForPlayers, saveRelationsForPlayers, subscribeParty } from '../../data/party';
 import {
   RELATION_KIND_LABEL,
   RELATION_SCREEN_PATH,
@@ -17,7 +16,6 @@ import {
 } from '../../data/relations';
 import RelationAddModal from './RelationAddModal';
 import RelationNoteModal from './RelationNoteModal';
-import '../aumentos/Aumentos.css';
 import './Relations.css';
 
 type Props = {
@@ -47,22 +45,6 @@ const RelationsPanel = ({ self, selfName }: Props) => {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
-  const forPlayers = useSyncExternalStore(subscribeParty, partyRelationsForPlayers);
-  const [toggleBusy, setToggleBusy] = useState(false);
-
-  // Admin: muestra u oculta la pestaña Relaciones a los players (para todas las fichas).
-  const toggleForPlayers = async () => {
-    if (!canEdit || toggleBusy) return;
-    setToggleBusy(true);
-    setError(null);
-    try {
-      await saveRelationsForPlayers(!forPlayers);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'No se pudo cambiar la visibilidad');
-    } finally {
-      setToggleBusy(false);
-    }
-  };
 
   useEffect(() => {
     let active = true;
@@ -115,23 +97,6 @@ const RelationsPanel = ({ self, selfName }: Props) => {
       <div className="sheet-panel__title">
         Relaciones
         <span className="sheet-panel__meta">{relations.length}</span>
-        {canEdit && (
-          <label
-            className={`aum-toggle rel-panel__toggle${forPlayers ? ' aum-toggle--on' : ''}`}
-            title="Muestra u oculta la pestaña Relaciones a los players (en todas las fichas)"
-          >
-            <input
-              type="checkbox"
-              checked={forPlayers}
-              disabled={toggleBusy}
-              onChange={() => { void toggleForPlayers(); }}
-            />
-            <span className="aum-toggle__track" aria-hidden="true"><span className="aum-toggle__thumb" /></span>
-            <span className="aum-toggle__label">
-              {forPlayers ? 'Visible para players' : 'Oculto para players'}
-            </span>
-          </label>
-        )}
         {canEdit && (
           <button type="button" className="calc-ability-edit rel-panel__add" onClick={() => setAdding(true)}>
             + Añadir relación

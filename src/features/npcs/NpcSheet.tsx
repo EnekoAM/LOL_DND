@@ -17,7 +17,6 @@ import {
 import { cx } from '../../lib/cx';
 import AbilityCard from '../calculos/AbilityCard';
 import RelationsPanel from '../relaciones/RelationsPanel';
-import { useRelationsTabVisible } from '../relaciones/useRelationsTab';
 import NpcAbilityModal from './NpcAbilityModal';
 import NpcEditorModal from './NpcEditorModal';
 import NpcPlayerEditModal from './NpcPlayerEditModal';
@@ -56,7 +55,6 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const showRelations = useRelationsTabVisible();
 
   useEffect(() => {
     setPortraitFailed(false);
@@ -70,11 +68,6 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
     setError(null);
   }, [npc.id]);
 
-  // Si el admin oculta Relaciones con la pestaña abierta, el player vuelve a Descripción.
-  useEffect(() => {
-    if (!showRelations) setTab(current => (current === 'relaciones' ? 'descripcion' : current));
-  }, [showRelations]);
-
   // Players: sin pestaña de habilidades (ni modales abiertos si el admin cambia de rol en vivo).
   useEffect(() => {
     if (canEdit) return;
@@ -87,8 +80,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
   // Players no ven stats (la API ya no se las manda): vida, resistencias… van en la descripción.
   const stats = canEdit ? NPC_STATS.filter(({ key }) => typeof npc.stats[key] === 'number') : [];
   const meta = [npc.type, npc.region].filter(Boolean);
-  const tabs = TABS.filter(entry =>
-    (canEdit || entry.id !== 'habilidades') && (showRelations || entry.id !== 'relaciones'));
+  const tabs = canEdit ? TABS : TABS.filter(entry => entry.id !== 'habilidades');
 
   const persist = async (patch: NpcPatch) => {
     setSaving(true);
@@ -288,7 +280,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
             </>
           )}
 
-          {tab === 'relaciones' && showRelations && (
+          {tab === 'relaciones' && (
             <RelationsPanel self={{ kind: 'npc', id: npc.id }} selfName={npc.name} />
           )}
 
