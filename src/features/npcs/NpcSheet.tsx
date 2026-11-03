@@ -17,6 +17,7 @@ import {
 import { cx } from '../../lib/cx';
 import AbilityCard from '../calculos/AbilityCard';
 import RelationsPanel from '../relaciones/RelationsPanel';
+import BackgroundViewer from '../../components/BackgroundViewer';
 import NpcAbilityModal from './NpcAbilityModal';
 import NpcEditorModal from './NpcEditorModal';
 import NpcPlayerEditModal from './NpcPlayerEditModal';
@@ -137,6 +138,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
         <button type="button" className="calc-back-btn sheet-back" onClick={onBack}>
           ← Todos los NPCs
         </button>
+        {background && <BackgroundViewer src={background} name={npc.name} />}
       </div>
 
       <div className="sheet-body">

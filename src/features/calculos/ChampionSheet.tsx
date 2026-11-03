@@ -17,6 +17,7 @@ import { cx } from '../../lib/cx';
 import { normalizeName } from '../../lib/text';
 import AbilityModal from '../habilidades/AbilityModal';
 import RelationsPanel from '../relaciones/RelationsPanel';
+import BackgroundViewer from '../../components/BackgroundViewer';
 import '../habilidades/Habilidades.css';
 import '../players/Players.css';
 import AbilityCard from './AbilityCard';
@@ -168,6 +169,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
         <button type="button" className="calc-back-btn sheet-back" onClick={onBack}>
           ← Todos los campeones
         </button>
+        {background && <BackgroundViewer src={background} name={champion.champion} />}
       </div>
 
       <div className="sheet-body">
