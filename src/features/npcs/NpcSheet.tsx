@@ -17,6 +17,7 @@ import {
 import { cx } from '../../lib/cx';
 import AbilityCard from '../calculos/AbilityCard';
 import RelationsPanel from '../relaciones/RelationsPanel';
+import PrivateNotesPanel from '../notas/PrivateNotesPanel';
 import BackgroundViewer from '../../components/BackgroundViewer';
 import NpcAbilityModal from './NpcAbilityModal';
 import NpcEditorModal from './NpcEditorModal';
@@ -32,12 +33,14 @@ type Props = {
   onSelectAbility: (ability: Ability) => void;
 };
 
-type SheetTab = 'habilidades' | 'descripcion' | 'relaciones';
+type SheetTab = 'habilidades' | 'descripcion' | 'relaciones' | 'notas';
 const TABS: { id: SheetTab; label: string }[] = [
   { id: 'habilidades', label: 'Habilidades' },
   { id: 'descripcion', label: 'Descripción' },
   { id: 'relaciones', label: 'Relaciones' },
 ];
+/** Players: sin Habilidades y con sus notas privadas (la descripción sigue siendo compartida). */
+const PLAYER_TABS: { id: SheetTab; label: string }[] = [...TABS.filter(entry => entry.id !== 'habilidades'), { id: 'notas', label: 'Notas privadas' }];
 
 /** Abierto: habilidad existente (id), nueva ('new') o ninguna. */
 type AbilityOpen = { id: string | 'new'; edit: boolean } | null;
@@ -71,7 +74,10 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
 
   // Players: sin pestaña de habilidades (ni modales abiertos si el admin cambia de rol en vivo).
   useEffect(() => {
-    if (canEdit) return;
+    if (canEdit) {
+      setTab(current => (current === 'notas' ? 'habilidades' : current));
+      return;
+    }
     setTab(current => (current === 'habilidades' ? 'descripcion' : current));
     setAbilityOpen(null);
     setEditing(false);
@@ -81,7 +87,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
   // Players no ven stats (la API ya no se las manda): vida, resistencias… van en la descripción.
   const stats = canEdit ? NPC_STATS.filter(({ key }) => typeof npc.stats[key] === 'number') : [];
   const meta = [npc.type, npc.region].filter(Boolean);
-  const tabs = canEdit ? TABS : TABS.filter(entry => entry.id !== 'habilidades');
+  const tabs = canEdit ? TABS : PLAYER_TABS;
 
   const persist = async (patch: NpcPatch) => {
     setSaving(true);
@@ -284,6 +290,10 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
 
           {tab === 'relaciones' && (
             <RelationsPanel self={{ kind: 'npc', id: npc.id }} selfName={npc.name} />
+          )}
+
+          {tab === 'notas' && !canEdit && (
+            <PrivateNotesPanel kind="npc" id={npc.id} name={npc.name} />
           )}
 
           {tab === 'descripcion' && (

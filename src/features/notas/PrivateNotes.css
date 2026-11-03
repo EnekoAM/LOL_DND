@@ -1,0 +1,60 @@
+/* Notas privadas (fichas de campeón y NPC). */
+
+.pnotes .sheet-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pnotes__notice {
+  margin: 0;
+  color: rgba(212, 196, 154, 0.6);
+  line-height: 1.5;
+}
+
+.pnotes__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pnotes__text {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 180px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.35);
+  color: inherit;
+  font: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.pnotes__text:focus {
+  outline: none;
+  border-color: rgba(201, 168, 76, 0.6);
+}
+
+.pnotes__text::placeholder {
+  color: rgba(212, 196, 154, 0.28);
+}
+
+.pnotes__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pnotes__status {
+  margin-right: auto;
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: rgba(212, 196, 154, 0.55);
+}
+
+.pnotes__count {
+  color: rgba(212, 196, 154, 0.35);
+}

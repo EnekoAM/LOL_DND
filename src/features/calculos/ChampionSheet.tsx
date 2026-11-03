@@ -17,6 +17,7 @@ import { cx } from '../../lib/cx';
 import { normalizeName } from '../../lib/text';
 import AbilityModal from '../habilidades/AbilityModal';
 import RelationsPanel from '../relaciones/RelationsPanel';
+import PrivateNotesPanel from '../notas/PrivateNotesPanel';
 import BackgroundViewer from '../../components/BackgroundViewer';
 import '../habilidades/Habilidades.css';
 import '../players/Players.css';
@@ -35,13 +36,15 @@ type Props = {
   onChampionChange: (champion: Champion) => void;
 };
 
-type SheetTab = 'habilidades' | 'equipo' | 'desglose' | 'relaciones';
+type SheetTab = 'habilidades' | 'equipo' | 'desglose' | 'relaciones' | 'notas';
 const TABS: { id: SheetTab; label: string }[] = [
   { id: 'habilidades', label: 'Habilidades' },
   { id: 'equipo', label: 'Equipo' },
   { id: 'desglose', label: 'Desglose' },
   { id: 'relaciones', label: 'Relaciones' },
 ];
+/** Solo players (y el aviso para invitados): el admin no tiene notas privadas. */
+const PLAYER_TABS: { id: SheetTab; label: string }[] = [...TABS, { id: 'notas', label: 'Notas privadas' }];
 
 const DEFENSE_KEYS: { key: StatKey; label: string }[] = [
   { key: 'ac', label: 'CA' },
@@ -74,6 +77,11 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
     setLevelDraft(String(champion.level ?? 1));
     setRoleDraft(championRoleId(champion));
   }, [champion.champion, champion.image, champion.background, champion.level, champion.roleId, champion.role]);
+
+  // Si pasa a admin con la pestaña de notas abierta, se vuelve a Habilidades.
+  useEffect(() => {
+    if (canEdit) setTab(current => (current === 'notas' ? 'habilidades' : current));
+  }, [canEdit]);
 
   // Al cambiar de campeon se cierran los editores abiertos.
   useEffect(() => {
@@ -392,7 +400,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
 
         <div className="sheet-content">
           <div className="sheet-tabs" role="tablist" aria-label="Secciones de la ficha">
-            {TABS.map(entry => (
+            {(canEdit ? TABS : PLAYER_TABS).map(entry => (
               <button
                 key={entry.id}
                 type="button"
@@ -474,6 +482,10 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
 
           {tab === 'relaciones' && (
             <RelationsPanel self={{ kind: 'champion', id: champion.champion }} selfName={champion.champion} />
+          )}
+
+          {tab === 'notas' && !canEdit && (
+            <PrivateNotesPanel kind="champion" id={champion.champion} name={champion.champion} />
           )}
 
           {tab === 'desglose' && (
