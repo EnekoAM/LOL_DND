@@ -6,13 +6,15 @@ import { RELATION_NOTE_MAX } from '../../data/relations';
 type Props = {
   title: string;
   initial: string;
+  initialVisible: boolean;
   onClose: () => void;
-  onSubmit: (note: string) => Promise<void>;
+  onSubmit: (note: string, visibleToPlayers: boolean) => Promise<void>;
 };
 
 /** Nota de una relación (hermano, rival, mentor…). */
-const RelationNoteModal = ({ title, initial, onClose, onSubmit }: Props) => {
+const RelationNoteModal = ({ title, initial, initialVisible, onClose, onSubmit }: Props) => {
   const [note, setNote] = useState(initial);
+  const [visibleToPlayers, setVisibleToPlayers] = useState(initialVisible);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +24,7 @@ const RelationNoteModal = ({ title, initial, onClose, onSubmit }: Props) => {
     setSaving(true);
     setError(null);
     try {
-      await onSubmit(note.trim());
+      await onSubmit(note.trim(), visibleToPlayers);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo guardar');
       setSaving(false);
@@ -45,6 +47,10 @@ const RelationNoteModal = ({ title, initial, onClose, onSubmit }: Props) => {
             placeholder="Hermano, rival, mentor, le debe un favor…"
             onChange={e => setNote(e.target.value)}
           />
+        </label>
+        <label className="rel-visible-check">
+          <input type="checkbox" checked={visibleToPlayers} onChange={e => setVisibleToPlayers(e.target.checked)} />
+          <span>Visible para players</span>
         </label>
         {error && <p className="hab-modal__error" role="alert">{error}</p>}
         <div className="hab-modal__actions">

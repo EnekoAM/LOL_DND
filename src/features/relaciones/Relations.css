@@ -231,3 +231,28 @@
   background: rgba(201, 168, 76, 0.3);
   border-color: rgba(201, 168, 76, 0.9);
 }
+
+/* Visibilidad por relación (solo admin) */
+.rel-card--private {
+  opacity: 0.75;
+}
+
+.rel-btn--visible-on {
+  border-color: rgba(110, 190, 120, 0.7) !important;
+  color: #a6e0ae !important;
+}
+
+.rel-visible-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: rgba(212, 196, 154, 0.85);
+  cursor: pointer;
+  user-select: none;
+}
+
+.rel-visible-check input {
+  accent-color: #c9a84c;
+}

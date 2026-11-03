@@ -36,6 +36,7 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved, onPartia
   const [search, setSearch] = useState('');
   const [picked, setPicked] = useState<Candidate[]>([]);
   const [note, setNote] = useState('');
+  const [visibleToPlayers, setVisibleToPlayers] = useState(false);
   const [npcs, setNpcs] = useState<Candidate[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +101,7 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved, onPartia
     // Una a una en orden (la API crea de una en una); si alguna falla, se siguen las demás.
     for (const candidate of picked) {
       try {
-        created.push(await createRelation(self, { kind: candidate.kind, id: candidate.id }, text));
+        created.push(await createRelation(self, { kind: candidate.kind, id: candidate.id }, text, visibleToPlayers));
       } catch (caught) {
         failed.push(candidate);
         lastError = caught instanceof Error ? caught.message : 'No se pudo crear la relación';
@@ -217,6 +218,11 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved, onPartia
             placeholder="Hermano, rival, mentor, le debe un favor…"
             onChange={e => setNote(e.target.value)}
           />
+        </label>
+
+        <label className="rel-visible-check">
+          <input type="checkbox" checked={visibleToPlayers} onChange={e => setVisibleToPlayers(e.target.checked)} />
+          <span>Visible para players</span>
         </label>
 
         {error && <p className="hab-modal__error" role="alert">{error}</p>}

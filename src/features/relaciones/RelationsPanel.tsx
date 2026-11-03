@@ -9,7 +9,7 @@ import {
   deleteRelation,
   loadRelations,
   openRelatedSheet,
-  updateRelationNote,
+  updateRelation,
   type Relation,
   type RelationKind,
   type RelationRef,
@@ -31,7 +31,7 @@ const GROUPS: { kind: RelationKind; title: string; empty: string }[] = [
 
 /**
  * Pestaña «Relaciones» de las fichas de campeón y NPC. Admin: añade, cambia la nota y quita.
- * Players: solo ven las relaciones con fichas visibles (lo filtra la API).
+ * Visibilidad por relación: el admin marca cuáles ven los players (👁). Players: solo esas y con fichas visibles (lo filtra la API).
  */
 const RelationsPanel = ({ self, selfName }: Props) => {
   const canEdit = useCanEdit();
@@ -78,6 +78,20 @@ const RelationsPanel = ({ self, selfName }: Props) => {
     navigate(RELATION_SCREEN_PATH[ref.kind]);
   };
 
+  const toggleVisible = async (relation: Relation) => {
+    const next = !relation.visibleToPlayers;
+    setBusyId(relation.id);
+    setError(null);
+    try {
+      await updateRelation(relation.id, { visibleToPlayers: next });
+      setRelations(prev => prev.map(r => (r.id === relation.id ? { ...r, visibleToPlayers: next } : r)));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No se pudo cambiar la visibilidad');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const remove = async (relation: Relation) => {
     setBusyId(relation.id);
     setError(null);
@@ -120,7 +134,7 @@ const RelationsPanel = ({ self, selfName }: Props) => {
             <div className="rel-group__title">{group.title}</div>
             <div className="rel-grid">
               {list.map(relation => (
-                <div key={relation.id} className="rel-card">
+                <div key={relation.id} className={`rel-card${canEdit && !relation.visibleToPlayers ? ' rel-card--private' : ''}`}>
                   <button
                     type="button"
                     className="rel-card__main"
@@ -161,6 +175,18 @@ const RelationsPanel = ({ self, selfName }: Props) => {
                         </>
                       ) : (
                         <>
+                          <button
+                            type="button"
+                            className={`calc-ability-edit rel-btn--visible${relation.visibleToPlayers ? ' rel-btn--visible-on' : ''}`}
+                            disabled={busyId === relation.id}
+                            aria-pressed={relation.visibleToPlayers}
+                            title={relation.visibleToPlayers
+                              ? 'Los players ven esta relación (si las dos fichas son visibles). Clic para ocultarla.'
+                              : 'Los players no ven esta relación. Clic para mostrarla.'}
+                            onClick={() => { void toggleVisible(relation); }}
+                          >
+                            {relation.visibleToPlayers ? '👁 Visible' : '🚫 Oculta'}
+                          </button>
                           <button type="button" className="calc-ability-edit" onClick={() => setEditing(relation)}>✎ Nota</button>
                           <button type="button" className="calc-ability-edit" onClick={() => setConfirmId(relation.id)}>Quitar</button>
                         </>
@@ -192,10 +218,11 @@ const RelationsPanel = ({ self, selfName }: Props) => {
         <RelationNoteModal
           title={`${selfName} ↔ ${editing.other.name}`}
           initial={editing.note}
+          initialVisible={editing.visibleToPlayers}
           onClose={() => setEditing(null)}
-          onSubmit={async note => {
-            await updateRelationNote(editing.id, note);
-            setRelations(prev => prev.map(r => (r.id === editing.id ? { ...r, note } : r)));
+          onSubmit={async (note, visibleToPlayers) => {
+            await updateRelation(editing.id, { note, visibleToPlayers });
+            setRelations(prev => prev.map(r => (r.id === editing.id ? { ...r, note, visibleToPlayers } : r)));
             setEditing(null);
           }}
         />

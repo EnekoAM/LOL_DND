@@ -23,6 +23,8 @@ export type RelationEntity = RelationRef & {
 export type Relation = {
   id: string;
   note: string;
+  /** El admin la ha hecho visible para los players (por relación). */
+  visibleToPlayers: boolean;
   /** La otra punta respecto a la ficha abierta. */
   other: RelationEntity;
   createdAt: string;
@@ -68,6 +70,7 @@ function normalize(raw: unknown): Relation | null {
   return {
     id: String(source.id),
     note: text(source.note),
+    visibleToPlayers: source.visibleToPlayers === true,
     other: {
       kind: other.kind,
       id: other.id,
@@ -90,7 +93,7 @@ function assertAdmin(): void {
 export const sameRelationRef = (a: RelationRef, b: RelationRef): boolean =>
   a.kind === b.kind && (a.kind === 'champion' ? a.id.toLowerCase() === b.id.toLowerCase() : a.id === b.id);
 
-/** Relaciones de una ficha (admin: todas; players: solo con fichas visibles). */
+/** Relaciones de una ficha (admin: todas; players: solo las marcadas visibles y con fichas visibles). */
 export async function loadRelations(ref: RelationRef): Promise<Relation[]> {
   const query = `kind=${encodeURIComponent(ref.kind)}&id=${encodeURIComponent(ref.id)}`;
   const body = await call(`/api/relations?${query}`, { headers: roleHeaders() }, 'al cargar las relaciones');
@@ -99,26 +102,29 @@ export async function loadRelations(ref: RelationRef): Promise<Relation[]> {
 }
 
 /** Crea la relación entre la ficha abierta (from) y otra (to). Devuelve la vista desde from. */
-export async function createRelation(from: RelationRef, to: RelationRef, note: string): Promise<Relation> {
+export async function createRelation(from: RelationRef, to: RelationRef, note: string, visibleToPlayers = false): Promise<Relation> {
   assertAdmin();
   const body = await call('/api/relations', {
     method: 'POST',
     headers: ADMIN_JSON,
-    body: JSON.stringify({ a: from, b: to, note }),
+    body: JSON.stringify({ a: from, b: to, note, visibleToPlayers }),
   }, 'al crear la relación');
   const saved = normalize(body);
   if (!saved) throw new Error('La API no devolvió la relación');
   return saved;
 }
 
-export async function updateRelationNote(id: string, note: string): Promise<void> {
+/** Cambia la nota y/o si la ven los players. */
+export async function updateRelation(id: string, patch: { note?: string; visibleToPlayers?: boolean }): Promise<void> {
   assertAdmin();
   await call(`/api/relations?id=${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: ADMIN_JSON,
-    body: JSON.stringify({ note }),
+    body: JSON.stringify(patch),
   }, 'al guardar la relación');
 }
+
+export const updateRelationNote = (id: string, note: string): Promise<void> => updateRelation(id, { note });
 
 export async function deleteRelation(id: string): Promise<void> {
   assertAdmin();
