@@ -10,6 +10,8 @@ export type Party = {
   spawnTokens: SpawnTokens;
   /** El admin ha habilitado la sección Aumentos para los players (barra lateral). */
   aumentosForPlayers: boolean;
+  /** Los players ven la pestaña Relaciones de las fichas. */
+  relationsForPlayers: boolean;
   /** Ruleta de aumentos: % de cada rareza (suman 100) y coste en oro por tirada. */
   aumentoRoll: AumentoRoll;
 };
@@ -63,6 +65,7 @@ export let PARTY: Party = {
   expToNextLevel: 600,
   spawnTokens: { ...EMPTY_TOKENS },
   aumentosForPlayers: false,
+  relationsForPlayers: false,
   aumentoRoll: DEFAULT_AUMENTO_ROLL,
 };
 
@@ -94,6 +97,10 @@ export function partyAumentosForPlayers(): boolean {
   return PARTY.aumentosForPlayers;
 }
 
+export function partyRelationsForPlayers(): boolean {
+  return PARTY.relationsForPlayers;
+}
+
 export function partyAumentoRoll(): AumentoRoll {
   return PARTY.aumentoRoll;
 }
@@ -110,6 +117,7 @@ async function patchParty(
     addSpawnTokens?: Partial<SpawnTokens>;
     spendSpawnToken?: SpawnTokenKind;
     aumentosForPlayers?: boolean;
+    relationsForPlayers?: boolean;
     aumentoRoll?: AumentoRoll;
   },
   fallback: string,
@@ -159,6 +167,11 @@ export async function saveAumentosForPlayers(enabled: boolean): Promise<void> {
   await patchParty({ aumentosForPlayers: enabled }, 'Error al cambiar la visibilidad de Aumentos');
 }
 
+/** Solo admin: muestra u oculta la pestaña Relaciones a los players. */
+export async function saveRelationsForPlayers(enabled: boolean): Promise<void> {
+  await patchParty({ relationsForPlayers: enabled }, 'Error al cambiar la visibilidad de Relaciones');
+}
+
 /** Solo admin: guarda las probabilidades y el coste de la ruleta de aumentos. */
 export async function saveAumentoRoll(roll: AumentoRoll): Promise<void> {
   await patchParty({ aumentoRoll: roll }, 'Error al guardar la ruleta de aumentos');
@@ -193,6 +206,7 @@ export function hydrateParty(party: Party): void {
     expToNextLevel: party.expToNextLevel,
     spawnTokens: normalizeTokens(party.spawnTokens),
     aumentosForPlayers: party.aumentosForPlayers === true,
+    relationsForPlayers: party.relationsForPlayers === true,
     aumentoRoll: sameRoll(PARTY.aumentoRoll, normalizeAumentoRoll(party.aumentoRoll)),
   };
   emitParty();
