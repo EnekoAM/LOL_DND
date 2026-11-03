@@ -184,6 +184,7 @@ const RelationsPanel = ({ self, selfName }: Props) => {
             setAdding(false);
             setReload(n => n + 1);
           }}
+          onPartial={() => setReload(n => n + 1)}
         />
       )}
 

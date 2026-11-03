@@ -20,18 +20,21 @@ type Props = {
   selfName: string;
   existing: Relation[];
   onClose: () => void;
-  onSaved: (relation: Relation) => void;
+  /** Si alguna falla: las que sí se crearon (el modal sigue abierto con las fallidas). */
+  onPartial?: (relations: Relation[]) => void;
+  /** Se llama al terminar (aunque alguna haya fallado, con las que sí se crearon). */
+  onSaved: (relations: Relation[]) => void;
 };
 
 type Candidate = RelationRef & { name: string; image: string; frame: NpcImageFrame | null; hint: string };
 
 const KINDS: RelationKind[] = ['champion', 'npc'];
 
-/** Admin: elige un campeón o NPC (búsqueda) y una nota opcional para relacionarlo con la ficha abierta. */
-const RelationAddModal = ({ self, selfName, existing, onClose, onSaved }: Props) => {
+/** Admin: elige uno o varios campeones/NPCs (búsqueda, se pueden mezclar) y una nota opcional común para relacionarlos con la ficha abierta. */
+const RelationAddModal = ({ self, selfName, existing, onClose, onSaved, onPartial }: Props) => {
   const [kind, setKind] = useState<RelationKind>(self.kind === 'npc' ? 'npc' : 'champion');
   const [search, setSearch] = useState('');
-  const [picked, setPicked] = useState<Candidate | null>(null);
+  const [picked, setPicked] = useState<Candidate[]>([]);
   const [note, setNote] = useState('');
   const [npcs, setNpcs] = useState<Candidate[] | null>(null);
   const [saving, setSaving] = useState(false);
@@ -72,21 +75,46 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved }: Props)
   const source = kind === 'champion' ? champions : npcs ?? [];
   const shown = source.filter(c => !taken(c) && matchesSearch(c.name, search));
 
+  const isPicked = (candidate: RelationRef) => picked.some(p => sameRelationRef(p, candidate));
+  const countOf = (option: RelationKind) => picked.filter(p => p.kind === option).length;
+  const shownFree = shown.filter(c => !isPicked(c));
+  const toggle = (candidate: Candidate) =>
+    setPicked(prev => (prev.some(p => sameRelationRef(p, candidate))
+      ? prev.filter(p => !sameRelationRef(p, candidate))
+      : [...prev, candidate]));
+  const selectAllShown = () => setPicked(prev => [...prev, ...shownFree]);
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (saving) return;
-    if (!picked) {
-      setError(`Elige un ${kind === 'champion' ? 'campeón' : 'NPC'}`);
+    if (picked.length === 0) {
+      setError('Elige al menos un campeón o NPC');
       return;
     }
     setSaving(true);
     setError(null);
-    try {
-      onSaved(await createRelation(self, { kind: picked.kind, id: picked.id }, note.trim()));
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'No se pudo crear la relación');
-      setSaving(false);
+    const text = note.trim();
+    const created: Relation[] = [];
+    const failed: Candidate[] = [];
+    let lastError = '';
+    // Una a una en orden (la API crea de una en una); si alguna falla, se siguen las demás.
+    for (const candidate of picked) {
+      try {
+        created.push(await createRelation(self, { kind: candidate.kind, id: candidate.id }, text));
+      } catch (caught) {
+        failed.push(candidate);
+        lastError = caught instanceof Error ? caught.message : 'No se pudo crear la relación';
+      }
     }
+    if (failed.length === 0) {
+      onSaved(created);
+      return;
+    }
+    // Se quedan seleccionadas solo las que fallaron, para reintentar.
+    setPicked(failed);
+    setError(`No se pudieron añadir ${failed.map(c => c.name).join(', ')}: ${lastError}`);
+    setSaving(false);
+    if (created.length > 0) onPartial?.(created);
   };
 
   return createPortal(
@@ -104,12 +132,10 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved }: Props)
               role="radio"
               aria-checked={kind === option}
               className={cx('calc-learned-toggle', kind === option && 'calc-learned-toggle--on')}
-              onClick={() => {
-                setKind(option);
-                setPicked(null);
-              }}
+              onClick={() => setKind(option)}
             >
               {option === 'champion' ? 'Campeones' : 'NPCs'}
+              {countOf(option) > 0 && ` (${countOf(option)})`}
             </button>
           ))}
         </div>
@@ -125,13 +151,41 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved }: Props)
           />
         </label>
 
-        <div className="rel-pick" role="listbox" aria-label="Candidatos">
+        <div className="rel-pick__bar">
+          <span className="rel-pick__count">
+            {picked.length === 0 ? 'Nada seleccionado' : `${picked.length} seleccionado${picked.length === 1 ? '' : 's'}`}
+          </span>
+          <button type="button" className="calc-ability-edit" disabled={shownFree.length === 0} onClick={selectAllShown}>
+            Marcar todos
+          </button>
+          <button type="button" className="calc-ability-edit" disabled={picked.length === 0} onClick={() => setPicked([])}>
+            Limpiar
+          </button>
+        </div>
+
+        {picked.length > 0 && (
+          <div className="rel-pick__chips">
+            {picked.map(candidate => (
+              <button
+                key={`${candidate.kind}:${candidate.id}`}
+                type="button"
+                className="rel-pick__chip"
+                title="Quitar de la selección"
+                onClick={() => toggle(candidate)}
+              >
+                {candidate.name} ×
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="rel-pick" role="listbox" aria-multiselectable="true" aria-label="Candidatos">
           {kind === 'npc' && npcs === null && !error && <p className="calc-build-empty">Cargando NPCs…</p>}
           {(kind === 'champion' || npcs !== null) && shown.length === 0 && (
             <p className="calc-build-empty">No hay {kind === 'champion' ? 'campeones' : 'NPCs'} que añadir.</p>
           )}
           {shown.map(candidate => {
-            const on = picked !== null && sameRelationRef(picked, candidate);
+            const on = isPicked(candidate);
             return (
               <button
                 key={`${candidate.kind}:${candidate.id}`}
@@ -139,8 +193,9 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved }: Props)
                 role="option"
                 aria-selected={on}
                 className={cx('rel-pick__row', on && 'rel-pick__row--on')}
-                onClick={() => setPicked(candidate)}
+                onClick={() => toggle(candidate)}
               >
+                <span className={cx('rel-pick__check', on && 'rel-pick__check--on')} aria-hidden="true">{on ? '✓' : ''}</span>
                 <span className="calc-champ-card__portrait rel-pick__portrait">
                   {candidate.image
                     ? <img src={candidate.image} alt="" style={npcImageStyle(candidate.frame)} />
@@ -154,7 +209,7 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved }: Props)
         </div>
 
         <label className="hab-field">
-          <span>Nota (opcional)</span>
+          <span>Nota (opcional, se aplica a todas)</span>
           <input
             type="text"
             maxLength={RELATION_NOTE_MAX}
@@ -167,8 +222,14 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved }: Props)
         {error && <p className="hab-modal__error" role="alert">{error}</p>}
 
         <div className="hab-modal__actions">
-          <button type="submit" className="hab-modal__btn" disabled={saving || !picked}>
-            {saving ? 'Guardando…' : picked ? `Relacionar con ${picked.name}` : 'Relacionar'}
+          <button type="submit" className="hab-modal__btn" disabled={saving || picked.length === 0}>
+            {saving
+              ? 'Guardando…'
+              : picked.length === 0
+                ? 'Relacionar'
+                : picked.length === 1
+                  ? `Relacionar con ${picked[0].name}`
+                  : `Añadir ${picked.length} relaciones`}
           </button>
           <button type="button" className="hab-modal__btn hab-modal__btn--ghost" disabled={saving} onClick={onClose}>
             Cancelar
