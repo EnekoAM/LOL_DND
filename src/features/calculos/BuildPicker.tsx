@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Modal from '../../components/Modal';
+import ThumbImg from '../../components/ThumbImg';
 import { ITEMS } from '../../data/items';
 import { itemAvailability } from '../items/stock';
 import { matchesSearch, normalizeName } from '../../lib/text';
@@ -61,7 +62,7 @@ const BuildPicker = ({ title, busy, onlyAvailable = false, taken, takenLabel = '
                 onClick={() => onAdd(item.nombre)}
               >
                 {item.imagen
-                  ? <img src={item.imagen} alt="" />
+                  ? <ThumbImg src={item.imagen} thumbWidth={128} alt="" />
                   : <span className="calc-picker-item__fallback">✦</span>
                 }
                 <span className="calc-picker-item__name" title={item.nombre}>{item.nombre}</span>

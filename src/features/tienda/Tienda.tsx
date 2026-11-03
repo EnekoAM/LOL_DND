@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import Modal from '../../components/Modal';
+import Pagination, { pageSlice } from '../../components/Pagination';
+import ThumbImg from '../../components/ThumbImg';
 import { craftItem, findItem, findItems, ITEMS, STAT_KEYS, type Item } from '../../data/items';
 import { partyGold, subscribeParty } from '../../data/party';
 import { useLiveRevision } from '../../data/live';
@@ -110,6 +112,8 @@ const Tienda = () => {
   const [craftName, setCraftName] = useState<string | null>(null);
   const [stockRevision, setStockRevision] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [page, setPage] = useState(1);
+  const ledgerRef = useRef<HTMLDivElement>(null);
   const [notice, setNotice] = useState<{ mode: CounterMode; kind: 'ok' | 'error'; text: string } | null>(null);
   const gold = useSyncExternalStore(subscribeParty, partyGold);
   // Stock o equipo cambiados en otra pestaña: el carrito y los filtros se quedan como están.
@@ -147,6 +151,16 @@ const Tienda = () => {
     if (onlyOwned && stock.owned <= 0) return false;
     return true;
   }), [catalog, rarity, statsOn, search, onlyOwned, mode, stockRevision]);
+
+  // Filtros, búsqueda o mostrador nuevos: vuelta a la primera página.
+  useEffect(() => { setPage(1); }, [rarity, statsOn, search, onlyOwned, mode]);
+
+  const pageItems = useMemo(() => pageSlice(visibleItems, page), [visibleItems, page]);
+
+  const changePage = (next: number) => {
+    setPage(next);
+    ledgerRef.current?.scrollTo({ top: 0 });
+  };
 
   const activeFilters = (rarity ? 1 : 0) + statsOn.length + (onlyOwned ? 1 : 0);
 
@@ -350,7 +364,7 @@ const Tienda = () => {
       )}
 
       <div className="shop-layout">
-        <div className="shop-ledger">
+        <div ref={ledgerRef} className="shop-ledger">
           {visibleItems.length === 0 && (
             <p className="shop-empty">
               {mode === 'venta'
@@ -360,7 +374,7 @@ const Tienda = () => {
                   : 'No hay objetos con ese filtro.'}
             </p>
           )}
-          {visibleItems.map(item => {
+          {pageItems.map(item => {
             const inCart = cart.find(line => line.nombre === item.nombre);
             const stock = itemAvailability(item);
             const capped = mode === 'venta' && (inCart?.cantidad ?? 0) >= stock.available;
@@ -377,7 +391,7 @@ const Tienda = () => {
                 onClick={mode === 'crafteo' && canUseShop ? () => setCraftName(item.nombre) : undefined}
               >
                 {item.imagen
-                  ? <img src={item.imagen} alt="" />
+                  ? <ThumbImg src={item.imagen} thumbWidth={96} alt="" />
                   : <span className="shop-ware__fallback">✦</span>}
                 <span className="shop-ware__copy">
                   <span className="shop-ware__name">{item.nombre}</span>
@@ -396,6 +410,7 @@ const Tienda = () => {
               </div>
             );
           })}
+          <Pagination page={page} total={visibleItems.length} onChange={changePage} />
         </div>
 
         {!canUseShop ? (
@@ -421,7 +436,7 @@ const Tienda = () => {
             {lines.map(line => (
               <li key={line.nombre} className="shop-cart__line">
                 {line.item?.imagen
-                  ? <img src={line.item.imagen} alt="" />
+                  ? <ThumbImg src={line.item.imagen} thumbWidth={96} alt="" />
                   : <span className="shop-ware__fallback">✦</span>}
                 <div className="shop-cart__copy">
                   <span className="shop-ware__name">{line.nombre}</span>
@@ -575,7 +590,7 @@ const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchP
     <section className="shop-cart shop-craft">
       <div className="shop-craft__head">
         {item.imagen
-          ? <img src={item.imagen} alt={item.nombre} />
+          ? <ThumbImg src={item.imagen} thumbWidth={128} alt={item.nombre} />
           : <span className="shop-ware__fallback">✦</span>}
         <div>
           <p className={cx('shop-ware__rarity', `shop-rarity--${raritySlug(item.rareza)}`)}>{item.rareza}</p>
@@ -596,7 +611,7 @@ const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchP
                 onClick={() => line.item && onSelect(line.item)}
               >
                 {line.item?.imagen
-                  ? <img src={line.item.imagen} alt={line.name} />
+                  ? <ThumbImg src={line.item.imagen} thumbWidth={128} alt={line.name} />
                   : <span className="shop-ware__fallback">?</span>}
                 <CraftName name={line.name} />
                 <span className="shop-craft__stock">{line.available}/{line.needed}</span>
@@ -624,7 +639,7 @@ const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchP
             {buildsInto.map(result => (
               <button key={result.nombre} type="button" className="shop-craft__item" onClick={() => onSelect(result)}>
                 {result.imagen
-                  ? <img src={result.imagen} alt={result.nombre} />
+                  ? <ThumbImg src={result.imagen} thumbWidth={128} alt={result.nombre} />
                   : <span className="shop-ware__fallback">?</span>}
                 <CraftName name={result.nombre} />
               </button>

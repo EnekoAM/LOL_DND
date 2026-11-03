@@ -1281,31 +1281,3 @@
   background: var(--gold-bright, #f0d27a);
   border-radius: 999px;
 }
-
-/* Paginación (Campeones / NPCs) */
-.calc-pagination {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin: 12px 0;
-}
-.calc-pagination__pages {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-}
-.calc-pagination__num { min-width: 32px; }
-.calc-pagination__gap { color: var(--ink-dim); padding: 0 2px; }
-.calc-pagination__info {
-  width: 100%;
-  text-align: center;
-  color: var(--ink-dim);
-  font-size: 12px;
-}
-.calc-pagination .calc-learned-toggle:disabled {
-  opacity: 0.4;
-  cursor: default;
-}

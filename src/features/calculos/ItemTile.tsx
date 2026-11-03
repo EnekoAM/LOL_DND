@@ -1,3 +1,4 @@
+import ThumbImg from '../../components/ThumbImg';
 import type { Item } from '../../data/items';
 import { cx } from '../../lib/cx';
 
@@ -14,7 +15,7 @@ type Props = {
 const ItemTile = ({ name, item, state, onRemove, removeDisabled }: Props) => (
   <div className={cx('calc-item-card', state && `calc-item-card--${state}`)}>
     {item?.imagen
-      ? <img className="calc-item-card__img" src={item.imagen} alt={name} />
+      ? <ThumbImg className="calc-item-card__img" src={item.imagen} thumbWidth={128} alt={name} />
       : <div className="calc-item-card__no-img">✦</div>
     }
     <div className="calc-item-card__name" title={name}>{name}</div>

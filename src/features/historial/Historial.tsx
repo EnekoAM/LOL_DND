@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal';
+import ThumbImg from '../../components/ThumbImg';
 import { findItem } from '../../data/items';
 import {
   loadHistory,
@@ -293,7 +294,7 @@ const Historial = () => {
                 />
               )}
               {image
-                ? <img className="hist-row__img" src={image} alt="" />
+                ? <ThumbImg className="hist-row__img" src={image} thumbWidth={96} alt="" />
                 : <div className="hist-row__img hist-row__img--empty">✦</div>}
 
               <div className="hist-row__body">

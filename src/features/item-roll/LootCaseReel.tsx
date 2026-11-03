@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
+import ThumbImg from '../../components/ThumbImg';
 import { findItem } from '../../data/items';
 import { cx } from '../../lib/cx';
 import type { LootReelData } from './reelStrip';
@@ -137,7 +138,7 @@ const LootReel = ({ reel, spinning, onDone }: Props) => {
                 style={{ ['--rarity' as string]: color }}
               >
                 <div className="irs-reel-card__img">
-                  {img ? <img src={img} alt="" draggable={false} /> : <span>{name.charAt(0)}</span>}
+                  {img ? <ThumbImg src={img} thumbWidth={128} alt="" loading="eager" /> : <span>{name.charAt(0)}</span>}
                 </div>
                 <div className="irs-reel-card__name">{name}</div>
               </div>

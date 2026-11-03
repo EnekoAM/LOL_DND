@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { cx } from '../lib/cx';
+import './Pagination.css';
 
 export const PAGE_SIZE = 50;
 

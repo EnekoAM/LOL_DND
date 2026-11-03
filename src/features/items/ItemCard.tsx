@@ -1,3 +1,5 @@
+import { memo } from 'react';
+import ThumbImg from '../../components/ThumbImg';
 import type { Item } from '../../data/items';
 import { cx } from '../../lib/cx';
 import ItemStock from './ItemStock';
@@ -8,6 +10,11 @@ import { itemAvailability } from './stock';
 type Props = {
   item: Item;
   onSelect: (item: Item) => void;
+  /**
+   * Cambia cuando el stock o la definición se actualizan en memoria (los ítems se mutan en sitio),
+   * para que el memo no deje la tarjeta desfasada.
+   */
+  version?: string;
 };
 
 const ItemCard = ({ item, onSelect }: Props) => {
@@ -20,7 +27,7 @@ const ItemCard = ({ item, onSelect }: Props) => {
 
       <div className="item-card__img-wrap">
         {item.imagen
-          ? <img src={item.imagen} alt={item.nombre} className="item-card__img" />
+          ? <ThumbImg src={item.imagen} thumbWidth={128} alt={item.nombre} className="item-card__img" />
           : <span className="item-card__no-img">—</span>
         }
       </div>
@@ -41,4 +48,4 @@ const ItemCard = ({ item, onSelect }: Props) => {
   );
 };
 
-export default ItemCard;
+export default memo(ItemCard);
