@@ -89,7 +89,8 @@ function App() {
     [role, aumentosForPlayers],
   );
   const defaultPath = visibleScreens[0] ? `/${visibleScreens[0].id}` : '/players';
-  const current = visibleScreens.find(screen => location.pathname === `/${screen.id}`);
+  const current = visibleScreens.find(screen =>
+    location.pathname === `/${screen.id}` || location.pathname.startsWith(`/${screen.id}/`));
 
   useEffect(() => {
     localStorage.setItem(NAV_EXPANDED_KEY, navExpanded ? '1' : '0');
@@ -182,8 +183,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to={defaultPath} replace />} />
           <Route path="/habilidades" element={<Navigate to="/calculos" replace />} />
+          {/* /* para sub-rutas (p. ej. la ficha de un NPC en /npcs/<región>/<tipo>/<nombre>). */}
           {visibleScreens.map(({ id, Component }) => (
-            <Route key={id} path={`/${id}`} element={<Component />} />
+            <Route key={id} path={`/${id}/*`} element={<Component />} />
           ))}
           <Route path="*" element={<Navigate to={defaultPath} replace />} />
         </Routes>

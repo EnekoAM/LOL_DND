@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCanEdit } from '../../data/appRoleContext';
 import type { Ability } from '../../data/champions';
 import { useLiveRevision } from '../../data/live';
@@ -26,6 +27,7 @@ import PickerCard from '../calculos/PickerCard';
 import { regionColor } from '../habilidades/championStyle';
 import NpcEditorModal from './NpcEditorModal';
 import NpcSheet from './NpcSheet';
+import { NPCS_PATH, findNpcBySlug, npcSlugPath, npcUrl } from './npcRoute';
 import '../calculos/Calculos.css';
 import './Npcs.css';
 
@@ -53,8 +55,12 @@ const Npcs = () => {
   const [npcs, setNpcs] = useState<Npc[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  // Si se llegó desde «Relaciones» de otra ficha, se abre directamente ese NPC.
-  const [selectedId, setSelectedId] = useState<string | null>(() => takePendingOpen('npc'));
+  const navigate = useNavigate();
+  // Ruta de la ficha abierta: /npcs/<región>/<tipo>/<nombre> (ver npcRoute.ts).
+  const splat = useParams()['*'] ?? '';
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Si se llegó desde «Relaciones» de otra ficha: id del NPC a abrir en cuanto esté cargada la lista.
+  const [pendingId, setPendingId] = useState<string | null>(() => takePendingOpen('npc'));
   const [filter, setFilter] = useState<Filter>(BASE_FILTER);
   const [creating, setCreating] = useState(false);
   const [ability, setAbility] = useState<Ability | null>(null);
@@ -87,7 +93,7 @@ const Npcs = () => {
       const id = takePendingOpen('npc');
       if (id) {
         setAbility(null);
-        setSelectedId(id);
+        setPendingId(id);
       }
     };
     window.addEventListener(OPEN_RELATED_EVENT, onOpen);
@@ -96,7 +102,44 @@ const Npcs = () => {
 
   // Players nunca ven un NPC oculto (p. ej. si el admin lo oculta en vivo).
   const visible = useMemo(() => (canEdit ? npcs : npcs.filter(n => n.visible)), [npcs, canEdit]);
-  const selected = selectedId ? visible.find(n => n.id === selectedId) ?? null : null;
+  const selected = splat && selectedId ? visible.find(n => n.id === selectedId) ?? null : null;
+
+  // URL -> ficha abierta. También corrige la URL si el NPC cambió de nombre, región o tipo.
+  useEffect(() => {
+    if (!splat) {
+      setSelectedId(null);
+      return;
+    }
+    if (loading) return;
+    const current = selectedId ? visible.find(n => n.id === selectedId) : undefined;
+    if (current && npcSlugPath(current, visible) === splat) return;
+    const found = findNpcBySlug(visible, splat);
+    if (found) {
+      setSelectedId(found.id);
+      if (npcSlugPath(found, visible) !== splat) navigate(npcUrl(found, visible), { replace: true });
+      return;
+    }
+    if (current) {
+      navigate(npcUrl(current, visible), { replace: true });
+      return;
+    }
+    // No existe (o un player no puede verlo): a la lista.
+    navigate(NPCS_PATH, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [splat, visible, loading]);
+
+  // Ficha pendiente desde «Relaciones»: se abre su URL cuando ya está la lista.
+  useEffect(() => {
+    if (!pendingId || loading) return;
+    const npc = visible.find(n => n.id === pendingId);
+    setPendingId(null);
+    if (npc) navigate(npcUrl(npc, visible), { replace: true });
+  }, [pendingId, visible, loading, navigate]);
+
+  const openNpc = (npc: Npc, list: Npc[] = visible) => {
+    setSelectedId(npc.id);
+    navigate(npcUrl(npc, list));
+  };
   const types = useMemo(() => uniqueSorted(visible.map(n => n.type)), [visible]);
   const regions = useMemo(() => uniqueSorted(visible.map(n => n.region)), [visible]);
 
@@ -137,12 +180,13 @@ const Npcs = () => {
           npc={selected}
           types={types}
           regions={regions}
-          onBack={() => setSelectedId(null)}
+          onBack={() => navigate(NPCS_PATH)}
           onChange={replace}
           onDelete={async npc => {
             await deleteNpc(npc.id);
             setNpcs(prev => prev.filter(n => n.id !== npc.id));
             setSelectedId(null);
+            navigate(NPCS_PATH, { replace: true });
           }}
           onSelectAbility={setAbility}
         />
@@ -212,7 +256,7 @@ const Npcs = () => {
 
           <div className="calc-grid">
             {shown.map(npc => (
-              <PickerCard key={npc.id} name={npc.name} className="calc-card--champ" onClick={() => setSelectedId(npc.id)}>
+              <PickerCard key={npc.id} name={npc.name} className="calc-card--champ" onClick={() => openNpc(npc)}>
                 <div className="calc-champ-card" style={cssVars({ '--champ-color': npc.kind === 'monstruo' ? '#8a1a1a' : regionColor(npc.region) })}>
                   <div className="calc-champ-card__portrait">
                     {npc.image ? <img src={npc.image} alt="" style={npcImageStyle(npcCircleFrame(npc))} /> : <span aria-hidden="true">{npc.name.charAt(0)}</span>}
@@ -262,7 +306,7 @@ const Npcs = () => {
             replace(saved);
             setCreating(false);
             // Directo a la ficha para añadirle habilidades.
-            setSelectedId(saved.id);
+            openNpc(saved, [...visible.filter(n => n.id !== saved.id), saved]);
           }}
         />
       )}
