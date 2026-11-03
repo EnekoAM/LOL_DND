@@ -188,6 +188,29 @@ function assertAdmin(): void {
 
 const ADMIN_JSON = { 'Content-Type': 'application/json', 'X-App-Role': 'admin' };
 
+/**
+ * Caché en memoria de la lista (como CHAMPIONS): volver a la pantalla de NPCs no repite la
+ * petición si no llegó un cambio en vivo (revisión) y es reciente; si está vieja se pinta
+ * igualmente al instante y se refresca en segundo plano. Separada por rol (admin ve ocultos).
+ */
+type NpcCache = { role: string; revision: number; at: number; list: Npc[] };
+let npcCache: NpcCache | null = null;
+const NPC_CACHE_FRESH_MS = 30_000;
+
+export function readNpcCache(role: string, revision: number): { list: Npc[]; fresh: boolean } | null {
+  if (!npcCache || npcCache.role !== role) return null;
+  return { list: npcCache.list, fresh: npcCache.revision === revision && Date.now() - npcCache.at < NPC_CACHE_FRESH_MS };
+}
+
+export function writeNpcCache(role: string, revision: number, list: Npc[]): void {
+  npcCache = { role, revision, at: Date.now(), list };
+}
+
+/** Cambios locales (crear, editar, borrar) sin tocar la frescura. */
+export function patchNpcCache(role: string, list: Npc[]): void {
+  if (npcCache && npcCache.role === role) npcCache = { ...npcCache, list };
+}
+
 /** Lista completa (admin) o solo los visibles (players). */
 export async function loadNpcs(): Promise<Npc[]> {
   const body = await call('/api/npcs', { headers: roleHeaders() }, 'al cargar los NPCs');

@@ -1,3 +1,5 @@
+import ThumbImg from '../../components/ThumbImg';
+import { portraitThumbWidth } from '../../lib/thumb';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCanEdit } from '../../data/appRoleContext';
@@ -143,7 +145,7 @@ const RelationsPanel = ({ self, selfName }: Props) => {
                   >
                     <span className="calc-champ-card__portrait rel-card__portrait">
                       {relation.other.image
-                        ? <img src={relation.other.image} alt="" style={npcImageStyle(relation.other.imageFrame)} />
+                        ? <ThumbImg src={relation.other.image} thumbWidth={relation.other.kind === 'npc' ? portraitThumbWidth(relation.other.imageFrame?.zoom) : undefined} style={npcImageStyle(relation.other.imageFrame)} />
                         : <span aria-hidden="true">{relation.other.name.charAt(0)}</span>}
                     </span>
                     <span className="rel-card__text">

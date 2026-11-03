@@ -1,3 +1,5 @@
+import ThumbImg from '../../components/ThumbImg';
+import { portraitThumbWidth } from '../../lib/thumb';
 import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '../../components/Modal';
@@ -103,7 +105,7 @@ const NpcAbilityModal = ({ npc, ability, canEdit, startEditing = false, onClose,
       <div className="hab-modal__cap"><div className="hab-modal__rod" /></div>
       <div className="hab-modal__body">
         <div className="hab-modal__kicker">
-          {npc.image && <span className="npc-thumb"><img src={npc.image} alt="" style={npcImageStyle(npc.imageFrame)} /></span>}
+          {npc.image && <span className="npc-thumb"><ThumbImg src={npc.image} thumbWidth={portraitThumbWidth(npc.imageFrame?.zoom)} style={npcImageStyle(npc.imageFrame)} /></span>}
           <span>{(editing ? draft.label : ability?.label) || 'Habilidad'} · {npc.name}</span>
         </div>
 

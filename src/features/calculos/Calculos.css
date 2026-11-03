@@ -50,7 +50,8 @@
   border-left: 3px solid rgba(201,168,76,0.2);
   padding: 16px;
   cursor: pointer;
-  transition: border-color 0.18s, background 0.18s, transform 0.18s;
+  /* Solo color de borde: sin transform ni cambio de degradado (repintado barato en grids grandes). */
+  transition: border-color 0.15s;
   position: relative;
 }
 
@@ -63,9 +64,8 @@
 }
 
 .calc-card:hover {
+  border-color: rgba(201,168,76,0.32);
   border-left-color: var(--gold);
-  background: linear-gradient(160deg, #221808, #160f06);
-  transform: translateX(3px);
 }
 
 .calc-card--player { border-left-color: rgba(201,168,76,0.3); }
@@ -916,12 +916,11 @@
 .calc-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.78);
+  background: rgba(0,0,0,0.84);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  backdrop-filter: blur(4px);
   animation: calcBackdropIn 0.2s ease;
 }
 

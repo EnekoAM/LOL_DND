@@ -1,3 +1,5 @@
+import ThumbImg from '../../components/ThumbImg';
+import { portraitThumbWidth } from '../../lib/thumb';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '../../components/Modal';
@@ -199,7 +201,7 @@ const RelationAddModal = ({ self, selfName, existing, onClose, onSaved, onPartia
                 <span className={cx('rel-pick__check', on && 'rel-pick__check--on')} aria-hidden="true">{on ? '✓' : ''}</span>
                 <span className="calc-champ-card__portrait rel-pick__portrait">
                   {candidate.image
-                    ? <img src={candidate.image} alt="" style={npcImageStyle(candidate.frame)} />
+                    ? <ThumbImg src={candidate.image} thumbWidth={candidate.kind === 'npc' ? portraitThumbWidth(candidate.frame?.zoom) : undefined} style={npcImageStyle(candidate.frame)} />
                     : <span aria-hidden="true">{candidate.name.charAt(0)}</span>}
                 </span>
                 <span className="rel-pick__name">{candidate.name}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCanEdit } from '../../data/appRoleContext';
 import type { Ability } from '../../data/champions';
@@ -10,6 +10,9 @@ import {
   deleteNpc,
   emptyNpc,
   loadNpcs,
+  patchNpcCache,
+  readNpcCache,
+  writeNpcCache,
   npcKindIcon,
   npcKindLabel,
   npcCircleFrame,
@@ -19,6 +22,8 @@ import {
   type NpcKind,
 } from '../../data/npcs';
 import Pagination, { pageSlice } from '../../components/Pagination';
+import ThumbImg from '../../components/ThumbImg';
+import { portraitThumbWidth } from '../../lib/thumb';
 import { cssVars } from '../../lib/cssVars';
 import { cx } from '../../lib/cx';
 import { matchesSearch } from '../../lib/text';
@@ -47,14 +52,49 @@ const matchesTag = (value: string, wanted: string) =>
 const uniqueSorted = (values: string[]) =>
   [...new Set(values.map(v => v.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
+type NpcCardProps = { npc: Npc; canEdit: boolean; onOpen: (npc: Npc) => void };
+
+/** Tarjeta del grid (memo: no se repinta si el NPC no cambia). Miniatura de la wiki, no el arte completo. */
+const NpcCard = memo(({ npc, canEdit, onOpen }: NpcCardProps) => {
+  const frame = npcCircleFrame(npc);
+  return (
+    <PickerCard name={npc.name} className="calc-card--champ" onClick={() => onOpen(npc)}>
+      <div className="calc-champ-card" style={cssVars({ '--champ-color': npc.kind === 'monstruo' ? '#8a1a1a' : regionColor(npc.region) })}>
+        <div className="calc-champ-card__portrait">
+          {npc.image
+            ? <ThumbImg src={npc.image} thumbWidth={portraitThumbWidth(frame?.zoom)} style={npcImageStyle(frame)} width={64} height={64} />
+            : <span aria-hidden="true">{npc.name.charAt(0)}</span>}
+        </div>
+        {canEdit && npc.visible && <div className="calc-champ-card__active">Visible</div>}
+        {/* Players: solo nombre y foto en la tarjeta; tipo, región, nivel y habilidades quedan ocultos. */}
+        {canEdit && (
+          <>
+            <div className="calc-champ-card__meta">
+              <span className="calc-champ-card__region">{npc.region || `NVL ${npc.level}`}</span>
+              <span className="calc-champ-card__role">{npcKindIcon(npc.kind)} {npc.type || npcKindLabel(npc.kind)}</span>
+            </div>
+            <div className="npc-card__abilities">
+              {npc.abilities.length === 0
+                ? 'Sin habilidades'
+                : `${npc.abilities.length} habilidad${npc.abilities.length === 1 ? '' : 'es'}`}
+            </div>
+          </>
+        )}
+      </div>
+    </PickerCard>
+  );
+});
+
 /**
  * NPCs / Monstruos: grid como Campeones + ficha con habilidades libres (el admin añade las que quiera).
  */
 const Npcs = () => {
   const canEdit = useCanEdit();
   const revision = useLiveRevision('npcs');
-  const [npcs, setNpcs] = useState<Npc[]>([]);
-  const [loading, setLoading] = useState(true);
+  const role = canEdit ? 'admin' : 'player';
+  // Arranca con la caché (si hay) para no esperar a la API al volver a la pantalla.
+  const [npcs, setNpcs] = useState<Npc[]>(() => readNpcCache(role, revision)?.list ?? []);
+  const [loading, setLoading] = useState(() => !readNpcCache(role, revision));
   const [loadError, setLoadError] = useState<string | null>(null);
   const navigate = useNavigate();
   // Ruta de la ficha abierta: /npcs/<región>/<tipo>/<nombre> (ver npcRoute.ts).
@@ -75,11 +115,20 @@ const Npcs = () => {
   const [damageInputs, setDamageInputs] = useState<DamageInputs>(DEFAULT_DAMAGE_INPUTS);
 
   useEffect(() => {
+    const cached = readNpcCache(role, revision);
+    if (cached) {
+      setNpcs(cached.list);
+      setLoading(false);
+      // Reciente y sin cambios en vivo: no se vuelve a pedir.
+      if (cached.fresh) return;
+    }
     let active = true;
     loadNpcs()
       .then(next => {
         if (!active) return;
-        setNpcs(sortNpcs(next));
+        const sorted = sortNpcs(next);
+        writeNpcCache(role, revision, sorted);
+        setNpcs(sorted);
         setLoadError(null);
       })
       .catch((error: unknown) => {
@@ -91,7 +140,12 @@ const Npcs = () => {
     return () => {
       active = false;
     };
-  }, [revision, canEdit]);
+  }, [revision, role]);
+
+  // Cambios locales (crear, editar, borrar) también a la caché.
+  useEffect(() => {
+    if (!loading) patchNpcCache(role, npcs);
+  }, [npcs, loading, role]);
 
   // Relaciones dentro de la misma pantalla: abrir otro NPC.
   useEffect(() => {
@@ -148,6 +202,13 @@ const Npcs = () => {
     setSelectedId(npc.id);
     navigate(npcUrl(npc, list));
   };
+  // Handler estable para las tarjetas memo (lee la lista actual por ref).
+  const visibleRef = useRef(visible);
+  visibleRef.current = visible;
+  const openFromCard = useCallback((npc: Npc) => {
+    setSelectedId(npc.id);
+    navigate(npcUrl(npc, visibleRef.current));
+  }, [navigate]);
   const types = useMemo(() => uniqueSorted(visible.map(n => n.type)), [visible]);
   const regions = useMemo(() => uniqueSorted(visible.map(n => n.region)), [visible]);
 
@@ -270,30 +331,7 @@ const Npcs = () => {
           <Pagination page={page} total={shown.length} onChange={setPage} />
 
           <div className="calc-grid">
-            {pageItems.map(npc => (
-              <PickerCard key={npc.id} name={npc.name} className="calc-card--champ" onClick={() => openNpc(npc)}>
-                <div className="calc-champ-card" style={cssVars({ '--champ-color': npc.kind === 'monstruo' ? '#8a1a1a' : regionColor(npc.region) })}>
-                  <div className="calc-champ-card__portrait">
-                    {npc.image ? <img src={npc.image} alt="" style={npcImageStyle(npcCircleFrame(npc))} /> : <span aria-hidden="true">{npc.name.charAt(0)}</span>}
-                  </div>
-                  {canEdit && npc.visible && <div className="calc-champ-card__active">Visible</div>}
-                  {/* Players: solo nombre y foto en la tarjeta; tipo, región, nivel y habilidades quedan ocultos. */}
-                  {canEdit && (
-                    <>
-                      <div className="calc-champ-card__meta">
-                        <span className="calc-champ-card__region">{npc.region || `NVL ${npc.level}`}</span>
-                        <span className="calc-champ-card__role">{npcKindIcon(npc.kind)} {npc.type || npcKindLabel(npc.kind)}</span>
-                      </div>
-                      <div className="npc-card__abilities">
-                        {npc.abilities.length === 0
-                          ? 'Sin habilidades'
-                          : `${npc.abilities.length} habilidad${npc.abilities.length === 1 ? '' : 'es'}`}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </PickerCard>
-            ))}
+            {pageItems.map(npc => <NpcCard key={npc.id} npc={npc} canEdit={canEdit} onOpen={openFromCard} />)}
           </div>
 
           <Pagination page={page} total={shown.length} onChange={setPage} scrollOnChange />

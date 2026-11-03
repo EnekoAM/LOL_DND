@@ -115,7 +115,7 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
             {pinned.map(champion => (
               <button key={champion.champion} type="button" className="calc-pinned__chip" onClick={() => onSelect(champion)}>
                 {champion.image
-                  ? <img src={champion.image} alt={champion.champion} className="calc-pinned__chip-img" />
+                  ? <img src={champion.image} alt={champion.champion} className="calc-pinned__chip-img" width={22} height={22} loading="lazy" decoding="async" />
                   : <span className="calc-pinned__chip-letter">{champion.champion.charAt(0)}</span>
                 }
                 <span>{champion.champion}</span>
@@ -145,7 +145,7 @@ const ChampionPicker = ({ filter, onFilterChange, favorites, onToggleFavorite, o
               >★</button>
               <div className="calc-champ-card__portrait">
                 {champion.image
-                  ? <img src={champion.image} alt="" />
+                  ? <img src={champion.image} alt="" width={64} height={64} loading="lazy" decoding="async" />
                   : <span aria-hidden="true">{champion.champion.charAt(0)}</span>}
               </div>
               {canEdit && champion.active && <div className="calc-champ-card__active">Activo</div>}
