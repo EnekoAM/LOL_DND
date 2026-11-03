@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useCanEdit } from '../../data/appRoleContext';
 import type { Ability } from '../../data/champions';
 import { useLiveRevision } from '../../data/live';
-import { OPEN_RELATED_EVENT, takePendingOpen, type RelationRef } from '../../data/relations';
+import { OPEN_RELATED_EVENT, peekPendingOpen, takePendingOpen, type RelationRef } from '../../data/relations';
 import {
   NPC_KINDS,
   createNpc,
@@ -60,7 +60,12 @@ const Npcs = () => {
   const splat = useParams()['*'] ?? '';
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Si se llegó desde «Relaciones» de otra ficha: id del NPC a abrir en cuanto esté cargada la lista.
-  const [pendingId, setPendingId] = useState<string | null>(() => takePendingOpen('npc'));
+  const [pendingId, setPendingId] = useState<string | null>(() => peekPendingOpen('npc'));
+  // Se consume ya montada la pantalla (no en el inicializador, que StrictMode ejecuta dos veces).
+  useEffect(() => {
+    const id = takePendingOpen('npc');
+    if (id) setPendingId(id);
+  }, []);
   const [filter, setFilter] = useState<Filter>(BASE_FILTER);
   const [creating, setCreating] = useState(false);
   const [ability, setAbility] = useState<Ability | null>(null);

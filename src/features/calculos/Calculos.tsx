@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppRole } from '../../data/appRoleContext';
 import { CHAMPIONS, type Ability, type Champion } from '../../data/champions';
-import { OPEN_RELATED_EVENT, takePendingOpen, type RelationRef } from '../../data/relations';
+import { OPEN_RELATED_EVENT, peekPendingOpen, takePendingOpen, type RelationRef } from '../../data/relations';
 import { normalizeName } from '../../lib/text';
 import { useStoredSet } from '../../hooks/useStoredSet';
 import ChampionSheet from './ChampionSheet';
@@ -36,7 +36,12 @@ const Calculos = () => {
   const splat = normalizeSplat(useParams()['*'] ?? '');
   const [selectedChampion, setChampion] = useState<Champion | null>(null);
   // Si se llegó desde «Relaciones» de otra ficha, se abre directamente ese campeón.
-  const [pendingName, setPendingName] = useState<string | null>(() => takePendingOpen('champion'));
+  const [pendingName, setPendingName] = useState<string | null>(() => peekPendingOpen('champion'));
+  // Se consume ya montada la pantalla (no en el inicializador, que StrictMode ejecuta dos veces).
+  useEffect(() => {
+    const id = takePendingOpen('champion');
+    if (id) setPendingName(id);
+  }, []);
   // Players nunca pueden abrir un campeón inactivo (p. ej. si el admin lo desactiva en vivo).
   const canOpen = (entry: Champion) => canEdit || entry.active === true;
   const champion = splat && selectedChampion && canOpen(selectedChampion) ? selectedChampion : null;

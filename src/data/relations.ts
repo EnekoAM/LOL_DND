@@ -139,6 +139,15 @@ export function openRelatedSheet(ref: RelationRef): void {
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent<RelationRef>(OPEN_RELATED_EVENT, { detail: ref }));
 }
 
+/**
+ * Mira (sin consumir) la ficha pendiente de ese tipo. Para el useState inicial: en StrictMode React
+ * llama dos veces al inicializador, así que consumir ahí perdía el valor al cambiar de pantalla.
+ * La pantalla la consume después con takePendingOpen en un efecto.
+ */
+export function peekPendingOpen(kind: RelationKind): string | null {
+  return pendingOpen && pendingOpen.kind === kind ? pendingOpen.id : null;
+}
+
 /** La pantalla de ese tipo recoge (y consume) la ficha pendiente de abrir. */
 export function takePendingOpen(kind: RelationKind): string | null {
   if (!pendingOpen || pendingOpen.kind !== kind) return null;
