@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '../../components/Modal';
+import ScalingSourceFields from './ScalingSourceFields';
 import { saveChampionAbility, type Ability, type AbilityKey, type Champion } from '../../data/champions';
 import { useCanEdit } from '../../data/appRoleContext';
 import { cx } from '../../lib/cx';
@@ -59,8 +60,8 @@ const AbilityView = ({ ability, onEdit, canEdit }: { ability: Ability | null; on
           <span className="hab-modal__tag">Daño</span>
           <ul className="hab-modal__stats">
             {damage.type && <li><span>Tipo</span><span>{damage.type}</span></li>}
-            {damage.ap && <li><span>AP</span><span>{formatPercentList(damage.ap)}</span></li>}
-            {damage.ad && <li><span>AD</span><span>{formatPercentList(damage.ad)}</span></li>}
+            {damage.ap && <li><span>AP {damage.apSource === 'bonus' ? 'bonus' : 'total'}</span><span>{formatPercentList(damage.ap)}</span></li>}
+            {damage.ad && <li><span>AD {damage.adSource === 'bonus' ? 'bonus' : 'total'}</span><span>{formatPercentList(damage.ad)}</span></li>}
             {bonus !== undefined && <li><span>Objetivo único</span><span>×{bonus}</span></li>}
           </ul>
         </div>
@@ -160,6 +161,7 @@ const AbilityForm = ({
           <span>Escalado de AD (%)</span>
           <input value={draft.ad} placeholder="30, 35, 40, 45" onChange={e => onChange({ ad: e.target.value })} />
         </label>
+        <ScalingSourceFields draft={draft} disabled={saving} onChange={onChange} />
         <label className="hab-field">
           <span>Multiplicador a objetivo único</span>
           <input value={draft.damageBonus} placeholder="2" onChange={e => onChange({ damageBonus: e.target.value })} />

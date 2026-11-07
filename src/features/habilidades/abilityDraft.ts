@@ -1,4 +1,4 @@
-import type { Ability, AbilityDamage, AbilityEffect } from '../../data/champions';
+import type { Ability, AbilityDamage, AbilityEffect, DamageScalingSource } from '../../data/champions';
 
 export type EffectDraft = {
   name: string;
@@ -14,6 +14,8 @@ export type AbilityDraft = {
   damageType: string;
   ap: string;
   ad: string;
+  adSource: DamageScalingSource;
+  apSource: DamageScalingSource;
   damageBonus: string;
   effects: EffectDraft[];
 };
@@ -45,6 +47,8 @@ export function abilityToDraft(ability: Ability | null): AbilityDraft {
     damageType: ability?.damage?.type ?? '',
     ap: formatRatioList(ability?.damage?.ap),
     ad: formatRatioList(ability?.damage?.ad),
+    adSource: ability?.damage?.adSource ?? 'total',
+    apSource: ability?.damage?.apSource ?? 'total',
     damageBonus: bonus === undefined ? '' : String(bonus),
     effects: (ability?.effect ?? []).map(effect => ({
       name: effect.name,
@@ -112,6 +116,11 @@ export function draftToAbility(draft: AbilityDraft): Ability {
   const damageBonus = parseBonus(draft.damageBonus);
   if (ap) damage.ap = ap;
   if (ad) damage.ad = ad;
+  for (const key of ['adSource', 'apSource'] as const) {
+    if (draft[key] !== 'total' && draft[key] !== 'bonus') throw new Error('El origen del escalado debe ser Total o Bonus');
+    // Only persist a source for a defined scaling.
+    if (key === 'adSource' ? ad : ap) damage[key] = draft[key];
+  }
   if (damageBonus !== undefined) damage.damageBonus = damageBonus;
   if (Object.keys(damage).length) ability.damage = damage;
 

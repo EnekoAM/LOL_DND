@@ -3,11 +3,16 @@ import { ROLE_TABLES, findRoleTable } from './roles';
 
 export type AbilityKey = 'P' | 'Q' | 'W' | 'E' | 'R';
 
+export type DamageScalingSource = 'total' | 'bonus';
+
 export type AbilityDamage = {
   type?: string;
   /** Escalado de AP por nivel de habilidad (0.3 = 30%). */
   ap?: number[];
   ad?: number[];
+  /** Ausente = total, para conservar las habilidades existentes. */
+  adSource?: DamageScalingSource;
+  apSource?: DamageScalingSource;
   /** Multiplicador opcional que el DM puede activar (p. ej. objetivo único). */
   damageBonus?: number;
 };

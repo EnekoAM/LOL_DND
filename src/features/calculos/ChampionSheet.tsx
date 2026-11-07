@@ -25,7 +25,10 @@ import AbilityCard from './AbilityCard';
 import BuildPicker from './BuildPicker';
 import ItemTile from './ItemTile';
 import StatsTable from './StatsTable';
-import { playerTotalLine } from './playerTotals';
+import { championDamageContext, championAbilityRankCount } from './championDamage';
+import AbilityDamageModal from '../players/AbilityDamageModal';
+import { hasDamageScaling, rollAbilityDamage, type AbilityDamageRoll } from '../players/abilityDamage';
+import { createPortal } from 'react-dom';
 import { STAT_COLUMNS, formatStat, type StatKey } from './statLine';
 import './ChampionSheet.css';
 
@@ -60,6 +63,11 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
   const [tab, setTab] = useState<SheetTab>('habilidades');
   const [portraitFailed, setPortraitFailed] = useState(false);
   const [editSlot, setEditSlot] = useState<AbilityKey | null>(null);
+  const [damageRoll, setDamageRoll] = useState<{
+    ability: Ability;
+    result: AbilityDamageRoll | null;
+    error: string | null;
+  } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,20 +95,27 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
   useEffect(() => {
     setEditMedia(false);
     setEditLevel(false);
+    setDamageRoll(null);
+    setEditSlot(null);
   }, [champion.champion]);
 
-  const equipment = champion.equipamiento ?? [];
-  const level = typeof champion.level === 'number' && champion.level >= 1 ? champion.level : 1;
+  const { equipment, level, roleId, roleTable, tableLevel, stats } = championDamageContext(champion);
   const background = champion.background?.trim() || '';
   const isActive = champion.active === true;
-  const roleId = championRoleId(champion);
-  const roleTable = findRoleTable(roleId);
   const roleName = roleTable?.name ?? champion.role;
-  // La tabla de rol tiene menos niveles que la ficha (1-20): por encima se usa la última fila.
-  const tableLevel = roleTable ? Math.min(level, roleTable.levels.length) : level;
+  const total = stats;
 
-  // Mismo total que Desglose: base de la tabla de rol al nivel del campeón + equipo.
-  const total = playerTotalLine(roleId ? { roleId } : undefined, equipment, tableLevel);
+  const openAbility = (ability: Ability) => {
+    if (!hasDamageScaling(ability.damage)) {
+      onSelectAbility(ability);
+      return;
+    }
+    try {
+      setDamageRoll({ ability, result: rollAbilityDamage(ability.damage!, stats, 1), error: null });
+    } catch (caught) {
+      setDamageRoll({ ability, result: null, error: caught instanceof Error ? caught.message : 'No se pudo tirar el daño' });
+    }
+  };
 
   const persist = async (patch: Parameters<typeof saveChampionPatch>[1]) => {
     if (!canEdit || saving) return;
@@ -424,7 +439,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                     label={key}
                     name={ability?.name || 'Sin nombre'}
                     ability={ability ?? null}
-                    onSelect={onSelectAbility}
+                    onSelect={openAbility}
                   >
                     {ability?.learned && <div className="calc-ability-learned">Aprendida</div>}
                     <div className="calc-ability-actions">
@@ -433,7 +448,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                         className="calc-ability-edit"
                         onClick={() => setEditSlot(key)}
                       >
-                        Editar
+                        {canEdit ? 'Ver / Editar' : 'Ver detalles'}
                       </button>
                     </div>
                   </AbilityCard>
@@ -500,6 +515,20 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
           )}
         </div>
       </div>
+
+      {damageRoll && createPortal(
+        <AbilityDamageModal
+          ability={damageRoll.ability}
+          rank={1}
+          maxRank={championAbilityRankCount(damageRoll.ability)}
+          stats={stats}
+          initialResult={damageRoll.result}
+          initialError={damageRoll.error}
+          statsNote={`${champion.champion} · Nivel ${level} · ${roleName}. Total = base de rol al nivel del campeón + equipo; Bonus = solo equipo. Sin rangos guardados: se empieza en rango 1 y puedes elegirlo aquí.`}
+          onClose={() => setDamageRoll(null)}
+        />,
+        document.body,
+      )}
 
       {pickerOpen && (
         <BuildPicker

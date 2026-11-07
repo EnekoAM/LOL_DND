@@ -1,4 +1,4 @@
-﻿import { useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   MILESTONE_LEVELS,
   MILESTONE_RANKS,
@@ -21,6 +21,9 @@ import {
 } from '../../data/players';
 import { cx } from '../../lib/cx';
 import AbilityAssignModal from '../habilidades/AbilityAssignModal';
+import { playerTotalLine, playerBonusLine } from '../calculos/playerTotals';
+import AbilityDamageModal from './AbilityDamageModal';
+import { hasDamageScaling, rollAbilityDamage, type AbilityDamageRoll } from './abilityDamage';
 import '../habilidades/Habilidades.css';
 import './SheetAbilities.css';
 
@@ -76,7 +79,15 @@ const SpellCard = ({ tone, seal, name, type, champion, image, empty, note, onOpe
       onOpen && 'spell--clickable',
     )}
     onClick={onOpen}
-    title={onOpen ? 'Ver cálculo' : undefined}
+    title={onOpen ? 'Abrir habilidad / tirar daño' : undefined}
+    role={onOpen ? 'button' : undefined}
+    tabIndex={onOpen ? 0 : undefined}
+    onKeyDown={event => {
+      if (event.target === event.currentTarget && onOpen && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        onOpen();
+      }
+    }}
   >
     <span className="spell__corner spell__corner--tl" aria-hidden />
     <span className="spell__corner spell__corner--br" aria-hidden />
@@ -108,6 +119,28 @@ const nextUltLevel = (level: number) => ULT_LEVELS.find(threshold => threshold >
 
 const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbilityChange, onRankChange }: Props) => {
   const [picking, setPicking] = useState<PlayerAbilitySlot | null>(null);
+  const [damageRoll, setDamageRoll] = useState<{
+    ability: Ability;
+    rank: number;
+    result: AbilityDamageRoll | null;
+    error: string | null;
+  } | null>(null);
+  const stats = {
+    ...playerTotalLine(player.sheet, player.equipamiento, level),
+    bonus: playerBonusLine(player.sheet, player.equipamiento),
+  };
+  const openAbility = (ability: Ability, rank: number) => {
+    if (!hasDamageScaling(ability.damage)) {
+      onSelectAbility(ability, rank);
+      return;
+    }
+    try {
+      const result = rollAbilityDamage(ability.damage!, stats, rank);
+      setDamageRoll({ ability, rank, result, error: null });
+    } catch (caught) {
+      setDamageRoll({ ability, rank, result: null, error: caught instanceof Error ? caught.message : 'No se pudo tirar el daño' });
+    }
+  };
   const basicAttack = basicAttackEntries(player.basicAttack);
   const pickingEntry = PLAYER_ABILITY_SLOTS.find(entry => entry.slot === picking) ?? null;
   // Se recalcula en el cliente por si el nivel del grupo cambió tras cargar los players.
@@ -226,7 +259,7 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                 image={ref?.image}
                 empty={empty}
                 note={note}
-                onOpen={ability?.damage ? () => onSelectAbility(ability, rank) : undefined}
+                onOpen={ability?.damage ? () => openAbility(ability, rank) : undefined}
                 ranks={rankControls}
                 action={(
                   <button
@@ -245,6 +278,17 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
           })}
         </div>
       </section>
+
+      {damageRoll && (
+        <AbilityDamageModal
+          ability={damageRoll.ability}
+          rank={damageRoll.rank}
+          stats={stats}
+          initialResult={damageRoll.result}
+          initialError={damageRoll.error}
+          onClose={() => setDamageRoll(null)}
+        />
+      )}
 
       {pickingEntry && (
         <AbilityAssignModal

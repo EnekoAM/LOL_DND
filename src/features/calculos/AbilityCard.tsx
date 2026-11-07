@@ -23,9 +23,20 @@ const AbilityCard = ({ label, name, ability, onSelect, hideScaling = false, chil
   };
 
   return (
-    <div className={cx('calc-card calc-card--ability', !damage && 'calc-card--ability--inactive')} onClick={handleClick}>
+        <div className={cx('calc-card calc-card--ability', !damage && 'calc-card--ability--inactive')}
+      onClick={handleClick}
+      role={damage ? 'button' : undefined}
+      tabIndex={damage ? 0 : undefined}
+      aria-label={damage ? `Abrir habilidad ${name}` : undefined}
+      onKeyDown={event => {
+        if (damage && event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          handleClick();
+        }
+      }}>
       <div className="calc-card__key">[{label}]</div>
       <div className="calc-card__name">{name}</div>
+      {!hideScaling && damage?.ad && <div className="calc-card__damage">AD: {formatPercentList(damage.ad)} ({damage.adSource ?? 'total'})</div>}
       {!hideScaling && damage?.ap && <div className="calc-card__damage">AP: {formatPercentList(damage.ap)}</div>}
       {!ability && <div className="calc-card__undefined">No implementada</div>}
       {ability && !damage && <div className="calc-card__no-calc">Sin cálculo</div>}
