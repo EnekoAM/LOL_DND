@@ -1647,3 +1647,28 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* Reordering controls are outside the item info button and remove button. */
+.sheet-order-item { display: flex; flex-direction: column; min-width: 0; gap: 4px; border-radius: 4px; }
+.sheet-order-item > .calc-item-card { flex: 1; height: auto; }
+.sheet-order-item--over { outline: 2px dashed var(--gold); outline-offset: 2px; }
+.sheet-order-controls { display: flex; gap: 3px; }
+.sheet-order-controls button {
+  flex: 1; min-width: 0; min-height: 30px; padding: 3px;
+  border: 1px solid rgba(201,168,76,0.3); border-radius: 3px;
+  background: var(--parchment-dark); color: var(--gold); cursor: pointer;
+}
+.sheet-order-controls button[data-reorder-handle] { cursor: grab; }
+.sheet-order-controls button[data-reorder-handle]:active { cursor: grabbing; }
+.sheet-order-controls button:disabled { opacity: 0.35; cursor: default; }
+.sheet-order-controls button:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+/* Same dark, striped treatment and gold padlock as the level 19/20 gate. */
+.sheet-equipment-lock {
+  min-height: 130px; justify-content: center; text-align: center; gap: 10px;
+  background: linear-gradient(180deg, rgba(5,3,1,0.7), rgba(5,3,1,0.95)),
+    repeating-linear-gradient(135deg, rgba(201,168,76,0.07) 0 8px, transparent 8px 16px);
+  border-color: rgba(201,168,76,0.28);
+}
+.sheet-equipment-lock .calc-sheet__lock-title { font-size: 9px; letter-spacing: 1px; }
+.sheet-equipment-legacy { color: var(--gold); font-size: 11px; text-align: center; }
+.sheet-equipment-warning { color: var(--gold); font-size: 12px; margin-bottom: 0; }

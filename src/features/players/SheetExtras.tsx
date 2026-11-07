@@ -189,7 +189,7 @@ export const QuestList = ({ quests, canEdit, showHidden = canEdit, onChange }: Q
         ),
       )}
       {canEdit && quests.length === 0 && !adding && (
-        <li className="sheet-hint">Las quests que añadas tendrán Editar y Quitar. Si el nombre incluye «top» (p. ej. «Quest de top»), al completarla se desbloquean los niveles 19 y 20.</li>
+        <li className="sheet-hint">Las quests que añadas tendrán Editar y Quitar. Si el nombre incluye «top» (p. ej. «Quest de top»), al completarla se desbloquean los niveles 19 y 20. Una quest con «bot» en el nombre (p. ej. «Misión de bot») desbloquea el 7º hueco de equipo al marcarla completada.</li>
       )}
       {canEdit && (
         <li className="sheet-add">

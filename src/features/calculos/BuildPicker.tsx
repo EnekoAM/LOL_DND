@@ -15,9 +15,13 @@ type Props = {
   takenLabel?: string;
   onAdd: (itemName: string) => void;
   onClose: () => void;
+  /** Optional slot actions; absent in the normal add picker. */
+  onRemove?: () => void;
+  description?: string;
+  allowSelection?: boolean;
 };
 
-const BuildPicker = ({ title, busy, onlyAvailable = false, taken, takenLabel = 'Ya añadido', onAdd, onClose }: Props) => {
+const BuildPicker = ({ title, busy, onlyAvailable = false, taken, takenLabel = 'Ya añadido', onAdd, onClose, onRemove, description, allowSelection = true }: Props) => {
   const [search, setSearch] = useState('');
   const takenKeys = useMemo(() => new Set((taken ?? []).map(normalizeName)), [taken]);
   const results = ITEMS
@@ -29,9 +33,15 @@ const BuildPicker = ({ title, busy, onlyAvailable = false, taken, takenLabel = '
     <Modal onClose={onClose} backdropClassName="calc-modal-backdrop" className="calc-modal calc-modal--picker">
       <div className="calc-modal__cap"><div className="calc-modal__rod" /></div>
 
-      <div className="calc-modal__body">
+      <div className="calc-modal__body" role="dialog" aria-modal="true" aria-label={title}>
         <div className="calc-modal__title">{title}</div>
-        <span className="search-clear-wrap">
+        {description && <p className="hab-modal__hint">{description}</p>}
+        {onRemove && (
+          <button type="button" className="calc-modal__close" disabled={busy} onClick={onRemove}>
+            Quitar ítem del equipamiento
+          </button>
+        )}
+        {allowSelection && <span className="search-clear-wrap">
           <input
             className="calc-picker-search"
             type="text"
@@ -43,9 +53,9 @@ const BuildPicker = ({ title, busy, onlyAvailable = false, taken, takenLabel = '
           {search && (
             <button type="button" className="search-clear" aria-label="Borrar búsqueda" title="Borrar" onClick={() => setSearch('')}>×</button>
           )}
-        </span>
+        </span>}
 
-        <div className="calc-picker-grid">
+        {allowSelection && <div className="calc-picker-grid">
           {results.length === 0 && (
             <div className="calc-picker-empty">
               {search.trim() || !onlyAvailable ? 'Ningún ítem coincide' : 'No hay ítems disponibles'}
@@ -70,7 +80,7 @@ const BuildPicker = ({ title, busy, onlyAvailable = false, taken, takenLabel = '
               </button>
             );
           })}
-        </div>
+        </div>}
 
         <button type="button" className="calc-modal__close" onClick={onClose}>
           Cerrar

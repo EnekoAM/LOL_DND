@@ -12,6 +12,7 @@ type Props = {
   item: Item;
   onClose: () => void;
   onSaved?: (item: Item) => void;
+  readOnly?: boolean;
 };
 
 const EFFECTS = [
@@ -174,8 +175,9 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onSave, 
   );
 };
 
-const ItemDetailModal = ({ item, onClose, onSaved }: Props) => {
-  const canEdit = useCanEdit();
+const ItemDetailModal = ({ item, onClose, onSaved, readOnly = false }: Props) => {
+  const hasEditAccess = useCanEdit();
+  const canEdit = hasEditAccess && !readOnly;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<ItemDraft>(() => itemToDraft(item));
   const [saving, setSaving] = useState(false);
@@ -231,7 +233,7 @@ const ItemDetailModal = ({ item, onClose, onSaved }: Props) => {
         <div className="modal-scroll__rod" />
       </div>
 
-      <div className="modal-scroll__body">
+      <div className="modal-scroll__body" role="dialog" aria-modal="true" aria-label={`Información de ${item.nombre}`}>
         {editing ? (
           <ItemForm
             item={item}
@@ -248,6 +250,11 @@ const ItemDetailModal = ({ item, onClose, onSaved }: Props) => {
           />
         ) : (
           <ItemView item={item} onEdit={startEditing} canEdit={canEdit} />
+        )}
+        {!editing && (
+          <button type="button" className="item-edit__btn item-edit__btn--ghost" onClick={requestClose} autoFocus>
+            Cerrar
+          </button>
         )}
       </div>
 
