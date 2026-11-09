@@ -1,4 +1,4 @@
-import type { StatLine } from '../features/calculos/statLine';
+import { emptyStatLine, type StatLine } from '../features/calculos/statLine';
 
 /** Tabla de rol × nivel guardada en la colección roles (Mongo). */
 export type RoleTable = {
@@ -16,6 +16,8 @@ export let MAX_ROLE_LEVEL = 0;
 let rolesById = new Map<string, RoleTable>();
 
 export function hydrateRoles(roles: RoleTable[]): void {
+  // Las filas guardadas antes de añadir una stat nueva no traen esa clave: valen 0.
+  roles = roles.map(role => ({ ...role, levels: role.levels.map(level => ({ ...emptyStatLine(), ...level })) }));
   ROLE_TABLES = roles;
   MAX_ROLE_LEVEL = roles.length ? Math.min(...roles.map(role => role.levels.length)) : 0;
   rolesById = new Map(roles.map(role => [role.id, role]));

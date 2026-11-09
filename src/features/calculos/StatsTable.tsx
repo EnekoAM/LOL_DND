@@ -14,7 +14,9 @@ import { ROLE_TABLES, findRoleTable } from '../../data/roles';
 import { playerTotalLine } from './playerTotals';
 import {
   STAT_COLUMNS,
+  formatDefenseStat,
   formatStat,
+  isDefenseKey,
   isZeroStat,
   itemStatLine,
   type StatLine,
@@ -111,13 +113,23 @@ const Score = ({ label, score }: { label: string; score: AbilityScore }) => (
   </div>
 );
 
-const StatCells = ({ line }: { line: StatLine | null }) => (
+const StatCells = ({ line, roundDefenses = false }: { line: StatLine | null; roundDefenses?: boolean }) => (
   <>
     {STAT_COLUMNS.map(column => {
       const value: StatValue | null = line ? line[column.key] : null;
+      if (value === null) {
+        return <td key={column.key}>—</td>;
+      }
+      const defense = roundDefenses && isDefenseKey(column.key) ? formatDefenseStat(value) : null;
+      const shown = defense ? defense.text : formatStat(value);
+      const zeroValue = defense ? Number(defense.text.replace(',', '.')) : value;
       return (
-        <td key={column.key} className={cx(value !== null && isZeroStat(value) && 'calc-sheet__zero')}>
-          {value === null ? '—' : formatStat(value)}
+        <td
+          key={column.key}
+          className={cx(isZeroStat(typeof zeroValue === 'number' ? zeroValue : value) && 'calc-sheet__zero')}
+          title={defense?.exactTitle}
+        >
+          {shown}
         </td>
       );
     })}
@@ -170,7 +182,7 @@ const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: bo
                   </button>
                 ) : row.label}
               </th>
-              <StatCells line={row.line} />
+              <StatCells line={row.line} roundDefenses={row.tone === 'total'} />
               {effects && (
                 <>
                   <EffectCell text={row.passive} />

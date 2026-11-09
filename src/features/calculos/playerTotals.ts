@@ -5,6 +5,8 @@ import { sheetBase, sheetExtra } from './playerSheets';
 import {
   STAT_COLUMNS,
   emptyStatLine,
+  roundDefense,
+  isDefenseKey,
   itemStatLine,
   sumStatLines,
   type StatKey,
@@ -24,12 +26,14 @@ export const PLAYER_STATS_KEYS = [
   'PROB. CRÍT',
   'DAÑO CRÍT',
   'SPE',
-  'ATK_SPE',
-  'ATK_SPE_%',
-  'AB_SPE',
-  'AB_SPE_%',
+  'Attacks',
+  'ATK spe',
+  'Abilities',
+  'Ab haste',
   'LETALIDAD',
   'PEN. MÁG.',
+  'PEN. ARM. %',
+  'PEN. MÁG. %',
 ] as const;
 
 export type PlayerStatsKey = (typeof PLAYER_STATS_KEYS)[number];
@@ -46,12 +50,14 @@ const LINE_TO_STORED: Record<StatKey, Exclude<PlayerStatsKey, 'nivel'>> = {
   critChance: 'PROB. CRÍT',
   critDamage: 'DAÑO CRÍT',
   spe: 'SPE',
-  atkSpe: 'ATK_SPE',
-  atkSpePct: 'ATK_SPE_%',
-  abSpe: 'AB_SPE',
-  abSpePct: 'AB_SPE_%',
+  atkSpe: 'Attacks',
+  atkSpePct: 'ATK spe',
+  abSpe: 'Abilities',
+  abSpePct: 'Ab haste',
   lethality: 'LETALIDAD',
   magicPen: 'PEN. MÁG.',
+  armorPenPct: 'PEN. ARM. %',
+  magicPenPct: 'PEN. MÁG. %',
 };
 
 /** Misma suma que la fila Total de Cálculos (base de rol + equipo + extra). */
@@ -109,7 +115,9 @@ export function playerStatsDocument(sheet: PlayerSheet | undefined, equipment: s
   const total = playerTotalLine(sheet, equipment);
   const stats = { nivel: PARTY.level } as PlayerStats;
   for (const column of STAT_COLUMNS) {
-    stats[LINE_TO_STORED[column.key]] = total[column.key];
+    stats[LINE_TO_STORED[column.key]] = isDefenseKey(column.key)
+      ? roundDefense(total[column.key])
+      : total[column.key];
   }
   return stats;
 }

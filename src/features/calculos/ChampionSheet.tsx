@@ -29,7 +29,7 @@ import { championDamageContext, championAbilityRankCount } from './championDamag
 import AbilityDamageModal from '../players/AbilityDamageModal';
 import { hasDamageScaling, rollAbilityDamage, type AbilityDamageRoll } from '../players/abilityDamage';
 import { createPortal } from 'react-dom';
-import { STAT_COLUMNS, formatStat, type StatKey } from './statLine';
+import { STAT_COLUMNS, formatDefenseStat, formatStat, isDefenseKey, type StatKey } from './statLine';
 import './ChampionSheet.css';
 
 type Props = {
@@ -383,12 +383,19 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
               </div>
             </div>
             <div className="sheet-defense champ-sheet__defense">
-              {DEFENSE_KEYS.map(({ key, label }) => (
-                <div key={key} className="sheet-defense__card" title={STAT_TITLES[key]}>
-                  <div className="sheet-defense__label">{label}</div>
-                  <div className="sheet-defense__value">{formatStat(total[key])}</div>
-                </div>
-              ))}
+              {DEFENSE_KEYS.map(({ key, label }) => {
+                const defense = isDefenseKey(key) ? formatDefenseStat(total[key]) : null;
+                return (
+                  <div
+                    key={key}
+                    className="sheet-defense__card"
+                    title={defense?.exactTitle ?? STAT_TITLES[key]}
+                  >
+                    <div className="sheet-defense__label">{label}</div>
+                    <div className="sheet-defense__value">{defense ? defense.text : formatStat(total[key])}</div>
+                  </div>
+                );
+              })}
             </div>
             {!roleTable && (
               <p className="champ-sheet__stats-note">Sin tabla de rol: solo suma el equipo.</p>

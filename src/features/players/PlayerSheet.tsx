@@ -24,7 +24,9 @@ import ItemTile, { type ItemTileState } from '../calculos/ItemTile';
 import { hpSyncPatch, playerMaxHp, playerTotalLine } from '../calculos/playerTotals';
 import {
   STAT_COLUMNS,
+  formatDefenseStat,
   formatStat,
+  isDefenseKey,
   type StatKey,
 } from '../calculos/statLine';
 import StatsTable from '../calculos/StatsTable';
@@ -529,12 +531,19 @@ const PlayerSheet = ({
               <section className="sheet-panel sheet-general__defense">
                 <div className="sheet-panel__title">Defensa y movimiento</div>
                 <div className="sheet-defense">
-                  {DEFENSE_KEYS.map(({ key, label }) => (
-                    <div key={key} className="sheet-defense__card" title={columnsByKey[key].title}>
-                      <div className="sheet-defense__label">{label}</div>
-                      <div className="sheet-defense__value">{formatStat(total[key])}</div>
-                    </div>
-                  ))}
+                  {DEFENSE_KEYS.map(({ key, label }) => {
+                    const defense = isDefenseKey(key) ? formatDefenseStat(total[key]) : null;
+                    return (
+                      <div
+                        key={key}
+                        className="sheet-defense__card"
+                        title={defense?.exactTitle ?? columnsByKey[key].title}
+                      >
+                        <div className="sheet-defense__label">{label}</div>
+                        <div className="sheet-defense__value">{defense ? defense.text : formatStat(total[key])}</div>
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
 

@@ -27,10 +27,12 @@ const STAT_LABELS: Record<string, string> = {
   CRIT_CHANCE: 'Prob. crítico',
   CRIT_DAMAGE: 'Daño crítico',
   SPE: 'Velocidad',
-  ATK_SPE_PCT: 'Vel. ataque',
-  AB_SPE_PCT: 'Vel. habilidad',
+  'ATK spe': 'Vel. ataque',
+  'Ab haste': 'Vel. habilidad',
   LETHALITY: 'Letalidad',
   MAGIC_PEN: 'Pen. mágica',
+  'Armor pen %': 'Pen. armadura %',
+  'Magic pen %': 'Pen. mágica %',
 };
 
 type CartLine = {
