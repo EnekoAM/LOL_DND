@@ -11,8 +11,7 @@
   display: flex;
   flex-direction: column;
   padding: 14px 0 18px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   background:
     radial-gradient(ellipse 120% 40% at 0% 0%, rgba(201,168,76,0.07), transparent 60%),
     linear-gradient(180deg, #160f07 0%, #0d0904 100%);
@@ -30,6 +29,7 @@
   height: 28px;
   padding: 0 22px;
   white-space: nowrap;
+  flex: none;
 }
 
 .side-nav__crest-mark {
@@ -53,16 +53,75 @@
   height: 1px;
   margin: 12px 14px 10px;
   background: linear-gradient(90deg, transparent, rgba(201,168,76,0.55), transparent);
+  flex: none;
 }
 
-.side-nav__list {
+.side-nav__scroll-wrap {
+  position: relative;
   flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-nav__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  scrollbar-gutter: auto;
+  -ms-overflow-style: none;
+}
+
+.side-nav__scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+.side-nav__list {
   list-style: none;
   margin: 0;
   padding: 0 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.side-nav__scroll-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  color: rgba(201,168,76,0.85);
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, color 0.15s ease;
+}
+
+.side-nav__scroll-hint--up {
+  top: 0;
+  background: linear-gradient(180deg, rgba(13,9,4,0.96) 35%, rgba(13,9,4,0));
+}
+
+.side-nav__scroll-hint--down {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(13,9,4,0.96) 35%, rgba(13,9,4,0));
+}
+
+.side-nav__scroll-hint--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.side-nav__scroll-hint:hover {
+  color: var(--gold-bright);
 }
 
 .side-nav__link {
@@ -138,7 +197,7 @@
 
 .side-nav__backdrop { display: none; }
 
-/* â”€â”€ MOVIL: cajon â”€â”€ */
+/* --- MOVIL: cajon --- */
 @media (max-width: 768px) {
   .side-nav,
   .side-nav--expanded {
@@ -168,8 +227,10 @@
     pointer-events: auto;
   }
 }
+
 .side-nav__footer {
-  margin-top: auto;
+  flex: none;
+  margin-top: 0;
   padding-top: 4px;
 }
 
