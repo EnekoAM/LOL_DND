@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Ability } from '../../data/champions';
 import { useMyPlayerName } from '../../data/appRoleContext';
-import { OPEN_PLAYER_EVENT, OPEN_PLAYER_KEY, PLAYERS, PLAYERS_HYDRATED_EVENT, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot } from '../../data/players';
+import { OPEN_PLAYER_EVENT, OPEN_PLAYER_KEY, PLAYERS, PLAYERS_HYDRATED_EVENT, playerPortraitUrl, savePlayerPatch, type Player, type PlayerAbilitySlot, type PlayerMechanic } from '../../data/players';
 import type { RankedSlot } from '../../data/abilityRanks';
 import { useLiveRevision } from '../../data/live';
 import { normalizeName } from '../../lib/text';
@@ -79,6 +79,7 @@ const Players = () => {
   const [combatError, setCombatError] = useState<string | null>(null);
   const [sheetError, setSheetError] = useState<string | null>(null);
   const [abilityError, setAbilityError] = useState<string | null>(null);
+  const [mechanicError, setMechanicError] = useState<string | null>(null);
 
   const updateDamageInputs = (patch: Partial<DamageInputs>) =>
     setDamageInputs(prev => ({ ...prev, ...patch }));
@@ -89,6 +90,7 @@ const Players = () => {
     setCombatError(null);
     setSheetError(null);
     setAbilityError(null);
+    setMechanicError(null);
   };
 
   const leavePlayer = () => {
@@ -105,7 +107,7 @@ const Players = () => {
   };
 
   const updatePlayerList = (
-    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'shortRestsUsed' | 'sheet' | 'unlocks' | 'quests' | 'aumentos' | 'background'>>,
+    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'shortRestsUsed' | 'sheet' | 'unlocks' | 'quests' | 'aumentos' | 'background' | 'mechanic'>>,
   ): Promise<void> => {
     if (!player) return Promise.resolve();
     const name = player.name;
@@ -139,7 +141,10 @@ const Players = () => {
         const lastSaved = findSaved(name);
         if (lastSaved) setPlayer(current => (sameName(current, name) ? lastSaved : current));
         const message = error instanceof Error ? error.message : 'No se pudo guardar';
-        if ('unlocks' in patch || 'quests' in patch || 'aumentos' in patch || 'background' in patch) { /* cada panel muestra su propio error */ }
+        if ('unlocks' in patch || 'quests' in patch || 'aumentos' in patch || 'background' in patch || 'mechanic' in patch) {
+          if ('mechanic' in patch) setMechanicError(message);
+          /* cada panel muestra su propio error */
+        }
         else if ('equipamiento' in patch) setEquipError(message);
         else if (isSheet) setSheetError(message);
         else if (isCombat) setCombatError(message);
@@ -225,6 +230,11 @@ const Players = () => {
           onQuestsChange={quests => updatePlayerList({ quests })}
           onAumentosChange={aumentos => updatePlayerList({ aumentos })}
           onBackgroundChange={background => updatePlayerList({ background })}
+          onMechanicChange={(mechanic: PlayerMechanic) => {
+            setMechanicError(null);
+            return updatePlayerList({ mechanic });
+          }}
+          mechanicError={mechanicError}
           onAbilityChange={changeAbility}
           onRankChange={changeRank}
         />

@@ -34,6 +34,8 @@ import { itemAvailability } from '../items/stock';
 import { cx } from '../../lib/cx';
 import HpPanel, { type CombatPatch } from './HpPanel';
 import InspirationToggle from './InspirationToggle';
+import MechanicPanel from './MechanicPanel';
+import type { PlayerMechanic } from './mechanic';
 import ManaPanel from './ManaPanel';
 import RestPanel from './RestPanel';
 import PlayerSwitcher from './PlayerSwitcher';
@@ -72,6 +74,9 @@ type Props = {
   onAumentosChange: (aumentos: PlayerAumento[]) => Promise<void>;
   /** Fondo propio de esta ficha; null lo quita. */
   onBackgroundChange: (background: string | null) => Promise<void>;
+  /** Mecánica (Ruina/Humanidad/Fama); solo el GM edita valores. */
+  onMechanicChange: (mechanic: PlayerMechanic) => Promise<void>;
+  mechanicError: string | null;
 };
 
 type SheetTab = 'general' | 'habilidades' | 'equipo' | 'desglose' | 'quest' | 'aumentos';
@@ -236,6 +241,8 @@ const PlayerSheet = ({
   onQuestsChange,
   onAumentosChange,
   onBackgroundChange,
+  onMechanicChange,
+  mechanicError,
 }: Props) => {
   const { role, canEdit, playerName: myName } = useAppRole();
   const isMine = !!myName && normalizeName(myName) === normalizeName(player.name);
@@ -465,6 +472,14 @@ const PlayerSheet = ({
               onChange={onCombatChange}
             />
           </div>
+          <MechanicPanel
+            playerName={player.name}
+            mechanic={player.mechanic}
+            canEdit={isAdmin}
+            saving={saving}
+            error={mechanicError}
+            onChange={onMechanicChange}
+          />
           {isAdmin && (
             <div className="sheet-panel sheet-side__admin">
               <div className="sheet-panel__title">Admin · Desbloqueos</div>

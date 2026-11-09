@@ -2,6 +2,8 @@ import { normalizeName } from '../lib/text';
 import type { AbilityRanks, RankedSlot } from './abilityRanks';
 import type { AbilityKind } from './champions';
 import type { DndSkillProficiencies } from './dndSkills';
+import type { PlayerMechanic } from '../features/players/mechanic';
+export type { PlayerMechanic } from '../features/players/mechanic';
 
 export const EQUIPMENT_SLOTS = 7;
 
@@ -149,6 +151,8 @@ export type Player = {
   aumentos?: PlayerAumento[];
   /** URL de la imagen de fondo de su ficha (solo la de este player). */
   background?: string | null;
+  /** Mecánica propia (Ruina / Humanidad / Fama). Opcional. */
+  mechanic?: PlayerMechanic | null;
 };
 
 /** URL pública del retrato. Vacío si no hay imagen. */
@@ -203,6 +207,8 @@ export type PlayerListPatch = Partial<
   aumentos?: PlayerAumento[];
   /** Fondo de la ficha; null lo quita. */
   background?: string | null;
+  /** Mecánica de personaje; null la quita. */
+  mechanic?: PlayerMechanic | null;
 };
 
 /** Sustituye la build o el equipamiento y deja la copia en memoria alineada con lo guardado. */
