@@ -178,11 +178,22 @@
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(201, 168, 76, 0.3);
   border-radius: 4px;
+  color-scheme: dark;
 }
 
 .champ-sheet__bg-input:focus {
   outline: none;
   border-color: var(--gold);
+}
+
+.champ-sheet__bg-input option {
+  background-color: var(--parchment);
+  color: var(--ink);
+}
+
+.champ-sheet__bg-input option:checked {
+  background-color: #2a2010;
+  color: var(--gold-bright);
 }
 
 .champ-sheet__bg-actions {
@@ -315,7 +326,8 @@
     margin-inline: auto;
   }
 
-  .champ-sheet .calc-grid {
+  .champ-sheet .calc-grid,
+  .champ-sheet .spell-grid {
     margin-bottom: 0;
   }
 }

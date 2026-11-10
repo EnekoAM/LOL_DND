@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import Modal from '../../components/Modal';
 import ScalingSourceFields from './ScalingSourceFields';
 import { saveChampionAbility, type Ability, type AbilityKey, type Champion } from '../../data/champions';
+import { RESOURCE_IDS, RESOURCE_LABELS, resolveAbilityResource, type ResourceId } from '../../data/resources';
+import ResourceChip from '../../components/ResourceChip';
 import { useCanEdit } from '../../data/appRoleContext';
 import { cx } from '../../lib/cx';
 import { formatPercentList } from '../../lib/format';
@@ -25,10 +27,12 @@ type Props = {
 
 const listText = (values: number[] | undefined): string => (values ?? []).join(' / ');
 
-const AbilityView = ({ ability, onEdit, canEdit }: { ability: Ability | null; onEdit: () => void; canEdit: boolean }) => {
+const AbilityView = ({ ability, championResource, onEdit, canEdit }: { ability: Ability | null; championResource?: ResourceId; onEdit: () => void; canEdit: boolean }) => {
   const damage = ability?.damage;
   const bonus = damageBonusOf(damage);
   const effects = ability?.effect ?? [];
+  const resolved = resolveAbilityResource(ability ?? undefined, championResource ? { resource: championResource } : undefined);
+  const resourceChip = resolved ? <ResourceChip resource={resolved.id} inherited={resolved.inherited} /> : null;
 
   if (!ability) {
     return (
@@ -48,10 +52,10 @@ const AbilityView = ({ ability, onEdit, canEdit }: { ability: Ability | null; on
       <h2 className="hab-modal__title">{ability.name || 'Sin nombre'}</h2>
       <p className="hab-modal__desc">{ability?.description || 'Sin descripción'}</p>
 
-      {ability?.cost && (
+      {(ability?.cost || resourceChip) && (
         <div className="hab-modal__block">
-          <span className="hab-modal__tag">Coste</span>
-          <p>{ability.cost}</p>
+          <span className="hab-modal__tag">{ability?.cost ? 'Coste' : 'Recurso'}</span>
+          <p className="hab-modal__cost">{ability?.cost}{resourceChip}</p>
         </div>
       )}
       {ability?.hasStacks && (
@@ -59,6 +63,15 @@ const AbilityView = ({ ability, onEdit, canEdit }: { ability: Ability | null; on
       )}
       {typeof ability?.cooldown === 'number' && (
         <p className="hab-modal__meta"><strong>Cooldown:</strong> {ability.cooldown} turno{ability.cooldown === 1 ? '' : 's'}</p>
+      )}
+      {typeof ability?.effectDuration === 'number' && (
+        <p className="hab-modal__meta"><strong>Efecto:</strong> {ability.effectDuration} turno{ability.effectDuration === 1 ? '' : 's'}</p>
+      )}
+      {ability?.effectTarget === 'enemy' && (
+        <p className="hab-modal__meta"><strong>Objetivo:</strong> enemigo</p>
+      )}
+      {ability?.effectName && (
+        <p className="hab-modal__meta"><strong>Nombre del efecto:</strong> {ability.effectName}</p>
       )}
 
       {damage && (
@@ -98,6 +111,7 @@ const AbilityView = ({ ability, onEdit, canEdit }: { ability: Ability | null; on
 type FormProps = {
   draft: AbilityDraft;
   originalName: string;
+  championResource?: ResourceId;
   saving: boolean;
   error: string | null;
   onChange: (patch: Partial<AbilityDraft>) => void;
@@ -111,6 +125,7 @@ type FormProps = {
 const AbilityForm = ({
   draft,
   originalName,
+  championResource,
   saving,
   error,
   onChange,
@@ -153,6 +168,16 @@ const AbilityForm = ({
         <input value={draft.cost} onChange={e => onChange({ cost: e.target.value })} />
       </label>
 
+      <label className="hab-field">
+        <span>Recurso</span>
+        <select value={draft.resource} onChange={e => onChange({ resource: e.target.value })}>
+          <option value="">{championResource ? `Del campeón (${RESOURCE_LABELS[championResource]})` : 'Del campeón'}</option>
+          {RESOURCE_IDS.map(id => (
+            <option key={id} value={id}>{RESOURCE_LABELS[id]}</option>
+          ))}
+        </select>
+      </label>
+
       <button
         type="button"
         className={cx('hab-learned', draft.hasStacks && 'hab-learned--on')}
@@ -173,6 +198,24 @@ const AbilityForm = ({
       <label className="hab-field">
         <span>Cooldown (turnos)</span>
         <input value={draft.cooldown} placeholder="Sin cooldown" onChange={e => onChange({ cooldown: e.target.value })} />
+      </label>
+
+      <label className="hab-field">
+        <span>Efecto (turnos)</span>
+        <input value={draft.effectDuration} placeholder="Sin duración" onChange={e => onChange({ effectDuration: e.target.value })} />
+      </label>
+
+      <label className="hab-field">
+        <span>Objetivo del efecto</span>
+        <select value={draft.effectTarget} onChange={e => onChange({ effectTarget: e.target.value === 'enemy' ? 'enemy' : 'self' })}>
+          <option value="self">Propio</option>
+          <option value="enemy">Enemigo</option>
+        </select>
+      </label>
+
+      <label className="hab-field">
+        <span>Nombre del efecto (opcional)</span>
+        <input value={draft.effectName} placeholder="El de la habilidad" onChange={e => onChange({ effectName: e.target.value })} />
       </label>
 
       <div className="hab-modal__block">
@@ -301,6 +344,7 @@ const AbilityModal = ({ champion, slot, onClose, onSaved }: Props) => {
           <AbilityForm
             draft={draft}
             originalName={ability?.name ?? ''}
+            championResource={champion.resource}
             saving={saving}
             error={error}
             onChange={patch => setDraft(current => ({ ...current, ...patch }))}
@@ -319,7 +363,7 @@ const AbilityModal = ({ champion, slot, onClose, onSaved }: Props) => {
             onCancel={cancelEditing}
           />
         ) : (
-          <AbilityView ability={ability} onEdit={startEditing} canEdit={canEdit} />
+          <AbilityView ability={ability} championResource={champion.resource} onEdit={startEditing} canEdit={canEdit} />
         )}
       </div>
       <div className="hab-modal__cap"><div className="hab-modal__rod" /></div>

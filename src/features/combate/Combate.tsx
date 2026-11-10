@@ -8,7 +8,11 @@ import {
   rollInitiative,
   saveCombat,
   sortByInitiative,
+  applySourcedEffect,
+  setEffectStacks,
   tickEffectsFor,
+  tickCombatTrackers,
+  type SourcedEffectInput,
   type CombatEffect,
   type CombatParticipant,
   type CombatState,
@@ -258,7 +262,7 @@ export default function Combate() {
   const startCombat = () => {
     const sorted = sortByInitiative(state.participants);
     if (sorted.length === 0) return;
-    const first = tickEffectsFor(sorted[0]);
+    const first = tickCombatTrackers(tickEffectsFor(sorted[0]));
     const participants = sorted.map((p, i) => (i === 0 ? first : p));
     tickPlayerTrackers(sorted[0]);
     void persist({ active: true, round: 1, turnIndex: 0, participants });
@@ -295,7 +299,7 @@ export default function Combate() {
     }
     const target = ordered[turnIndex];
     const targetId = target?.id;
-    const participants = state.participants.map(p => (p.id === targetId ? tickEffectsFor(p) : p));
+    const participants = state.participants.map(p => (p.id === targetId ? tickCombatTrackers(tickEffectsFor(p)) : p));
     const sorted = sortByInitiative(participants);
     const idx = sorted.findIndex(p => p.id === targetId);
     if (target) tickPlayerTrackers(target);
@@ -470,6 +474,11 @@ export default function Combate() {
           saving={saving}
           trackerRev={playersRev + trackerBump}
           onPlayerTrackersChange={patchPlayerTrackers}
+          onPlayerResourceChange={async (playerName, patch) => {
+            await savePlayerPatch(playerName, patch);
+            setTrackerBump(n => n + 1);
+          }}
+          onCombatPatch={patch => updateOne(selected.id, patch)}
           effectPick={effectPick[selected.id] ?? 'Aturdido'}
           effectDur={effectDur[selected.id] ?? '2'}
           effectValue={effectValue[selected.id] ?? ''}
@@ -486,6 +495,17 @@ export default function Combate() {
           onAddEffect={() => addEffect(selected.id)}
           onRemoveEffect={effectId => {
             updateOne(selected.id, { effects: selected.effects.filter(e => e.id !== effectId) });
+          }}
+          participants={state.participants}
+          onApplySourcedEffect={(targetId, input: SourcedEffectInput) => {
+            const target = state.participants.find(p => p.id === targetId);
+            if (!target) return;
+            const next = applySourcedEffect(target, input);
+            const participants = state.participants.map(p => (p.id === targetId ? next : p));
+            void persist(syncOrder(participants, current?.id));
+          }}
+          onEffectStacksChange={(effectId, stacks) => {
+            updateOne(selected.id, { effects: setEffectStacks(selected, effectId, stacks).effects });
           }}
         />
       )}

@@ -11,6 +11,8 @@ export type ItemDraft = {
   cooldown: string;
   /** Duración del efecto en turnos; vacío = sin duración. */
   effectDuration: string;
+  effectTarget: 'self' | 'enemy';
+  effectName: string;
   /** Texto tal cual lo escribe el usuario; se convierte al guardar. */
   stats: Record<string, string>;
 };
@@ -48,6 +50,8 @@ export function itemToDraft(item: Item): ItemDraft {
     maxStacks: typeof item.maxStacks === 'number' ? String(item.maxStacks) : '',
     cooldown: typeof item.cooldown === 'number' ? String(item.cooldown) : '',
     effectDuration: typeof item.effectDuration === 'number' ? String(item.effectDuration) : '',
+    effectTarget: item.effectTarget === 'enemy' ? 'enemy' : 'self',
+    effectName: item.effectName ?? '',
     stats,
   };
 }
@@ -104,6 +108,8 @@ export function draftToItemUpdate(draft: ItemDraft, item: Item): ItemUpdate {
     if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error('efecto tiene que ser un entero entre 1 y 999');
     effectDuration = n;
   }
+  const effectName = draft.effectName.trim();
+  if (effectName.length > 80) throw new Error('El nombre del efecto no puede superar 80 caracteres');
   return {
     rareza,
     efecto: {
@@ -116,5 +122,7 @@ export function draftToItemUpdate(draft: ItemDraft, item: Item): ItemUpdate {
     maxStacks: draft.hasStacks ? maxStacks : null,
     cooldown,
     effectDuration,
+    effectTarget: draft.effectTarget === 'enemy' ? 'enemy' : null,
+    effectName: effectName ? effectName : null,
   };
 }

@@ -11,10 +11,14 @@ type Props = {
   onRemove?: () => void;
   onChange?: () => void;
   onInspect?: () => void;
+  /** Añade este ítem al equipamiento (build deseada). */
+  onEquip?: () => void;
+  equipDisabled?: boolean;
+  equipTitle?: string;
   removeDisabled?: boolean;
 };
 
-const ItemTile = ({ name, item, state, onRemove, onChange, onInspect, removeDisabled }: Props) => (
+const ItemTile = ({ name, item, state, onRemove, onChange, onInspect, onEquip, equipDisabled, equipTitle, removeDisabled }: Props) => (
   <div className={cx('calc-item-card', state && `calc-item-card--${state}`)}>
     {item?.imagen
       ? <ThumbImg className="calc-item-card__img" src={item.imagen} thumbWidth={128} alt={name} />
@@ -58,6 +62,18 @@ const ItemTile = ({ name, item, state, onRemove, onChange, onInspect, removeDisa
         onClick={onRemove}
       >
         ×
+      </button>
+    )}
+    {onEquip && (
+      <button
+        type="button"
+        className="calc-item-card__equip"
+        aria-label={equipTitle ?? `Añadir ${name} al equipamiento`}
+        title={equipTitle ?? `Añadir ${name} al equipamiento`}
+        disabled={removeDisabled || equipDisabled}
+        onClick={onEquip}
+      >
+        Equipar
       </button>
     )}
   </div>

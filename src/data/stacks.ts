@@ -29,8 +29,9 @@ export function tickCooldowns(cooldowns: Record<string, number> | undefined): Re
   return next;
 }
 
-/** Alias: mismas claves item:<nombre>. */
+/** Alias: mismas claves item:<nombre> / ability:<nombre>. */
 export const itemActiveEffectKey = itemStackKey;
+export const abilityActiveEffectKey = abilityStackKey;
 export const readActiveEffect = readStack;
 
 /** Baja efectos activos en 1 (mín. 0). El merge del PATCH sobrescribe cada clave. */

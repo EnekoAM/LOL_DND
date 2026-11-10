@@ -1,5 +1,6 @@
 import { matchesSearch, normalizeName } from '../lib/text';
 import { ROLE_TABLES, findRoleTable } from './roles';
+import type { ResourceId } from './resources';
 
 export type AbilityKey = 'P' | 'Q' | 'W' | 'E' | 'R';
 
@@ -34,6 +35,14 @@ export type Ability = {
   maxStacks?: number;
   /** Cooldown en turnos propios. */
   cooldown?: number;
+  /** Duración del efecto en turnos. */
+  effectDuration?: number;
+  /** Destino del efecto al activar. Ausente = self. */
+  effectTarget?: 'self' | 'enemy';
+  /** Nombre del estado en combate si el objetivo es enemigo. Ausente = el de la habilidad. */
+  effectName?: string;
+  /** Recurso que gasta. Ausente = el del campeón. */
+  resource?: ResourceId;
 };
 
 export type Champion = {
@@ -50,8 +59,12 @@ export type Champion = {
   background?: string;
   /** Equipo de prueba en la ficha del campeón. */
   equipamiento?: string[];
+  /** Build deseada: lista de ítems de acceso rápido, como en la ficha del player. */
+  build?: string[];
   /** Visible para players cuando el filtro Activos está on. */
   active?: boolean;
+  /** Recurso del campeón (maná, energía, sin recurso…). */
+  resource?: ResourceId;
 };
 
 export type ChampionFieldsPatch = {
@@ -61,7 +74,10 @@ export type ChampionFieldsPatch = {
   image?: string;
   background?: string | null;
   equipamiento?: string[];
+  build?: string[];
   active?: boolean;
+  /** null quita el recurso. */
+  resource?: ResourceId | null;
 };
 
 export type ChampionFilter = {
@@ -84,6 +100,7 @@ export type AbilityRef = {
   role: string;
   slot: AbilityKey;
   ability: Ability;
+  championResource?: ResourceId;
 };
 
 const KIND_BY_SLOT: Record<AbilityKey, AbilityKind> = {
@@ -157,6 +174,7 @@ export function hydrateChampions(champions: Champion[]): void {
         role: champion.role,
         slot,
         ability,
+        championResource: champion.resource,
       };
       abilitiesByName.set(ability.name, ref);
       const folded = foldName(ability.name);
@@ -233,7 +251,7 @@ function replaceChampion(saved: Champion, championName: string): Champion {
   return saved;
 }
 
-/** Guarda nivel, fondo o equipo de la ficha del campeón. */
+/** Guarda nivel, fondo, equipo o build deseada de la ficha del campeón. */
 export async function saveChampionPatch(championName: string, patch: ChampionFieldsPatch): Promise<Champion> {
   let response: Response;
   try {

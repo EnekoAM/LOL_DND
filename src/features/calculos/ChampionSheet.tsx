@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ABILITY_KEYS,
   CHAMPIONS,
@@ -11,7 +11,9 @@ import {
 } from '../../data/champions';
 import { ROLE_TABLES, findRoleTable } from '../../data/roles';
 import { useCanEdit } from '../../data/appRoleContext';
-import { findItem } from '../../data/items';
+import { RESOURCE_IDS, RESOURCE_LABELS, isResourceId, resolveAbilityResource } from '../../data/resources';
+import ResourceChip from '../../components/ResourceChip';
+import { findItem, type Item } from '../../data/items';
 import { EQUIPMENT_SLOTS } from '../../data/players';
 import { cx } from '../../lib/cx';
 import { normalizeName } from '../../lib/text';
@@ -19,11 +21,17 @@ import AbilityModal from '../habilidades/AbilityModal';
 import RelationsPanel from '../relaciones/RelationsPanel';
 import PrivateNotesPanel from '../notas/PrivateNotesPanel';
 import BackgroundViewer from '../../components/BackgroundViewer';
+import ItemDetailModal from '../items/ItemDetailModal';
 import '../habilidades/Habilidades.css';
 import '../players/Players.css';
-import AbilityCard from './AbilityCard';
+import SpellCard, { SPELL_TYPE_LABEL, type SpellTone } from '../players/SpellCard';
+import ReorderableItem from '../players/ReorderableItem';
+import { moveItem, type ItemDragState } from '../players/itemOrder';
+
+type ChampAbilityTone = Exclude<SpellTone, 'auto'>;
+import '../players/SheetAbilities.css';
 import BuildPicker from './BuildPicker';
-import ItemTile from './ItemTile';
+import ItemTile, { type ItemTileState } from './ItemTile';
 import StatsTable from './StatsTable';
 import { championDamageContext, championAbilityRankCount } from './championDamage';
 import AbilityDamageModal from '../players/AbilityDamageModal';
@@ -68,7 +76,11 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
     result: AbilityDamageRoll | null;
     error: string | null;
   } | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [equipmentPickerOpen, setEquipmentPickerOpen] = useState(false);
+  const [buildPickerOpen, setBuildPickerOpen] = useState(false);
+  const [inspectedItem, setInspectedItem] = useState<Item | null>(null);
+  const itemTrigger = useRef<HTMLElement | null>(null);
+  const draggedItem = useRef<ItemDragState | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editMedia, setEditMedia] = useState(false);
@@ -77,6 +89,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
   const [bgDraft, setBgDraft] = useState(champion.background ?? '');
   const [levelDraft, setLevelDraft] = useState(String(champion.level ?? 1));
   const [roleDraft, setRoleDraft] = useState(() => championRoleId(champion));
+  const [resourceDraft, setResourceDraft] = useState(champion.resource ?? '');
 
   useEffect(() => {
     setPortraitFailed(false);
@@ -84,7 +97,8 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
     setBgDraft(champion.background ?? '');
     setLevelDraft(String(champion.level ?? 1));
     setRoleDraft(championRoleId(champion));
-  }, [champion.champion, champion.image, champion.background, champion.level, champion.roleId, champion.role]);
+    setResourceDraft(champion.resource ?? '');
+  }, [champion.champion, champion.image, champion.background, champion.level, champion.roleId, champion.role, champion.resource]);
 
   // Si pasa a admin con la pestaña de notas abierta, se vuelve a Habilidades.
   useEffect(() => {
@@ -97,9 +111,13 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
     setEditLevel(false);
     setDamageRoll(null);
     setEditSlot(null);
+    setEquipmentPickerOpen(false);
+    setBuildPickerOpen(false);
+    setInspectedItem(null);
   }, [champion.champion]);
 
   const { equipment, level, roleId, roleTable, tableLevel, stats } = championDamageContext(champion);
+  const desiredBuild = champion.build ?? [];
   const background = champion.background?.trim() || '';
   const isActive = champion.active === true;
   const roleName = roleTable?.name ?? champion.role;
@@ -144,6 +162,10 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
       const category = roleCategoryFor(roleDraft, champion.role);
       if (category && category !== champion.role) patch.role = category;
     }
+    const currentResource = champion.resource ?? '';
+    if (resourceDraft !== currentResource) {
+      patch.resource = resourceDraft && isResourceId(resourceDraft) ? resourceDraft : null;
+    }
     if (Object.keys(patch).length === 0) return;
     await persist(patch).catch(() => undefined);
   };
@@ -151,6 +173,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
   const cancelLevel = () => {
     setLevelDraft(String(level));
     setRoleDraft(roleId);
+    setResourceDraft(champion.resource ?? '');
     setEditLevel(false);
   };
 
@@ -181,6 +204,63 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
       return;
     }
     await persist({ equipamiento: [...equipment, itemName] });
+  };
+
+  const addToBuild = async (itemName: string) => {
+    if (desiredBuild.some(name => normalizeName(name) === normalizeName(itemName))) return;
+    await persist({ build: [...desiredBuild, itemName] });
+  };
+
+  const openEquipmentPicker = () => {
+    setBuildPickerOpen(false);
+    setEquipmentPickerOpen(true);
+  };
+
+  const openBuildPicker = () => {
+    setEquipmentPickerOpen(false);
+    setBuildPickerOpen(true);
+  };
+
+  const alreadyEquipped = (itemName: string) =>
+    equipment.some(name => normalizeName(name) === normalizeName(itemName));
+
+  const equipmentFull = equipment.length >= EQUIPMENT_SLOTS;
+
+  const equipFromBuild = (itemName: string) => {
+    if (alreadyEquipped(itemName) || equipmentFull) return;
+    void addEquipment(itemName);
+  };
+
+  const equipTitleFor = (itemName: string) => {
+    if (alreadyEquipped(itemName)) return 'Ya está en el equipamiento';
+    if (equipmentFull) return `Equipamiento lleno (${EQUIPMENT_SLOTS}/${EQUIPMENT_SLOTS})`;
+    return 'Añadir al equipamiento';
+  };
+
+  const reorderBuild = (from: number, to: number) => {
+    if (!canEdit || saving) return;
+    const next = moveItem(desiredBuild, from, to);
+    if (next === desiredBuild) return;
+    void persist({ build: next });
+  };
+
+  const buildItemState = (itemName: string): ItemTileState => {
+    const key = normalizeName(itemName);
+    if (equipment.some(equipped => normalizeName(equipped) === key)) return 'equipped';
+    if ((findItem(itemName)?.cantidad ?? 0) > 0) return 'owned';
+    return 'none';
+  };
+
+  const inspectItem = (name: string) => {
+    const item = findItem(name);
+    if (!item) return;
+    itemTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setInspectedItem(item);
+  };
+
+  const closeItemInfo = () => {
+    setInspectedItem(null);
+    itemTrigger.current?.focus();
   };
 
   return (
@@ -289,9 +369,9 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                   <button
                     type="button"
                     className={cx('sheet-hp__icon-btn', 'champ-sheet__level-btn', editLevel && 'champ-sheet__portrait-edit--on')}
-                    aria-label="Editar nivel y rol"
+                    aria-label="Editar nivel, rol y recurso"
                     aria-pressed={editLevel}
-                    title="Editar nivel y rol"
+                    title="Editar nivel, rol y recurso"
                     disabled={saving}
                     onClick={() => {
                       if (editLevel) {
@@ -300,6 +380,7 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                       }
                       setLevelDraft(String(level));
                       setRoleDraft(roleId);
+                      setResourceDraft(champion.resource ?? '');
                       setEditLevel(true);
                     }}
                   >
@@ -308,6 +389,11 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                 )}
               </span>
               {' \u00B7 '}{champion.region}{' \u00B7 '}{roleName}
+              {champion.resource && (
+                <span className="champ-sheet__meta-resource">
+                  <ResourceChip resource={champion.resource} />
+                </span>
+              )}
             </div>
             {canEdit && editLevel && (
               <form
@@ -347,6 +433,21 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                     {!findRoleTable(roleDraft) && roleDraft && <option value={roleDraft}>{roleDraft}</option>}
                     {ROLE_TABLES.map(option => (
                       <option key={option.id} value={option.id}>{option.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="champ-sheet__field">
+                  <span className="champ-sheet__field-label">Recurso</span>
+                  <select
+                    className="champ-sheet__bg-input"
+                    value={resourceDraft}
+                    disabled={saving}
+                    aria-label="Recurso del campeón"
+                    onChange={e => setResourceDraft(e.target.value)}
+                  >
+                    <option value="">Sin definir</option>
+                    {RESOURCE_IDS.map(id => (
+                      <option key={id} value={id}>{RESOURCE_LABELS[id]}</option>
                     ))}
                   </select>
                 </label>
@@ -437,34 +538,44 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
           </div>
 
           {tab === 'habilidades' && (
-            <div className="calc-grid">
+            <div className="spell-grid">
               {ABILITY_KEYS.map(key => {
                 const ability = champion.abilities[key];
+                const tone: ChampAbilityTone = key === 'P' ? 'pasiva' : key === 'R' ? 'definitiva' : 'basica';
+                const empty = !ability?.name;
                 return (
-                  <AbilityCard
+                  <SpellCard
                     key={key}
-                    label={key}
+                    tone={tone}
+                    seal={key}
+                    type={SPELL_TYPE_LABEL[tone]}
                     name={ability?.name || 'Sin nombre'}
-                    ability={ability ?? null}
-                    onSelect={openAbility}
-                  >
-                    {ability?.learned && <div className="calc-ability-learned">Aprendida</div>}
-                    <div className="calc-ability-actions">
+                    empty={empty}
+                    note={empty ? (!ability ? 'No implementada' : undefined) : (ability?.learned ? 'Aprendida' : undefined)}
+                    badge={(() => {
+                      const resolved = resolveAbilityResource(ability, champion);
+                      return resolved ? <ResourceChip resource={resolved.id} inherited={resolved.inherited} /> : undefined;
+                    })()}
+                    sealAsIcon
+                    footerAction
+                    onOpen={ability?.damage ? () => openAbility(ability) : undefined}
+                    action={(
                       <button
                         type="button"
-                        className="calc-ability-edit"
+                        className="spell__btn"
                         onClick={() => setEditSlot(key)}
                       >
                         {canEdit ? 'Ver / Editar' : 'Ver detalles'}
                       </button>
-                    </div>
-                  </AbilityCard>
+                    )}
+                  />
                 );
               })}
             </div>
           )}
 
           {tab === 'equipo' && (
+            <>
             <section className="sheet-panel">
               <div className="sheet-panel__title">
                 Equipamiento
@@ -492,7 +603,8 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                     type="button"
                     className="calc-item-card calc-item-card--add"
                     disabled={saving}
-                    onClick={() => setPickerOpen(true)}
+                    aria-label="Añadir al equipamiento"
+                    onClick={openEquipmentPicker}
                   >
                     <div className="calc-item-card__no-img">+</div>
                     <div className="calc-item-card__name">{saving ? 'Guardando' : 'Añadir'}</div>
@@ -500,6 +612,61 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                 )}
               </div>
             </section>
+            <section className="sheet-panel">
+              <div className="sheet-panel__title">Build deseada</div>
+              {desiredBuild.length === 0 && (
+                <p className="calc-build-empty">Todavía no hay ítems en la build.</p>
+              )}
+              <div className="calc-build-grid">
+                {desiredBuild.map((itemName, index) => (
+                  canEdit ? (
+                    <ReorderableItem
+                      key={`${itemName}-${index}`}
+                      name={itemName}
+                      index={index}
+                      items={desiredBuild}
+                      group={`${champion.champion}:build`}
+                      dragged={draggedItem}
+                      disabled={saving}
+                      onMove={reorderBuild}
+                    >
+                      <ItemTile
+                        name={itemName}
+                        item={findItem(itemName)}
+                        state={buildItemState(itemName)}
+                        onInspect={() => inspectItem(itemName)}
+                        onRemove={() => { void persist({ build: removeAt(desiredBuild, index) }); }}
+                        onEquip={() => equipFromBuild(itemName)}
+                        equipDisabled={alreadyEquipped(itemName) || equipmentFull}
+                        equipTitle={equipTitleFor(itemName)}
+                        removeDisabled={saving}
+                      />
+                    </ReorderableItem>
+                  ) : (
+                    <ItemTile
+                      key={`${itemName}-${index}`}
+                      name={itemName}
+                      item={findItem(itemName)}
+                      state={buildItemState(itemName)}
+                      onInspect={() => inspectItem(itemName)}
+                    />
+                  )
+                ))}
+                {canEdit && (
+                  <button
+                    type="button"
+                    className="calc-item-card calc-item-card--add"
+                    disabled={saving}
+                    aria-label="Añadir a la build deseada"
+                    onClick={openBuildPicker}
+                  >
+                    <div className="calc-item-card__no-img">+</div>
+                    <div className="calc-item-card__name">{saving ? 'Guardando' : 'Añadir'}</div>
+                  </button>
+                )}
+              </div>
+            </section>
+            </>
           )}
 
           {tab === 'relaciones' && (
@@ -537,14 +704,32 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
         document.body,
       )}
 
-      {pickerOpen && (
+      {inspectedItem && createPortal(
+        <ItemDetailModal item={inspectedItem} readOnly onClose={closeItemInfo} />,
+        document.body,
+      )}
+
+      {equipmentPickerOpen && (
         <BuildPicker
+          key="champion-equipment-picker"
           title="Añadir al equipo"
           busy={saving}
           taken={equipment}
           takenLabel="Equipado"
           onAdd={name => { void addEquipment(name); }}
-          onClose={() => setPickerOpen(false)}
+          onClose={() => setEquipmentPickerOpen(false)}
+        />
+      )}
+
+      {buildPickerOpen && (
+        <BuildPicker
+          key="champion-build-picker"
+          title="Añadir a la build deseada"
+          busy={saving}
+          taken={desiredBuild}
+          takenLabel="En la build"
+          onAdd={name => { void addToBuild(name); }}
+          onClose={() => setBuildPickerOpen(false)}
         />
       )}
 

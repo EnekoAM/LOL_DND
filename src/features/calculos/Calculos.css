@@ -632,6 +632,33 @@
   cursor: default;
 }
 
+.calc-item-card__equip {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  margin-top: 2px;
+  padding: 3px 4px;
+  border: 1px solid rgba(201,168,76,0.35);
+  background: rgba(17, 13, 6, 0.88);
+  color: var(--gold);
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.calc-item-card__equip:hover:not(:disabled) {
+  color: var(--gold-bright);
+  border-color: rgba(201,168,76,0.7);
+}
+
+.calc-item-card__equip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .calc-item-card--add {
   width: 100%;
   font: inherit;

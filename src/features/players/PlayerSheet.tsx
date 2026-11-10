@@ -42,8 +42,7 @@ import PlayerSwitcher from './PlayerSwitcher';
 import SheetAbilities from './SheetAbilities';
 import ReorderableItem from './ReorderableItem';
 import StackCounter from './StackCounter';
-import ItemActivateControl from './ItemActivateControl';
-import { itemActiveEffectKey, itemCooldownKey, itemStackKey, readActiveEffect, readCooldown, readStack } from '../../data/stacks';
+import { itemStackKey, readStack } from '../../data/stacks';
 import { equipmentAccess } from './equipmentAccess';
 import { canReplaceEquipment, isCurrentEquipmentTarget, replaceEquipment, type EquipmentSwapTarget } from './equipmentSwap';
 import { moveItem, type ItemDragState } from './itemOrder';
@@ -641,29 +640,6 @@ const PlayerSheet = ({
                               disabled={saving || !canEditSheet}
                               label={`Stacks · ${itemName}`}
                               onChange={next => { void onStacksChange({ [itemStackKey(itemName)]: next }); }}
-                            />
-                          )}
-                          {((typeof trackItem.cooldown === 'number' && trackItem.cooldown > 0)
-                            || (typeof trackItem.effectDuration === 'number' && trackItem.effectDuration > 0)) && (
-                            <ItemActivateControl
-                              cdRemaining={readCooldown(player.cooldowns, itemCooldownKey(itemName))}
-                              cdDuration={typeof trackItem.cooldown === 'number' && trackItem.cooldown > 0 ? trackItem.cooldown : undefined}
-                              effectRemaining={readActiveEffect(player.activeEffects, itemActiveEffectKey(itemName))}
-                              effectDuration={typeof trackItem.effectDuration === 'number' && trackItem.effectDuration > 0 ? trackItem.effectDuration : undefined}
-                              disabled={saving || !canEditSheet}
-                              label={`Ítem · ${itemName}`}
-                              onActivate={() => {
-                                const key = itemCooldownKey(itemName);
-                                const effectKey = itemActiveEffectKey(itemName);
-                                if (typeof trackItem.cooldown === 'number' && trackItem.cooldown > 0) {
-                                  void onCooldownsChange({ [key]: trackItem.cooldown });
-                                }
-                                if (typeof trackItem.effectDuration === 'number' && trackItem.effectDuration > 0) {
-                                  void onActiveEffectsChange({ [effectKey]: trackItem.effectDuration });
-                                }
-                              }}
-                              onCooldownChange={next => { void onCooldownsChange({ [itemCooldownKey(itemName)]: next }); }}
-                              onEffectChange={next => { void onActiveEffectsChange({ [itemActiveEffectKey(itemName)]: next }); }}
                             />
                           )}
                         </>

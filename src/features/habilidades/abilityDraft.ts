@@ -1,4 +1,5 @@
 import type { Ability, AbilityDamage, AbilityEffect, DamageScalingSource } from '../../data/champions';
+import { isResourceId } from '../../data/resources';
 
 export type EffectDraft = {
   name: string;
@@ -21,6 +22,10 @@ export type AbilityDraft = {
   hasStacks: boolean;
   maxStacks: string;
   cooldown: string;
+  effectDuration: string;
+  effectTarget: 'self' | 'enemy';
+  effectName: string;
+  resource: string;
 };
 
 const EMPTY_EFFECT: EffectDraft = { name: '', values: '', duration: '' };
@@ -56,6 +61,10 @@ export function abilityToDraft(ability: Ability | null): AbilityDraft {
     hasStacks: ability?.hasStacks === true,
     maxStacks: typeof ability?.maxStacks === 'number' ? String(ability.maxStacks) : '',
     cooldown: typeof ability?.cooldown === 'number' ? String(ability.cooldown) : '',
+    effectDuration: typeof ability?.effectDuration === 'number' ? String(ability.effectDuration) : '',
+    effectTarget: ability?.effectTarget === 'enemy' ? 'enemy' : 'self',
+    effectName: ability?.effectName ?? '',
+    resource: ability?.resource ?? '',
     effects: (ability?.effect ?? []).map(effect => ({
       name: effect.name,
       values: formatNumberList(effect.values),
@@ -146,6 +155,21 @@ export function draftToAbility(draft: AbilityDraft): Ability {
     const n = Number(cdText);
     if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error('cooldown tiene que ser un entero entre 1 y 999');
     ability.cooldown = n;
+  }
+  const edText = draft.effectDuration.trim();
+  if (edText) {
+    const n = Number(edText);
+    if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error('efecto tiene que ser un entero entre 1 y 999');
+    ability.effectDuration = n;
+  }
+  if (draft.effectTarget === 'enemy') ability.effectTarget = 'enemy';
+  const effectName = draft.effectName.trim();
+  if (effectName.length > 80) throw new Error('El nombre del efecto no puede superar 80 caracteres');
+  if (effectName) ability.effectName = effectName;
+  const resource = draft.resource.trim();
+  if (resource) {
+    if (!isResourceId(resource)) throw new Error('El recurso no es válido');
+    ability.resource = resource;
   }
   return ability;
 }

@@ -46,6 +46,12 @@ const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; c
       {typeof item.effectDuration === 'number' && (
         <p className="item-edit__hint">Efecto: {item.effectDuration} turno{item.effectDuration === 1 ? '' : 's'}</p>
       )}
+      {item.effectTarget === 'enemy' && (
+        <p className="item-edit__hint">Objetivo: enemigo</p>
+      )}
+      {item.effectName && (
+        <p className="item-edit__hint">Nombre del efecto: {item.effectName}</p>
+      )}
 
       <div className="modal-rule">
         <span className="modal-rule__ornament">⚜</span>
@@ -198,6 +204,28 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onSave, 
           placeholder="Sin duración"
           disabled={saving}
           onChange={e => onChange({ effectDuration: e.target.value })}
+        />
+      </label>
+
+      <label className="item-field">
+        <span>Objetivo del efecto</span>
+        <select
+          value={draft.effectTarget}
+          disabled={saving}
+          onChange={e => onChange({ effectTarget: e.target.value === 'enemy' ? 'enemy' : 'self' })}
+        >
+          <option value="self">Propio</option>
+          <option value="enemy">Enemigo</option>
+        </select>
+      </label>
+
+      <label className="item-field">
+        <span>Nombre del efecto (opcional)</span>
+        <input
+          value={draft.effectName}
+          placeholder="El del ítem"
+          disabled={saving}
+          onChange={e => onChange({ effectName: e.target.value })}
         />
       </label>
 

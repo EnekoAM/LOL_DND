@@ -85,11 +85,13 @@ export function effectToneClass(name: string): string {
   return '';
 }
 
-/** Etiqueta del chip: «AC −2» / «MR −1» si hay valor. */
-export function formatEffectLabel(effect: { name: string; value?: number }): string {
+/** Etiqueta del chip: «AC −2» / «MR −1» si hay valor, y «×N» si hay stacks. */
+export function formatEffectLabel(effect: { name: string; value?: number; stacks?: number }): string {
+  let label = effect.name;
   if (typeof effect.value === 'number' && effect.value > 0 && effectNeedsValue(effect.name)) {
     const abbr = foldText(effect.name).startsWith('ac') ? 'AC' : 'MR';
-    return `${abbr} −${effect.value}`;
+    label = `${abbr} −${effect.value}`;
   }
-  return effect.name;
+  if (typeof effect.stacks === 'number' && effect.stacks > 0) label = `${label} ×${effect.stacks}`;
+  return label;
 }

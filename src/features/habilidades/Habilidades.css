@@ -590,7 +590,8 @@
 }
 
 .hab-field input,
-.hab-field textarea {
+.hab-field textarea,
+.hab-field select {
   width: 100%;
   box-sizing: border-box;
   padding: 8px 10px;
@@ -601,12 +602,24 @@
   font-family: 'Crimson Text', serif;
   font-size: 15px;
   resize: vertical;
+  color-scheme: dark;
 }
 
 .hab-field input:focus,
-.hab-field textarea:focus {
+.hab-field textarea:focus,
+.hab-field select:focus {
   outline: none;
   border-color: rgba(201,168,76,0.6);
+}
+
+.hab-field select option {
+  background-color: var(--parchment);
+  color: var(--ink);
+}
+
+.hab-field select option:checked {
+  background-color: #2a2010;
+  color: var(--gold-bright);
 }
 
 .hab-field input::placeholder,

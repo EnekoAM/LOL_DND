@@ -1,4 +1,7 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
+import SpellCard, { SPELL_TYPE_LABEL, type SpellTone } from './SpellCard';
+import ResourceChip from '../../components/ResourceChip';
+import { resolveAbilityResource } from '../../data/resources';
 import StackCounter from './StackCounter';
 import CooldownControl from './CooldownControl';
 import { abilityCooldownKey, abilityStackKey, readCooldown, readStack } from '../../data/stacks';
@@ -44,13 +47,7 @@ type Props = {
   onCooldownsChange: (cooldowns: Record<string, number>) => Promise<void>;
 };
 
-type Tone = 'pasiva' | 'basica' | 'definitiva' | 'auto';
-
-const TYPE_LABEL: Record<Exclude<Tone, 'auto'>, string> = {
-  pasiva: 'Pasiva',
-  basica: 'Básica',
-  definitiva: 'Definitiva',
-};
+type Tone = SpellTone;
 
 const RankPips = ({ rank, max, title }: { rank: number; max: number; title?: string }) => (
   <div className="sheet-rank__pips" title={title} aria-label={`Rango ${rank} de ${max}`}>
@@ -58,77 +55,6 @@ const RankPips = ({ rank, max, title }: { rank: number; max: number; title?: str
       <span key={index} className={cx('sheet-rank__pip', index < rank && 'sheet-rank__pip--on')} />
     ))}
   </div>
-);
-
-type SpellCardProps = {
-  tone: Tone;
-  /** Letra del sello: P, Q, W, E, R, AA. */
-  seal: string;
-  name: string;
-  type: string;
-  champion?: string;
-  image?: string;
-  empty?: boolean;
-  note?: string;
-  onOpen?: () => void;
-  ranks: ReactNode;
-  stacks?: ReactNode;
-  cooldown?: ReactNode;
-  action?: ReactNode;
-};
-
-const SpellCard = ({ tone, seal, name, type, champion, image, empty, note, onOpen, ranks, stacks, cooldown, action }: SpellCardProps) => (
-  <article
-    className={cx(
-      'spell',
-      `spell--${tone}`,
-      empty && 'spell--empty',
-      onOpen && 'spell--clickable',
-    )}
-    onClick={onOpen}
-    title={onOpen ? 'Abrir habilidad / tirar daño' : undefined}
-    role={onOpen ? 'button' : undefined}
-    tabIndex={onOpen ? 0 : undefined}
-    onKeyDown={event => {
-      if (event.target === event.currentTarget && onOpen && (event.key === 'Enter' || event.key === ' ')) {
-        event.preventDefault();
-        onOpen();
-      }
-    }}
-  >
-    <span className="spell__corner spell__corner--tl" aria-hidden />
-    <span className="spell__corner spell__corner--br" aria-hidden />
-    <header className="spell__head">
-      <div className="spell__icon" aria-hidden>
-        {image && !empty ? <img src={image} alt="" loading="lazy" /> : <span className="spell__glyph">{empty ? '?' : '✦'}</span>}
-        <span className="spell__seal">{seal}</span>
-      </div>
-      <div className="spell__titles">
-        <div className="spell__type">{type}</div>
-        <div className="spell__name">{name}</div>
-        {champion && <div className="spell__origin">{champion}</div>}
-        {note && <div className="spell__note">{note}</div>}
-      </div>
-    </header>
-    <div className="spell__ranks" onClick={event => event.stopPropagation()}>
-      {ranks}
-    </div>
-    {stacks && (
-      <div className="spell__stacks" onClick={event => event.stopPropagation()}>
-        {stacks}
-      </div>
-    )}
-    {cooldown && (
-      <div className="spell__stacks" onClick={event => event.stopPropagation()}>
-        {cooldown}
-      </div>
-    )}
-    {action && (
-      <div className="spell__action" onClick={event => event.stopPropagation()}>
-        {action}
-      </div>
-    )}
-  </article>
 );
 
 const nextMilestone = (level: number) => MILESTONE_LEVELS.find(threshold => threshold > level);
@@ -270,12 +196,16 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                 key={slot}
                 tone={tone}
                 seal={key}
-                type={TYPE_LABEL[tone]}
+                type={SPELL_TYPE_LABEL[tone]}
                 name={abilityName ?? 'No definida'}
                 champion={ref?.champion}
                 image={ref?.image}
                 empty={empty}
                 note={note}
+                badge={(() => {
+                  const resolved = resolveAbilityResource(ability ?? undefined, ref?.championResource ? { resource: ref.championResource } : undefined);
+                  return resolved ? <ResourceChip resource={resolved.id} inherited={resolved.inherited} /> : undefined;
+                })()}
                 onOpen={ability?.damage ? () => openAbility(ability, rank) : undefined}
                 ranks={rankControls}
                 stacks={ability?.hasStacks && abilityName ? (

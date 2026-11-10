@@ -1,3 +1,5 @@
+import { tickActiveEffects, tickCooldowns } from './stacks';
+
 /** Estado del combate activo (Mongo: combat/active). */
 
 export const COMBAT_EFFECT_PRESETS = [
@@ -24,6 +26,10 @@ export type CombatEffect = {
   duration: number;
   /** Valor numérico opcional (p. ej. reducción de AC/MR). */
   value?: number;
+  /** Acumulaciones del estado (p. ej. Rotura de armadura ×2). */
+  stacks?: number;
+  /** Origen del efecto: item:<nombre> o ability:<nombre>. */
+  source?: string;
 };
 
 export type CombatParticipant = {
@@ -41,6 +47,12 @@ export type CombatParticipant = {
   defeated: boolean;
   image?: string;
   effects: CombatEffect[];
+  /** Recurso actual del campeón en este combate (máximo = stat de la ficha). */
+  currentResource?: number;
+  /** CD restantes de habilidades usadas desde el panel (solo campeón). */
+  cooldowns?: Record<string, number>;
+  /** Efectos propios restantes de habilidades usadas desde el panel (solo campeón). */
+  activeEffects?: Record<string, number>;
 };
 
 export type CombatState = {
@@ -168,4 +180,54 @@ export function tickEffectsFor(participant: CombatParticipant): CombatParticipan
     .map(effect => ({ ...effect, duration: effect.duration - 1 }))
     .filter(effect => effect.duration > 0);
   return { ...participant, effects };
+}
+
+export const COMBAT_MAX_EFFECTS = 12;
+
+export type SourcedEffectInput = {
+  source: string;
+  name: string;
+  duration: number;
+  hasStacks?: boolean;
+  maxStacks?: number;
+};
+
+/** Aplica un efecto de ítem/habilidad al objetivo. Si ya está, refresca duración y suma 1 stack. */
+export function applySourcedEffect(target: CombatParticipant, input: SourcedEffectInput): CombatParticipant {
+  const name = input.name.trim().slice(0, 80) || input.source;
+  const duration = Math.max(1, Math.trunc(input.duration));
+  const existing = target.effects.find(effect => effect.source === input.source);
+  if (existing) {
+    const nextStacks = (existing.stacks ?? 1) + 1;
+    const stacks = typeof input.maxStacks === 'number' ? Math.min(nextStacks, input.maxStacks) : Math.min(nextStacks, 999);
+    return {
+      ...target,
+      effects: target.effects.map(effect => (
+        effect.id === existing.id ? { ...effect, name, duration, stacks } : effect
+      )),
+    };
+  }
+  if (target.effects.length >= COMBAT_MAX_EFFECTS) return target;
+  const effect: CombatEffect = { id: newId(), name, duration, source: input.source };
+  if (input.hasStacks) effect.stacks = 1;
+  return { ...target, effects: [...target.effects, effect] };
+}
+
+/** Ajusta las stacks de un estado (mín. 1). */
+export function setEffectStacks(participant: CombatParticipant, effectId: string, stacks: number, maxStacks?: number): CombatParticipant {
+  const next = Math.max(1, Math.trunc(stacks));
+  const capped = typeof maxStacks === 'number' ? Math.min(next, maxStacks) : Math.min(next, 999);
+  return {
+    ...participant,
+    effects: participant.effects.map(effect => (effect.id === effectId ? { ...effect, stacks: capped } : effect)),
+  };
+}
+/** Baja CD y efectos propios guardados en el participante (campeones en combate). */
+export function tickCombatTrackers(participant: CombatParticipant): CombatParticipant {
+  if (!participant.cooldowns && !participant.activeEffects) return participant;
+  return {
+    ...participant,
+    cooldowns: participant.cooldowns ? tickCooldowns(participant.cooldowns) : participant.cooldowns,
+    activeEffects: participant.activeEffects ? tickActiveEffects(participant.activeEffects) : participant.activeEffects,
+  };
 }

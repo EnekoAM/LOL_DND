@@ -26,6 +26,10 @@ export type Item = {
   cooldown?: number;
   /** Duración del efecto en turnos (p. ej. pociones). */
   effectDuration?: number;
+  /** Destino del efecto al activar. Ausente = self. */
+  effectTarget?: 'self' | 'enemy';
+  /** Nombre del estado en combate si el objetivo es enemigo. Ausente = el del ítem. */
+  effectName?: string;
 };
 
 export let ITEMS: Item[] = [];
@@ -95,6 +99,8 @@ export type ItemUpdate = {
   maxStacks?: number | null;
   cooldown?: number | null;
   effectDuration?: number | null;
+  effectTarget?: 'self' | 'enemy' | null;
+  effectName?: string | null;
 };
 
 /**
@@ -141,6 +147,10 @@ export async function saveItemUpdate(nombre: string, update: ItemUpdate): Promis
   else delete current.cooldown;
   if (typeof saved.effectDuration === 'number') current.effectDuration = saved.effectDuration;
   else delete current.effectDuration;
+  if (saved.effectTarget === 'enemy') current.effectTarget = 'enemy';
+  else delete current.effectTarget;
+  if (typeof saved.effectName === 'string' && saved.effectName.trim()) current.effectName = saved.effectName.trim();
+  else delete current.effectName;
   if (typeof saved.cantidad === 'number') current.cantidad = saved.cantidad;
   hydrateItems([...ITEMS]);
   return current;
