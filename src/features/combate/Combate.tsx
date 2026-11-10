@@ -276,6 +276,7 @@ export default function Combate() {
       .then(saved => {
         setState(saved);
         setSelectedId(null);
+        setTrackerBump(n => n + 1);
       })
       .catch(err => {
         setError(err instanceof Error ? err.message : 'No se pudo terminar el combate');

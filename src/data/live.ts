@@ -42,6 +42,12 @@ function bump(resources: LiveResource[]): void {
   for (const listener of listeners) listener();
 }
 
+/** Sube la revisión sin volver a pedir al servidor (tras un hydrate local). */
+export function bumpLive(resources: LiveResource[]): void {
+  if (resources.length === 0) return;
+  bump(resources);
+}
+
 /**
  * Número que cambia cada vez que llega de otra pestaña un cambio de esos recursos
  * (o de cualquiera, sin argumentos). Úsalo como dependencia de useMemo/useEffect.

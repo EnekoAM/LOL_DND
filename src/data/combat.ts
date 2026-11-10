@@ -105,7 +105,10 @@ export async function saveCombat(state: CombatState): Promise<CombatState> {
   }
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) throw new Error(readError(body, `Error ${response.status} al guardar el combate`));
-  return normalize(body);
+  const saved = normalize(body);
+  // Reset a Preparación vacía ⇒ el server limpió CD/efectos: refrescar memoria local.
+  if (!saved.active && saved.participants.length === 0) await refreshPlayersAfterCombatEnd();
+  return saved;
 }
 
 /** Termina el combate en servidor: vacía Preparación y limpia CD/efectos de los players. */
@@ -122,7 +125,25 @@ export async function endCombatRemote(): Promise<CombatState> {
   }
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) throw new Error(readError(body, `Error ${response.status} al terminar el combate`));
+  // La pestaña que llama ignora su propio live (X-Client-Id): hay que rehidratar players aquí.
+  await refreshPlayersAfterCombatEnd();
   return normalize(body);
+}
+
+async function refreshPlayersAfterCombatEnd(): Promise<void> {
+  try {
+    const { hydratePlayers } = await import('./players');
+    const { bumpLive } = await import('./live');
+    const res = await fetch('/api/players');
+    if (!res.ok) return;
+    const list: unknown = await res.json().catch(() => null);
+    if (!Array.isArray(list)) return;
+    hydratePlayers(list as import('./players').Player[]);
+    // Misma pestaña: el live se ignora por X-Client-Id; forzamos repintado.
+    bumpLive(['players']);
+  } catch {
+    /* el combate ya terminó; el live de otras pestañas igual refresca */
+  }
 }
 
 export function newId(): string {
