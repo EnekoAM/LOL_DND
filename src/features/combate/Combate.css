@@ -728,6 +728,11 @@
   flex: 0 0 auto;
 }
 
+.combat-panel__tracker-badges .stack-counter {
+  margin-top: 0;
+  font-size: 0.72rem;
+}
+
 .combat-panel__badge {
   font-size: 0.72rem;
   font-weight: 700;

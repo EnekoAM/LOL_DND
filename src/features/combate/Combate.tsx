@@ -245,7 +245,11 @@ export default function Combate() {
 
   const patchPlayerTrackers = async (
     playerName: string,
-    patch: { cooldowns?: Record<string, number>; activeEffects?: Record<string, number> },
+    patch: {
+      cooldowns?: Record<string, number>;
+      activeEffects?: Record<string, number>;
+      stacks?: Record<string, number>;
+    },
   ) => {
     await savePlayerPatch(playerName, patch);
     setTrackerBump(n => n + 1);

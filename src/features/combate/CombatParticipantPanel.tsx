@@ -14,6 +14,7 @@ import {
   readStack,
 } from '../../data/stacks';
 import { cx } from '../../lib/cx';
+import StackCounter from '../players/StackCounter';
 import { effectIcon, effectNeedsValue, effectToneClass, formatEffectLabel, kindTag } from './combatHelpers';
 
 type Props = {
@@ -24,7 +25,11 @@ type Props = {
   trackerRev: number;
   onPlayerTrackersChange: (
     playerName: string,
-    patch: { cooldowns?: Record<string, number>; activeEffects?: Record<string, number> },
+    patch: {
+      cooldowns?: Record<string, number>;
+      activeEffects?: Record<string, number>;
+      stacks?: Record<string, number>;
+    },
   ) => Promise<void>;
   effectPick: string;
   effectDur: string;
@@ -172,9 +177,22 @@ export default function CombatParticipantPanel({
                       <span className="combat-panel__tracker-name" title={row.label}>{row.label}</span>
                       <span className="combat-panel__tracker-badges">
                         {row.stacks && (
-                          <span className="combat-panel__badge" title="Stacks">
-                            ▣ {row.stacks.value}{typeof row.stacks.max === 'number' ? `/${row.stacks.max}` : ''}
-                          </span>
+                          isAdmin ? (
+                            <StackCounter
+                              value={row.stacks.value}
+                              max={row.stacks.max}
+                              disabled={saving}
+                              label={`Stacks · ${row.label}`}
+                              onChange={next => {
+                                const key = row.kind === 'item' ? itemStackKey(row.name) : abilityStackKey(row.name);
+                                void onPlayerTrackersChange(playerName, { stacks: { [key]: next } });
+                              }}
+                            />
+                          ) : (
+                            <span className="combat-panel__badge" title="Stacks">
+                              ▣ {row.stacks.value}{typeof row.stacks.max === 'number' ? `/${row.stacks.max}` : ''}
+                            </span>
+                          )
                         )}
                         {row.cd && (
                           <span className={cx('combat-panel__badge', onCd && 'combat-panel__badge--cd')} title="Cooldown">

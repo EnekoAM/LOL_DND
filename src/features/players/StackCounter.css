@@ -47,6 +47,40 @@
   color: #c9a227;
 }
 
+.stack-counter__input {
+  width: 2.4rem;
+  min-width: 0;
+  appearance: textfield;
+  border: none;
+  background: transparent;
+  color: #f0e6d2;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  padding: 0.1rem 0;
+}
+
+.stack-counter__input::-webkit-outer-spin-button,
+.stack-counter__input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.stack-counter__input:disabled {
+  opacity: 0.55;
+}
+
+.stack-counter__input:focus {
+  outline: 1px solid rgba(201, 162, 39, 0.45);
+  border-radius: 4px;
+}
+
+.stack-counter__max {
+  font-variant-numeric: tabular-nums;
+  color: #a89b7c;
+  margin-right: 0.1rem;
+}
+
 .spell .stack-counter {
   margin: 0.35rem 0 0;
 }
