@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSyncExternalStore } from 'react';
 import { milestoneRank, normalizeRanks, type RankedSlot } from '../../data/abilityRanks';
 import { ABILITY_KEYS, CHAMPIONS, findAbilityRef, type Ability, type Champion } from '../../data/champions';
 import type { CombatParticipant, SourcedEffectInput } from '../../data/combat';
 import { partyLevel, subscribeParty } from '../../data/party';
 import { PLAYERS, PLAYER_ABILITY_SLOTS, type Player, type PlayerListPatch } from '../../data/players';
-import { resourceLabel, type ResourceId } from '../../data/resources';
+import { championResourceBar, type ResourceId } from '../../data/resources';
 import { abilityActiveEffectKey, abilityCooldownKey, readActiveEffect, readCooldown } from '../../data/stacks';
 import { cx } from '../../lib/cx';
+import { abilityPhase, abilityPhaseCount, abilityPhaseKey, clampPhase, hasVariants, isChoosePhases, phaseLabels } from '../../data/abilityVariants';
+import PhaseTabs from '../habilidades/PhaseTabs';
 import { championAbilityRankCount, championDamageContext } from '../calculos/championDamage';
 import { playerBonusLine, playerMaxHp, playerTotalLine } from '../calculos/playerTotals';
 import { hasDamageScaling, rollAbilityDamage } from '../players/abilityDamage';
@@ -113,6 +115,8 @@ type PoolView = {
   label: string;
   current: number;
   max: number;
+  /** Recurso de la barra (para el color). */
+  resourceId?: ResourceId;
 };
 
 function playerPool(player: Player, kind: 'hp' | 'pool'): PoolView {
@@ -136,12 +140,10 @@ function championPool(champion: Champion, participant: CombatParticipant, kind: 
     const current = suggestedOr(participant.hp, max);
     return { kind, label: 'Vida', current, max };
   }
-  const max = numericStat(stats.mana);
-  const current = suggestedOr(participant.currentResource, max);
-  const label = champion.resource && champion.resource !== 'vida' && champion.resource !== 'ninguno'
-    ? resourceLabel(champion.resource)
-    : 'Maná';
-  return { kind, label, current, max };
+  const bar = championResourceBar(champion.resource, numericStat(stats.mana));
+  const max = bar?.max ?? numericStat(stats.mana);
+  const current = Math.min(max, suggestedOr(participant.currentResource, bar?.start === 'empty' ? 0 : max));
+  return { kind, label: bar?.label ?? 'Maná', current, max, resourceId: bar?.id };
 }
 
 export default function CombatAbilityUseSection({
@@ -156,6 +158,13 @@ export default function CombatAbilityUseSection({
   const level = useSyncExternalStore(subscribeParty, partyLevel);
   const [rankOverride, setRankOverride] = useState<Record<string, number>>({});
   const [pickingKey, setPickingKey] = useState<string | null>(null);
+  /** Habilidad (ya en su fase) cuyo efecto se está aplicando a un objetivo. */
+  const [pickingAbility, setPickingAbility] = useState<Ability | null>(null);
+  /** Fase vista sin permiso para guardarla en el combate (solo pantalla). */
+  const [localPhases, setLocalPhases] = useState<Record<string, number>>({});
+  // El deshacer se ejecuta más tarde: usa siempre el último estado del combate.
+  const combatPatchRef = useRef(onCombatPatch);
+  combatPatchRef.current = onCombatPatch;
   const [lastUse, setLastUse] = useState<LastUse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -163,6 +172,8 @@ export default function CombatAbilityUseSection({
   useEffect(() => {
     setRankOverride({});
     setPickingKey(null);
+    setPickingAbility(null);
+    setLocalPhases({});
     setLastUse(null);
     setError(null);
   }, [participant.id]);
@@ -232,17 +243,50 @@ export default function CombatAbilityUseSection({
     });
   };
 
-  const useAbility = async (row: AbilityRow) => {
+  const phaseOf = (row: AbilityRow): number => {
+    const key = abilityPhaseKey(row.name);
+    const local = localPhases[key];
+    return clampPhase(row.ability, typeof local === 'number' ? local : participant.abilityPhases?.[key]);
+  };
+  const activeAbility = (row: AbilityRow, phase = phaseOf(row)): Ability => abilityPhase(row.ability, phase);
+  const selectPhase = (row: AbilityRow, index: number) => {
+    if (saving || busy) return;
+    const key = abilityPhaseKey(row.name);
+    // Sin permiso de escritura en el combate, la elección solo cambia lo que se ve.
+    if (!isAdmin) {
+      setLocalPhases(cur => ({ ...cur, [key]: clampPhase(row.ability, index) }));
+      return;
+    }
+    setLocalPhases(cur => {
+      if (!(key in cur)) return cur;
+      const next = { ...cur };
+      delete next[key];
+      return next;
+    });
+    onCombatPatch({ abilityPhases: { ...participant.abilityPhases, [abilityPhaseKey(row.name)]: clampPhase(row.ability, index) } });
+  };
+
+  const useAbility = async (row: AbilityRow, chosenPhase?: number) => {
     if (locked) return;
-    const spend = resolvedSpendKind(row.ability, row.ownerResource ? { resource: row.ownerResource } : undefined);
-    const cost = spend.kind === 'none' ? 0 : (parseAbilityCost(row.ability.cost, row.rank) ?? 0);
+    const phased = hasVariants(row.ability);
+    // En modo «a elegir» se usa la fase pulsada y no se avanza.
+    const choose = isChoosePhases(row.ability);
+    const phaseIndex = typeof chosenPhase === 'number' ? clampPhase(row.ability, chosenPhase) : phaseOf(row);
+    const ability = activeAbility(row, phaseIndex);
+    const prevPhases = participant.abilityPhases;
+    const nextPhases = phased && !choose
+      ? { ...prevPhases, [abilityPhaseKey(row.name)]: (phaseIndex + 1) % abilityPhaseCount(row.ability) }
+      : undefined;
+    const phaseNote = phased ? ` (${phaseLabels(row.ability)[phaseIndex]})` : '';
+    const spend = resolvedSpendKind(ability, row.ownerResource ? { resource: row.ownerResource } : undefined);
+    const cost = spend.kind === 'none' ? 0 : (parseAbilityCost(ability.cost, row.rank) ?? 0);
     const spendPool = spend.kind === 'none' ? null : currentFor(spend.kind === 'hp' ? 'hp' : 'pool');
     if (spendPool && cost > spendPool.current) return;
-    if (row.rank < 1 && hasDamageScaling(row.ability.damage)) return;
+    if (row.rank < 1 && hasDamageScaling(ability.damage)) return;
 
     let headline: string;
     let detail: string | undefined;
-    if (hasDamageScaling(row.ability.damage)) {
+    if (hasDamageScaling(ability.damage)) {
       try {
         const stats = player
           ? { ...playerTotalLine(player.sheet, player.equipamiento, level), bonus: playerBonusLine(player.sheet, player.equipamiento) }
@@ -250,8 +294,8 @@ export default function CombatAbilityUseSection({
             ? championDamageContext(champion).stats
             : null;
         if (!stats) return;
-        const result = rollAbilityDamage(row.ability.damage!, stats, row.rank);
-        headline = formatUseHeadline(row.seal, { kind: 'roll', total: result.total, type: row.ability.damage?.type });
+        const result = rollAbilityDamage(ability.damage!, stats, row.rank);
+        headline = formatUseHeadline(row.seal, { kind: 'roll', total: result.total, type: ability.damage?.type });
         detail = formatDiceBreakdown(result);
       } catch (caught) {
         headline = formatUseHeadline(row.seal, {
@@ -262,19 +306,20 @@ export default function CombatAbilityUseSection({
     } else {
       headline = formatUseHeadline(row.seal, { kind: 'none' });
     }
+    if (phaseNote) headline = headline.replace(`«${row.seal}»`, `«${row.seal}»${phaseNote}`);
     if (cost > 0 && spendPool) {
       headline = `${headline} · ${formatSpendLine(cost, spend.label)}`;
-    } else if (row.ability.cost?.trim() && spend.kind !== 'none' && parseAbilityCost(row.ability.cost, row.rank) === null) {
-      headline = `${headline} · coste: ${row.ability.cost.trim()}`;
+    } else if (ability.cost?.trim() && spend.kind !== 'none' && parseAbilityCost(ability.cost, row.rank) === null) {
+      headline = `${headline} · coste: ${ability.cost.trim()}`;
     }
 
     const cooldownKey = abilityCooldownKey(row.name);
     const effectKey = abilityActiveEffectKey(row.name);
-    const cdDuration = typeof row.ability.cooldown === 'number' && row.ability.cooldown > 0 ? row.ability.cooldown : 0;
-    const effectDuration = typeof row.ability.effectDuration === 'number' && row.ability.effectDuration > 0
-      ? row.ability.effectDuration
+    const cdDuration = typeof ability.cooldown === 'number' && ability.cooldown > 0 ? ability.cooldown : 0;
+    const effectDuration = typeof ability.effectDuration === 'number' && ability.effectDuration > 0
+      ? ability.effectDuration
       : 0;
-    const enemyEffect = effectDuration > 0 && row.ability.effectTarget === 'enemy';
+    const enemyEffect = effectDuration > 0 && ability.effectTarget === 'enemy';
     const selfEffect = effectDuration > 0 && !enemyEffect;
 
     const prevPlayer = player;
@@ -295,12 +340,14 @@ export default function CombatAbilityUseSection({
         if (selfEffect) extra.activeEffects = { [effectKey]: effectDuration };
         if (spendPool && cost > 0) await persistSpend(spendPool.kind, nextCurrent, undefined, extra);
         else if (extra.cooldowns || extra.activeEffects) await onPlayerPatch(player.name, extra);
+        if (nextPhases) combatPatchRef.current({ abilityPhases: nextPhases });
       } else {
         const extra: Partial<CombatParticipant> = {};
         if (cdDuration > 0) extra.cooldowns = { ...participant.cooldowns, [cooldownKey]: cdDuration };
         if (selfEffect) extra.activeEffects = { ...participant.activeEffects, [effectKey]: effectDuration };
+        if (nextPhases) extra.abilityPhases = nextPhases;
         if (spendPool && cost > 0) await persistSpend(spendPool.kind, nextCurrent, extra);
-        else if (extra.cooldowns || extra.activeEffects) onCombatPatch(extra);
+        else if (Object.keys(extra).length > 0) onCombatPatch(extra);
       }
 
       const undo = isAdmin
@@ -322,7 +369,8 @@ export default function CombatAbilityUseSection({
               if (selfEffect) {
                 patch.activeEffects = { [effectKey]: readActiveEffect(prevPlayer.activeEffects, effectKey) };
               }
-              void onPlayerPatch(prevPlayer.name, patch);
+              if (Object.keys(patch).length > 0) void onPlayerPatch(prevPlayer.name, patch);
+              if (nextPhases) combatPatchRef.current({ abilityPhases: prevPhases ?? {} });
             } else {
               const patch: Partial<CombatParticipant> = {};
               if (spendPool && cost > 0) {
@@ -331,15 +379,21 @@ export default function CombatAbilityUseSection({
               }
               if (cdDuration > 0) patch.cooldowns = prevCombat.cooldowns;
               if (selfEffect) patch.activeEffects = prevCombat.activeEffects;
-              onCombatPatch(patch);
+              if (nextPhases) patch.abilityPhases = prevPhases ?? {};
+              combatPatchRef.current(patch);
             }
             setLastUse(null);
           }
         : undefined;
 
       setLastUse({ headline, detail, undo });
-      if (enemyEffect) setPickingKey(row.key);
-      else setPickingKey(null);
+      if (enemyEffect) {
+        setPickingKey(row.key);
+        setPickingAbility(ability);
+      } else {
+        setPickingKey(null);
+        setPickingAbility(null);
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo usar la habilidad');
     } finally {
@@ -349,14 +403,16 @@ export default function CombatAbilityUseSection({
 
   const confirmTarget = (targetId: string) => {
     const row = rows.find(entry => entry.key === pickingKey);
+    const ability = pickingAbility ?? row?.ability;
     setPickingKey(null);
-    if (!row || typeof row.ability.effectDuration !== 'number') return;
+    setPickingAbility(null);
+    if (!row || !ability || typeof ability.effectDuration !== 'number') return;
     onApplySourcedEffect(targetId, {
       source: `ability:${row.name}`,
-      name: (row.ability.effectName ?? '').trim() || row.name,
-      duration: row.ability.effectDuration,
-      hasStacks: row.ability.hasStacks,
-      maxStacks: row.ability.maxStacks,
+      name: (ability.effectName ?? '').trim() || row.name,
+      duration: ability.effectDuration,
+      hasStacks: ability.hasStacks,
+      maxStacks: ability.maxStacks,
     });
   };
 
@@ -364,9 +420,10 @@ export default function CombatAbilityUseSection({
   const targets = participants.filter(entry => entry.id !== participant.id);
   const missing = participant.kind === 'player' ? !player : !champion;
 
-  const rowState = (row: AbilityRow) => {
-    const spend = resolvedSpendKind(row.ability, row.ownerResource ? { resource: row.ownerResource } : undefined);
-    const cost = spend.kind === 'none' ? 0 : (parseAbilityCost(row.ability.cost, row.rank) ?? 0);
+  const rowState = (row: AbilityRow, phase?: number) => {
+    const ability = activeAbility(row, phase);
+    const spend = resolvedSpendKind(ability, row.ownerResource ? { resource: row.ownerResource } : undefined);
+    const cost = spend.kind === 'none' ? 0 : (parseAbilityCost(ability.cost, row.rank) ?? 0);
     const spendPool = spend.kind === 'none' ? null : currentFor(spend.kind === 'hp' ? 'hp' : 'pool');
     const cdRemaining = player
       ? readCooldown(player.cooldowns, abilityCooldownKey(row.name))
@@ -377,7 +434,7 @@ export default function CombatAbilityUseSection({
     let disabledReason: string | undefined;
     if (participant.defeated) disabledReason = 'Está derrotado';
     else if (cdRemaining > 0) disabledReason = `En enfriamiento (CD ${cdRemaining})`;
-    else if (hasDamageScaling(row.ability.damage) && row.rank < 1) disabledReason = 'Habilidad sin aprender (rango 0)';
+    else if (hasDamageScaling(ability.damage) && row.rank < 1) disabledReason = 'Habilidad sin aprender (rango 0)';
     else if (spendPool && cost > spendPool.current) {
       disabledReason = `No hay ${spend.label.toLowerCase()} suficiente (${spendPool.current}/${spendPool.max})`;
     }
@@ -417,7 +474,7 @@ export default function CombatAbilityUseSection({
             </div>
             <div className="combat-resource__track" aria-hidden="true">
               <div
-                className={cx('combat-resource__fill', pool.kind === 'hp' && 'combat-resource__fill--hp')}
+                className={cx('combat-resource__fill', pool.kind === 'hp' && 'combat-resource__fill--hp', pool.kind === 'pool' && pool.resourceId && pool.resourceId !== 'mana' && `combat-resource__fill--${pool.resourceId}`)}
                 style={{ width: `${pool.max > 0 ? Math.min(100, Math.round((pool.current / pool.max) * 100)) : 0}%` }}
               />
             </div>
@@ -432,9 +489,13 @@ export default function CombatAbilityUseSection({
         <ul className="combat-panel__trackers">
           {rows.map(row => {
             const state = rowState(row);
+            const active = activeAbility(row);
+            const phased = hasVariants(row.ability);
+            const choose = isChoosePhases(row.ability);
+            const labels = phased ? phaseLabels(row.ability) : [];
             const costLabel = state.cost > 0
               ? `${state.cost} ${state.spend.label}`
-              : row.ability.cost?.trim() || undefined;
+              : active.cost?.trim() || undefined;
             return (
               <li key={row.key} className="combat-panel__ability">
                 <span className="combat-panel__ability-seal" aria-hidden>{row.seal}</span>
@@ -474,7 +535,7 @@ export default function CombatAbilityUseSection({
                       </button>
                     </span>
                   )}
-                  {isAdmin && (
+                  {isAdmin && !choose && (
                     <button
                       type="button"
                       className="combat-btn combat-btn--small combat-panel__activate"
@@ -486,6 +547,35 @@ export default function CombatAbilityUseSection({
                     </button>
                   )}
                 </span>
+                {choose && (
+                  <span className="combat-panel__phase-uses">
+                    {labels.map((label, index) => {
+                      const phaseState = rowState(row, index);
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          className="combat-btn combat-btn--small combat-panel__activate"
+                          disabled={locked || !!phaseState.disabledReason}
+                          title={phaseState.disabledReason ?? `Usar ${row.seal} · ${label}`}
+                          onClick={() => { void useAbility(row, index); }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </span>
+                )}
+                {phased && !choose && (
+                  <PhaseTabs
+                    small
+                    className="combat-panel__phases"
+                    labels={labels}
+                    active={phaseOf(row)}
+                    disabled={saving || busy}
+                    onSelect={index => selectPhase(row, index)}
+                  />
+                )}
               </li>
             );
           })}
@@ -512,7 +602,7 @@ export default function CombatAbilityUseSection({
 
       {picking && (
         <div className="combat-panel__picker">
-          <p className="combat-panel__picker-title">Objetivo de {picking.ability.effectName || picking.name}</p>
+          <p className="combat-panel__picker-title">Objetivo de {(pickingAbility ?? picking.ability).effectName || picking.name}</p>
           {targets.length === 0 && <p className="combat-page__hint">No hay otros participantes.</p>}
           <ul className="combat-panel__picker-list">
             {targets.map(target => (
@@ -531,7 +621,7 @@ export default function CombatAbilityUseSection({
               </li>
             ))}
           </ul>
-          <button type="button" className="combat-btn combat-btn--small" onClick={() => setPickingKey(null)}>
+          <button type="button" className="combat-btn combat-btn--small" onClick={() => { setPickingKey(null); setPickingAbility(null); }}>
             Cancelar
           </button>
         </div>

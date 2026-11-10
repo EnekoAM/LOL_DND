@@ -43,6 +43,27 @@ export type Ability = {
   effectName?: string;
   /** Recurso que gasta. Ausente = el del campeón. */
   resource?: ResourceId;
+  /** Fases 2, 3… (la base es la fase 1). Lo que no se rellena hereda de la base. */
+  variants?: AbilityVariant[];
+  /** sequential (por defecto) = Usar avanza de fase; choose = se elige la fase al usar. */
+  phaseMode?: 'sequential' | 'choose';
+};
+
+/** Fase alternativa de una habilidad (Q de Aatrox, Riven, básicas de Hwei…). */
+export type AbilityVariant = {
+  /** Nombre de la fase. Ausente = «Fase N». */
+  name?: string;
+  description?: string;
+  cost?: string;
+  resource?: ResourceId;
+  /** Campos de daño que cambian; los ausentes heredan de la base. */
+  damage?: AbilityDamage;
+  /** Si está, sustituye los efectos de la base. */
+  effect?: AbilityEffect[];
+  cooldown?: number;
+  effectDuration?: number;
+  effectTarget?: 'self' | 'enemy';
+  effectName?: string;
 };
 
 export type Champion = {

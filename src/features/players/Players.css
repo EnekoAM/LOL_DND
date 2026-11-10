@@ -3143,3 +3143,14 @@
   border-color: var(--gold-bright, #f0d27a);
 }
 
+
+/* Relleno de barra según el recurso del campeón */
+.sheet-resource__fill--energia { background: linear-gradient(90deg, rgba(202, 138, 4, 0.9), rgba(250, 204, 21, 0.95)); }
+.sheet-resource__fill--furia { background: linear-gradient(90deg, rgba(185, 28, 28, 0.9), rgba(248, 113, 113, 0.95)); }
+.sheet-resource__fill--ferocidad { background: linear-gradient(90deg, rgba(194, 65, 12, 0.9), rgba(251, 146, 60, 0.95)); }
+.sheet-resource__fill--calor { background: linear-gradient(90deg, rgba(234, 88, 12, 0.9), rgba(253, 186, 116, 0.95)); }
+.sheet-resource__fill--coraje { background: linear-gradient(90deg, rgba(161, 98, 7, 0.9), rgba(234, 179, 8, 0.95)); }
+.sheet-resource__fill--escudo { background: linear-gradient(90deg, rgba(100, 116, 139, 0.9), rgba(203, 213, 225, 0.95)); }
+.sheet-resource__fill--sangre { background: linear-gradient(90deg, rgba(127, 29, 29, 0.95), rgba(185, 28, 28, 0.95)); }
+.sheet-resource__fill--concentracion { background: linear-gradient(90deg, rgba(13, 148, 136, 0.9), rgba(94, 234, 212, 0.95)); }
+.sheet-resource__fill--otro { background: linear-gradient(90deg, rgba(107, 114, 128, 0.9), rgba(156, 163, 175, 0.95)); }

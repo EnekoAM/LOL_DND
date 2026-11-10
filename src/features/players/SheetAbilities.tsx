@@ -30,6 +30,7 @@ import AbilityAssignModal from '../habilidades/AbilityAssignModal';
 import { playerTotalLine, playerBonusLine } from '../calculos/playerTotals';
 import AbilityDamageModal from './AbilityDamageModal';
 import { hasDamageScaling, rollAbilityDamage, type AbilityDamageRoll } from './abilityDamage';
+import { anyPhaseHasDamage, hasVariants, isChoosePhases, phaseLabels } from '../../data/abilityVariants';
 import '../habilidades/Habilidades.css';
 import './SheetAbilities.css';
 
@@ -73,8 +74,12 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
     bonus: playerBonusLine(player.sheet, player.equipamiento),
   };
   const openAbility = (ability: Ability, rank: number) => {
-    if (!hasDamageScaling(ability.damage)) {
+    if (!anyPhaseHasDamage(ability)) {
       onSelectAbility(ability, rank);
+      return;
+    }
+    if (!hasDamageScaling(ability.damage)) {
+      setDamageRoll({ ability, rank, result: null, error: 'Esta fase no tiene escalado de daño.' });
       return;
     }
     try {
@@ -206,7 +211,9 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                   const resolved = resolveAbilityResource(ability ?? undefined, ref?.championResource ? { resource: ref.championResource } : undefined);
                   return resolved ? <ResourceChip resource={resolved.id} inherited={resolved.inherited} /> : undefined;
                 })()}
-                onOpen={ability?.damage ? () => openAbility(ability, rank) : undefined}
+                onOpen={ability && (ability.damage || hasVariants(ability)) ? () => openAbility(ability, rank) : undefined}
+                phases={ability && hasVariants(ability) ? phaseLabels(ability) : undefined}
+                phasesChoose={isChoosePhases(ability)}
                 ranks={rankControls}
                 stacks={ability?.hasStacks && abilityName ? (
                   <StackCounter

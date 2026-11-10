@@ -971,3 +971,14 @@
   font-size: 0.75rem;
   color: #9a9588;
 }
+
+/* Barra de recurso del campeón según su Recurso */
+.combat-resource__fill--energia { background: linear-gradient(90deg, #a87b04, #f5cf3a); }
+.combat-resource__fill--furia { background: linear-gradient(90deg, #8f1d1d, #ef6b6b); }
+.combat-resource__fill--ferocidad { background: linear-gradient(90deg, #a8430c, #f59c4c); }
+.combat-resource__fill--calor { background: linear-gradient(90deg, #c2410c, #fdba74); }
+.combat-resource__fill--coraje { background: linear-gradient(90deg, #8a5a06, #e3b008); }
+.combat-resource__fill--escudo { background: linear-gradient(90deg, #64748b, #cbd5e1); }
+.combat-resource__fill--sangre { background: linear-gradient(90deg, #5f1414, #b91c1c); }
+.combat-resource__fill--concentracion { background: linear-gradient(90deg, #0d9488, #5eead4); }
+.combat-resource__fill--otro { background: linear-gradient(90deg, #6b7280, #9ca3af); }

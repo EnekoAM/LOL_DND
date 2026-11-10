@@ -1,4 +1,4 @@
-import type { Ability, AbilityDamage, AbilityEffect, DamageScalingSource } from '../../data/champions';
+import type { Ability, AbilityDamage, AbilityEffect, AbilityVariant, DamageScalingSource } from '../../data/champions';
 import { isResourceId } from '../../data/resources';
 
 export type EffectDraft = {
@@ -26,6 +26,28 @@ export type AbilityDraft = {
   effectTarget: 'self' | 'enemy';
   effectName: string;
   resource: string;
+  /** Fases 2, 3… En blanco = igual que la fase 1. */
+  variants: VariantDraft[];
+  phaseMode: 'sequential' | 'choose';
+};
+
+/** Fase alternativa. Los textos vacíos y '' heredan de la base. */
+export type VariantDraft = {
+  name: string;
+  description: string;
+  cost: string;
+  resource: string;
+  damageType: string;
+  ap: string;
+  ad: string;
+  adSource: DamageScalingSource | '';
+  apSource: DamageScalingSource | '';
+  damageBonus: string;
+  effects: EffectDraft[];
+  cooldown: string;
+  effectDuration: string;
+  effectTarget: 'self' | 'enemy' | '';
+  effectName: string;
 };
 
 const EMPTY_EFFECT: EffectDraft = { name: '', values: '', duration: '' };
@@ -65,12 +87,105 @@ export function abilityToDraft(ability: Ability | null): AbilityDraft {
     effectTarget: ability?.effectTarget === 'enemy' ? 'enemy' : 'self',
     effectName: ability?.effectName ?? '',
     resource: ability?.resource ?? '',
-    effects: (ability?.effect ?? []).map(effect => ({
-      name: effect.name,
-      values: formatNumberList(effect.values),
-      duration: formatNumberList(effect.duration),
-    })),
+    effects: effectsToDraft(ability?.effect),
+    variants: (ability?.variants ?? []).map(variantToDraft),
+    phaseMode: ability?.phaseMode === 'choose' ? 'choose' : 'sequential',
   };
+}
+
+function effectsToDraft(effects: AbilityEffect[] | undefined): EffectDraft[] {
+  return (effects ?? []).map(effect => ({
+    name: effect.name,
+    values: formatNumberList(effect.values),
+    duration: formatNumberList(effect.duration),
+  }));
+}
+
+export function variantToDraft(variant: AbilityVariant): VariantDraft {
+  const bonus = damageBonusOf(variant.damage);
+  return {
+    name: variant.name ?? '',
+    description: variant.description ?? '',
+    cost: variant.cost ?? '',
+    resource: variant.resource ?? '',
+    damageType: variant.damage?.type ?? '',
+    ap: formatRatioList(variant.damage?.ap),
+    ad: formatRatioList(variant.damage?.ad),
+    adSource: variant.damage?.adSource ?? '',
+    apSource: variant.damage?.apSource ?? '',
+    damageBonus: bonus === undefined ? '' : String(bonus),
+    effects: effectsToDraft(variant.effect),
+    cooldown: typeof variant.cooldown === 'number' ? String(variant.cooldown) : '',
+    effectDuration: typeof variant.effectDuration === 'number' ? String(variant.effectDuration) : '',
+    effectTarget: variant.effectTarget ?? '',
+    effectName: variant.effectName ?? '',
+  };
+}
+
+export const blankVariant = (): VariantDraft => ({
+  name: '',
+  description: '',
+  cost: '',
+  resource: '',
+  damageType: '',
+  ap: '',
+  ad: '',
+  adSource: '',
+  apSource: '',
+  damageBonus: '',
+  effects: [],
+  cooldown: '',
+  effectDuration: '',
+  effectTarget: '',
+  effectName: '',
+});
+
+function parseTurns(text: string, field: string): number | undefined {
+  const trimmed = text.trim();
+  if (!trimmed) return undefined;
+  const n = Number(trimmed);
+  if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error(`${field} tiene que ser un entero entre 1 y 999`);
+  return n;
+}
+
+function draftToVariant(draft: VariantDraft, index: number): AbilityVariant {
+  const label = `Fase ${index + 2}`;
+  const variant: AbilityVariant = {};
+  const name = draft.name.trim();
+  if (name.length > 80) throw new Error(`${label}: el nombre no puede superar 80 caracteres`);
+  if (name) variant.name = name;
+  const description = draft.description.trim();
+  if (description) variant.description = description;
+  const cost = draft.cost.trim();
+  if (cost) variant.cost = cost;
+  const resource = draft.resource.trim();
+  if (resource) {
+    if (!isResourceId(resource)) throw new Error(`${label}: el recurso no es válido`);
+    variant.resource = resource;
+  }
+  const damage: AbilityDamage = {};
+  const type = draft.damageType.trim();
+  if (type) damage.type = type;
+  const ap = parsePercentList(draft.ap, `${label}: el escalado de AP`);
+  const ad = parsePercentList(draft.ad, `${label}: el escalado de AD`);
+  if (ap) damage.ap = ap;
+  if (ad) damage.ad = ad;
+  if (draft.adSource) damage.adSource = draft.adSource;
+  if (draft.apSource) damage.apSource = draft.apSource;
+  const damageBonus = parseBonus(draft.damageBonus);
+  if (damageBonus !== undefined) damage.damageBonus = damageBonus;
+  if (Object.keys(damage).length) variant.damage = damage;
+  const effect = parseEffects(draft.effects);
+  if (effect) variant.effect = effect;
+  const cooldown = parseTurns(draft.cooldown, `${label}: el cooldown`);
+  if (cooldown !== undefined) variant.cooldown = cooldown;
+  const effectDuration = parseTurns(draft.effectDuration, `${label}: el efecto`);
+  if (effectDuration !== undefined) variant.effectDuration = effectDuration;
+  if (draft.effectTarget) variant.effectTarget = draft.effectTarget;
+  const effectName = draft.effectName.trim();
+  if (effectName.length > 80) throw new Error(`${label}: el nombre del efecto no puede superar 80 caracteres`);
+  if (effectName) variant.effectName = effectName;
+  return variant;
 }
 
 function parseNumberList(text: string, field: string): number[] | undefined {
@@ -170,6 +285,12 @@ export function draftToAbility(draft: AbilityDraft): Ability {
   if (resource) {
     if (!isResourceId(resource)) throw new Error('El recurso no es válido');
     ability.resource = resource;
+  }
+  if (draft.variants.length > 12) throw new Error('Como máximo 13 fases por habilidad');
+  const variants = draft.variants.map(draftToVariant);
+  if (variants.length) {
+    ability.variants = variants;
+    if (draft.phaseMode === 'choose') ability.phaseMode = 'choose';
   }
   return ability;
 }

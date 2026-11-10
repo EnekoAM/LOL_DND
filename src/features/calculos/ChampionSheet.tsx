@@ -11,7 +11,8 @@ import {
 } from '../../data/champions';
 import { ROLE_TABLES, findRoleTable } from '../../data/roles';
 import { useCanEdit } from '../../data/appRoleContext';
-import { RESOURCE_IDS, RESOURCE_LABELS, isResourceId, resolveAbilityResource } from '../../data/resources';
+import { RESOURCE_IDS, RESOURCE_LABELS, championResourceBar, isResourceId, resolveAbilityResource } from '../../data/resources';
+import { numericStat } from '../combate/combatAbilityUse';
 import ResourceChip from '../../components/ResourceChip';
 import { findItem, type Item } from '../../data/items';
 import { EQUIPMENT_SLOTS } from '../../data/players';
@@ -36,6 +37,7 @@ import StatsTable from './StatsTable';
 import { championDamageContext, championAbilityRankCount } from './championDamage';
 import AbilityDamageModal from '../players/AbilityDamageModal';
 import { hasDamageScaling, rollAbilityDamage, type AbilityDamageRoll } from '../players/abilityDamage';
+import { anyPhaseHasDamage, hasVariants, isChoosePhases, phaseLabels } from '../../data/abilityVariants';
 import { createPortal } from 'react-dom';
 import { STAT_COLUMNS, formatDefenseStat, formatStat, isDefenseKey, type StatKey } from './statLine';
 import './ChampionSheet.css';
@@ -124,8 +126,12 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
   const total = stats;
 
   const openAbility = (ability: Ability) => {
-    if (!hasDamageScaling(ability.damage)) {
+    if (!anyPhaseHasDamage(ability)) {
       onSelectAbility(ability);
+      return;
+    }
+    if (!hasDamageScaling(ability.damage)) {
+      setDamageRoll({ ability, result: null, error: 'Esta fase no tiene escalado de daño.' });
       return;
     }
     try {
@@ -474,15 +480,22 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                 <div className="sheet-resource__fill champ-sheet__fill--hp" style={{ width: '100%' }} />
               </div>
             </div>
-            <div className="champ-sheet__res" title={STAT_TITLES.mana}>
-              <div className="sheet-resource__top">
-                <span className="sheet-resource__label">Maná</span>
-                <span className="champ-sheet__res-value">{formatStat(total.mana)}</span>
-              </div>
-              <div className="sheet-resource__track" aria-hidden="true">
-                <div className="sheet-resource__fill sheet-resource__fill--mana" style={{ width: '100%' }} />
-              </div>
-            </div>
+            {(() => {
+              const bar = championResourceBar(champion.resource, numericStat(total.mana));
+              if (!bar) return null;
+              const isMana = bar.id === 'mana';
+              return (
+                <div className="champ-sheet__res" title={isMana ? STAT_TITLES.mana : `${bar.label}: máximo ${bar.max}${bar.start === 'empty' ? ', empieza a 0 en combate' : ''}`}>
+                  <div className="sheet-resource__top">
+                    <span className="sheet-resource__label">{bar.label}</span>
+                    <span className="champ-sheet__res-value">{isMana ? formatStat(total.mana) : bar.start === 'empty' ? `0 / ${bar.max}` : bar.max}</span>
+                  </div>
+                  <div className="sheet-resource__track" aria-hidden="true">
+                    <div className={`sheet-resource__fill ${bar.fillClass}`} style={{ width: bar.start === 'empty' ? '0%' : '100%' }} />
+                  </div>
+                </div>
+              );
+            })()}
             <div className="sheet-defense champ-sheet__defense">
               {DEFENSE_KEYS.map(({ key, label }) => {
                 const defense = isDefenseKey(key) ? formatDefenseStat(total[key]) : null;
@@ -558,7 +571,9 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                     })()}
                     sealAsIcon
                     footerAction
-                    onOpen={ability?.damage ? () => openAbility(ability) : undefined}
+                    onOpen={ability && (ability.damage || hasVariants(ability)) ? () => openAbility(ability) : undefined}
+                    phases={ability && hasVariants(ability) ? phaseLabels(ability) : undefined}
+                    phasesChoose={isChoosePhases(ability)}
                     action={(
                       <button
                         type="button"

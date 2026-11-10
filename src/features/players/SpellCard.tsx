@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cx } from '../../lib/cx';
+import PhaseTabs from '../habilidades/PhaseTabs';
 
 export type SpellTone = 'pasiva' | 'basica' | 'definitiva' | 'auto';
 
@@ -29,6 +30,10 @@ type SpellCardProps = {
   sealAsIcon?: boolean;
   /** El botón de acción va abajo, a ancho completo. */
   footerAction?: boolean;
+  /** Fases de una habilidad con variantes (Fase 1, Fase 2…). */
+  phases?: string[];
+  /** Las fases se eligen al usar (combos). */
+  phasesChoose?: boolean;
 };
 
 const SpellCard = ({
@@ -48,6 +53,8 @@ const SpellCard = ({
   action,
   sealAsIcon,
   footerAction,
+  phases,
+  phasesChoose,
 }: SpellCardProps) => (
   <article
     className={cx(
@@ -71,6 +78,11 @@ const SpellCard = ({
   >
     <span className="spell__corner spell__corner--tl" aria-hidden />
     <span className="spell__corner spell__corner--br" aria-hidden />
+    {phases && phases.length > 1 && (
+      <div className="spell__phases" title="Habilidad con fases: ábrela para ver cada una">
+        <PhaseTabs small labels={phasesChoose ? [...phases, 'A elegir'] : phases} active={-1} onSelect={() => onOpen?.()} />
+      </div>
+    )}
     <header className="spell__head">
       <div className="spell__icon" aria-hidden>
         {image && !empty && !sealAsIcon

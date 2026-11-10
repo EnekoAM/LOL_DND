@@ -53,6 +53,8 @@ export type CombatParticipant = {
   cooldowns?: Record<string, number>;
   /** Efectos propios restantes de habilidades usadas desde el panel (solo campeón). */
   activeEffects?: Record<string, number>;
+  /** Fase actual (0 = base) de habilidades con variantes. Claves ability:<nombre>. Se vacía al terminar. */
+  abilityPhases?: Record<string, number>;
 };
 
 export type CombatState = {
