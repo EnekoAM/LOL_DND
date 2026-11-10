@@ -279,8 +279,6 @@ const Npcs = () => {
                 <button type="button" className="search-clear" aria-label="Borrar búsqueda" title="Borrar" onClick={() => update({ search: '' })}>×</button>
               )}
             </span>
-            {canEdit && (
-            <>
             <select className="calc-select-dmg" value={filter.kind} onChange={e => update({ kind: e.target.value as NpcKind | '' })}>
               <option value="">Clase</option>
               {NPC_KINDS.map(kind => <option key={kind.value} value={kind.value}>{kind.icon} {kind.label}</option>)}
@@ -295,8 +293,6 @@ const Npcs = () => {
               <option value={NONE}>Sin región</option>
               {regions.map(region => <option key={region} value={region}>{region}</option>)}
             </select>
-            </>
-            )}
             {canEdit && (
               <>
                 <button

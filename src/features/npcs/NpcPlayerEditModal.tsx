@@ -9,9 +9,10 @@ type Props = {
   onSubmit: (patch: NpcPlayerPatch) => Promise<void>;
 };
 
-/** Edición de un player: solo la descripción (vida, resistencias y demás notas van dentro del texto). */
+/** Edición de un player: descripción y notas públicas compartidas. */
 const NpcPlayerEditModal = ({ npc, onClose, onSubmit }: Props) => {
   const [description, setDescription] = useState(npc.description);
+  const [publicNotes, setPublicNotes] = useState(npc.publicNotes ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +22,10 @@ const NpcPlayerEditModal = ({ npc, onClose, onSubmit }: Props) => {
     setSaving(true);
     setError(null);
     try {
-      await onSubmit({ description: description.trim() });
+      await onSubmit({
+        description: description.trim(),
+        publicNotes: publicNotes.trim(),
+      });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo guardar');
       setSaving(false);
@@ -37,12 +41,23 @@ const NpcPlayerEditModal = ({ npc, onClose, onSubmit }: Props) => {
         <label className="hab-field">
           <span>Descripción</span>
           <textarea
-            rows={8}
+            rows={6}
             autoFocus
             maxLength={NPC_DESCRIPTION_MAX}
             value={description}
             placeholder="Notas, vida, resistencias…"
             onChange={e => setDescription(e.target.value)}
+          />
+        </label>
+
+        <label className="hab-field">
+          <span>Notas públicas (visibles a toda la party)</span>
+          <textarea
+            rows={4}
+            maxLength={NPC_DESCRIPTION_MAX}
+            value={publicNotes}
+            placeholder="Lo que vea todo el grupo…"
+            onChange={e => setPublicNotes(e.target.value)}
           />
         </label>
 

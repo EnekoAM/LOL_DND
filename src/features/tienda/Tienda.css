@@ -336,7 +336,7 @@
 
 .shop-layout {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(280px, 380px);
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 440px);
   gap: 18px;
   align-items: start;
 }
@@ -417,7 +417,7 @@
 }
 
 .shop-craft__item {
-  width: 92px;
+  width: 108px;
   padding: 8px;
   border: 1px solid rgba(240, 212, 138, 0.22);
   border-radius: 10px;
@@ -707,8 +707,8 @@
 }
 
 .shop-rarity--inicial { color: #9aabb0; }
-.shop-rarity--basico { color: #c4b08a; }
-.shop-rarity--epico { color: #9aabf0; }
+.shop-rarity--basico { color: #7eb8e8; }
+.shop-rarity--epico { color: #c49af0; }
 .shop-rarity--legendario { color: #f0d48a; }
 .shop-rarity--prismatico { color: #e07098; }
 .shop-rarity--botas { color: #d7c4a2; }
@@ -726,3 +726,486 @@
 .shop-search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #f6e7c4; opacity: .6; cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px; }
 .shop-search-clear:hover { opacity: 1; }
 
+/* --- suggestion batch: tienda QoL --- */
+.shop-ware__actions {
+  display: inline-flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.shop-add--remove {
+  border-color: rgba(200, 70, 70, 0.45) !important;
+  color: #f0a0a0 !important;
+  background: rgba(120, 30, 30, 0.25) !important;
+}
+.shop-add--remove:hover:not(:disabled) {
+  border-color: rgba(230, 90, 90, 0.7) !important;
+  color: #ffc0c0 !important;
+}
+.shop-qty__trash {
+  margin-left: 2px;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  border: 1px solid rgba(200, 70, 70, 0.35);
+  background: rgba(80, 20, 20, 0.35);
+  color: #f0b0b0;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+}
+.shop-qty__trash:hover {
+  border-color: rgba(230, 90, 90, 0.7);
+  background: rgba(120, 30, 30, 0.45);
+}
+
+/* --- craft tree: recursive flex subtrees + T connectors --- */
+.lol-tree {
+  --lol-line: rgba(120, 190, 200, 0.7);
+  --lol-gap: 10px;
+  --lol-stem: 12px;
+  --lol-icon: 40px;
+  position: relative;
+  margin: 8px 0 4px;
+  padding: 12px 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(70, 160, 170, 0.35);
+  background:
+    radial-gradient(ellipse at top, rgba(32, 70, 78, 0.55), transparent 55%),
+    linear-gradient(180deg, rgba(10, 28, 34, 0.92), rgba(6, 16, 22, 0.96));
+  box-shadow: inset 0 0 0 1px rgba(201, 168, 76, 0.08);
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.lol-tree__stage {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: max-content;
+  display: flex;
+  justify-content: flex-start;
+  will-change: transform;
+}
+
+/* Cada subárbol reserva su ancho natural: max(caja, suma hijos). */
+.lol-tree__subtree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: max-content;
+  position: relative;
+}
+
+.lol-tree__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: none;
+  min-width: calc(var(--lol-icon) + 12px);
+  max-width: 72px;
+  padding: 0 6px;
+  box-sizing: border-box;
+}
+
+.lol-tree__icon {
+  position: relative;
+  width: var(--lol-icon);
+  height: var(--lol-icon);
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid rgba(90, 170, 180, 0.5);
+  background: rgba(8, 20, 26, 0.9);
+  cursor: pointer;
+  color: inherit;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  flex: none;
+}
+.lol-tree__icon:disabled { cursor: default; }
+.lol-tree__icon img,
+.lol-tree__fallback {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 3px;
+}
+.lol-tree__fallback {
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  color: rgba(160, 210, 220, 0.35);
+}
+.lol-tree__icon--selected {
+  border-color: #f0d27a;
+  box-shadow:
+    0 0 0 1px rgba(240, 210, 122, 0.55),
+    0 0 12px rgba(240, 210, 122, 0.45),
+    inset 0 0 8px rgba(240, 210, 122, 0.14);
+}
+.lol-tree__icon--owned {
+  opacity: 0.55;
+  filter: saturate(0.65);
+  border-color: rgba(74, 222, 128, 0.45);
+}
+.lol-tree__check {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #14532d;
+  border: 1px solid #4ade80;
+  color: #bbf7d0;
+  font-size: 9px;
+  line-height: 12px;
+  text-align: center;
+}
+.lol-tree__qty {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  min-width: 14px;
+  padding: 0 3px;
+  border-radius: 6px;
+  background: rgba(6, 16, 22, 0.95);
+  border: 1px solid rgba(201, 168, 76, 0.45);
+  color: #f0d27a;
+  font-size: 9px;
+  line-height: 13px;
+  text-align: center;
+}
+.lol-tree__price {
+  margin-top: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: #d6b35c;
+  width: 100%;
+  max-width: 100%;
+  justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+.lol-tree__price--owned { color: #86efac; }
+.lol-tree__price--buy { color: #fca5a5; }
+.lol-tree__price--free { color: rgba(180, 200, 210, 0.7); }
+.lol-tree__coin { font-size: 8px; opacity: 0.85; }
+
+/* Fila de subárboles hermanos: cada uno con su ancho reservado. */
+.lol-tree__kids {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--lol-gap);
+  width: max-content;
+  position: relative;
+  margin-top: var(--lol-stem);
+}
+
+/* Tallo del padre al centro de la barra */
+.lol-tree__kids::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 1px;
+  height: var(--lol-stem);
+  background: var(--lol-line);
+  transform: translateX(-50%);
+}
+
+/*
+ * Travesaño en T sin L: cada hermano dibuja el segmento horizontal
+ * desde su centro hacia los vecinos; juntos forman centro(1.º)→centro(último).
+ */
+.lol-tree__kids > .lol-tree__subtree {
+  padding-top: var(--lol-stem);
+}
+
+.lol-tree__kids > .lol-tree__subtree::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 1px;
+  background: var(--lol-line);
+}
+.lol-tree__kids > .lol-tree__subtree:first-child:not(:only-child)::before {
+  left: 50%;
+  right: 0;
+}
+.lol-tree__kids > .lol-tree__subtree:last-child:not(:only-child)::before {
+  left: 0;
+  right: 50%;
+}
+.lol-tree__kids > .lol-tree__subtree:not(:first-child):not(:last-child)::before {
+  left: 0;
+  right: 0;
+}
+
+/* Caída vertical de la T a cada hijo */
+.lol-tree__kids > .lol-tree__subtree::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: var(--lol-stem);
+  background: var(--lol-line);
+  transform: translateX(-50%);
+}
+
+/* Un solo hijo: solo línea vertical */
+.lol-tree__kids--single::before {
+  height: var(--lol-stem);
+}
+.lol-tree__kids--single > .lol-tree__subtree {
+  padding-top: 0;
+}
+.lol-tree__kids--single > .lol-tree__subtree::before,
+.lol-tree__kids--single > .lol-tree__subtree::after {
+  display: none;
+}
+
+.shop-craft__breakdown {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(70, 160, 170, 0.3);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  background: rgba(0, 0, 0, 0.25);
+}
+.shop-craft__breakdown li { margin: 2px 0; }
+
+/* Nombres de ingredientes: 2 líneas, sin truncar a una. */
+.shop-craft__label-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  line-height: 1.25;
+  color: #f6e7c4;
+  width: 100%;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* --- lupa compare --- */
+.calc-picker-item-wrap {
+  position: relative;
+}
+.calc-picker-item__lupa {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 76, 0.45);
+  background: rgba(10, 8, 4, 0.85);
+  color: var(--gold-bright, #f0d27a);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.calc-picker-item__lupa:hover:not(:disabled) {
+  border-color: var(--gold-bright, #f0d27a);
+  background: rgba(40, 30, 10, 0.95);
+}
+.calc-modal--compare { max-width: min(920px, 96vw); }
+.item-compare__grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: start;
+  margin: 12px 0 16px;
+}
+.item-compare__vs {
+  align-self: center;
+  font-size: 22px;
+  color: var(--gold, #c9a84c);
+  opacity: 0.7;
+}
+.item-compare__col {
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  border-radius: 10px;
+  padding: 12px;
+  background: rgba(12, 10, 6, 0.45);
+  min-width: 0;
+}
+.item-compare__col-label {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--gold, #c9a84c);
+  margin-bottom: 8px;
+}
+.item-compare__rarity {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+.item-compare__img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 8px;
+}
+.item-compare__img--empty {
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(201,168,76,0.25);
+  color: rgba(201,168,76,0.35);
+}
+.item-compare__name {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  text-align: center;
+  margin: 0 0 10px;
+}
+.item-compare__stats {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.item-compare__stats li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+.item-compare__effects { display: grid; gap: 8px; }
+.item-compare__effect span {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold, #c9a84c);
+}
+.item-compare__effect p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+  opacity: 0.9;
+}
+.item-compare__muted { opacity: 0.55; font-size: 12px; }
+.item-compare__empty { opacity: 0.65; font-size: 13px; }
+.item-compare__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 720px) {
+  .item-compare__grid { grid-template-columns: 1fr; }
+  .item-compare__vs { justify-self: center; transform: rotate(90deg); }
+}
+
+/* --- accent color --- */
+.sheet-accent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+.sheet-accent input[type="color"] {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+.sheet-inspire {
+  --inspire-accent: var(--gold);
+}
+.sheet-inspire--custom.sheet-inspire--on {
+  border-color: color-mix(in srgb, var(--inspire-accent) 70%, white 10%);
+  color: var(--inspire-accent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--inspire-accent) 22%, transparent), rgba(10, 8, 4, 0.55) 75%);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--inspire-accent) 28%, transparent), inset 0 0 10px color-mix(in srgb, var(--inspire-accent) 10%, transparent);
+}
+.sheet-inspire--custom.sheet-inspire--on .sheet-inspire__sigil {
+  border-color: var(--inspire-accent);
+  background: radial-gradient(circle, color-mix(in srgb, var(--inspire-accent) 50%, white 20%), color-mix(in srgb, var(--inspire-accent) 25%, transparent) 55%, rgba(10, 8, 4, 0.85) 82%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--inspire-accent) 55%, transparent);
+}
+.sheet-inspire--custom.sheet-inspire--on .sheet-inspire__sigil svg,
+.sheet-inspire--custom.sheet-inspire--on:hover:not(:disabled) .sheet-inspire__sigil svg {
+  fill: color-mix(in srgb, var(--inspire-accent) 35%, white 65%);
+  stroke: var(--inspire-accent);
+}
+
+/* --- NPC public notes + extra desglose --- */
+.npc-public-notes {
+  margin-top: 12px;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+.npc-public-notes__empty { opacity: 0.6; }
+.sheet-extra-desglose .calc-role__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sheet-extra-desglose__table { overflow-x: auto; }
+.sheet-extra-desglose__edit { padding: 8px 4px 4px; }
+
+
+.shop-cart.shop-craft {
+  padding-left: 10px;
+  padding-right: 10px;
+  overflow-x: hidden;
+}
+
+.shop-checkout--secondary {
+  margin-top: 8px;
+  background: linear-gradient(180deg, #c9d7e8, #6e8aab);
+  color: #101820;
+}
+
+.shop-checkout--ghost {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px solid rgba(243, 215, 143, 0.45);
+  color: #f3d78f;
+}
+
+.shop-craft__confirm {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(243, 215, 143, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.shop-craft__confirm-actions {
+  display: grid;
+  gap: 8px;
+}

@@ -108,3 +108,54 @@
   border-color: rgba(201, 168, 76, 0.6);
   background: rgba(201, 168, 76, 0.1);
 }
+
+/* Cabecera estrecha (~170px): título puede encoger; controles no hacen wrap. */
+.sheet-general__skills .sheet-panel__title.sheet-skills__title {
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.sheet-general__skills .sheet-panel__title.sheet-skills__title::after {
+  display: none;
+}
+
+.sheet-skills__title-text {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 1.2px;
+}
+
+.sheet-skills__title-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.sheet-general__skills .sheet-skills-sort {
+  margin-left: 0;
+  flex-shrink: 0;
+}
+
+.sheet-general__skills .sheet-skills-sort__btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sheet-general__skills .sheet-panel__meta {
+  margin-left: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sheet-skills__hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  opacity: 0.55;
+  line-height: 1.35;
+}

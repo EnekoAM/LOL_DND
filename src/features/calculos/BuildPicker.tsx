@@ -4,6 +4,7 @@ import ThumbImg from '../../components/ThumbImg';
 import { ITEMS } from '../../data/items';
 import { itemAvailability } from '../items/stock';
 import { matchesSearch, normalizeName } from '../../lib/text';
+import ItemCompareModal from './ItemCompareModal';
 
 type Props = {
   title: string;
@@ -19,15 +20,44 @@ type Props = {
   onRemove?: () => void;
   description?: string;
   allowSelection?: boolean;
+  /** Ítem actualmente equipado en el hueco (activa la lupa de comparación). */
+  compareWith?: string;
 };
 
-const BuildPicker = ({ title, busy, onlyAvailable = false, taken, takenLabel = 'Ya añadido', onAdd, onClose, onRemove, description, allowSelection = true }: Props) => {
+const BuildPicker = ({
+  title,
+  busy,
+  onlyAvailable = false,
+  taken,
+  takenLabel = 'Ya añadido',
+  onAdd,
+  onClose,
+  onRemove,
+  description,
+  allowSelection = true,
+  compareWith,
+}: Props) => {
   const [search, setSearch] = useState('');
+  const [compareName, setCompareName] = useState<string | null>(null);
   const takenKeys = useMemo(() => new Set((taken ?? []).map(normalizeName)), [taken]);
   const results = ITEMS
     .filter(item => (!onlyAvailable || itemAvailability(item).available > 0) && matchesSearch(item.nombre, search))
     .slice()
     .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+
+  if (compareName && compareWith) {
+    return (
+      <ItemCompareModal
+        currentName={compareWith}
+        candidateName={compareName}
+        busy={busy}
+        onBack={() => setCompareName(null)}
+        onAccept={() => {
+          onAdd(compareName);
+        }}
+      />
+    );
+  }
 
   return (
     <Modal onClose={onClose} backdropClassName="calc-modal-backdrop" className="calc-modal calc-modal--picker">
@@ -64,20 +94,36 @@ const BuildPicker = ({ title, busy, onlyAvailable = false, taken, takenLabel = '
           {results.map(item => {
             const included = taken !== undefined && takenKeys.has(normalizeName(item.nombre));
             return (
-              <button
-                key={item.nombre}
-                type="button"
-                className="calc-picker-item"
-                disabled={busy || included}
-                onClick={() => onAdd(item.nombre)}
-              >
-                {item.imagen
-                  ? <ThumbImg src={item.imagen} thumbWidth={128} alt="" />
-                  : <span className="calc-picker-item__fallback">✦</span>
-                }
-                <span className="calc-picker-item__name" title={item.nombre}>{item.nombre}</span>
-                {included && <span className="calc-picker-item__tag">{takenLabel}</span>}
-              </button>
+              <div key={item.nombre} className="calc-picker-item-wrap">
+                {compareWith && (
+                  <button
+                    type="button"
+                    className="calc-picker-item__lupa"
+                    aria-label={`Comparar ${item.nombre} con ${compareWith}`}
+                    title="Comparar con el equipado"
+                    disabled={busy}
+                    onClick={event => {
+                      event.stopPropagation();
+                      setCompareName(item.nombre);
+                    }}
+                  >
+                    🔍
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="calc-picker-item"
+                  disabled={busy || included}
+                  onClick={() => onAdd(item.nombre)}
+                >
+                  {item.imagen
+                    ? <ThumbImg src={item.imagen} thumbWidth={128} alt="" />
+                    : <span className="calc-picker-item__fallback">✦</span>
+                  }
+                  <span className="calc-picker-item__name" title={item.nombre}>{item.nombre}</span>
+                  {included && <span className="calc-picker-item__tag">{takenLabel}</span>}
+                </button>
+              </div>
             );
           })}
         </div>}

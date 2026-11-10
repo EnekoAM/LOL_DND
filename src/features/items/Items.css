@@ -1,7 +1,7 @@
 /* ─── RARITY TOKENS ─────────────────────────────────────── */
 .rarity--inicial    { --rc: #8a9aa0; --rc-dim: #4a5a60; --rc-bg: rgba(138,154,160,0.08); }
-.rarity--basico     { --rc: #a09070; --rc-dim: #6a5a40; --rc-bg: rgba(150,120,80,0.08);  }
-.rarity--epico      { --rc: #8898e8; --rc-dim: #4858a8; --rc-bg: rgba(100,120,200,0.1);  }
+.rarity--basico     { --rc: #5b9fd4; --rc-dim: #2a6a9a; --rc-bg: rgba(60,140,200,0.12);  }
+.rarity--epico      { --rc: #b07ce8; --rc-dim: #6a3aa0; --rc-bg: rgba(140,80,200,0.12);  }
 .rarity--legendario { --rc: var(--gold); --rc-dim: var(--gold-dim); --rc-bg: rgba(201,168,76,0.1);   }
 .rarity--prismatico { --rc: #e06090; --rc-dim: #903060; --rc-bg: rgba(220,80,140,0.1);   }
 .rarity--botas      { --rc: #6a9e8a; --rc-dim: #3a6a58; --rc-bg: rgba(90,150,120,0.1);   }

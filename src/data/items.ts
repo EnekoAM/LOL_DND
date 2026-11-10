@@ -18,6 +18,14 @@ export type Item = {
   craftsFrom: string[];
   /** Precio de tienda. En un crafteo, el oro es este precio menos el de los componentes. */
   coste?: number;
+  /** Si true, la ficha muestra un contador de stacks. */
+  hasStacks?: boolean;
+  /** Tope opcional del contador. */
+  maxStacks?: number;
+  /** Cooldown en turnos (si está definido, la ficha muestra Usar/CD). */
+  cooldown?: number;
+  /** Duración del efecto en turnos (p. ej. pociones). */
+  effectDuration?: number;
 };
 
 export let ITEMS: Item[] = [];
@@ -83,6 +91,10 @@ export type ItemUpdate = {
   stats: ItemStats;
   /** null quita el precio de tienda. */
   coste: number | null;
+  hasStacks?: boolean;
+  maxStacks?: number | null;
+  cooldown?: number | null;
+  effectDuration?: number | null;
 };
 
 /**
@@ -121,16 +133,34 @@ export async function saveItemUpdate(nombre: string, update: ItemUpdate): Promis
   current.stats = saved.stats ?? { ...update.stats };
   if (typeof saved.coste === 'number') current.coste = saved.coste;
   else delete current.coste;
+  if (saved.hasStacks === true) current.hasStacks = true;
+  else delete current.hasStacks;
+  if (typeof saved.maxStacks === 'number') current.maxStacks = saved.maxStacks;
+  else delete current.maxStacks;
+  if (typeof saved.cooldown === 'number') current.cooldown = saved.cooldown;
+  else delete current.cooldown;
+  if (typeof saved.effectDuration === 'number') current.effectDuration = saved.effectDuration;
+  else delete current.effectDuration;
   if (typeof saved.cantidad === 'number') current.cantidad = saved.cantidad;
   hydrateItems([...ITEMS]);
   return current;
 }
 
-/** Gasta la receta en la base y deja el stock en memoria alineado. */
-export async function craftItem(nombre: string): Promise<Item> {
+/** Gasta la receta en la base y deja el stock en memoria alineado.
+ * Con `recursive: true` el servidor prepara intermedios y cobra el oro del plan de una vez
+ * (misma fórmula que planCraft). Con `buyMissing` compra piezas básicas faltantes.
+ * Con `preview` solo calcula (no muta). */
+export async function craftItem(
+  nombre: string,
+  opts?: { recursive?: boolean; buyMissing?: boolean; preview?: boolean },
+): Promise<Item> {
   let response: Response;
   try {
-    response = await fetch(`/api/craft?nombre=${encodeURIComponent(nombre)}`, { method: 'POST' });
+    const params = new URLSearchParams({ nombre });
+    if (opts?.recursive) params.set('recursive', '1');
+    if (opts?.buyMissing) params.set('buyMissing', '1');
+    if (opts?.preview) params.set('preview', '1');
+    response = await fetch(`/api/craft?${params}`, { method: 'POST' });
   } catch {
     throw new Error('No se pudo contactar con la API. Arranca npm run dev:api');
   }
@@ -151,6 +181,44 @@ export async function craftItem(nombre: string): Promise<Item> {
   }
   if (!crafted) throw new Error('La API no devolvió el ítem crafteado');
   return crafted;
+}
+
+/** Vista previa del crafteo recursivo (opcionalmente comprando lo que falta). No muta. */
+export async function previewCraft(
+  nombre: string,
+  opts?: { buyMissing?: boolean },
+): Promise<{
+  preview: true;
+  oro: number;
+  buyGold: number;
+  craftGold: number;
+  directBuyGold: number;
+  cheaperDirect: boolean;
+  purchases: { nombre: string; cantidad: number; oro: number; unitCost?: number }[];
+  steps: { item: string; role: string; oro: number; diferencia?: number; tasa?: number }[];
+  gold: number;
+}> {
+  let response: Response;
+  try {
+    const params = new URLSearchParams({ nombre, recursive: '1', preview: '1' });
+    if (opts?.buyMissing) params.set('buyMissing', '1');
+    response = await fetch(`/api/craft?${params}`, { method: 'POST' });
+  } catch {
+    throw new Error('No se pudo contactar con la API. Arranca npm run dev:api');
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readError(body, `Error ${response.status} al previsualizar el crafteo`));
+  return body as {
+    preview: true;
+    oro: number;
+    buyGold: number;
+    craftGold: number;
+    directBuyGold: number;
+    cheaperDirect: boolean;
+    purchases: { nombre: string; cantidad: number; oro: number; unitCost?: number }[];
+    steps: { item: string; role: string; oro: number; diferencia?: number; tasa?: number }[];
+    gold: number;
+  };
 }
 
 export const findItems = (names: string[]): Item[] =>

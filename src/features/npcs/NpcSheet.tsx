@@ -217,7 +217,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
           {!canEdit && (
             <div className="champ-sheet__toggles npc-sheet__admin">
               <button type="button" className="champ-sheet__toggle" disabled={saving} onClick={() => setPlayerEditing(true)}>
-                ✎ Editar descripción
+                ✎ Editar descripción y notas públicas
               </button>
             </div>
           )}
@@ -300,6 +300,24 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
             <section className="sheet-panel">
               <div className="sheet-panel__title">Descripción</div>
               <p className="npc-sheet__description">{npc.description || 'Sin descripción.'}</p>
+              <div className="sheet-panel__title" style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span>Notas públicas</span>
+                {!canEdit && (
+                  <button
+                    type="button"
+                    className="sheet-hp__icon-btn"
+                    disabled={saving}
+                    aria-label="Editar notas públicas"
+                    title="Editar notas públicas"
+                    onClick={() => setPlayerEditing(true)}
+                  >
+                    ✎
+                  </button>
+                )}
+              </div>
+              <p className={npc.publicNotes?.trim() ? 'npc-public-notes' : 'npc-public-notes npc-public-notes__empty'}>
+                {npc.publicNotes?.trim() || 'Sin notas públicas.'}
+              </p>
             </section>
           )}
         </div>

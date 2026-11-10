@@ -24,6 +24,28 @@ const QUICK: { label: string; notation: string }[] = [
   { label: '2d20', notation: '2d20' },
 ];
 
+/** Caras con stepper ± para armar la combinación sin escribir a mano. */
+const DIE_STEPS: { label: string; sides: number }[] = [
+  { label: 'Moneda', sides: 2 },
+  { label: 'd4', sides: 4 },
+  { label: 'd6', sides: 6 },
+  { label: 'd8', sides: 8 },
+  { label: 'd10', sides: 10 },
+  { label: 'd12', sides: 12 },
+  { label: 'd20', sides: 20 },
+  { label: 'd100', sides: 100 },
+];
+
+const countsToNotation = (counts: Record<number, number>): string => {
+  const parts: string[] = [];
+  for (const { sides } of DIE_STEPS) {
+    const qty = counts[sides] ?? 0;
+    if (qty > 0) parts.push(`${qty}d${sides}`);
+  }
+  return parts.join('+') || '1d20';
+};
+
+
 type DiceTheme = {
   id: string;
   label: string;
@@ -279,6 +301,7 @@ const Dados = () => {
   const [ready, setReady] = useState(false);
   const [rolling, setRolling] = useState(false);
   const [notation, setNotation] = useState('1d20');
+  const [dieCounts, setDieCounts] = useState<Record<number, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<RollResult[] | null>(null);
   const [modifier, setModifier] = useState(0);
@@ -409,6 +432,20 @@ const Dados = () => {
     }
   }, [ready, rolling, themeBusy]);
 
+  const bumpDie = (sides: number, delta: number) => {
+    setDieCounts(prev => {
+      const current = prev[sides] ?? 0;
+      const nextQty = Math.max(0, Math.min(MAX_DICE, current + delta));
+      const next = { ...prev };
+      if (nextQty === 0) delete next[sides];
+      else next[sides] = nextQty;
+      const totalQty = Object.values(next).reduce((sum, n) => sum + n, 0);
+      if (totalQty > MAX_DICE) return prev;
+      setNotation(countsToNotation(next));
+      return next;
+    });
+  };
+
   const total = useMemo(() => {
     if (!results?.length) return null;
     return results.reduce((sum, entry) => sum + entry.value, 0) + modifier;
@@ -426,8 +463,45 @@ const Dados = () => {
             onChange={next => { void changeTheme(next); }}
           />
         </div>
-        <div className="dados-quick">
-          {QUICK.map(item => (
+        <div className="dados-die-tray" role="group" aria-label="Combinación de dados">
+          {DIE_STEPS.map(die => {
+            const qty = dieCounts[die.sides] ?? 0;
+            return (
+              <div key={die.sides} className="dados-die-step">
+                <button
+                  type="button"
+                  className="dados-die-step__btn"
+                  aria-label={`Quitar un ${die.label}`}
+                  disabled={!ready || rolling || themeBusy || qty <= 0}
+                  onClick={() => bumpDie(die.sides, -1)}
+                >
+                  −
+                </button>
+                <button
+                  type="button"
+                  className={`dados-die-step__face${qty > 0 ? ' is-on' : ''}`}
+                  disabled={!ready || rolling || themeBusy}
+                  title={`Tirar 1${die.sides === 2 ? 'd2' : die.label}`}
+                  onClick={() => { void roll(die.sides === 2 ? '1d2' : `1d${die.sides}`); }}
+                >
+                  <span className="dados-die-step__label">{die.label}</span>
+                  <span className="dados-die-step__qty" aria-live="polite">{qty}</span>
+                </button>
+                <button
+                  type="button"
+                  className="dados-die-step__btn"
+                  aria-label={`Añadir un ${die.label}`}
+                  disabled={!ready || rolling || themeBusy}
+                  onClick={() => bumpDie(die.sides, 1)}
+                >
+                  +
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        <div className="dados-quick" aria-label="Atajos">
+          {QUICK.filter(item => ['2d6', '4d6', '2d20'].includes(item.notation)).map(item => (
             <button
               key={item.notation}
               type="button"

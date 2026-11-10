@@ -30,6 +30,10 @@ export type Ability = {
   damage?: AbilityDamage;
   effect?: AbilityEffect[];
   cost?: string;
+  hasStacks?: boolean;
+  maxStacks?: number;
+  /** Cooldown en turnos propios. */
+  cooldown?: number;
 };
 
 export type Champion = {

@@ -35,42 +35,53 @@ function itemCost(item: Item | undefined): number {
   return typeof item?.coste === 'number' && Number.isFinite(item.coste) && item.coste > 0 ? item.coste : 0;
 }
 
-/** Tarifa fija según la rareza del resultado. La misma tabla está en server/store.ts. */
-const RARITY_CRAFT_GOLD: Record<string, number> = {
-  epico: 400,
-  legendario: 800,
-};
+/** Tasa de crafteo: 10% del precio del ítem (redondeo al entero más cercano). Misma regla en server/store.ts. */
+export const CRAFT_FEE_RATE = 0.1;
 
-function rarityKey(rareza: string): string {
-  return rareza.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+export function craftPercentFee(coste: number): number {
+  if (!Number.isFinite(coste) || coste <= 0) return 0;
+  return Math.round(coste * CRAFT_FEE_RATE);
 }
-
-export function rarityCraftGold(rareza: string): number {
-  return RARITY_CRAFT_GOLD[rarityKey(rareza)] ?? 0;
-}
-
-/** Pico, Espadón y las dos varas: las piezas valen más y solo se cobran 200. La misma cifra está en server/store.ts. */
-const SURPLUS_CRAFT_GOLD = 200;
 
 /**
- * Oro del crafteo, sin la tarifa de rareza.
- * Si el resultado vale más que las piezas, se cobra la diferencia.
- * Si una sola pieza vale más, el coste guardado ya es el restante (Marcha veloz, 750).
- * Si varias piezas valen más, no se devuelve la diferencia: se cobran 200.
+ * Diferencia del paso: precio − suma precios hijos directos.
+ * Si los componentes suman más que el ítem, se clampa a 0 (solo se cobra el 10%).
  * La misma cuenta está en server/store.ts.
  */
-function restanteGold(item: Item, lines: RecipeLine[]): number {
+export function restanteGold(item: Item, lines: RecipeLine[]): number {
   const pieces = lines.flatMap(line => Array.from({ length: line.needed }, () => itemCost(line.item)));
   const coste = itemCost(item);
   const restante = coste - pieces.reduce((sum, cost) => sum + cost, 0);
-  if (restante >= 0) return restante;
-  if (pieces.length === 1) return coste;
-  return SURPLUS_CRAFT_GOLD;
+  return restante > 0 ? restante : 0;
 }
 
-/** Oro que se cobra: el restante más 400 si es épico o 800 si es legendario. */
+/**
+ * Oro de un crafteo suelto (un solo paso): diferencia + 10% del precio.
+ * Misma fórmula que cada paso del plan recursivo.
+ */
 export function craftGold(item: Item, lines: RecipeLine[]): number {
-  return restanteGold(item, lines) + rarityCraftGold(item.rareza);
+  return restanteGold(item, lines) + craftPercentFee(itemCost(item));
+}
+
+export type CraftStepCost = {
+  /** max(0, precio − suma hijos directos). */
+  difference: number;
+  /** Math.round(10% × precio). */
+  fee: number;
+  /** difference + fee (siempre se cobran ambos). */
+  gold: number;
+};
+
+/**
+ * Coste de un paso del plan (intermedio o final): diferencia + 10% del precio.
+ * Ya no hay tasas por rareza ni “diferencia cubierta” en intermedios.
+ * La misma regla está en server/store.ts (planStepGold).
+ */
+export function craftStepCost(item: Item, _lines: RecipeLine[], _role?: 'final' | 'intermediate'): CraftStepCost {
+  const lines = _lines;
+  const difference = restanteGold(item, lines);
+  const fee = craftPercentFee(itemCost(item));
+  return { difference, fee, gold: difference + fee };
 }
 
 /** "Botas + 700 oro" o "Espada larga ×2 + 900 oro". */

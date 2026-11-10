@@ -37,7 +37,7 @@ const ROLL_BUTTONS: (ButtonConfig & { rarity: LootRarity; token: SpawnTokenKind 
 const ADMIN_GRANT: { kind: SpawnTokenKind; label: string }[] = [
   { kind: 'basico', label: 'Spawn Básico' },
   { kind: 'epico', label: 'Spawn Épico' },
-  { kind: 'legendario', label: 'Legendario' },
+  { kind: 'legendario', label: 'Roll Legendario' },
 ];
 
 type Selection =
@@ -137,17 +137,17 @@ const ItemRoll = () => {
       <div className="irs-inner">
         <div className="irs-header">
           <div className="irs-title">Tabla de Botín</div>
-          <p className="irs-tokens">
-            Spawn Básico ×{tokenCount('basico')}
-            {' · '}
-            Spawn Épico ×{tokenCount('epico')}
-            {' · '}
-            Roll Básico ×{tokenCount('rollBasico')}
-            {' · '}
-            Roll Épico ×{tokenCount('rollEpico')}
-            {' · '}
-            Legendario ×{tokenCount('legendario')}
-          </p>
+          <div className="irs-tokens" aria-label="Tokens de botín">
+            <div className="irs-tokens__row" aria-label="Spawns">
+              <span className="irs-token-chip irs-token-chip--basico"><span className="irs-token-chip__icon" aria-hidden="true">🎁</span> Spawn Básico <strong>×{tokenCount('basico')}</strong></span>
+              <span className="irs-token-chip irs-token-chip--epico"><span className="irs-token-chip__icon" aria-hidden="true">✨</span> Spawn Épico <strong>×{tokenCount('epico')}</strong></span>
+            </div>
+            <div className="irs-tokens__row" aria-label="Rolls">
+              <span className="irs-token-chip irs-token-chip--basico"><span className="irs-token-chip__icon" aria-hidden="true">○</span> Roll Básico <strong>×{tokenCount('rollBasico')}</strong></span>
+              <span className="irs-token-chip irs-token-chip--epico"><span className="irs-token-chip__icon" aria-hidden="true">◈</span> Roll Épico <strong>×{tokenCount('rollEpico')}</strong></span>
+              <span className="irs-token-chip irs-token-chip--legendario"><span className="irs-token-chip__icon" aria-hidden="true">🔥</span> Roll Legendario <strong>×{tokenCount('legendario')}</strong></span>
+            </div>
+          </div>
           {!canEdit && (
             <p className="irs-readonly">
               Spawn gasta token de spawn; si sale sí, ganas un token de roll. El roll gasta ese token. El admin tira siempre.

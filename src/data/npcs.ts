@@ -97,6 +97,8 @@ export type Npc = {
   imageFrameCircle: NpcImageFrame | null;
   background: string | null;
   description: string;
+  /** Notas públicas visibles a toda la party. */
+  publicNotes: string;
   stats: NpcStats;
   abilities: NpcAbility[];
   visible: boolean;
@@ -125,6 +127,7 @@ export const emptyNpc = (kind: NpcKind = 'npc'): NpcInput => ({
   imageFrameCircle: null,
   background: null,
   description: '',
+  publicNotes: '',
   stats: {},
   abilities: [],
   visible: false,
@@ -167,6 +170,7 @@ function normalize(raw: Npc): Npc {
     imageFrameCircle: normalizeFrame(raw.imageFrameCircle, true),
     background: typeof raw.background === 'string' && raw.background ? raw.background : null,
     description: text(raw.description),
+    publicNotes: text(raw.publicNotes),
     stats: raw.stats && typeof raw.stats === 'object' ? raw.stats : {},
     abilities: Array.isArray(raw.abilities) ? raw.abilities.filter(a => a && typeof a.name === 'string') : [],
     visible: raw.visible === true,
@@ -237,7 +241,7 @@ export async function updateNpc(id: string, patch: NpcPatch): Promise<Npc> {
 }
 
 /** Edición de un player: solo la descripción (vida, resistencias… van dentro del texto). */
-export type NpcPlayerPatch = { description: string };
+export type NpcPlayerPatch = { description?: string; publicNotes?: string };
 
 export async function updateNpcAsPlayer(id: string, patch: NpcPlayerPatch): Promise<Npc> {
   return asNpc(await call(`/api/npcs?id=${encodeURIComponent(id)}`, {

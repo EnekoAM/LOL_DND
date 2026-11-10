@@ -1,4 +1,7 @@
 import { useState, type ReactNode } from 'react';
+import StackCounter from './StackCounter';
+import CooldownControl from './CooldownControl';
+import { abilityCooldownKey, abilityStackKey, readCooldown, readStack } from '../../data/stacks';
 import {
   MILESTONE_LEVELS,
   MILESTONE_RANKS,
@@ -37,6 +40,8 @@ type Props = {
   /** Guarda el hueco; rechaza si la API falla (el modal sigue abierto con el error). */
   onAbilityChange: (slot: PlayerAbilitySlot, name: string | null) => Promise<void>;
   onRankChange: (slot: RankedSlot, rank: number) => Promise<void>;
+  onStacksChange: (stacks: Record<string, number>) => Promise<void>;
+  onCooldownsChange: (cooldowns: Record<string, number>) => Promise<void>;
 };
 
 type Tone = 'pasiva' | 'basica' | 'definitiva' | 'auto';
@@ -67,10 +72,12 @@ type SpellCardProps = {
   note?: string;
   onOpen?: () => void;
   ranks: ReactNode;
+  stacks?: ReactNode;
+  cooldown?: ReactNode;
   action?: ReactNode;
 };
 
-const SpellCard = ({ tone, seal, name, type, champion, image, empty, note, onOpen, ranks, action }: SpellCardProps) => (
+const SpellCard = ({ tone, seal, name, type, champion, image, empty, note, onOpen, ranks, stacks, cooldown, action }: SpellCardProps) => (
   <article
     className={cx(
       'spell',
@@ -106,6 +113,16 @@ const SpellCard = ({ tone, seal, name, type, champion, image, empty, note, onOpe
     <div className="spell__ranks" onClick={event => event.stopPropagation()}>
       {ranks}
     </div>
+    {stacks && (
+      <div className="spell__stacks" onClick={event => event.stopPropagation()}>
+        {stacks}
+      </div>
+    )}
+    {cooldown && (
+      <div className="spell__stacks" onClick={event => event.stopPropagation()}>
+        {cooldown}
+      </div>
+    )}
     {action && (
       <div className="spell__action" onClick={event => event.stopPropagation()}>
         {action}
@@ -117,7 +134,7 @@ const SpellCard = ({ tone, seal, name, type, champion, image, empty, note, onOpe
 const nextMilestone = (level: number) => MILESTONE_LEVELS.find(threshold => threshold > level);
 const nextUltLevel = (level: number) => ULT_LEVELS.find(threshold => threshold > level);
 
-const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbilityChange, onRankChange }: Props) => {
+const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbilityChange, onRankChange, onStacksChange, onCooldownsChange }: Props) => {
   const [picking, setPicking] = useState<PlayerAbilitySlot | null>(null);
   const [damageRoll, setDamageRoll] = useState<{
     ability: Ability;
@@ -261,6 +278,24 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                 note={note}
                 onOpen={ability?.damage ? () => openAbility(ability, rank) : undefined}
                 ranks={rankControls}
+                stacks={ability?.hasStacks && abilityName ? (
+                  <StackCounter
+                    value={readStack(player.stacks, abilityStackKey(abilityName))}
+                    max={typeof ability.maxStacks === 'number' ? ability.maxStacks : undefined}
+                    disabled={saving}
+                    label={`Stacks · ${abilityName}`}
+                    onChange={next => { void onStacksChange({ [abilityStackKey(abilityName)]: next }); }}
+                  />
+                ) : undefined}
+                cooldown={ability && abilityName && typeof ability.cooldown === 'number' && ability.cooldown > 0 ? (
+                  <CooldownControl
+                    remaining={readCooldown(player.cooldowns, abilityCooldownKey(abilityName))}
+                    duration={ability.cooldown}
+                    disabled={saving}
+                    label={`CD · ${abilityName}`}
+                    onChange={next => { void onCooldownsChange({ [abilityCooldownKey(abilityName)]: next }); }}
+                  />
+                ) : undefined}
                 action={(
                   <button
                     type="button"

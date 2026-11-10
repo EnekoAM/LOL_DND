@@ -5,6 +5,12 @@ export type ItemDraft = {
   pasiva: string;
   activa: string;
   coste: string;
+  hasStacks: boolean;
+  maxStacks: string;
+  /** Turnos de cooldown; vacío = sin CD. */
+  cooldown: string;
+  /** Duración del efecto en turnos; vacío = sin duración. */
+  effectDuration: string;
   /** Texto tal cual lo escribe el usuario; se convierte al guardar. */
   stats: Record<string, string>;
 };
@@ -38,6 +44,10 @@ export function itemToDraft(item: Item): ItemDraft {
     pasiva: effectText(item.efecto?.pasiva),
     activa: effectText(item.efecto?.activa),
     coste: typeof item.coste === 'number' ? String(item.coste) : '',
+    hasStacks: item.hasStacks === true,
+    maxStacks: typeof item.maxStacks === 'number' ? String(item.maxStacks) : '',
+    cooldown: typeof item.cooldown === 'number' ? String(item.cooldown) : '',
+    effectDuration: typeof item.effectDuration === 'number' ? String(item.effectDuration) : '',
     stats,
   };
 }
@@ -71,6 +81,29 @@ export function draftToItemUpdate(draft: ItemDraft, item: Item): ItemUpdate {
     stats[key] = parseStat(key, text, item.stats[key]);
   }
 
+  let maxStacks: number | null = null;
+  if (draft.hasStacks) {
+    const trimmed = draft.maxStacks.trim();
+    if (trimmed) {
+      const n = Number(trimmed);
+      if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error('maxStacks tiene que ser un entero entre 1 y 999');
+      maxStacks = n;
+    }
+  }
+  let cooldown: number | null = null;
+  const cdText = draft.cooldown.trim();
+  if (cdText) {
+    const n = Number(cdText);
+    if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error('cooldown tiene que ser un entero entre 1 y 999');
+    cooldown = n;
+  }
+  let effectDuration: number | null = null;
+  const edText = draft.effectDuration.trim();
+  if (edText) {
+    const n = Number(edText);
+    if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error('efecto tiene que ser un entero entre 1 y 999');
+    effectDuration = n;
+  }
   return {
     rareza,
     efecto: {
@@ -79,5 +112,9 @@ export function draftToItemUpdate(draft: ItemDraft, item: Item): ItemUpdate {
     },
     stats,
     coste: parseCost(draft.coste),
+    hasStacks: draft.hasStacks,
+    maxStacks: draft.hasStacks ? maxStacks : null,
+    cooldown,
+    effectDuration,
   };
 }

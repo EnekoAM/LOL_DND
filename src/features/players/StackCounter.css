@@ -1,0 +1,56 @@
+.stack-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-top: 0.3rem;
+  padding: 0.1rem 0.2rem;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  background: rgba(18, 16, 13, 0.85);
+  font-size: 0.75rem;
+  color: #e8e4d9;
+}
+
+.stack-counter__btn,
+.stack-counter__reset {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #c9a227;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.15rem 0.35rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.stack-counter__btn:hover:not(:disabled),
+.stack-counter__reset:hover:not(:disabled) {
+  background: rgba(201, 162, 39, 0.18);
+}
+
+.stack-counter__btn:disabled,
+.stack-counter__reset:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.stack-counter__value {
+  min-width: 1.6rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: #f0e6d2;
+}
+
+.stack-counter__value--max {
+  color: #c9a227;
+}
+
+.spell .stack-counter {
+  margin: 0.35rem 0 0;
+}
+
+.calc-item-card .stack-counter {
+  align-self: center;
+}

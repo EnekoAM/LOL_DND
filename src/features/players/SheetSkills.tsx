@@ -10,6 +10,8 @@ type Props = {
   level: number;
   saving: boolean;
   error: string | null;
+  /** Solo el GM marca/quita competencias. */
+  canEdit?: boolean;
   onSave: (sheet: PlayerSheet) => Promise<void>;
 };
 
@@ -29,7 +31,7 @@ const readSort = (): SkillSort => {
 const formatModifier = (value: number): string => (value >= 0 ? `+${value}` : String(value));
 
 /** Habilidades D&D 5e (Acrobacias, Atletismo…): círculo de competencia + modificador. */
-const SheetSkills = ({ sheet, level, error, onSave }: Props) => {
+const SheetSkills = ({ sheet, level, error, canEdit = false, onSave }: Props) => {
   const bonus = proficiencyBonus(level);
   const skills = sheet?.skills ?? {};
   const [sort, setSort] = useState<SkillSort>(readSort);
@@ -44,7 +46,7 @@ const SheetSkills = ({ sheet, level, error, onSave }: Props) => {
   };
 
   const toggle = async (key: DndSkillKey) => {
-    if (!sheet) return;
+    if (!sheet || !canEdit) return;
     const next: DndSkillProficiencies = { ...skills };
     if (next[key]) delete next[key];
     else next[key] = true;
@@ -57,30 +59,32 @@ const SheetSkills = ({ sheet, level, error, onSave }: Props) => {
 
   return (
     <section className="sheet-panel sheet-general__combat sheet-general__skills">
-      <div className="sheet-panel__title">
-        Habilidades
-        <span className="sheet-skills-sort" role="group" aria-label="Ordenar habilidades">
-          <button
-            type="button"
-            className={cx('sheet-skills-sort__btn', sort === 'alpha' && 'sheet-skills-sort__btn--on')}
-            aria-pressed={sort === 'alpha'}
-            onClick={() => changeSort('alpha')}
-            title="Ordenar alfabéticamente"
-          >
-            A-Z
-          </button>
-          <button
-            type="button"
-            className={cx('sheet-skills-sort__btn', sort === 'bonus' && 'sheet-skills-sort__btn--on')}
-            aria-pressed={sort === 'bonus'}
-            onClick={() => changeSort('bonus')}
-            title="Ordenar por bonus (mayor primero)"
-          >
-            Bonus
-          </button>
-        </span>
-        <span className="sheet-panel__meta" title="Bono de competencia por nivel">
-          Comp. {formatModifier(bonus)}
+      <div className="sheet-panel__title sheet-skills__title">
+        <span className="sheet-skills__title-text">Competencias</span>
+        <span className="sheet-skills__title-controls">
+          <span className="sheet-skills-sort" role="group" aria-label="Ordenar competencias">
+            <button
+              type="button"
+              className={cx('sheet-skills-sort__btn', sort === 'alpha' && 'sheet-skills-sort__btn--on')}
+              aria-pressed={sort === 'alpha'}
+              onClick={() => changeSort('alpha')}
+              title="Ordenar alfabéticamente"
+            >
+              A-Z
+            </button>
+            <button
+              type="button"
+              className={cx('sheet-skills-sort__btn', sort === 'bonus' && 'sheet-skills-sort__btn--on')}
+              aria-pressed={sort === 'bonus'}
+              onClick={() => changeSort('bonus')}
+              title="Ordenar por bonus (mayor primero)"
+            >
+              Bonus
+            </button>
+          </span>
+          <span className="sheet-panel__meta" title="Bono de competencia por nivel">
+            Comp. {formatModifier(bonus)}
+          </span>
         </span>
       </div>
       {!sheet && <p className="calc-build-empty">Sin ficha: crea las características para marcar competencias.</p>}
@@ -104,10 +108,12 @@ const SheetSkills = ({ sheet, level, error, onSave }: Props) => {
                 type="button"
                 className={cx('sheet-skill__dot', proficient && 'sheet-skill__dot--on')}
                 onClick={() => toggle(key)}
-                disabled={!sheet}
+                disabled={!sheet || !canEdit}
                 aria-pressed={proficient}
-                aria-label={`${proficient ? 'Quitar' : 'Marcar'} competencia en ${label}`}
-                title={proficient ? 'Competente (pulsa para quitar)' : 'Sin competencia (pulsa para marcar)'}
+                aria-label={canEdit ? `${proficient ? 'Quitar' : 'Marcar'} competencia en ${label}` : `${proficient ? 'Competente' : 'Sin competencia'} en ${label}`}
+                title={canEdit
+                  ? (proficient ? 'Competente (pulsa para quitar)' : 'Sin competencia (pulsa para marcar)')
+                  : (proficient ? 'Competente' : 'Sin competencia · solo el GM puede cambiarlo')}
               />
               <span className="sheet-skill__ability">{SHORT[ability]}</span>
               <span className="sheet-skill__label">{label}</span>
@@ -116,6 +122,9 @@ const SheetSkills = ({ sheet, level, error, onSave }: Props) => {
           );
         })}
       </ul>
+      {!canEdit && sheet && (
+        <p className="sheet-skills__hint">Solo el GM puede marcar o quitar competencias.</p>
+      )}
       {error && <p className="sheet-hp__error">{error}</p>}
     </section>
   );

@@ -21,6 +21,7 @@ import { partyAumentosForPlayers, subscribeParty } from './data/party';
 import { PLAYERS, findPlayer, openPlayerSheet } from './data/players';
 import Aumentos from './features/aumentos/Aumentos';
 import Calculos from './features/calculos/Calculos';
+import Combate from './features/combate/Combate';
 import Eventos from './features/eventos/Eventos';
 import Historial from './features/historial/Historial';
 import ItemRoll from './features/item-roll/ItemRoll';
@@ -36,7 +37,7 @@ const Dados = lazy(() => import('./features/dados/Dados'));
 const Mapa = lazy(() => import('./features/mapa/Mapa'));
 const Tienda = lazy(() => import('./features/tienda/Tienda'));
 
-type ScreenId = 'items' | 'tienda' | 'players' | 'champions' | 'npcs' | 'aumentos' | 'item-roll' | 'dados' | 'mapa' | 'eventos' | 'mecanicas' | 'historial' | 'sugerencias';
+type ScreenId = 'items' | 'tienda' | 'players' | 'champions' | 'npcs' | 'aumentos' | 'item-roll' | 'dados' | 'mapa' | 'eventos' | 'combate' | 'mecanicas' | 'historial' | 'sugerencias';
 
 type Screen = NavItem<ScreenId> & {
   Component: ComponentType;
@@ -58,6 +59,7 @@ const SCREENS: Screen[] = [
   { id: 'dados',       label: 'Dados',       icon: '🎲', Component: Dados, live: [] },
   { id: 'mapa',        label: 'Mapa',        icon: '🗺️', Component: Mapa, live: ['mapPois'] },
   { id: 'eventos',     label: 'Eventos',     icon: '📅', Component: Eventos, live: ['events'] },
+  { id: 'combate',     label: 'Combate',     icon: '⚔',  Component: Combate, live: ['combat', 'players', 'npcs', 'champions'] },
   { id: 'mecanicas',   label: 'Mecánicas',   icon: '📖', Component: Mecanicas, live: ['faq'] },
   { id: 'historial',   label: 'Historial',   icon: '📜', Component: Historial, live: ['history', 'items', 'players'] },
   { id: 'sugerencias', label: 'Sugerencias', icon: '💡', Component: Sugerencias, live: ['tickets'] },

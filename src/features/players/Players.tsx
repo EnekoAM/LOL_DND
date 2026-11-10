@@ -107,13 +107,13 @@ const Players = () => {
   };
 
   const updatePlayerList = (
-    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'shortRestsUsed' | 'sheet' | 'unlocks' | 'quests' | 'aumentos' | 'background' | 'mechanic'>>,
+    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'accentColor' | 'shortRestsUsed' | 'sheet' | 'unlocks' | 'quests' | 'aumentos' | 'background' | 'mechanic' | 'stacks' | 'cooldowns' | 'activeEffects'>>,
   ): Promise<void> => {
     if (!player) return Promise.resolve();
     const name = player.name;
     const isCombat =
       'hp' in patch || 'actualHp' in patch || 'escudo' in patch || 'vidaTemporal' in patch
-      || 'mana' in patch || 'actualMana' in patch || 'inspiration' in patch || 'shortRestsUsed' in patch;
+      || 'mana' in patch || 'actualMana' in patch || 'inspiration' in patch || 'accentColor' in patch || 'shortRestsUsed' in patch;
     const isSheet = 'sheet' in patch;
     // El total guardado en `stats` depende de la ficha y del equipamiento: se recalcula si cambia cualquiera.
     const recalc = isSheet || ('equipamiento' in patch && patch.equipamiento !== undefined);
@@ -237,6 +237,18 @@ const Players = () => {
           mechanicError={mechanicError}
           onAbilityChange={changeAbility}
           onRankChange={changeRank}
+          onStacksChange={patch => {
+            if (!player) return Promise.resolve();
+            return updatePlayerList({ stacks: { ...(player.stacks ?? {}), ...patch } });
+          }}
+          onCooldownsChange={patch => {
+            if (!player) return Promise.resolve();
+            return updatePlayerList({ cooldowns: { ...(player.cooldowns ?? {}), ...patch } });
+          }}
+          onActiveEffectsChange={patch => {
+            if (!player) return Promise.resolve();
+            return updatePlayerList({ activeEffects: { ...(player.activeEffects ?? {}), ...patch } });
+          }}
         />
       ) : (
         <>

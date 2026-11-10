@@ -35,6 +35,17 @@ const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; c
       <h2 className="modal-title">{item.nombre}</h2>
 
       <ItemStock item={item} className={cx('item-stock--modal', rarity)} />
+      {item.hasStacks && (
+        <p className="item-edit__hint">
+          Stacks activos{typeof item.maxStacks === 'number' ? ` (máx. ${item.maxStacks})` : ''}
+        </p>
+      )}
+      {typeof item.cooldown === 'number' && (
+        <p className="item-edit__hint">Cooldown: {item.cooldown} turno{item.cooldown === 1 ? '' : 's'}</p>
+      )}
+      {typeof item.effectDuration === 'number' && (
+        <p className="item-edit__hint">Efecto: {item.effectDuration} turno{item.effectDuration === 1 ? '' : 's'}</p>
+      )}
 
       <div className="modal-rule">
         <span className="modal-rule__ornament">⚜</span>
@@ -140,6 +151,53 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onSave, 
           placeholder="Sin precio de tienda"
           disabled={saving}
           onChange={e => onChange({ coste: e.target.value })}
+        />
+      </label>
+
+      <div className="item-field">
+        <span>Stacks</span>
+        <button
+          type="button"
+          className={cx('item-edit__btn', draft.hasStacks && 'item-edit__btn--on')}
+          aria-pressed={draft.hasStacks}
+          disabled={saving}
+          onClick={() => onChange({ hasStacks: !draft.hasStacks })}
+        >
+          {draft.hasStacks ? 'Con acumulaciones' : 'Sin acumulaciones'}
+        </button>
+      </div>
+      {draft.hasStacks && (
+        <label className="item-field">
+          <span>Máx. stacks (opcional)</span>
+          <input
+            inputMode="numeric"
+            value={draft.maxStacks}
+            placeholder="Sin tope"
+            disabled={saving}
+            onChange={e => onChange({ maxStacks: e.target.value })}
+          />
+        </label>
+      )}
+
+      <label className="item-field">
+        <span>Cooldown (turnos)</span>
+        <input
+          inputMode="numeric"
+          value={draft.cooldown}
+          placeholder="Sin cooldown"
+          disabled={saving}
+          onChange={e => onChange({ cooldown: e.target.value })}
+        />
+      </label>
+
+      <label className="item-field">
+        <span>Efecto (turnos)</span>
+        <input
+          inputMode="numeric"
+          value={draft.effectDuration}
+          placeholder="Sin duración"
+          disabled={saving}
+          onChange={e => onChange({ effectDuration: e.target.value })}
         />
       </label>
 

@@ -252,24 +252,9 @@ const SheetEditor = ({ sheet, saving, error, onSave }: Props) => {
             ))}
           </div>
 
-          <div className="sheet-sheet__subtitle">Extra (se suma al total)</div>
-          <div className="sheet-sheet__grid">
-            {STAT_COLUMNS.map(column => (
-              <label key={column.key} className="sheet-hp__field" title={column.title}>
-                <span>{column.label}</span>
-                <input
-                  className="sheet-hp__input"
-                  value={draft.extra[column.key]}
-                  placeholder="0"
-                  disabled={saving}
-                  onChange={event => {
-                    const value = event.target.value;
-                    setDraft(current => ({ ...current, extra: { ...current.extra, [column.key]: value } }));
-                  }}
-                />
-              </label>
-            ))}
-          </div>
+          <p className="calc-build-empty" style={{ marginTop: 8 }}>
+            Los stats extra se editan en la pestaña Desglose.
+          </p>
 
           <div className="sheet-sheet__actions">
             <button type="button" className="sheet-hp__done" onClick={() => setEditing(false)} disabled={saving}>

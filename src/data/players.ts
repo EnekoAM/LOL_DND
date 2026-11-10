@@ -135,6 +135,8 @@ export type Player = {
   actualMana?: number;
   /** Inspiración D&D 5e: activa o no (se gasta al usarla). */
   inspiration?: boolean;
+  /** Color del icono de inspiración (hex #RRGGBB). Solo admin. */
+  accentColor?: string | null;
   /** Descansos cortos usados desde el último largo (máx. 2). */
   shortRestsUsed?: number;
   /** Ficha D&D: rol de stats, características y extra. */
@@ -153,6 +155,12 @@ export type Player = {
   background?: string | null;
   /** Mecánica propia (Ruina / Humanidad / Fama). Opcional. */
   mechanic?: PlayerMechanic | null;
+  /** Contadores de stacks (item:<nombre> | ability:<nombre>). */
+  stacks?: Record<string, number>;
+  /** Cooldowns restantes en turnos (item:<nombre> | ability:<nombre>). */
+  cooldowns?: Record<string, number>;
+  /** Duración restante del efecto de un ítem (item:<nombre>). */
+  activeEffects?: Record<string, number>;
 };
 
 /** URL pública del retrato. Vacío si no hay imagen. */
@@ -192,7 +200,7 @@ function readError(body: unknown, fallback: string): string {
 }
 
 export type PlayerListPatch = Partial<
-  Pick<Player, 'build' | 'equipamiento' | 'stats' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'shortRestsUsed'>
+  Pick<Player, 'build' | 'equipamiento' | 'stats' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'accentColor' | 'shortRestsUsed'>
 > & {
   abilities?: Partial<Record<PlayerAbilitySlot, string | null>>;
   /** null borra la ficha. */
@@ -209,6 +217,12 @@ export type PlayerListPatch = Partial<
   background?: string | null;
   /** Mecánica de personaje; null la quita. */
   mechanic?: PlayerMechanic | null;
+  /** Merge de contadores de stacks. */
+  stacks?: Record<string, number>;
+  /** Merge de cooldowns restantes. */
+  cooldowns?: Record<string, number>;
+  /** Merge de efectos activos restantes. */
+  activeEffects?: Record<string, number>;
 };
 
 /** Sustituye la build o el equipamiento y deja la copia en memoria alineada con lo guardado. */

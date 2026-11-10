@@ -10,6 +10,7 @@ export type CombatPatch = {
   mana?: number;
   actualMana?: number;
   inspiration?: boolean;
+  accentColor?: string | null;
   shortRestsUsed?: number;
 };
 

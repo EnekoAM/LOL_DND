@@ -284,6 +284,7 @@ const NpcEditorModal = ({ title, initial, types, regions, submitLabel, onClose, 
         imageFrameCircle: imageUrl && !frames.linked ? frames.circle : null,
         background: backgroundUrl || null,
         description: draft.description.trim(),
+        publicNotes: (draft.publicNotes ?? '').trim(),
         level: parsedLevel,
         stats: nextStats,
       });
@@ -359,6 +360,11 @@ const NpcEditorModal = ({ title, initial, types, regions, submitLabel, onClose, 
         <label className="hab-field">
           <span>Descripción / trasfondo</span>
           <textarea rows={4} maxLength={NPC_DESCRIPTION_MAX} value={draft.description} onChange={e => change({ description: e.target.value })} />
+        </label>
+
+        <label className="hab-field">
+          <span>Notas públicas (visibles a la party)</span>
+          <textarea rows={3} maxLength={NPC_DESCRIPTION_MAX} value={draft.publicNotes ?? ''} onChange={e => change({ publicNotes: e.target.value })} />
         </label>
 
         <div className="hab-modal__block">

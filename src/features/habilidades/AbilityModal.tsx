@@ -54,6 +54,12 @@ const AbilityView = ({ ability, onEdit, canEdit }: { ability: Ability | null; on
           <p>{ability.cost}</p>
         </div>
       )}
+      {ability?.hasStacks && (
+        <p className="hab-modal__meta"><strong>Stacks:</strong> sí{typeof ability.maxStacks === 'number' ? ` (máx. ${ability.maxStacks})` : ''}</p>
+      )}
+      {typeof ability?.cooldown === 'number' && (
+        <p className="hab-modal__meta"><strong>Cooldown:</strong> {ability.cooldown} turno{ability.cooldown === 1 ? '' : 's'}</p>
+      )}
 
       {damage && (
         <div className="hab-modal__block">
@@ -145,6 +151,28 @@ const AbilityForm = ({
       <label className="hab-field">
         <span>Coste</span>
         <input value={draft.cost} onChange={e => onChange({ cost: e.target.value })} />
+      </label>
+
+      <button
+        type="button"
+        className={cx('hab-learned', draft.hasStacks && 'hab-learned--on')}
+        aria-pressed={draft.hasStacks}
+        disabled={saving}
+        onClick={() => onChange({ hasStacks: !draft.hasStacks })}
+      >
+        <span>Stacks</span>
+        <span className="hab-learned__switch" aria-hidden="true" />
+      </button>
+      {draft.hasStacks && (
+        <label className="hab-field">
+          <span>Máx. stacks (opcional)</span>
+          <input value={draft.maxStacks} placeholder="Sin tope" onChange={e => onChange({ maxStacks: e.target.value })} />
+        </label>
+      )}
+
+      <label className="hab-field">
+        <span>Cooldown (turnos)</span>
+        <input value={draft.cooldown} placeholder="Sin cooldown" onChange={e => onChange({ cooldown: e.target.value })} />
       </label>
 
       <div className="hab-modal__block">

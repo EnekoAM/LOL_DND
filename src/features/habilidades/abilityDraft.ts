@@ -18,6 +18,9 @@ export type AbilityDraft = {
   apSource: DamageScalingSource;
   damageBonus: string;
   effects: EffectDraft[];
+  hasStacks: boolean;
+  maxStacks: string;
+  cooldown: string;
 };
 
 const EMPTY_EFFECT: EffectDraft = { name: '', values: '', duration: '' };
@@ -50,6 +53,9 @@ export function abilityToDraft(ability: Ability | null): AbilityDraft {
     adSource: ability?.damage?.adSource ?? 'total',
     apSource: ability?.damage?.apSource ?? 'total',
     damageBonus: bonus === undefined ? '' : String(bonus),
+    hasStacks: ability?.hasStacks === true,
+    maxStacks: typeof ability?.maxStacks === 'number' ? String(ability.maxStacks) : '',
+    cooldown: typeof ability?.cooldown === 'number' ? String(ability.cooldown) : '',
     effects: (ability?.effect ?? []).map(effect => ({
       name: effect.name,
       values: formatNumberList(effect.values),
@@ -126,6 +132,21 @@ export function draftToAbility(draft: AbilityDraft): Ability {
 
   const effect = parseEffects(draft.effects);
   if (effect) ability.effect = effect;
+  if (draft.hasStacks) {
+    ability.hasStacks = true;
+    const trimmed = draft.maxStacks.trim();
+    if (trimmed) {
+      const n = Number(trimmed);
+      if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error('maxStacks tiene que ser un entero entre 1 y 999');
+      ability.maxStacks = n;
+    }
+  }
+  const cdText = draft.cooldown.trim();
+  if (cdText) {
+    const n = Number(cdText);
+    if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error('cooldown tiene que ser un entero entre 1 y 999');
+    ability.cooldown = n;
+  }
   return ability;
 }
 

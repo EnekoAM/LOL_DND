@@ -8,7 +8,9 @@ import { useLiveRevision } from '../../data/live';
 import { tradeShop, type ShopMode } from '../../data/shop';
 import { cx } from '../../lib/cx';
 import { matchesSearch } from '../../lib/text';
-import { craftGold, craftSummary, recipeLines } from '../items/recipe';
+import { craftGold, recipeLines } from '../items/recipe';
+import { planCraft, stockBagFromCatalog } from '../items/craftPlan';
+import CraftTree from './CraftTree';
 import { hasStat } from '../items/stats';
 import { itemAvailability } from '../items/stock';
 import './Tienda.css';
@@ -225,18 +227,34 @@ const Tienda = () => {
     updateCart(() => []);
   };
 
-  const craftSelected = async () => {
+  const craftSelected = async (opts?: { buyMissing?: boolean }) => {
     if (!selectedCraft || busy) return;
-    const ingredients = recipeLines(selectedCraft.craftsFrom);
-    const price = craftGold(selectedCraft, ingredients);
-    const ready = ingredients.length > 0 && ingredients.every(line => line.available >= line.needed);
-    if (!ready || price <= 0 || gold < price) return;
+    const plan = planCraft(selectedCraft, stockBagFromCatalog());
+    const buyMissing = opts?.buyMissing === true;
+    if (buyMissing) {
+      if (!plan.canBuyAndCraft || plan.totalWithPurchases <= 0 || gold < plan.totalWithPurchases) return;
+    } else {
+      if (!plan.ok || plan.gold <= 0 || gold < plan.gold) return;
+      const hasMissing = plan.tree
+        ? (function walk(n: { missing: number; children: { missing: number; children: unknown[] }[] }): boolean {
+          return n.missing > 0 || n.children.some(child => walk(child as typeof n));
+        })(plan.tree)
+        : false;
+      if (hasMissing) return;
+    }
+    const charged = buyMissing ? plan.totalWithPurchases : plan.gold;
     setBusy(true);
     setNotice(null);
     try {
-      await craftItem(selectedCraft.nombre);
+      await craftItem(selectedCraft.nombre, { recursive: true, buyMissing });
       setStockRevision(revision => revision + 1);
-      setNotice({ mode: 'crafteo', kind: 'ok', text: 'Crafteado' });
+      setNotice({
+        mode: 'crafteo',
+        kind: 'ok',
+        text: buyMissing
+          ? `Comprado y crafteado · ${charged.toLocaleString('es-ES')} oro`
+          : `Crafteado · ${charged.toLocaleString('es-ES')} oro`,
+      });
     } catch (error) {
       const text = error instanceof Error ? error.message : 'No se pudo craftear';
       setNotice({ mode: 'crafteo', kind: 'error', text });
@@ -382,7 +400,7 @@ const Tienda = () => {
             const capped = mode === 'venta' && (inCart?.cantidad ?? 0) >= stock.available;
             const picked = mode === 'crafteo' && selectedCraft?.nombre === item.nombre;
             const price = mode === 'crafteo'
-              ? craftGold(item, recipeLines(item.craftsFrom))
+              ? (() => { const p = planCraft(item, stockBagFromCatalog()); return p.ok ? p.gold : craftGold(item, recipeLines(item.craftsFrom)); })()
               : mode === 'venta'
                 ? sellPrice(itemPrice(item))
                 : itemPrice(item);
@@ -405,9 +423,25 @@ const Tienda = () => {
                 </span>
                 <span className="shop-ware__price">{formatGold(price)}</span>
                 {mode !== 'crafteo' && canUseShop && (
-                  <button type="button" className="shop-add" disabled={capped} onClick={() => addToCart(item)}>
-                    {inCart ? `+1 · ${inCart.cantidad}` : 'Añadir'}
-                  </button>
+                  <span className="shop-ware__actions">
+                    {inCart && (
+                      <button
+                        type="button"
+                        className="shop-add shop-add--remove"
+                        onClick={event => { event.stopPropagation(); setQuantity(item.nombre, (inCart?.cantidad ?? 1) - 1); }}
+                      >
+                        Quitar
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="shop-add"
+                      disabled={capped}
+                      onClick={event => { event.stopPropagation(); addToCart(item); }}
+                    >
+                      Añadir
+                    </button>
+                  </span>
                 )}
               </div>
             );
@@ -428,6 +462,7 @@ const Tienda = () => {
             notice={visibleNotice}
             onSelect={next => setCraftName(next.nombre)}
             onCraft={() => { void craftSelected(); }}
+            onBuyAndCraft={() => { void craftSelected({ buyMissing: true }); }}
           />
         ) : (
         <section className="shop-cart">
@@ -454,6 +489,15 @@ const Tienda = () => {
                     onClick={() => setQuantity(line.nombre, line.cantidad + 1)}
                   >
                     +
+                  </button>
+                  <button
+                    type="button"
+                    className="shop-qty__trash"
+                    aria-label={`Quitar todas las ${line.nombre}`}
+                    title="Quitar todas"
+                    onClick={() => setQuantity(line.nombre, 0)}
+                  >
+                    🗑
                   </button>
                 </div>
                 <span className="shop-cart__amount">{formatGold(line.subtotal)}</span>
@@ -573,20 +617,43 @@ type CraftBenchProps = {
   notice: { kind: 'ok' | 'error'; text: string } | null;
   onSelect: (item: Item) => void;
   onCraft: () => void;
+  onBuyAndCraft: () => void;
 };
 
-const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchProps) => {
+const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft, onBuyAndCraft }: CraftBenchProps) => {
+  const [confirmBuy, setConfirmBuy] = useState(false);
+
+  useEffect(() => {
+    setConfirmBuy(false);
+  }, [item?.nombre]);
+
   if (!item) return <section className="shop-cart"><p className="shop-order__empty">Elige un objeto para craftear.</p></section>;
 
   const ingredients = recipeLines(item.craftsFrom);
   const buildsInto = findItems(item.craftsTo);
-  const price = craftGold(item, ingredients);
-  const canCraft = ingredients.length > 0 && ingredients.every(line => line.available >= line.needed);
+  const plan = planCraft(item, stockBagFromCatalog());
+  const price = plan.ok ? plan.gold : craftGold(item, ingredients);
+  const hasMissing = plan.tree
+    ? (function walk(n: { missing: number; children: { missing: number; children: unknown[] }[] }): boolean {
+        return n.missing > 0 || n.children.some(child => walk(child as typeof n));
+      })(plan.tree)
+    : ingredients.some(line => line.available < line.needed);
+  const canCraft = plan.ok && !hasMissing && ingredients.length > 0;
   const canPay = price > 0 && gold >= price;
+  const buyTotal = plan.totalWithPurchases;
+  const canBuyAndCraft = plan.canBuyAndCraft && buyTotal > 0;
+  const canPayBuy = canBuyAndCraft && gold >= buyTotal;
   const blockedByGear = ingredients.some(line => {
     const owned = line.item?.cantidad ?? 0;
     return line.available < line.needed && owned >= line.needed;
   });
+
+  const renderStepBits = (step: (typeof plan.steps)[number]): string => {
+    const bits: string[] = [];
+    if (step.difference > 0) bits.push(`diferencia ${step.difference.toLocaleString('es-ES')}`);
+    if (step.fee > 0) bits.push(`10% ${step.fee.toLocaleString('es-ES')}`);
+    return bits.length > 0 ? ` (${bits.join(' + ')})` : '';
+  };
 
   return (
     <section className="shop-cart shop-craft">
@@ -603,7 +670,15 @@ const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchP
 
       {ingredients.length > 0 && (
         <div>
-          <p className="shop-craft__label">Se craftea desde</p>
+          {plan.tree && (
+            <CraftTree
+              tree={plan.tree}
+              selectedName={item.nombre}
+              onSelect={name => { const next = findItem(name); if (next) onSelect(next); }}
+            />
+          )}
+
+          <p className="shop-craft__label">Ingredientes directos</p>
           <div className="shop-craft__items">
             {ingredients.map(line => (
               <button
@@ -615,22 +690,130 @@ const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchP
                 {line.item?.imagen
                   ? <ThumbImg src={line.item.imagen} thumbWidth={128} alt={line.name} />
                   : <span className="shop-ware__fallback">?</span>}
-                <CraftName name={line.name} />
+                <span className="shop-craft__label-name" title={line.name}>{line.name}</span>
                 <span className="shop-craft__stock">{line.available}/{line.needed}</span>
               </button>
             ))}
           </div>
-          <p className="shop-craft__cost">{craftSummary(item, ingredients)}</p>
+
+          {plan.ok && (
+            <p className="shop-craft__cost">
+              Coste con crédito de almacén: {price.toLocaleString('es-ES')} oro
+            </p>
+          )}
+
+          {(plan.ok || canBuyAndCraft) && plan.steps.length > 0 && (
+            <ul className="shop-craft__breakdown">
+              {plan.credits.length > 0 && (
+                <li>
+                  Crédito almacén: {plan.credits.map(c => `${c.name}×${c.qty} (${c.totalCost.toLocaleString('es-ES')})`).join(', ')}
+                  {' '}· {plan.ownedCredit.toLocaleString('es-ES')} oro
+                </li>
+              )}
+              {canBuyAndCraft && plan.purchases.length > 0 && (
+                <li>
+                  Comprar: {plan.purchases.map(p => `${p.name}×${p.qty} (${p.totalCost.toLocaleString('es-ES')})`).join(', ')}
+                  {' '}· {plan.buyGold.toLocaleString('es-ES')} oro
+                </li>
+              )}
+              {plan.steps.map(step => (
+                <li key={`${step.item.nombre}-${step.role}-${step.goldEach}`}>
+                  {step.copies}× {step.item.nombre}: {step.goldTotal.toLocaleString('es-ES')} oro
+                  {renderStepBits(step)}
+                  {step.ingredients.some(i => i.fromStock > 0) && (
+                    <span> · usa stock: {step.ingredients.filter(i => i.fromStock > 0).map(i => `${i.name}×${i.fromStock}`).join(', ')}</span>
+                  )}
+                </li>
+              ))}
+              <li>
+                <strong>
+                  Total {(plan.ok ? plan.gold : buyTotal).toLocaleString('es-ES')} oro
+                  {!plan.ok && canBuyAndCraft ? ' (compra + crafteo)' : ''}
+                </strong>
+              </li>
+            </ul>
+          )}
+
+          {plan.cheaperDirect && canBuyAndCraft && (
+            <p className="shop-cart__note">
+              Sale más barato comprarlo directo ({plan.directBuyGold.toLocaleString('es-ES')} oro).
+            </p>
+          )}
+
           {canCraft && !canPay && (
             <p className="shop-cart__note shop-cart__note--error">
               Te faltan {formatGold(price - gold)} oro para craftear (tienes {formatGold(gold)}).
             </p>
           )}
+          {canBuyAndCraft && !canPayBuy && (
+            <p className="shop-cart__note shop-cart__note--error">
+              Te faltan {formatGold(buyTotal - gold)} oro para comprar y craftear (tienes {formatGold(gold)}).
+            </p>
+          )}
           {blockedByGear && <p className="shop-cart__note">Las copias equipadas no se gastan.</p>}
+          {!plan.ok && !canBuyAndCraft && plan.reason && (
+            <p className="shop-cart__note shop-cart__note--error">{plan.reason}</p>
+          )}
           {notice && <p className={cx('shop-cart__note', `shop-cart__note--${notice.kind}`)}>{notice.text}</p>}
-          <button type="button" className="shop-checkout" disabled={!canCraft || !canPay || busy} onClick={onCraft}>
-            {busy ? 'Crafteando' : 'Craftear'}
-          </button>
+
+          {confirmBuy && canBuyAndCraft ? (
+            <div className="shop-craft__confirm">
+              <p className="shop-craft__label">Confirmar compra + crafteo</p>
+              <ul className="shop-craft__breakdown">
+                {plan.purchases.map(p => (
+                  <li key={p.name}>Comprar {p.qty}× {p.name}: {p.totalCost.toLocaleString('es-ES')} oro</li>
+                ))}
+                {plan.steps.map(step => (
+                  <li key={`c-${step.item.nombre}-${step.role}`}>
+                    Craftear {step.copies}× {step.item.nombre}: {step.goldTotal.toLocaleString('es-ES')} oro
+                    {renderStepBits(step)}
+                  </li>
+                ))}
+                <li><strong>Total {buyTotal.toLocaleString('es-ES')} oro</strong></li>
+              </ul>
+              {plan.cheaperDirect && (
+                <p className="shop-cart__note">
+                  Sale más barato comprarlo directo ({plan.directBuyGold.toLocaleString('es-ES')} oro).
+                </p>
+              )}
+              <div className="shop-craft__confirm-actions">
+                <button
+                  type="button"
+                  className="shop-checkout"
+                  disabled={!canPayBuy || busy}
+                  onClick={() => { setConfirmBuy(false); onBuyAndCraft(); }}
+                >
+                  {busy ? 'Crafteando' : `Confirmar · ${formatGold(buyTotal)} oro`}
+                </button>
+                <button
+                  type="button"
+                  className="shop-checkout shop-checkout--ghost"
+                  disabled={busy}
+                  onClick={() => setConfirmBuy(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {canCraft && (
+                <button type="button" className="shop-checkout" disabled={!canPay || busy} onClick={onCraft}>
+                  {busy ? 'Crafteando' : `Craftear · ${formatGold(price)} oro`}
+                </button>
+              )}
+              {canBuyAndCraft && (
+                <button
+                  type="button"
+                  className={cx('shop-checkout', canCraft && 'shop-checkout--secondary')}
+                  disabled={!canPayBuy || busy}
+                  onClick={() => setConfirmBuy(true)}
+                >
+                  Comprar lo que falta y craftear · {formatGold(buyTotal)} oro
+                </button>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -642,8 +825,8 @@ const CraftBench = ({ item, gold, busy, notice, onSelect, onCraft }: CraftBenchP
               <button key={result.nombre} type="button" className="shop-craft__item" onClick={() => onSelect(result)}>
                 {result.imagen
                   ? <ThumbImg src={result.imagen} thumbWidth={128} alt={result.nombre} />
-                  : <span className="shop-ware__fallback">?</span>}
-                <CraftName name={result.nombre} />
+                  : <span className="shop-ware__fallback">✦</span>}
+                <span className="shop-craft__label-name" title={result.nombre}>{result.nombre}</span>
               </button>
             ))}
           </div>

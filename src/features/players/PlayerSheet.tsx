@@ -35,16 +35,20 @@ import { cx } from '../../lib/cx';
 import HpPanel, { type CombatPatch } from './HpPanel';
 import InspirationToggle from './InspirationToggle';
 import MechanicPanel from './MechanicPanel';
-import type { PlayerMechanic } from './mechanic';
+import { mechanicTypeForPlayer, type PlayerMechanic } from './mechanic';
 import ManaPanel from './ManaPanel';
 import RestPanel from './RestPanel';
 import PlayerSwitcher from './PlayerSwitcher';
 import SheetAbilities from './SheetAbilities';
 import ReorderableItem from './ReorderableItem';
+import StackCounter from './StackCounter';
+import ItemActivateControl from './ItemActivateControl';
+import { itemActiveEffectKey, itemCooldownKey, itemStackKey, readActiveEffect, readCooldown, readStack } from '../../data/stacks';
 import { equipmentAccess } from './equipmentAccess';
 import { canReplaceEquipment, isCurrentEquipmentTarget, replaceEquipment, type EquipmentSwapTarget } from './equipmentSwap';
 import { moveItem, type ItemDragState } from './itemOrder';
 import SheetEditor from './SheetEditor';
+import ExtraStatsPanel from './ExtraStatsPanel';
 import SheetSkills from './SheetSkills';
 import { SheetBackgroundButton, SheetBackgroundEditor, sheetBackgroundCss } from './SheetBackground';
 
@@ -77,10 +81,13 @@ type Props = {
   /** Mecánica (Ruina/Humanidad/Fama); solo el GM edita valores. */
   onMechanicChange: (mechanic: PlayerMechanic) => Promise<void>;
   mechanicError: string | null;
+  onStacksChange: (stacks: Record<string, number>) => Promise<void>;
+  onCooldownsChange: (cooldowns: Record<string, number>) => Promise<void>;
+  onActiveEffectsChange: (activeEffects: Record<string, number>) => Promise<void>;
 };
 
-type SheetTab = 'general' | 'habilidades' | 'equipo' | 'desglose' | 'quest' | 'aumentos';
-const SHEET_TABS: SheetTab[] = ['general', 'habilidades', 'equipo', 'desglose', 'quest', 'aumentos'];
+type SheetTab = 'general' | 'habilidades' | 'equipo' | 'desglose' | 'mecanica' | 'quest' | 'aumentos';
+const SHEET_TABS: SheetTab[] = ['general', 'habilidades', 'equipo', 'desglose', 'mecanica', 'quest', 'aumentos'];
 const readTab = (key: string): SheetTab => {
   try {
     const v = localStorage.getItem(key);
@@ -92,11 +99,18 @@ const readTab = (key: string): SheetTab => {
   }
 };
 
+const MECHANIC_TAB_LABELS: Record<'ruina' | 'humanidad' | 'fama', string> = {
+  ruina: 'Ruina',
+  humanidad: 'Humanidad',
+  fama: 'Fama',
+};
+
 const TABS: { id: SheetTab; label: string }[] = [
   { id: 'general', label: 'General' },
   { id: 'habilidades', label: 'Habilidades' },
   { id: 'equipo', label: 'Equipo y build' },
   { id: 'desglose', label: 'Desglose' },
+  { id: 'mecanica', label: 'Mecánica' },
   { id: 'quest', label: 'Quest' },
   { id: 'aumentos', label: 'Aumentos' },
 ];
@@ -243,6 +257,9 @@ const PlayerSheet = ({
   onBackgroundChange,
   onMechanicChange,
   mechanicError,
+  onStacksChange,
+  onCooldownsChange,
+  onActiveEffectsChange,
 }: Props) => {
   const { role, canEdit, playerName: myName } = useAppRole();
   const isMine = !!myName && normalizeName(myName) === normalizeName(player.name);
@@ -274,8 +291,10 @@ const PlayerSheet = ({
   /** Toggle de visualización: si está apagado, los players no ven la pestaña Quest. */
   const questsVisible = unlocks.questVisible !== false;
   const aumentosVisible = unlocks.aumentosVisible !== false;
+  const mechanicKind = mechanicTypeForPlayer(player.name);
   const tabHidden = (id: SheetTab): boolean =>
-    !isAdmin && ((id === 'quest' && !questsVisible) || (id === 'aumentos' && !aumentosVisible));
+    (id === 'mecanica' && !mechanicKind)
+    || (!isAdmin && ((id === 'quest' && !questsVisible) || (id === 'aumentos' && !aumentosVisible)));
   const [picker, setPicker] = useState<'equipamiento' | 'build' | null>(null);
   const [inspectedItem, setInspectedItem] = useState<Item | null>(null);
   const [swapTarget, setSwapTarget] = useState<EquipmentSwapTarget | null>(null);
@@ -439,8 +458,21 @@ const PlayerSheet = ({
             <InspirationToggle
               active={player.inspiration === true}
               saving={saving}
+              accentColor={player.accentColor}
               onToggle={next => onCombatChange({ inspiration: next })}
             />
+            {isAdmin && (
+              <label className="sheet-accent">
+                <span>Color del icono</span>
+                <input
+                  type="color"
+                  value={/^#[0-9a-fA-F]{6}$/.test(player.accentColor ?? '') ? player.accentColor! : '#c9a84c'}
+                  disabled={saving}
+                  onChange={event => { void onCombatChange({ accentColor: event.target.value }); }}
+                  aria-label="Color del icono de inspiración"
+                />
+              </label>
+            )}
           </div>
 
           <div className="sheet-panel sheet-side__hp">
@@ -472,14 +504,6 @@ const PlayerSheet = ({
               onChange={onCombatChange}
             />
           </div>
-          <MechanicPanel
-            playerName={player.name}
-            mechanic={player.mechanic}
-            canEdit={isAdmin}
-            saving={saving}
-            error={mechanicError}
-            onChange={onMechanicChange}
-          />
           {isAdmin && (
             <div className="sheet-panel sheet-side__admin">
               <div className="sheet-panel__title">Admin · Desbloqueos</div>
@@ -517,7 +541,7 @@ const PlayerSheet = ({
                   onClick={() => setTab(entry.id)}
                 >
                   {locked && <TabLock className="sheet-tab__lock" />}
-                  {entry.label}
+                  {entry.id === 'mecanica' && mechanicKind ? MECHANIC_TAB_LABELS[mechanicKind] : entry.label}
                   {hiddenForPlayers && <span className="sheet-tab__hidden" aria-label="Oculto para players">🚫</span>}
                 </button>
               );
@@ -531,6 +555,7 @@ const PlayerSheet = ({
                 level={level}
                 saving={saving}
                 error={sheetError}
+                canEdit={isAdmin}
                 onSave={onSheetChange}
               />
 
@@ -574,6 +599,8 @@ const PlayerSheet = ({
               onAbilityChange={onAbilityChange}
               level={level}
               onRankChange={onRankChange}
+              onStacksChange={onStacksChange}
+              onCooldownsChange={onCooldownsChange}
             />
           )}
 
@@ -602,6 +629,46 @@ const PlayerSheet = ({
                       onChange={() => openEquipmentSwap(index)}
                       removeDisabled={saving}
                     />
+                    {(() => {
+                      const trackItem = findItem(itemName);
+                      if (!trackItem) return null;
+                      return (
+                        <>
+                          {trackItem.hasStacks && (
+                            <StackCounter
+                              value={readStack(player.stacks, itemStackKey(itemName))}
+                              max={typeof trackItem.maxStacks === 'number' ? trackItem.maxStacks : undefined}
+                              disabled={saving || !canEditSheet}
+                              label={`Stacks · ${itemName}`}
+                              onChange={next => { void onStacksChange({ [itemStackKey(itemName)]: next }); }}
+                            />
+                          )}
+                          {((typeof trackItem.cooldown === 'number' && trackItem.cooldown > 0)
+                            || (typeof trackItem.effectDuration === 'number' && trackItem.effectDuration > 0)) && (
+                            <ItemActivateControl
+                              cdRemaining={readCooldown(player.cooldowns, itemCooldownKey(itemName))}
+                              cdDuration={typeof trackItem.cooldown === 'number' && trackItem.cooldown > 0 ? trackItem.cooldown : undefined}
+                              effectRemaining={readActiveEffect(player.activeEffects, itemActiveEffectKey(itemName))}
+                              effectDuration={typeof trackItem.effectDuration === 'number' && trackItem.effectDuration > 0 ? trackItem.effectDuration : undefined}
+                              disabled={saving || !canEditSheet}
+                              label={`Ítem · ${itemName}`}
+                              onActivate={() => {
+                                const key = itemCooldownKey(itemName);
+                                const effectKey = itemActiveEffectKey(itemName);
+                                if (typeof trackItem.cooldown === 'number' && trackItem.cooldown > 0) {
+                                  void onCooldownsChange({ [key]: trackItem.cooldown });
+                                }
+                                if (typeof trackItem.effectDuration === 'number' && trackItem.effectDuration > 0) {
+                                  void onActiveEffectsChange({ [effectKey]: trackItem.effectDuration });
+                                }
+                              }}
+                              onCooldownChange={next => { void onCooldownsChange({ [itemCooldownKey(itemName)]: next }); }}
+                              onEffectChange={next => { void onActiveEffectsChange({ [itemActiveEffectKey(itemName)]: next }); }}
+                            />
+                          )}
+                        </>
+                      );
+                    })()}
                     {index >= equipmentLimit && (
                       <span className="sheet-equipment-legacy">7º conservado · misión de bot pendiente</span>
                     )}
@@ -683,7 +750,26 @@ const PlayerSheet = ({
                 defaultOpen
                 lockFutureLevels={!topUnlocked}
               />
+              <ExtraStatsPanel
+                sheet={player.sheet}
+                saving={saving}
+                canEdit={isAdmin}
+                error={sheetError}
+                onSave={onSheetChange}
+              />
             </section>
+          )}
+
+          
+          {tab === 'mecanica' && mechanicKind && (
+            <MechanicPanel
+              playerName={player.name}
+              mechanic={player.mechanic}
+              canEdit={isAdmin}
+              saving={saving}
+              error={mechanicError}
+              onChange={onMechanicChange}
+            />
           )}
 
           {(tab === 'quest' || tab === 'aumentos') && tabLocked(tab) && !isAdmin && (
@@ -744,9 +830,10 @@ const PlayerSheet = ({
           title={`Cambiar ítem · Hueco ${swapTarget.index + 1} · ${player.equipamiento[swapTarget.index]}`}
           busy={saving || !canEditSheet}
           onlyAvailable
+          compareWith={player.equipamiento[swapTarget.index]}
           allowSelection={canReplaceEquipment(player.equipamiento, swapTarget.index, equipmentLimit)}
           description={canReplaceEquipment(player.equipamiento, swapTarget.index, equipmentLimit)
-            ? 'Elige un objeto disponible para sustituirlo en la misma posición, o pulsa Quitar para dejar de equiparlo.'
+            ? 'Elige un objeto disponible para sustituirlo en la misma posición, o pulsa Quitar para dejar de equiparlo. Usa la lupa para comparar.'
             : '7º hueco bloqueado: completa la misión de bot para cambiar el objeto. Puedes quitar el objeto conservado.'}
           onAdd={swapEquipment}
           onRemove={removeSwappedEquipment}
