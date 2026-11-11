@@ -3,12 +3,19 @@ import { playerPortraitUrl, type Player } from '../../data/players';
 import { cx } from '../../lib/cx';
 import { normalizeName } from '../../lib/text';
 
-type Props = {
-  players: Player[];
-  current: Player;
+/** Basta con nombre e imagen: players en su ficha y participantes en combate (id = clave única). */
+export type SwitchEntry = { id?: string; name: string; image?: string; rol?: string };
+
+type Props<T extends SwitchEntry> = {
+  players: T[];
+  current: T;
   disabled?: boolean;
-  onSelect: (player: Player) => void;
+  onSelect: (player: T) => void;
+  /** Texto del listado (accesibilidad). */
+  listLabel?: string;
 };
+
+const entryKey = (entry: SwitchEntry): string => entry.id ?? normalizeName(entry.name);
 
 const Thumb = ({ image }: { image: string | undefined }) => {
   const [failed, setFailed] = useState(false);
@@ -22,15 +29,15 @@ const Thumb = ({ image }: { image: string | undefined }) => {
 };
 
 /** Cambio rápido de ficha: anterior / siguiente y desplegable con todos los jugadores. */
-const PlayerSwitcher = ({ players, current, disabled = false, onSelect }: Props) => {
+const PlayerSwitcher = <T extends SwitchEntry = Player>({ players, current, disabled = false, onSelect, listLabel = 'Fichas de personaje' }: Props<T>) => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
 
-  const currentKey = normalizeName(current.name);
-  const index = Math.max(0, players.findIndex(entry => normalizeName(entry.name) === currentKey));
+  const currentKey = entryKey(current);
+  const index = Math.max(0, players.findIndex(entry => entryKey(entry) === currentKey));
   const count = players.length;
 
   useEffect(() => {
@@ -59,7 +66,7 @@ const PlayerSwitcher = ({ players, current, disabled = false, onSelect }: Props)
   const go = (target: number) => {
     if (disabled) return;
     const next = players[(target + count) % count];
-    if (next && normalizeName(next.name) !== currentKey) onSelect(next);
+    if (next && entryKey(next) !== currentKey) onSelect(next);
   };
 
   const close = (refocus = true) => {
@@ -167,7 +174,7 @@ const PlayerSwitcher = ({ players, current, disabled = false, onSelect }: Props)
           className="sheet-switch__list"
           role="listbox"
           tabIndex={-1}
-          aria-label="Fichas de personaje"
+          aria-label={listLabel}
           aria-activedescendant={`sheet-switch-opt-${active}`}
           onKeyDown={onListKeyDown}
         >
@@ -175,7 +182,7 @@ const PlayerSwitcher = ({ players, current, disabled = false, onSelect }: Props)
             const selected = entryIndex === index;
             return (
               <li
-                key={entry.name}
+                key={entryKey(entry)}
                 id={`sheet-switch-opt-${entryIndex}`}
                 data-index={entryIndex}
                 role="option"

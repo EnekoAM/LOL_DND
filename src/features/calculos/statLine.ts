@@ -17,6 +17,15 @@ export const STAT_COLUMNS = [
   { key: 'magicPen', label: 'PEN. MÁG.', title: 'Penetración mágica' },
   { key: 'armorPenPct', label: 'PEN. ARM. %', title: 'Penetración de armadura % (no acumulable: solo cuenta la más alta)' },
   { key: 'magicPenPct', label: 'PEN. MÁG. %', title: 'Penetración mágica % (no acumulable: solo cuenta la más alta)' },
+  // Solo las dan los ítems (base 0 en todas las tablas de rol, sin escalar). Los % se suman.
+  { key: 'healShieldPct', label: 'CUR/ESC %', title: 'Poder de curación y escudos %' },
+  { key: 'tenacityPct', label: 'TENACIDAD %', title: 'Tenacidad % (se suma)' },
+  { key: 'slowResistPct', label: 'RES. RALENT. %', title: 'Resistencia a ralentizaciones % (se suma)' },
+  { key: 'lifeStealPct', label: 'ROBO VIDA %', title: 'Robo de vida %' },
+  { key: 'omnivampPct', label: 'OMNISUCCIÓN %', title: 'Omnisucción %' },
+  { key: 'range', label: 'RANGO', title: 'Rango de ataque' },
+  { key: 'healthRegen', label: 'REGEN. VIDA', title: 'Regeneración de vida' },
+  { key: 'manaRegen', label: 'REGEN. MANÁ', title: 'Regeneración de maná' },
 ] as const;
 
 export type StatKey = (typeof STAT_COLUMNS)[number]['key'];
@@ -43,7 +52,18 @@ const ITEM_STAT_KEYS: Record<string, StatKey> = {
   MAGIC_PEN: 'magicPen',
   'Armor pen %': 'armorPenPct',
   'Magic pen %': 'magicPenPct',
+  'Heal & shield %': 'healShieldPct',
+  'Tenacity %': 'tenacityPct',
+  'Slow resist %': 'slowResistPct',
+  'Life steal %': 'lifeStealPct',
+  'Omnivamp %': 'omnivampPct',
+  'Range': 'range',
+  'HP regen': 'healthRegen',
+  'Mana regen': 'manaRegen',
 };
+
+/** Claves de ítem de las stats que solo dan los ítems; se ofrecen aunque ningún ítem las tenga aún. */
+export const ITEM_ONLY_STAT_KEYS = ['Heal & shield %', 'Tenacity %', 'Slow resist %', 'Life steal %', 'Omnivamp %', 'Range', 'HP regen', 'Mana regen'] as const;
 
 /**
  * Stats en % que no se acumulan (como las pasivas únicas del LoL): el total es el valor más alto, no la suma.
@@ -73,6 +93,14 @@ export function emptyStatLine(): StatLine {
     magicPen: 0,
     armorPenPct: 0,
     magicPenPct: 0,
+    healShieldPct: 0,
+    tenacityPct: 0,
+    slowResistPct: 0,
+    lifeStealPct: 0,
+    omnivampPct: 0,
+    range: 0,
+    healthRegen: 0,
+    manaRegen: 0,
   };
 }
 

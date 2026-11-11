@@ -34,6 +34,14 @@ export const PLAYER_STATS_KEYS = [
   'PEN. MÁG.',
   'PEN. ARM. %',
   'PEN. MÁG. %',
+  'CUR/ESC %',
+  'TENACIDAD %',
+  'RES. RALENT. %',
+  'ROBO VIDA %',
+  'OMNISUCCIÓN %',
+  'RANGO',
+  'REGEN. VIDA',
+  'REGEN. MANÁ',
 ] as const;
 
 export type PlayerStatsKey = (typeof PLAYER_STATS_KEYS)[number];
@@ -58,17 +66,40 @@ const LINE_TO_STORED: Record<StatKey, Exclude<PlayerStatsKey, 'nivel'>> = {
   magicPen: 'PEN. MÁG.',
   armorPenPct: 'PEN. ARM. %',
   magicPenPct: 'PEN. MÁG. %',
+  healShieldPct: 'CUR/ESC %',
+  tenacityPct: 'TENACIDAD %',
+  slowResistPct: 'RES. RALENT. %',
+  lifeStealPct: 'ROBO VIDA %',
+  omnivampPct: 'OMNISUCCIÓN %',
+  range: 'RANGO',
+  healthRegen: 'REGEN. VIDA',
+  manaRegen: 'REGEN. MANÁ',
 };
 
+/** Stats del total que se redondean al entero más cercano. */
+const ROUNDED_TOTAL_KEYS = ['lethality', 'magicPen'] as const;
+
 /** Misma suma que la fila Total de Cálculos (base de rol + equipo + extra). */
-export function playerTotalLine(sheet: PlayerSheet | undefined, equipment: string[], level?: number): StatLine {
+export function playerTotalLine(
+  sheet: PlayerSheet | undefined,
+  equipment: string[],
+  level?: number,
+  /** Bonus temporales de combate (cuentan como bonus, antes de redondear). */
+  extra: StatLine[] = [],
+): StatLine {
   const base = sheet ? sheetBase(sheet, level) : undefined;
-  return sumStatLines([...(base ? [base] : []), playerBonusLine(sheet, equipment)]);
+  const total = sumStatLines([...(base ? [base] : []), playerBonusLine(sheet, equipment, extra)]);
+  // Letalidad y pen. mágica planas: al entero más cercano (sobre el total, no por ítem).
+  for (const key of ROUNDED_TOTAL_KEYS) {
+    const value = total[key];
+    if (typeof value === 'number' && Number.isFinite(value)) total[key] = Math.round(value);
+  }
+  return total;
 }
 
 /** Bonus = equipo + extras; nunca incluye dados ni planos de la base de rol/nivel. */
-export function playerBonusLine(sheet: PlayerSheet | undefined, equipment: string[]): StatLine {
-  const parts: StatLine[] = [];
+export function playerBonusLine(sheet: PlayerSheet | undefined, equipment: string[], extraLines: StatLine[] = []): StatLine {
+  const parts: StatLine[] = [...extraLines];
   for (const name of equipment) {
     const item = findItem(name);
     parts.push(item ? itemStatLine(item.stats) : emptyStatLine());

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAppRole } from '../../data/appRoleContext';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useAppRole, useMyPlayerName } from '../../data/appRoleContext';
+import { canSeeHp, participantHp, participantHpPools, type DamageAmount, type TargetDamage } from './combatHp';
 import { CHAMPIONS } from '../../data/champions';
 import {
   endCombatRemote,
@@ -7,22 +8,29 @@ import {
   newId,
   rollInitiative,
   saveCombat,
+  saveCombatHp,
+  saveCombatResource,
+  saveCombatActions,
+  saveCombatBonuses,
   sortByInitiative,
   applySourcedEffect,
   setEffectStacks,
   tickEffectsFor,
   tickCombatTrackers,
   type SourcedEffectInput,
+  type CombatBonus,
   type CombatEffect,
   type CombatParticipant,
   type CombatState,
 } from '../../data/combat';
 import { useLiveRevision } from '../../data/live';
 import { loadNpcs, type Npc } from '../../data/npcs';
+import { needsSheet, snapshotChampion, snapshotNpc, withSheet } from '../../data/combatSheet';
 import { PLAYERS, playerPortraitUrl, savePlayerPatch } from '../../data/players';
 import { tickActiveEffects, tickCooldowns } from '../../data/stacks';
 import { cx } from '../../lib/cx';
 import CombatParticipantCard from './CombatParticipantCard';
+import { applyDamage } from '../players/HpPanel';
 import CombatParticipantPanel from './CombatParticipantPanel';
 import CombatSearchCombobox from './CombatSearchCombobox';
 import {
@@ -45,6 +53,7 @@ const MODE_LABEL: Record<AddMode, string> = {
 export default function Combate() {
   const { role } = useAppRole();
   const isAdmin = role === 'admin';
+  const myPlayer = useMyPlayerName();
   const combatRev = useLiveRevision('combat');
   const playersRev = useLiveRevision('players');
   const championsRev = useLiveRevision('champions');
@@ -52,6 +61,10 @@ export default function Combate() {
   const [state, setState] = useState<CombatState>(emptyCombatState);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  /** Último estado / guardado en curso (para encadenar guardados sin closures viejas). */
+  const stateRef = useRef<CombatState>(state);
+  stateRef.current = state;
+  const savingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [npcs, setNpcs] = useState<Npc[]>([]);
 
@@ -100,21 +113,120 @@ export default function Combate() {
   );
 
   const persist = async (next: CombatState) => {
-    if (!isAdmin || saving) return;
+    if (!isAdmin || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     setError(null);
     try {
       const saved = await saveCombat(next);
+      stateRef.current = saved;
       setState(saved);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar');
       await reload();
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
 
+  /**
+   * Daño a un objetivo (AA / habilidad / objeto): escudo → vida temporal → vida, como el Daño del HpPanel.
+   * Players: su ficha (PATCH op hp); resto: su entrada del combate. Sin armadura/MR (no hay fórmula).
+   */
+  const damageTarget = async (targetId: string, amountIn: DamageAmount): Promise<TargetDamage | null> => {
+    const target = stateRef.current.participants.find(p => p.id === targetId);
+    if (!target) return null;
+    const prev = participantHpPools(target);
+    if (!prev) return null;
+    const amount = typeof amountIn === 'function' ? amountIn(prev.current) : amountIn;
+    if (!(amount > 0)) return null;
+    const next = applyDamage(Math.floor(amount), { actualHp: prev.current, escudo: prev.shield, vidaTemporal: prev.tempHp });
+    const save = async (current: number, tempHp: number, shield: number) => {
+      const result = await saveCombatHp(targetId, current, undefined, { tempHp, shield });
+      stateRef.current = result.combat;
+      setState(result.combat);
+      setTrackerBump(n => n + 1);
+    };
+    await save(next.actualHp, next.vidaTemporal, next.escudo);
+    return {
+      name: target.name,
+      before: prev.current,
+      after: next.actualHp,
+      absorbed: (prev.shield - next.escudo) + (prev.tempHp - next.vidaTemporal),
+      undo: () => save(prev.current, prev.tempHp, prev.shield),
+    };
+  };
+
+  /** Debuffs / bonus de otro participante (reglas de efectos con nombre): guarda y devuelve el Deshacer. */
+  const targetBonuses = async (targetId: string, update: (current: CombatBonus[]) => CombatBonus[]): Promise<(() => Promise<void>) | null> => {
+    const target = stateRef.current.participants.find(p => p.id === targetId);
+    if (!target) return null;
+    const prev = target.bonuses ?? [];
+    const save = async (bonuses: CombatBonus[]) => {
+      const saved = await saveCombatBonuses(targetId, bonuses);
+      stateRef.current = saved;
+      setState(saved);
+    };
+    await save(update(prev));
+    return () => save(prev);
+  };
+
+  /** Cura / escudo / maná al propio participante (reglas de efectos con nombre), con Deshacer. */
+  const poolChange = async (participantId: string, kind: 'heal' | 'shield' | 'mana', amount: number): Promise<(() => Promise<void>) | null> => {
+    const self = stateRef.current.participants.find(p => p.id === participantId);
+    if (!self || !(amount > 0)) return null;
+    const bump = () => setTrackerBump(n => n + 1);
+    if (kind === 'mana') {
+      const player = self.kind === 'player' ? PLAYERS.find(entry => entry.name === self.sourceId) : undefined;
+      const max = player ? player.mana : undefined;
+      const current = player ? (player.actualMana ?? player.mana ?? 0) : (self.currentResource ?? 0);
+      const next = typeof max === 'number' ? Math.min(max, current + amount) : current + amount;
+      if (next === current) return null;
+      const result = await saveCombatResource(participantId, next, max);
+      stateRef.current = result.combat;
+      setState(result.combat);
+      bump();
+      return async () => {
+        const back = await saveCombatResource(participantId, current, max);
+        stateRef.current = back.combat;
+        setState(back.combat);
+        bump();
+      };
+    }
+    const pools = participantHpPools(self);
+    const hp = participantHp(self);
+    if (!pools || !hp) return null;
+    const next = kind === 'heal'
+      ? { current: typeof hp.max === 'number' ? Math.min(hp.max, pools.current + amount) : pools.current + amount, shield: pools.shield }
+      : { current: pools.current, shield: pools.shield + amount };
+    if (next.current === pools.current && next.shield === pools.shield) return null;
+    const save = async (current: number, shield: number) => {
+      const result = await saveCombatHp(participantId, current, undefined, { tempHp: pools.tempHp, shield });
+      stateRef.current = result.combat;
+      setState(result.combat);
+      bump();
+    };
+    await save(next.current, next.shield);
+    return () => save(pools.current, pools.shield);
+  };
+
   const ordered = useMemo(() => sortByInitiative(state.participants), [state.participants]);
+
+  // Combates guardados antes de las copias: el admin las crea una vez (si la base está cargada).
+  const sheetFillTried = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isAdmin || loading || saving || !state.active) return;
+    if (!state.participants.some(needsSheet)) return;
+    const participants = state.participants.map(p => withSheet(p, npcs));
+    if (participants.every((p, i) => p === state.participants[i])) return;
+    const attempt = `${state.updatedAt ?? ''}|${npcs.length}|${championsRev}`;
+    if (sheetFillTried.current === attempt) return;
+    sheetFillTried.current = attempt;
+    void persist({ ...state, participants });
+    // persist cambia en cada render; el resto basta para no repetir.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, loading, saving, state, npcs, championsRev]);
 
   const syncOrder = (participants: CombatParticipant[], turnId?: string): CombatState => {
     const sorted = sortByInitiative(participants);
@@ -127,7 +239,7 @@ export default function Combate() {
       const idx = currentId ? sorted.findIndex(p => p.id === currentId) : 0;
       turnIndex = idx >= 0 ? idx : 0;
     }
-    return { ...state, participants: sorted, turnIndex };
+    return { ...stateRef.current, participants: sorted, turnIndex };
   };
 
   const current = ordered[state.turnIndex];
@@ -178,6 +290,8 @@ export default function Combate() {
           defeated: false,
           image: npc.image || undefined,
           effects: [],
+          // Copia propia por participante: dos del mismo NPC no comparten nada.
+          sheet: snapshotNpc(npc),
         });
       }
     } else if (addMode === 'champion') {
@@ -196,6 +310,7 @@ export default function Combate() {
           defeated: false,
           image: champion.image || undefined,
           effects: [],
+          sheet: snapshotChampion(champion),
         });
       }
     } else {
@@ -218,9 +333,9 @@ export default function Combate() {
     void persist(syncOrder(nextList));
   };
 
-  const updateOne = (id: string, patch: Partial<CombatParticipant>) => {
-    const participants = state.participants.map(p => (p.id === id ? { ...p, ...patch } : p));
-    void persist(syncOrder(participants, current?.id));
+  const updateOne = (id: string, patch: Partial<CombatParticipant>): Promise<void> => {
+    const participants = stateRef.current.participants.map(p => (p.id === id ? { ...p, ...patch } : p));
+    return persist(syncOrder(participants, current?.id));
   };
 
   const removeOne = (id: string) => {
@@ -260,7 +375,7 @@ export default function Combate() {
   };
 
   const startCombat = () => {
-    const sorted = sortByInitiative(state.participants);
+    const sorted = sortByInitiative(state.participants).map(p => withSheet(p, npcs));
     if (sorted.length === 0) return;
     const first = tickCombatTrackers(tickEffectsFor(sorted[0]));
     const participants = sorted.map((p, i) => (i === 0 ? first : p));
@@ -332,13 +447,96 @@ export default function Combate() {
     setEffectValue(cur => ({ ...cur, [participantId]: '' }));
   };
 
+  const panelFor = (p: CombatParticipant, layout: 'drawer' | 'sheet') => (
+        <CombatParticipantPanel
+          key={layout === 'sheet' ? p.id : undefined}
+          layout={layout}
+          onSelect={id => setSelectedId(id)}
+          participant={p}
+          isAdmin={isAdmin}
+          myPlayer={myPlayer}
+          onHpSave={async (current, max, extra) => {
+            const result = await saveCombatHp(p.id, current, max, extra);
+            setState(result.combat);
+            setTrackerBump(n => n + 1);
+          }}
+          onResourceSave={async (current, max) => {
+            const result = await saveCombatResource(p.id, current, max);
+            setState(result.combat);
+            setTrackerBump(n => n + 1);
+          }}
+          onTargetDamage={isAdmin ? damageTarget : undefined}
+          onTargetBonuses={isAdmin ? targetBonuses : undefined}
+          onPoolChange={isAdmin ? (kind, amount) => poolChange(p.id, kind, amount) : undefined}
+          onBonusesSave={async bonuses => {
+            const saved = await saveCombatBonuses(p.id, bonuses);
+            stateRef.current = saved;
+            setState(saved);
+          }}
+          onActionsSave={async (kind, left, extra) => {
+            setState(await saveCombatActions(p.id, kind, left, extra));
+          }}
+          saving={saving}
+          trackerRev={playersRev + trackerBump}
+          onPlayerTrackersChange={patchPlayerTrackers}
+          onPlayerResourceChange={async (playerName, patch) => {
+            await savePlayerPatch(playerName, patch);
+            setTrackerBump(n => n + 1);
+          }}
+          onCombatPatch={patch => updateOne(p.id, patch)}
+          effectPick={effectPick[p.id] ?? 'Aturdido'}
+          effectDur={effectDur[p.id] ?? '2'}
+          effectValue={effectValue[p.id] ?? ''}
+          customEffect={customEffect[p.id] ?? ''}
+          onEffectPick={value => setEffectPick(cur => ({ ...cur, [p.id]: value }))}
+          onEffectDur={value => setEffectDur(cur => ({ ...cur, [p.id]: value }))}
+          onEffectValue={value => setEffectValue(cur => ({ ...cur, [p.id]: value }))}
+          onCustomEffect={value => setCustomEffect(cur => ({ ...cur, [p.id]: value }))}
+          onClose={() => setSelectedId(null)}
+          onInitiative={value => updateOne(p.id, { initiative: value })}
+          onRollInitiative={() => updateOne(p.id, { initiative: rollInitiative(p.initiativeBonus ?? 0) })}
+          onToggleDefeated={() => updateOne(p.id, { defeated: !p.defeated })}
+          onRemove={() => removeOne(p.id)}
+          onAddEffect={() => addEffect(p.id)}
+          onRemoveEffect={effectId => {
+            updateOne(p.id, { effects: p.effects.filter(e => e.id !== effectId) });
+          }}
+          participants={state.participants}
+          onApplySourcedEffect={(targetIds, input: SourcedEffectInput) => {
+            // Uno o varios objetivos (área): todos en un solo guardado, sobre el último estado.
+            const ids = new Set(Array.isArray(targetIds) ? targetIds : [targetIds]);
+            const base = stateRef.current.participants;
+            if (!base.some(entry => ids.has(entry.id))) return;
+            const participants = base.map(entry => (ids.has(entry.id) ? applySourcedEffect(entry, input) : entry));
+            return persist(syncOrder(participants, current?.id));
+          }}
+          onEffectStacksChange={(effectId, stacks) => {
+            updateOne(p.id, { effects: setEffectStacks(p, effectId, stacks).effects });
+          }}
+        />
+  );
+
+  // Al empezar el combate la ficha central es la del turno; después Siguiente/Anterior no cambian de ficha.
+  useEffect(() => {
+    if (state.active) setSelectedId(null);
+  }, [state.active]);
+  // Sin ficha elegida (inicio, o la elegida se quitó): fijar la del turno actual y quedarse en ella.
+  useEffect(() => {
+    if (state.active && !selected && current) setSelectedId(current.id);
+  }, [state.active, selected, current]);
+
+  // En combate la ficha va en el área central: la elegida o, si no, la del turno.
+  const viewed = state.active ? (selected ?? current ?? ordered[0] ?? null) : null;
+
   return (
-    <div className="combat-page">
+    <div className={cx('combat-page', state.active && 'combat-page--active')}>
       <header className="combat-page__head">
-        <div>
-          <p className="combat-page__kicker">Tracker</p>
-          <h1 className="combat-page__title">Combate</h1>
-        </div>
+        {!state.active && (
+          <div>
+            <p className="combat-page__kicker">Tracker</p>
+            <h1 className="combat-page__title">Combate</h1>
+          </div>
+        )}
         <div className="combat-turnbar">
           <span className="combat-turnbar__round">
             {state.active ? `Ronda ${state.round}` : 'Preparación'}
@@ -362,153 +560,135 @@ export default function Combate() {
       {error && <p className="combat-page__error">{error}</p>}
       {loading && <p className="combat-page__hint">Cargando…</p>}
 
-      {isAdmin && (
-        <section className="combat-card combat-add">
-          <h2 className="combat-card__title">Añadir participante</h2>
-          <div className="combat-add__modes">
-            {(['player', 'npc', 'champion', 'custom'] as const).map(mode => (
-              <button
-                key={mode}
-                type="button"
-                className={cx('combat-chip', addMode === mode && 'combat-chip--on')}
-                onClick={() => switchMode(mode)}
-              >
-                {MODE_LABEL[mode]}
-              </button>
-            ))}
-          </div>
-
-          {addMode === 'player' && (
-            <div className="combat-add__players">
-              {PLAYERS.map(player => {
-                const portrait = playerPortraitUrl(player.image);
-                const on = playerPick === player.name;
-                return (
-                  <button
-                    key={player.name}
-                    type="button"
-                    className={cx('combat-player-chip', on && 'combat-player-chip--on')}
-                    disabled={saving}
-                    onClick={() => setPlayerPick(player.name)}
-                  >
-                    {portrait
-                      ? <img src={portrait} alt="" width={28} height={28} />
-                      : <span className="combat-player-chip__fallback" aria-hidden>👤</span>}
-                    <span>{player.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="combat-add__row">
-            {addMode === 'npc' && (
-              <CombatSearchCombobox
-                placeholder="Buscar NPC…"
-                options={npcOptions}
-                selected={npcPick}
-                onSelect={setNpcPick}
-                disabled={saving}
-              />
-            )}
-            {addMode === 'champion' && (
-              <CombatSearchCombobox
-                placeholder="Buscar campeón…"
-                options={championOptions}
-                selected={championPick}
-                onSelect={setChampionPick}
-                disabled={saving}
-              />
-            )}
-            {addMode === 'custom' && (
-              <input value={customName} placeholder="Nombre" onChange={e => setCustomName(e.target.value)} />
-            )}
-            {addMode !== 'player' && (
-              <input
-                className="combat-add__qty"
-                value={qty}
-                placeholder="×"
-                inputMode="numeric"
-                title="Cantidad"
-                onChange={e => setQty(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addParticipants();
-                  }
-                }}
-              />
-            )}
-            <button type="button" className="combat-btn combat-btn--gold" disabled={saving} onClick={addParticipants}>
-              Añadir
-            </button>
-          </div>
-        </section>
-      )}
-
-      <section className="combat-board">
-        {ordered.length === 0 ? (
-          <p className="combat-page__hint">No hay participantes.</p>
-        ) : (
-          <div className="combat-board__grid">
+      {state.active ? (
+        <div className="combat-stage">
+          <nav className="combat-rail" aria-label="Orden de iniciativa">
             {ordered.map((p, index) => (
               <CombatParticipantCard
                 key={p.id}
+                compact
                 participant={p}
-                isTurn={state.active && index === state.turnIndex}
+                isTurn={index === state.turnIndex}
+                selected={viewed?.id === p.id}
                 onOpen={() => setSelectedId(p.id)}
               />
             ))}
+          </nav>
+          <div className="combat-stage__main">
+            {viewed && panelFor(viewed, 'sheet')}
           </div>
-        )}
-      </section>
+        </div>
+      ) : (
+        <>
+          {isAdmin && (
+            <section className="combat-card combat-add">
+              <h2 className="combat-card__title">Añadir participante</h2>
+              <div className="combat-add__modes">
+                {(['player', 'npc', 'champion', 'custom'] as const).map(mode => (
+                  <button
+                    key={mode}
+                    type="button"
+                    className={cx('combat-chip', addMode === mode && 'combat-chip--on')}
+                    onClick={() => switchMode(mode)}
+                  >
+                    {MODE_LABEL[mode]}
+                  </button>
+                ))}
+              </div>
+
+              {addMode === 'player' && (
+                <div className="combat-add__players">
+                  {PLAYERS.map(player => {
+                    const portrait = playerPortraitUrl(player.image);
+                    const on = playerPick === player.name;
+                    return (
+                      <button
+                        key={player.name}
+                        type="button"
+                        className={cx('combat-player-chip', on && 'combat-player-chip--on')}
+                        disabled={saving}
+                        onClick={() => setPlayerPick(player.name)}
+                      >
+                        {portrait
+                          ? <img src={portrait} alt="" width={28} height={28} />
+                          : <span className="combat-player-chip__fallback" aria-hidden>👤</span>}
+                        <span>{player.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="combat-add__row">
+                {addMode === 'npc' && (
+                  <CombatSearchCombobox
+                    placeholder="Buscar NPC…"
+                    options={npcOptions}
+                    selected={npcPick}
+                    onSelect={setNpcPick}
+                    disabled={saving}
+                  />
+                )}
+                {addMode === 'champion' && (
+                  <CombatSearchCombobox
+                    placeholder="Buscar campeón…"
+                    options={championOptions}
+                    selected={championPick}
+                    onSelect={setChampionPick}
+                    disabled={saving}
+                  />
+                )}
+                {addMode === 'custom' && (
+                  <input value={customName} placeholder="Nombre" onChange={e => setCustomName(e.target.value)} />
+                )}
+                {addMode !== 'player' && (
+                  <input
+                    className="combat-add__qty"
+                    value={qty}
+                    placeholder="×"
+                    inputMode="numeric"
+                    title="Cantidad"
+                    onChange={e => setQty(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addParticipants();
+                      }
+                    }}
+                  />
+                )}
+                <button type="button" className="combat-btn combat-btn--gold" disabled={saving} onClick={addParticipants}>
+                  Añadir
+                </button>
+              </div>
+            </section>
+          )}
+
+          <section className="combat-board">
+            {ordered.length === 0 ? (
+              <p className="combat-page__hint">No hay participantes.</p>
+            ) : (
+              <div className="combat-board__grid">
+                {ordered.map((p, index) => (
+                  <CombatParticipantCard
+                    key={p.id}
+                    participant={p}
+                    isTurn={state.active && index === state.turnIndex}
+                    onOpen={() => setSelectedId(p.id)}
+                    hp={canSeeHp(p, isAdmin, myPlayer) ? participantHp(p) ?? undefined : undefined}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
 
       {!isAdmin && (
         <p className="combat-page__hint">Vista en vivo. Toca una carta para ver detalle (solo lectura).</p>
       )}
 
-      {selected && (
-        <CombatParticipantPanel
-          participant={selected}
-          isAdmin={isAdmin}
-          saving={saving}
-          trackerRev={playersRev + trackerBump}
-          onPlayerTrackersChange={patchPlayerTrackers}
-          onPlayerResourceChange={async (playerName, patch) => {
-            await savePlayerPatch(playerName, patch);
-            setTrackerBump(n => n + 1);
-          }}
-          onCombatPatch={patch => updateOne(selected.id, patch)}
-          effectPick={effectPick[selected.id] ?? 'Aturdido'}
-          effectDur={effectDur[selected.id] ?? '2'}
-          effectValue={effectValue[selected.id] ?? ''}
-          customEffect={customEffect[selected.id] ?? ''}
-          onEffectPick={value => setEffectPick(cur => ({ ...cur, [selected.id]: value }))}
-          onEffectDur={value => setEffectDur(cur => ({ ...cur, [selected.id]: value }))}
-          onEffectValue={value => setEffectValue(cur => ({ ...cur, [selected.id]: value }))}
-          onCustomEffect={value => setCustomEffect(cur => ({ ...cur, [selected.id]: value }))}
-          onClose={() => setSelectedId(null)}
-          onInitiative={value => updateOne(selected.id, { initiative: value })}
-          onRollInitiative={() => updateOne(selected.id, { initiative: rollInitiative(selected.initiativeBonus ?? 0) })}
-          onToggleDefeated={() => updateOne(selected.id, { defeated: !selected.defeated })}
-          onRemove={() => removeOne(selected.id)}
-          onAddEffect={() => addEffect(selected.id)}
-          onRemoveEffect={effectId => {
-            updateOne(selected.id, { effects: selected.effects.filter(e => e.id !== effectId) });
-          }}
-          participants={state.participants}
-          onApplySourcedEffect={(targetId, input: SourcedEffectInput) => {
-            const target = state.participants.find(p => p.id === targetId);
-            if (!target) return;
-            const next = applySourcedEffect(target, input);
-            const participants = state.participants.map(p => (p.id === targetId ? next : p));
-            void persist(syncOrder(participants, current?.id));
-          }}
-          onEffectStacksChange={(effectId, stacks) => {
-            updateOne(selected.id, { effects: setEffectStacks(selected, effectId, stacks).effects });
-          }}
-        />
-      )}
+      {!state.active && selected && panelFor(selected, 'drawer')}
     </div>
   );
 }

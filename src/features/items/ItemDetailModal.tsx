@@ -1,12 +1,20 @@
 import { useCallback, useState } from 'react';
 import Modal from '../../components/Modal';
-import { saveItemUpdate, type Item, type ItemUpdate } from '../../data/items';
+import { PASSIVE_TRIGGERS, saveItemUpdate, type Item, type ItemUpdate, type PassiveTrigger } from '../../data/items';
+import { STAT_COLUMNS, formatStat } from '../calculos/statLine';
 import { cx } from '../../lib/cx';
 import { draftToItemUpdate, itemToDraft, type ItemDraft } from './itemDraft';
 import ItemStock from './ItemStock';
 import { RARITIES, rarityClass } from './rarity';
 import { useCanEdit } from '../../data/appRoleContext';
+import { describeNamedEffect, namedEffectBonus, namedEffectOnHit, useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
+import { configSummary } from '../../data/effectBonus';
 import { formatStatValue, getVisibleStats } from './stats';
+
+import { NAMED_EFFECTS, NAMED_EFFECT_KIND_LABEL, baseNamedEffectId, findNamedEffect, groupNamedEffects, namedEffectDescription, namedEffectName, namedEffectOptions } from '../../data/namedEffects';
+
+const triggerLabel = (trigger: PassiveTrigger): string => PASSIVE_TRIGGERS.find(entry => entry.id === trigger)?.label ?? trigger;
+const statTitle = (key: string): string => STAT_COLUMNS.find(column => column.key === key)?.title ?? key;
 
 type Props = {
   item: Item;
@@ -27,6 +35,7 @@ const isEffectDefined = (text: string | undefined): boolean =>
 const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; canEdit: boolean }) => {
   const effects = EFFECTS.filter(({ key }) => isEffectDefined(item.efecto?.[key]));
   const rarity = rarityClass(item.rareza);
+  const effectDescriptions = useNamedEffectDescriptions();
 
   return (
     <>
@@ -51,6 +60,38 @@ const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; c
       )}
       {item.effectName && (
         <p className="item-edit__hint">Nombre del efecto: {item.effectName}</p>
+      )}
+      {item.passiveBonus && (
+        <p className="item-edit__hint">
+          Pasiva ({triggerLabel(item.passiveBonus.trigger)}): {item.passiveBonus.amount > 0 ? '+' : ''}{formatStat(item.passiveBonus.amount)} {statTitle(item.passiveBonus.stat)}
+          {typeof item.passiveBonus.maxStacks === 'number' ? ` · hasta ${item.passiveBonus.maxStacks} stacks` : ''}
+          {typeof item.passiveBonus.durationTurns === 'number' ? ` · ${item.passiveBonus.durationTurns} turno${item.passiveBonus.durationTurns === 1 ? '' : 's'}` : ''}
+        </p>
+      )}
+      {item.namedEffects && item.namedEffects.length > 0 && (
+        <ul className="item-effects-list">
+          {item.namedEffects.map(id => {
+            const effect = findNamedEffect(id);
+            const text = describeNamedEffect(effectDescriptions, id);
+            return (
+              <li key={id}>
+                <strong>{namedEffectName(id)}</strong>
+                {effect && <span className="item-effects-list__meta"> · {NAMED_EFFECT_KIND_LABEL[effect.kind]}{effect.exclusive ? ' · ★ único en la build' : ''}</span>}
+                {namedEffectOnHit(effectDescriptions, id) && <span className="item-effect-badge">Al impactar</span>}
+                {text && <p className="item-effects-list__text">{text}</p>}
+                {(() => {
+                  const lines = configSummary(namedEffectBonus(effectDescriptions, id));
+                  return lines.length ? <ul className="bonus-summary">{lines.map((line, i) => <li key={i}>{line}</li>)}</ul> : null;
+                })()}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {item.passiveDamage && (
+        <p className="item-edit__hint">
+          Daño de pasiva ({triggerLabel(item.passiveDamage.trigger)}): {formatStat(item.passiveDamage.currentHpPct)}% de la vida actual del objetivo
+        </p>
       )}
 
       <div className="modal-rule">
@@ -228,6 +269,80 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onSave, 
           onChange={e => onChange({ effectName: e.target.value })}
         />
       </label>
+
+      <div className="item-edit__block">
+        <span className="modal-effect__tag">Pasiva en combate</span>
+        <p className="item-edit__hint">Bonus temporal que se suma / acumula al saltar (p. ej. +0,3 letalidad por golpe) y daño % de la vida actual del objetivo. Vacío = sin pasiva.</p>
+        <div className="item-field">
+          <span>Efectos con nombre (Vigor, Salvavidas…)</span>
+          {draft.namedEffects.length > 0 && (
+            <div className="item-named-effects">
+              {draft.namedEffects.map(id => (
+                <span key={id} className="item-named-effect" title={namedEffectDescription(id)}>
+                  {namedEffectName(id)}{findNamedEffect(id)?.exclusive ? ' ★' : ''}
+                  <button type="button" disabled={saving} aria-label={`Quitar ${namedEffectName(id)}`} onClick={() => onChange({ namedEffects: draft.namedEffects.filter(entry => entry !== id) })}>✕</button>
+                </span>
+              ))}
+            </div>
+          )}
+          <select
+            value=""
+            disabled={saving || draft.namedEffects.length >= 10}
+            onChange={e => { if (e.target.value) onChange({ namedEffects: [...draft.namedEffects, e.target.value] }); }}
+          >
+            <option value="">Añadir efecto…</option>
+            {groupNamedEffects(NAMED_EFFECTS.filter(effect => !draft.namedEffects.some(id => baseNamedEffectId(id) === effect.id))).map(group => (
+              <optgroup key={group.key} label={group.label}>
+                {group.effects.flatMap(effect => namedEffectOptions(effect).map(option => (
+                  <option key={option.id} value={option.id}>{option.name}{effect.name !== effect.en ? ` (${effect.en})` : ''}{effect.exclusive ? ' ★' : ''}</option>
+                )))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        <label className="item-field">
+          <span>Bonus: cuándo</span>
+          <select value={draft.passiveTrigger} disabled={saving} onChange={e => onChange({ passiveTrigger: e.target.value as ItemDraft['passiveTrigger'] })}>
+            <option value="">Sin bonus</option>
+            {PASSIVE_TRIGGERS.map(trigger => <option key={trigger.id} value={trigger.id}>{trigger.label}</option>)}
+          </select>
+        </label>
+        {draft.passiveTrigger && (
+          <>
+            <label className="item-field">
+              <span>Bonus: stat</span>
+              <select value={draft.passiveStat} disabled={saving} onChange={e => onChange({ passiveStat: e.target.value })}>
+                {STAT_COLUMNS.map(column => <option key={column.key} value={column.key}>{column.title}</option>)}
+              </select>
+            </label>
+            <label className="item-field">
+              <span>Bonus: cantidad (por stack)</span>
+              <input inputMode="decimal" value={draft.passiveAmount} placeholder="0,3" disabled={saving} onChange={e => onChange({ passiveAmount: e.target.value })} />
+            </label>
+            <label className="item-field">
+              <span>Bonus: stacks máx. (opcional)</span>
+              <input inputMode="numeric" value={draft.passiveMaxStacks} placeholder="Sin acumular" disabled={saving} onChange={e => onChange({ passiveMaxStacks: e.target.value })} />
+            </label>
+            <label className="item-field">
+              <span>Bonus: turnos (opcional)</span>
+              <input inputMode="numeric" value={draft.passiveTurns} placeholder="Hasta quitarlo" disabled={saving} onChange={e => onChange({ passiveTurns: e.target.value })} />
+            </label>
+          </>
+        )}
+        <label className="item-field">
+          <span>Daño de pasiva: cuándo</span>
+          <select value={draft.damageTrigger} disabled={saving} onChange={e => onChange({ damageTrigger: e.target.value as ItemDraft['damageTrigger'] })}>
+            <option value="">Sin daño</option>
+            {PASSIVE_TRIGGERS.map(trigger => <option key={trigger.id} value={trigger.id}>{trigger.label}</option>)}
+          </select>
+        </label>
+        {draft.damageTrigger && (
+          <label className="item-field">
+            <span>Daño: % vida actual del objetivo</span>
+            <input inputMode="decimal" value={draft.damagePct} placeholder="9" disabled={saving} onChange={e => onChange({ damagePct: e.target.value })} />
+          </label>
+        )}
+      </div>
 
       <div className="item-edit__block">
         <span className="modal-effect__tag">Estadísticas</span>

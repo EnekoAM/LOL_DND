@@ -1,4 +1,5 @@
-import { STAT_KEYS, type Item, type ItemStats, type ItemUpdate, type StatValue } from '../../data/items';
+import { STAT_KEYS, type Item, type ItemPassiveBonus, type ItemPassiveDamage, type ItemStats, type ItemUpdate, type PassiveTrigger, type StatValue } from '../../data/items';
+import { STAT_COLUMNS } from '../calculos/statLine';
 
 export type ItemDraft = {
   rareza: string;
@@ -13,6 +14,17 @@ export type ItemDraft = {
   effectDuration: string;
   effectTarget: 'self' | 'enemy';
   effectName: string;
+  /** Pasiva en combate: bonus de stats. '' = sin bonus. */
+  passiveTrigger: PassiveTrigger | '';
+  passiveStat: string;
+  passiveAmount: string;
+  passiveMaxStacks: string;
+  passiveTurns: string;
+  /** Pasiva en combate: daño % vida actual del objetivo. '' = sin daño. */
+  damageTrigger: PassiveTrigger | '';
+  damagePct: string;
+  /** Efectos con nombre (ids). */
+  namedEffects: string[];
   /** Texto tal cual lo escribe el usuario; se convierte al guardar. */
   stats: Record<string, string>;
 };
@@ -52,6 +64,14 @@ export function itemToDraft(item: Item): ItemDraft {
     effectDuration: typeof item.effectDuration === 'number' ? String(item.effectDuration) : '',
     effectTarget: item.effectTarget === 'enemy' ? 'enemy' : 'self',
     effectName: item.effectName ?? '',
+    passiveTrigger: item.passiveBonus?.trigger ?? '',
+    passiveStat: item.passiveBonus?.stat ?? 'lethality',
+    passiveAmount: item.passiveBonus ? String(item.passiveBonus.amount) : '',
+    passiveMaxStacks: typeof item.passiveBonus?.maxStacks === 'number' ? String(item.passiveBonus.maxStacks) : '',
+    passiveTurns: typeof item.passiveBonus?.durationTurns === 'number' ? String(item.passiveBonus.durationTurns) : '',
+    damageTrigger: item.passiveDamage?.trigger ?? '',
+    damagePct: item.passiveDamage ? String(item.passiveDamage.currentHpPct) : '',
+    namedEffects: [...(item.namedEffects ?? [])],
     stats,
   };
 }
@@ -110,6 +130,8 @@ export function draftToItemUpdate(draft: ItemDraft, item: Item): ItemUpdate {
   }
   const effectName = draft.effectName.trim();
   if (effectName.length > 80) throw new Error('El nombre del efecto no puede superar 80 caracteres');
+  const passiveBonus = draftPassiveBonus(draft);
+  const passiveDamage = draftPassiveDamage(draft);
   return {
     rareza,
     efecto: {
@@ -124,5 +146,41 @@ export function draftToItemUpdate(draft: ItemDraft, item: Item): ItemUpdate {
     effectDuration,
     effectTarget: draft.effectTarget === 'enemy' ? 'enemy' : null,
     effectName: effectName ? effectName : null,
+    passiveBonus,
+    passiveDamage,
+    namedEffects: draft.namedEffects.length ? [...new Set(draft.namedEffects)] : null,
   };
+}
+
+const optionalInt = (text: string, label: string): number | undefined => {
+  const trimmed = text.trim();
+  if (!trimmed) return undefined;
+  const n = Number(trimmed);
+  if (!Number.isInteger(n) || n < 1 || n > 99) throw new Error(`${label} tiene que ser un entero entre 1 y 99`);
+  return n;
+};
+
+/** Sin disparador = sin bonus (null lo quita del ítem). */
+function draftPassiveBonus(draft: ItemDraft): ItemPassiveBonus | null {
+  if (!draft.passiveTrigger) return null;
+  if (!STAT_COLUMNS.some(column => column.key === draft.passiveStat)) throw new Error('Elige la stat del bonus de la pasiva');
+  const amount = Number(draft.passiveAmount.trim().replace(',', '.'));
+  if (!draft.passiveAmount.trim() || !Number.isFinite(amount) || amount === 0 || Math.abs(amount) > 9999) {
+    throw new Error('La cantidad del bonus de la pasiva tiene que ser un número distinto de 0');
+  }
+  const bonus: ItemPassiveBonus = { trigger: draft.passiveTrigger, stat: draft.passiveStat, amount };
+  const maxStacks = optionalInt(draft.passiveMaxStacks, 'Stacks máx. de la pasiva');
+  if (maxStacks !== undefined) bonus.maxStacks = maxStacks;
+  const durationTurns = optionalInt(draft.passiveTurns, 'Turnos de la pasiva');
+  if (durationTurns !== undefined) bonus.durationTurns = durationTurns;
+  return bonus;
+}
+
+function draftPassiveDamage(draft: ItemDraft): ItemPassiveDamage | null {
+  if (!draft.damageTrigger) return null;
+  const pct = Number(draft.damagePct.trim().replace(',', '.'));
+  if (!draft.damagePct.trim() || !Number.isFinite(pct) || pct <= 0 || pct > 100) {
+    throw new Error('El daño de la pasiva tiene que ser un % entre 0 y 100');
+  }
+  return { trigger: draft.damageTrigger, currentHpPct: pct };
 }

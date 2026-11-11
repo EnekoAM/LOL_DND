@@ -15,7 +15,8 @@ export type CombatPatch = {
 };
 
 type Props = {
-  player: Player;
+  /** Player o, en combate, un campeón/NPC con sus valores del combate. */
+  player: Pick<Player, 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal'>;
   /** Máximo sugerido por el total de Cálculos (si aún no hay `hp` guardado). */
   suggestedMax: number;
   /**
@@ -32,7 +33,8 @@ function suggestedOr(value: number | undefined, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
-function applyDamage(
+/** Daño: primero escudo, luego vida temporal, luego vida. */
+export function applyDamage(
   amount: number,
   state: { actualHp: number; escudo: number; vidaTemporal: number },
 ): { actualHp: number; escudo: number; vidaTemporal: number } {

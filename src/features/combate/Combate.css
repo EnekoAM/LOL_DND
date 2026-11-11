@@ -982,3 +982,578 @@
 .combat-resource__fill--sangre { background: linear-gradient(90deg, #5f1414, #b91c1c); }
 .combat-resource__fill--concentracion { background: linear-gradient(90deg, #0d9488, #5eead4); }
 .combat-resource__fill--otro { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+
+/* Vida en combate */
+.combat-hp__form { margin-top: 0.45rem; }
+.combat-hp__field { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.72rem; color: rgba(240, 230, 210, 0.7); }
+.combat-hp__field input { width: 5.5rem; }
+.combat-mini__hp {
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin-top: 3px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.combat-mini__hp-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #7a2a2a, #d06060);
+}
+
+/* Combate en curso: columna de iniciativa pegada al menú lateral (solo foto + ini) */
+.combat-page--active {
+  --combat-rail-w: 92px;
+  --combat-nav-w: var(--sidenav-collapsed, 64px);
+  /* Solo empuja el contenido si la columna fija lo pisaría (pantallas estrechas). */
+  padding-left: max(1rem, calc(var(--combat-rail-w) + 12px - 28px - max(0px, (100vw - var(--combat-nav-w) - 56px - 1100px) / 2)));
+}
+
+.app-root--nav-expanded .combat-page--active {
+  --combat-nav-w: var(--sidenav-expanded, 212px);
+}
+
+.combat-stage {
+  margin-top: 0.5rem;
+}
+
+.combat-rail {
+  position: fixed;
+  top: var(--header-height, 64px);
+  bottom: 0;
+  left: var(--combat-nav-w);
+  z-index: 50;
+  width: var(--combat-rail-w);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.75rem 0;
+  border-right: 1px solid rgba(201, 162, 39, 0.22);
+  background: linear-gradient(180deg, rgba(22, 20, 16, 0.97), rgba(10, 9, 8, 0.98));
+  box-shadow: 4px 0 18px rgba(0, 0, 0, 0.4);
+  transition: left 0.22s ease;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 162, 39, 0.4) transparent;
+}
+
+.combat-stage__main {
+  min-width: 0;
+}
+
+.combat-stage__main > .combat-add {
+  margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  .combat-page--active,
+  .app-root--nav-expanded .combat-page--active {
+    --combat-nav-w: 0px;
+    padding-left: calc(var(--combat-rail-w) + 0.5rem);
+  }
+}
+
+.combat-mini--compact {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0.35rem;
+}
+
+.combat-mini--compact .combat-mini__frame {
+  width: 64px;
+  height: 64px;
+  margin: 0;
+}
+
+.combat-mini--compact .combat-mini__img {
+  width: 64px;
+  height: 64px;
+}
+
+.combat-mini--compact .combat-mini__ini {
+  top: -5px;
+  right: -5px;
+}
+
+/* Combate en curso: sin título ni alta; los controles de turno arriba a la derecha */
+.combat-page--active .combat-page__head {
+  justify-content: flex-end;
+}
+
+/* Ficha (copia por participante) en el panel lateral */
+.combat-sheet__meta {
+  margin: 0 0 0.45rem;
+  font-size: 0.8rem;
+  color: #a89f8c;
+}
+
+.combat-sheet__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0 0 0.5rem;
+}
+
+.combat-sheet__stat {
+  padding: 0.3rem 0.35rem;
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  border-radius: 8px;
+  background: rgba(10, 9, 8, 0.55);
+  text-align: center;
+}
+
+.combat-sheet__stat dt {
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.combat-sheet__stat dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #f0e6d2;
+}
+
+.combat-sheet__items {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  color: #cfc8b8;
+}
+
+.combat-sheet__abilities {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.combat-sheet__abilities li {
+  padding: 0.35rem 0.45rem;
+  border: 1px solid rgba(201, 162, 39, 0.16);
+  border-radius: 8px;
+  background: rgba(10, 9, 8, 0.45);
+}
+
+.combat-sheet__ability-name {
+  margin-right: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #f0e6d2;
+}
+
+.combat-sheet__ability-desc {
+  margin: 0.2rem 0 0;
+  font-size: 0.76rem;
+  color: #a89f8c;
+  line-height: 1.3;
+}
+
+/* Combate en curso: ficha del participante en el área central (como la de Players) */
+.combat-page--active {
+  max-width: 1500px;
+}
+
+.combat-mini--selected {
+  border-color: rgba(240, 210, 122, 0.85);
+  background: rgba(42, 32, 16, 0.95);
+}
+
+.combat-mini--selected.combat-mini--turn {
+  box-shadow: 0 0 0 2px rgba(240, 210, 122, 0.6), 0 0 18px rgba(201, 162, 39, 0.35);
+}
+
+.combat-sheet {
+  padding: 0 0 2rem;
+}
+
+.combat-sheet__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.combat-sheet__kicker {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9a227;
+}
+
+.combat-sheet .sheet-side {
+  max-height: calc(100vh - var(--header-height, 64px) - 24px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 162, 39, 0.4) transparent;
+}
+
+.combat-sheet__down {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border: 1px solid rgba(192, 57, 43, 0.6);
+  border-radius: 999px;
+  color: #e07a6e;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.combat-sheet__defense {
+  margin: 10px 0 4px;
+}
+
+.combat-sheet__strip {
+  margin-top: 8px;
+}
+
+.combat-sheet__strip .combat-panel__section {
+  margin-bottom: 0.6rem;
+}
+
+.combat-sheet__strip .combat-panel__effect-add,
+.combat-sheet__strip .combat-panel__effects,
+.combat-sheet__strip .combat-panel__actions {
+  flex-wrap: wrap;
+}
+
+.combat-bar__tools {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.combat-bar__pencil--on {
+  color: var(--gold-bright, #e8c96a);
+  border-color: rgba(232, 201, 106, 0.7);
+}
+
+.combat-bar .combat-hp__form {
+  margin-top: 8px;
+}
+
+.combat-spell__use {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+}
+
+.combat-spell__use .combat-panel__phases {
+  flex: 1 1 100%;
+}
+
+.combat-sheet__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.combat-sheet__trackers .combat-panel__section {
+  margin: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.combat-sheet .combat-panel__use-result,
+.combat-sheet .combat-panel__picker {
+  margin-top: 10px;
+}
+
+/* Ficha de combate: CA / Velocidad / MR del mismo ancho y cabiendo en la columna izquierda */
+.combat-sheet .combat-sheet__defense {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-content: stretch;
+  gap: 6px;
+}
+
+.combat-sheet .combat-sheet__defense .sheet-defense__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 8px 4px;
+}
+
+.combat-sheet .combat-sheet__defense .sheet-defense__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 8.5px;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  margin-bottom: 5px;
+}
+
+.combat-sheet .combat-sheet__defense .sheet-defense__value {
+  font-size: 18px;
+}
+
+/* Objetos: celdas que dejan sitio y contador de cargas compacto dentro del ancho del ítem */
+.combat-sheet .calc-equip-grid {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+}
+
+.combat-sheet__item {
+  min-width: 0;
+}
+
+.combat-sheet__item .stack-counter {
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 0;
+  gap: 0;
+  padding: 0 0.1rem;
+  font-size: 11px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.combat-sheet__item .stack-counter__btn,
+.combat-sheet__item .stack-counter__reset {
+  padding: 0.1rem 0.2rem;
+  font-size: 11px;
+}
+
+.combat-sheet__item .stack-counter__input {
+  width: 1.7rem;
+  font-size: 11px;
+  padding: 0;
+}
+
+.combat-sheet__item .stack-counter__max {
+  font-size: 10px;
+  margin-right: 0;
+}
+
+/* Selects nativos del combate (estados…): tema oscuro también en la lista desplegada */
+.combat-page select,
+.combat-panel select {
+  color-scheme: dark;
+  background-color: rgba(10, 9, 8, 0.92);
+  color: #e8e4d9;
+}
+
+.combat-page select option,
+.combat-panel select option {
+  background-color: #1a1208;
+  color: #e8e4d9;
+}
+
+.combat-page select option:checked,
+.combat-panel select option:checked {
+  background-color: #2a2010;
+  color: #f0d27a;
+}
+
+/* Estados en la ficha de combate: mismos controles oscuros que el panel y el select a lo ancho */
+.combat-sheet__strip select,
+.combat-sheet__strip input {
+  background: rgba(10, 9, 8, 0.85);
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  border-radius: 8px;
+  color: #e8e4d9;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  font-size: 0.85rem;
+  min-width: 0;
+  color-scheme: dark;
+}
+
+.combat-sheet__strip .combat-panel__effect-add {
+  grid-template-columns: minmax(0, 1fr) 3.2rem 3.2rem auto;
+}
+
+.combat-sheet__strip .combat-panel__effect-add .combat-panel__effect-preset {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.combat-sheet__strip .combat-panel__effect-add .combat-panel__effect-num {
+  width: 100%;
+}
+
+.combat-sheet__strip .combat-panel__row input {
+  width: 5rem;
+}
+
+/* Ítems en la ficha de combate: clic usa (si tiene activa/daño), clic derecho abre la info */
+.combat-sheet__tile {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  cursor: help;
+}
+
+.combat-sheet__tile--usable {
+  cursor: not-allowed;
+}
+
+.combat-sheet__tile--ready {
+  cursor: pointer;
+}
+
+.combat-sheet__tile--ready:hover,
+.combat-sheet__tile:focus-visible {
+  outline: 2px solid var(--gold, #c9a84c);
+  outline-offset: 1px;
+}
+
+.combat-sheet__tile--cd .calc-item-card {
+  filter: grayscale(0.75) brightness(0.7);
+}
+
+.combat-sheet__tile-cd {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.6);
+  background: rgba(10, 9, 8, 0.9);
+  color: #f0d27a;
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* Acciones que quedan este turno (Auto-ataques / Habilidades). */
+.combat-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: #e8d9a8;
+}
+.combat-actions--empty {
+  color: #e07a6a;
+}
+.combat-actions__extra {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border: 1px solid rgba(200, 170, 110, 0.55);
+  border-radius: 3px;
+  background: rgba(200, 170, 110, 0.12);
+  color: #e8d9a8;
+  cursor: pointer;
+}
+.combat-actions__extra:hover:not(:disabled) {
+  background: rgba(200, 170, 110, 0.25);
+}
+.combat-actions__extra:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Selector de varios objetivos (daño en área). */
+.combat-panel__picker-item--check {
+  cursor: pointer;
+}
+.combat-panel__picker-item--check input {
+  accent-color: #c9a227;
+  margin: 0;
+  flex: 0 0 auto;
+}
+.combat-panel__picker-item--on {
+  border-color: rgba(201, 162, 39, 0.85);
+  background: rgba(60, 50, 22, 0.9);
+}
+.combat-panel__picker-item--defeated {
+  opacity: 0.6;
+}
+.combat-panel__picker-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+/* Penetraciones: misma tarjeta que CA / Velocidad / MR, 4 columnas iguales. */
+.combat-sheet .combat-sheet__defense.combat-sheet__pen {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 6px;
+}
+.combat-sheet .combat-sheet__pen .sheet-defense__value {
+  font-size: 15px;
+}
+/* Stats que solo dan los ítems: 8 casillas compactas (4 × 2) bajo las penetraciones. */
+.combat-sheet .combat-sheet__defense.combat-sheet__utility {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.combat-sheet .combat-sheet__utility .sheet-defense__label { font-size: 10px; }
+.combat-sheet .combat-sheet__utility .sheet-defense__value { font-size: 14px; }
+
+/* Bonus temporales (+ Bonus / pasivas de ítems) bajo las penetraciones. */
+.combat-bonuses {
+  margin-top: 8px;
+}
+.combat-bonuses__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.combat-bonus {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  border-radius: 999px;
+  background: rgba(40, 36, 24, 0.85);
+  color: #e8d9a8;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.combat-bonus__src {
+  color: #b8a77a;
+  font-style: italic;
+}
+.combat-bonus__btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #e8d9a8;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 11px;
+}
+.combat-bonus__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.combat-bonus-form {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+}
+.combat-bonus-form select,
+.combat-bonus-form input {
+  width: 100%;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 6px;
+  background: #14161e;
+  color: #e8e4d9;
+  font: inherit;
+  font-size: 12px;
+  color-scheme: dark;
+}

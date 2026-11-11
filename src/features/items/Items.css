@@ -592,3 +592,85 @@
 .filter-search-clear { position: absolute; right: 6px; bottom: 6px; background: none; border: none; color: inherit; opacity: .6; cursor: pointer; font-size: 18px; line-height: 1; padding: 0 4px; }
 .filter-search-clear:hover { opacity: 1; }
 
+
+/* Efectos con nombre del ítem (Vigor, Salvavidas…) en el editor. */
+.item-named-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0 4px;
+}
+.item-named-effect {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  border-radius: 999px;
+  font-size: 12px;
+}
+.item-named-effect button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+/* ── Pestañas Objetos / Efectos ── */
+.items-tabs { display: flex; gap: 4px; padding: 4px; margin-bottom: 12px; width: fit-content; border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; background: rgba(10,8,4,0.5); }
+.items-tab { appearance: none; border: 1px solid transparent; background: transparent; color: rgba(212,196,154,0.55); padding: 6px 16px; border-radius: 6px; font: inherit; font-size: 14px; letter-spacing: .04em; cursor: pointer; }
+.items-tab:hover { color: var(--gold); background: rgba(201,168,76,0.06); }
+.items-tab--active { color: var(--gold-bright); background: linear-gradient(135deg, rgba(42,24,0,0.9), rgba(26,15,0,0.95)); border-color: rgba(201,168,76,0.4); }
+
+/* ── Tabla de efectos con nombre ── */
+.effects-table__wrap { overflow-x: auto; margin-top: 12px; }
+.effects-table { width: 100%; border-collapse: collapse; font-size: 14px; color: rgba(232,220,190,0.9); }
+.effects-table th { text-align: left; font-weight: 600; color: var(--gold); padding: 6px 8px; border-bottom: 1px solid rgba(201,168,76,0.3); position: sticky; top: 0; background: rgba(14,11,6,0.95); }
+.effects-table td { padding: 6px 8px; border-bottom: 1px solid rgba(201,168,76,0.1); vertical-align: top; }
+.effects-table__name { font-weight: 600; white-space: nowrap; }
+.effects-table__en { color: rgba(212,196,154,0.55); white-space: nowrap; }
+.effects-table__variant td { background: rgba(201,168,76,0.03); }
+.effects-table__variant .effects-table__name { font-weight: 400; padding-left: 20px; }
+.effects-table__desc { min-width: 280px; width: 50%; }
+.effects-table__edit { display: flex; flex-direction: column; gap: 2px; }
+.effects-table__textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 40px; background: rgba(10,8,4,0.7); color: inherit; border: 1px solid rgba(201,168,76,0.25); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; }
+.effects-table__textarea:focus { outline: none; border-color: rgba(201,168,76,0.6); }
+.effects-table__textarea::placeholder { color: rgba(212,196,154,0.25); }
+.effects-table__status { font-size: 12px; min-height: 14px; color: rgba(212,196,154,0.45); }
+.effects-table__status--error { color: #f87171; }
+.effects-table__text { margin: 0; white-space: pre-wrap; }
+.effects-table__empty { color: rgba(212,196,154,0.3); }
+.effects-table__toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: rgba(212,196,154,0.7); align-self: flex-end; padding-bottom: 8px; }
+
+/* ── Efectos con nombre en la ficha del ítem ── */
+.item-effects-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.item-effects-list strong { color: var(--gold); }
+.item-effects-list__meta { color: rgba(212,196,154,0.5); font-size: 13px; }
+.item-effects-list__text { margin: 2px 0 0; white-space: pre-wrap; color: rgba(232,220,190,0.85); }
+
+/* ── «Al impactar» ── */
+.item-effect-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 11px; letter-spacing: .03em; color: #fcd34d; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.4); vertical-align: middle; }
+.effects-table__onhit { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.effects-table__onhit label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.effects-table__inherited { font-size: 11px; color: rgba(212,196,154,0.4); }
+.effects-table__inherit { appearance: none; background: none; border: none; padding: 0; font: inherit; font-size: 11px; color: rgba(212,196,154,0.55); text-decoration: underline; cursor: pointer; }
+.effects-table__inherit:hover { color: var(--gold); }
+
+/* Configurador de bonus de efectos con nombre */
+.bonus-toggle { background: none; border: 1px solid var(--border, #444); border-radius: 4px; color: inherit; cursor: pointer; font-size: 0.8rem; padding: 2px 6px; white-space: nowrap; }
+.effects-table__bonus-row > td { background: rgba(255, 255, 255, 0.03); }
+.bonus-editor { display: flex; flex-direction: column; gap: 8px; padding: 6px 4px; }
+.bonus-editor__rule { border: 1px solid var(--border, #444); border-radius: 6px; display: flex; flex-direction: column; gap: 6px; padding: 6px 8px; }
+.bonus-editor__row { align-items: flex-end; display: flex; flex-wrap: wrap; gap: 8px; }
+.bonus-editor__field { display: flex; flex-direction: column; font-size: 0.75rem; gap: 2px; }
+.bonus-editor__field > span { opacity: 0.7; }
+.bonus-editor__field--grow { flex: 1; min-width: 200px; }
+.bonus-editor__field--grow input { width: 100%; }
+.bonus-editor__ratio { align-items: center; display: inline-flex; font-size: 0.8rem; gap: 3px; }
+.bonus-editor__add, .bonus-editor__save, .bonus-editor__remove { cursor: pointer; font-size: 0.8rem; padding: 2px 8px; }
+.bonus-editor__remove { background: none; border: none; color: #e57373; }
+.bonus-summary { font-size: 0.8rem; margin: 4px 0 0; padding-left: 18px; }
+.bonus-summary li { margin: 1px 0; }
+.bonus-summary__note { font-size: 0.75rem; font-style: italic; opacity: 0.7; }

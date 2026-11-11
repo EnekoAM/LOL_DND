@@ -1,4 +1,5 @@
 import { tickActiveEffects, tickCooldowns } from './stacks';
+import { readAppIdentity, readAppRole } from './appRole';
 
 /** Estado del combate activo (Mongo: combat/active). */
 
@@ -55,6 +56,48 @@ export type CombatParticipant = {
   activeEffects?: Record<string, number>;
   /** Fase actual (0 = base) de habilidades con variantes. Claves ability:<nombre>. Se vacía al terminar. */
   abilityPhases?: Record<string, number>;
+  /**
+   * Copia propia de la ficha (campeón / NPC) tomada al añadirlo. Cada participante usa la suya:
+   * dos Aatrox no comparten nada y el documento base no se toca. Los players no llevan copia.
+   */
+  sheet?: CombatSheet;
+  /** Vida temporal y escudo (campeones / NPCs). */
+  tempHp?: number;
+  shield?: number;
+  /** Máximo del recurso fijado a mano; si no, el de sus stats / Recurso. */
+  resourceMax?: number;
+  /**
+   * Ataques / habilidades que le quedan este turno. Ausente = todos (los de su ficha: Attacks / Abilities).
+   * Se borra al empezar su turno.
+   */
+  actionsLeft?: { attacks?: number; abilities?: number };
+  /** Ataques / habilidades extra concedidos este turno (ya sumados en actionsLeft). Se borra al empezar su turno. */
+  actionsExtra?: { attacks?: number; abilities?: number };
+  /** Bonus temporales de stats (manuales o de pasivas de ítems). */
+  bonuses?: CombatBonus[];
+};
+
+/** Bonus temporal: amount × stacks se suma al total; turns baja al empezar su turno (ausente = hasta quitarlo). */
+export type CombatBonus = {
+  id: string;
+  /** Clave de stat de Cálculos (StatKey). */
+  stat: string;
+  amount: number;
+  stacks?: number;
+  maxStacks?: number;
+  turns?: number;
+  /** "manual" o "item:<nombre>". */
+  source?: string;
+  label?: string;
+};
+
+export type CombatSheet = {
+  kind: 'champion' | 'npc';
+  capturedAt: string;
+  /** Champion entero (kind champion) o CombatNpcSheet (kind npc). */
+  data: Record<string, unknown>;
+  /** Rango de cada habilidad (Q/W/E/R…) de esta copia. */
+  abilityRanks?: Record<string, number>;
 };
 
 export type CombatState = {
@@ -92,7 +135,7 @@ function normalize(raw: unknown): CombatState {
 export async function loadCombat(): Promise<CombatState> {
   let response: Response;
   try {
-    response = await fetch('/api/combat');
+    response = await fetch('/api/combat', { headers: readAppRole() === 'admin' ? { 'X-App-Role': 'admin' } : {} });
   } catch {
     throw new Error(OFFLINE);
   }
@@ -226,10 +269,119 @@ export function setEffectStacks(participant: CombatParticipant, effectId: string
 }
 /** Baja CD y efectos propios guardados en el participante (campeones en combate). */
 export function tickCombatTrackers(participant: CombatParticipant): CombatParticipant {
+  // Empieza su turno: vuelve a tener todos sus ataques y habilidades.
+  if (participant.actionsLeft || participant.actionsExtra) {
+    const { actionsLeft: _reset, actionsExtra: _extra, ...rest } = participant;
+    participant = rest;
+  }
+  if (participant.bonuses?.length) {
+    // Bonus con duración: un turno menos; a 0 se quitan.
+    const bonuses = participant.bonuses
+      .map(bonus => (typeof bonus.turns === 'number' ? { ...bonus, turns: bonus.turns - 1 } : bonus))
+      .filter(bonus => typeof bonus.turns !== 'number' || bonus.turns > 0);
+    const { bonuses: _old, ...rest } = participant;
+    participant = bonuses.length ? { ...rest, bonuses } : rest;
+  }
   if (!participant.cooldowns && !participant.activeEffects) return participant;
   return {
     ...participant,
     cooldowns: participant.cooldowns ? tickCooldowns(participant.cooldowns) : participant.cooldowns,
     activeEffects: participant.activeEffects ? tickActiveEffects(participant.activeEffects) : participant.activeEffects,
   };
+}
+
+/**
+ * Vida de un participante en combate. El admin puede la de todos; un User solo la de su player
+ * (el servidor lo comprueba con X-App-Role / X-App-Player). Players: se guarda en su ficha.
+ */
+export async function saveCombatHp(
+  participantId: string,
+  current: number,
+  max?: number,
+  extra?: { tempHp?: number; shield?: number },
+): Promise<{ combat: CombatState; player?: import('./players').Player }> {
+  return saveCombatValue('hp', participantId, current, max, extra);
+}
+
+/** Recurso actual (maná, energía…) en combate; mismos permisos que la vida. Players: mana/actualMana de su ficha. */
+export async function saveCombatResource(participantId: string, current: number, max?: number): Promise<{ combat: CombatState; player?: import('./players').Player }> {
+  return saveCombatValue('resource', participantId, current, max);
+}
+
+/** Bonus temporales de un participante (sustituye la lista). Admin: cualquiera; User: su player. */
+export async function saveCombatBonuses(participantId: string, bonuses: CombatBonus[]): Promise<CombatState> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-App-Role': readAppRole() ?? 'user' };
+  const identity = readAppIdentity();
+  if (identity?.kind === 'player') headers['X-App-Player'] = encodeURIComponent(identity.name);
+  let response: Response;
+  try {
+    response = await fetch('/api/combat', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ op: 'bonuses', participantId, bonuses }),
+    });
+  } catch {
+    throw new Error(OFFLINE);
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readError(body, `Error ${response.status} al guardar los bonus`));
+  return normalize(((body ?? {}) as { combat?: unknown }).combat);
+}
+
+/**
+ * Acciones que le quedan este turno (left) y cuántas de ellas son extra. Admin: cualquiera; User: su player.
+ */
+export async function saveCombatActions(
+  participantId: string,
+  kind: 'attacks' | 'abilities',
+  left: number,
+  extra: number,
+): Promise<CombatState> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-App-Role': readAppRole() ?? 'user' };
+  const identity = readAppIdentity();
+  if (identity?.kind === 'player') headers['X-App-Player'] = encodeURIComponent(identity.name);
+  let response: Response;
+  try {
+    response = await fetch('/api/combat', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ op: 'actions', participantId, kind, left, extra }),
+    });
+  } catch {
+    throw new Error(OFFLINE);
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readError(body, `Error ${response.status} al guardar las acciones`));
+  return normalize(((body ?? {}) as { combat?: unknown }).combat);
+}
+
+async function saveCombatValue(
+  op: 'hp' | 'resource',
+  participantId: string,
+  current: number,
+  max?: number,
+  extra?: { tempHp?: number; shield?: number },
+): Promise<{ combat: CombatState; player?: import('./players').Player }> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-App-Role': readAppRole() ?? 'user' };
+  const identity = readAppIdentity();
+  if (identity?.kind === 'player') headers['X-App-Player'] = encodeURIComponent(identity.name);
+  let response: Response;
+  try {
+    response = await fetch('/api/combat', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ op, participantId, current, ...(max === undefined ? {} : { max }), ...extra }),
+    });
+  } catch {
+    throw new Error(OFFLINE);
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readError(body, `Error ${response.status} al guardar ${op === 'hp' ? 'la vida' : 'el recurso'}`));
+  const result = (body ?? {}) as { combat?: unknown; player?: import('./players').Player };
+  if (result.player) {
+    const { PLAYERS } = await import('./players');
+    const index = PLAYERS.findIndex(p => p.name === result.player!.name);
+    if (index >= 0) PLAYERS[index] = result.player;
+  }
+  return { combat: normalize(result.combat), player: result.player };
 }

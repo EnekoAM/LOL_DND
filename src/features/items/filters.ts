@@ -1,4 +1,5 @@
 import type { Item } from '../../data/items';
+import { findNamedEffect, namedEffectMatches, type NamedEffectKind } from '../../data/namedEffects';
 import { matchesSearch } from '../../lib/text';
 import { rarityRank } from './rarity';
 import { hasStat } from './stats';
@@ -15,6 +16,10 @@ export type ItemFilterState = {
   stat: string;
   stock: StockFilter;
   rarity: string;
+  /** Id de efecto con nombre (base = todas sus variantes, o `base:variante`) o ALL. */
+  effect: string;
+  /** Activas / Pasivas (o ALL): con efecto elegido limita la lista; sin él, ítems con algún efecto de ese tipo. */
+  effectKind: typeof ALL | NamedEffectKind | 'onHit';
   search: string;
   sort: string;
 };
@@ -23,6 +28,8 @@ export const DEFAULT_ITEM_FILTERS: ItemFilterState = {
   stat: ALL,
   stock: ALL,
   rarity: ALL,
+  effect: ALL,
+  effectKind: ALL,
   search: '',
   sort: SORT_RAREZA_COSTE,
 };
@@ -72,8 +79,21 @@ const matchesStock = (item: Item, stock: StockFilter): boolean => {
   return true;
 };
 
-export const matchesItemFilters = (item: Item, filters: ItemFilterState): boolean =>
+/** ¿Este id guardado es «Al impactar»? (viene de las descripciones del admin). */
+export type OnHitLookup = (id: string) => boolean;
+
+const matchesEffect = (item: Item, filters: ItemFilterState, onHit?: OnHitLookup): boolean => {
+  const effects = item.namedEffects ?? [];
+  const pool = filters.effectKind === 'onHit' ? effects.filter(id => onHit?.(id) ?? false) : effects;
+  if (filters.effect !== ALL) return pool.some(id => namedEffectMatches(id, filters.effect));
+  if (filters.effectKind === 'onHit') return pool.length > 0;
+  if (filters.effectKind !== ALL) return effects.some(id => findNamedEffect(id)?.kind === filters.effectKind);
+  return true;
+};
+
+export const matchesItemFilters = (item: Item, filters: ItemFilterState, onHit?: OnHitLookup): boolean =>
   (filters.stat === ALL || hasStat(item.stats[filters.stat])) &&
   matchesStock(item, filters.stock) &&
   (filters.rarity === ALL || item.rareza === filters.rarity) &&
+  matchesEffect(item, filters, onHit) &&
   matchesSearch(item.nombre, filters.search);

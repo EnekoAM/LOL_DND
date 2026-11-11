@@ -3,8 +3,15 @@ import type { Player } from '../../data/players';
 import type { CombatPatch } from './HpPanel';
 
 type Props = {
-  player: Player;
+  /** Player o, en combate, un campeón/NPC con sus valores del combate. */
+  player: Pick<Player, 'mana' | 'actualMana'>;
   suggestedMax: number;
+  /** Etiqueta del recurso (Maná por defecto; Sangre, Energía…). */
+  label?: string;
+  /** Id del recurso para el color de la barra (mana por defecto). */
+  resourceId?: string;
+  /** Sin lápiz: solo lectura. */
+  readOnly?: boolean;
   saving: boolean;
   error: string | null;
   onChange: (patch: CombatPatch) => void | Promise<void>;
@@ -21,7 +28,7 @@ const parseNonNegInt = (raw: string): number | null => {
   return value;
 };
 
-const ManaPanel = ({ player, suggestedMax, saving, error, onChange }: Props) => {
+const ManaPanel = ({ player, suggestedMax, label = 'Maná', resourceId = 'mana', readOnly = false, saving, error, onChange }: Props) => {
   const maxMana = suggestedOr(player.mana, Math.max(0, Math.floor(suggestedMax)));
   const actualMana = suggestedOr(player.actualMana, maxMana);
 
@@ -90,13 +97,13 @@ const ManaPanel = ({ player, suggestedMax, saving, error, onChange }: Props) => 
     return (
       <div className="sheet-resource sheet-resource--edit">
         <div className="sheet-resource__top">
-          <div className="sheet-resource__label">Maná</div>
+          <div className="sheet-resource__label">{label}</div>
           <button
             type="button"
             className="sheet-hp__icon-btn"
             onClick={finishEdit}
             disabled={saving}
-            aria-label="Guardar maná"
+            aria-label={`Guardar ${label.toLowerCase()}`}
             title="Terminado"
           >
             ✓
@@ -155,24 +162,24 @@ const ManaPanel = ({ player, suggestedMax, saving, error, onChange }: Props) => 
   return (
     <div className="sheet-resource">
       <div className="sheet-resource__top">
-        <div className="sheet-resource__label">Maná</div>
-        <button
+        <div className="sheet-resource__label">{label}</div>
+        {!readOnly && <button
           type="button"
           className="sheet-hp__icon-btn"
           onClick={openEdit}
           disabled={saving}
-          aria-label="Editar maná"
+          aria-label={`Editar ${label.toLowerCase()}`}
           title="Editar"
         >
           ✎
-        </button>
+        </button>}
       </div>
       <div className="sheet-resource__head sheet-resource__head--values">
         <span>{actualMana} / {maxMana}</span>
         <span>{pct}%</span>
       </div>
       <div className="sheet-resource__track" aria-hidden="true">
-        <div className="sheet-resource__fill sheet-resource__fill--mana" style={{ width: `${pct}%` }} />
+        <div className={`sheet-resource__fill sheet-resource__fill--${resourceId}`} style={{ width: `${pct}%` }} />
       </div>
       {error && <p className="sheet-hp__error">{error}</p>}
     </div>

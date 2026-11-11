@@ -35,6 +35,14 @@ const STAT_LABELS: Record<string, string> = {
   MAGIC_PEN: 'Pen. mágica',
   'Armor pen %': 'Pen. armadura %',
   'Magic pen %': 'Pen. mágica %',
+  'Heal & shield %': 'Poder cur./escudos %',
+  'Tenacity %': 'Tenacidad %',
+  'Slow resist %': 'Res. ralentización %',
+  'Life steal %': 'Robo de vida %',
+  'Omnivamp %': 'Omnisucción %',
+  'Range': 'Rango de ataque',
+  'HP regen': 'Regen. vida',
+  'Mana regen': 'Regen. maná',
 };
 
 type CartLine = {

@@ -1,3 +1,4 @@
+import { ITEM_ONLY_STAT_KEYS } from '../features/calculos/statLine';
 import { normalizeName } from '../lib/text';
 import type { LootRarity } from './loot';
 import { setPartyGold } from './party';
@@ -6,6 +7,26 @@ import { setPartyGold } from './party';
 export type StatValue = number | string;
 
 export type ItemStats = Record<string, StatValue>;
+
+/** Cuándo salta la pasiva de un ítem en combate: al golpear con AA, al usar habilidad o al usar el ítem. */
+export type PassiveTrigger = 'on-hit' | 'on-ability' | 'on-use';
+export const PASSIVE_TRIGGERS: { id: PassiveTrigger; label: string }[] = [
+  { id: 'on-hit', label: 'Al golpear (AA)' },
+  { id: 'on-ability', label: 'Al usar habilidad' },
+  { id: 'on-use', label: 'Al usar el objeto' },
+];
+
+/** Bonus temporal de la pasiva (clave de stat de Cálculos, p. ej. lethality). */
+export type ItemPassiveBonus = {
+  trigger: PassiveTrigger;
+  stat: string;
+  amount: number;
+  maxStacks?: number;
+  durationTurns?: number;
+};
+
+/** Daño de la pasiva: % de la vida actual del objetivo. */
+export type ItemPassiveDamage = { trigger: PassiveTrigger; currentHpPct: number };
 
 export type Item = {
   nombre: string;
@@ -30,6 +51,12 @@ export type Item = {
   effectTarget?: 'self' | 'enemy';
   /** Nombre del estado en combate si el objetivo es enemigo. Ausente = el del ítem. */
   effectName?: string;
+  /** Pasiva en combate: bonus de stats que se añade / acumula al saltar. */
+  passiveBonus?: ItemPassiveBonus;
+  /** Pasiva en combate: daño extra (% vida actual del objetivo). */
+  passiveDamage?: ItemPassiveDamage;
+  /** Efectos con nombre (ids de data/namedEffects.ts: Vigor, Salvavidas…). */
+  namedEffects?: string[];
 };
 
 export let ITEMS: Item[] = [];
@@ -41,6 +68,8 @@ let itemsByName = new Map<string, Item>();
 export function hydrateItems(items: Item[]): void {
   ITEMS = items;
   STAT_KEYS = Object.keys(items[0]?.stats ?? {});
+  // Stats nuevas que solo dan los ítems: disponibles en editor y filtros aunque ningún ítem las tenga.
+  for (const key of ITEM_ONLY_STAT_KEYS) if (!STAT_KEYS.includes(key)) STAT_KEYS.push(key);
   itemsByName = new Map();
   for (const item of items) {
     const key = normalizeName(item.nombre);
@@ -101,6 +130,9 @@ export type ItemUpdate = {
   effectDuration?: number | null;
   effectTarget?: 'self' | 'enemy' | null;
   effectName?: string | null;
+  passiveBonus?: ItemPassiveBonus | null;
+  passiveDamage?: ItemPassiveDamage | null;
+  namedEffects?: string[] | null;
 };
 
 /**
@@ -151,6 +183,12 @@ export async function saveItemUpdate(nombre: string, update: ItemUpdate): Promis
   else delete current.effectTarget;
   if (typeof saved.effectName === 'string' && saved.effectName.trim()) current.effectName = saved.effectName.trim();
   else delete current.effectName;
+  if (saved.passiveBonus && typeof saved.passiveBonus === 'object') current.passiveBonus = saved.passiveBonus;
+  else delete current.passiveBonus;
+  if (saved.passiveDamage && typeof saved.passiveDamage === 'object') current.passiveDamage = saved.passiveDamage;
+  else delete current.passiveDamage;
+  if (Array.isArray(saved.namedEffects) && saved.namedEffects.length) current.namedEffects = [...saved.namedEffects];
+  else delete current.namedEffects;
   if (typeof saved.cantidad === 'number') current.cantidad = saved.cantidad;
   hydrateItems([...ITEMS]);
   return current;

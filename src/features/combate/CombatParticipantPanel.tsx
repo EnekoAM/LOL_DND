@@ -1,6 +1,7 @@
+import type { EffectCallbacks } from './effectRules';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { COMBAT_EFFECT_PRESETS, type CombatEffect, type CombatParticipant, type SourcedEffectInput } from '../../data/combat';
+import { COMBAT_EFFECT_PRESETS, type CombatBonus, type CombatEffect, type CombatParticipant, type SourcedEffectInput } from '../../data/combat';
 import { findAbilityRef } from '../../data/champions';
 import { findItem } from '../../data/items';
 import { PLAYERS } from '../../data/players';
@@ -19,11 +20,31 @@ import { cx } from '../../lib/cx';
 import StackCounter from '../players/StackCounter';
 import { effectIcon, effectNeedsValue, effectToneClass, formatEffectLabel, kindTag } from './combatHelpers';
 import CombatAbilityUseSection from './CombatAbilityUseSection';
+import CombatHpSection from './CombatHpSection';
+import CombatSheetSection from './CombatSheetSection';
+import CombatSheetView from './CombatSheetView';
+import { canSeeHp, participantHp, type TargetDamageFn } from './combatHp';
 import type { PlayerListPatch } from '../../data/players';
 
 type Props = {
   participant: CombatParticipant;
   isAdmin: boolean;
+  /** Player con el que entró este User (null = admin o invitado). */
+  myPlayer: string | null;
+  /** Guarda la vida (admin: cualquiera; User: solo la suya). */
+  onHpSave: (current: number, max?: number, extra?: { tempHp?: number; shield?: number }) => Promise<void>;
+  /** Guarda el recurso actual (maná, energía…); mismos permisos que la vida. */
+  onResourceSave: (current: number, max?: number) => Promise<void>;
+  /** Acciones del turno (PATCH op actions: admin o su propio player). */
+  onActionsSave?: (kind: 'attacks' | 'abilities', left: number, extra: number) => Promise<void>;
+  /** Daño a un objetivo (solo admin). */
+  onTargetDamage?: TargetDamageFn;
+  /** Bonus temporales (PATCH op bonuses: admin o su propio player). */
+  onBonusesSave?: (bonuses: CombatBonus[]) => Promise<void>;
+  /** Debuffs a otro participante (reglas de efectos con nombre). */
+  onTargetBonuses?: EffectCallbacks['onTargetBonuses'];
+  /** Cura / escudo / maná a este participante (reglas de efectos con nombre). */
+  onPoolChange?: EffectCallbacks['onSelfPool'];
   saving: boolean;
   /** Fuerza relectura de PLAYERS tras Activar / tick. */
   trackerRev: number;
@@ -53,8 +74,12 @@ type Props = {
   onAddEffect: () => void;
   onRemoveEffect: (effectId: string) => void;
   participants: CombatParticipant[];
-  onApplySourcedEffect: (targetId: string, input: SourcedEffectInput) => void;
+  onApplySourcedEffect: (targetIds: string | string[], input: SourcedEffectInput) => void | Promise<void>;
   onEffectStacksChange: (effectId: string, stacks: number) => void;
+  /** drawer: panel lateral (Preparación); sheet: ficha completa en el área central (combate en curso). */
+  layout?: 'drawer' | 'sheet';
+  /** Cambiar de participante desde el selector de la ficha. */
+  onSelect?: (id: string) => void;
 };
 
 type TrackerRow = {
@@ -88,6 +113,14 @@ function maxStacksForSource(source: string | undefined): number | undefined {
 export default function CombatParticipantPanel({
   participant,
   isAdmin,
+  myPlayer,
+  onHpSave,
+  onResourceSave,
+  onActionsSave,
+  onTargetDamage,
+  onBonusesSave,
+  onTargetBonuses,
+  onPoolChange,
   saving,
   trackerRev,
   onPlayerTrackersChange,
@@ -111,31 +144,15 @@ export default function CombatParticipantPanel({
   participants,
   onApplySourcedEffect,
   onEffectStacksChange,
+  layout = 'drawer',
+  onSelect,
 }: Props) {
   void trackerRev;
   const [pickingKey, setPickingKey] = useState<string | null>(null);
   useEffect(() => { setPickingKey(null); }, [participant.id]);
 
-  return createPortal(
-    <div className="combat-panel-backdrop" onClick={onClose}>
-      <aside
-        className="combat-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label={participant.name}
-        onClick={e => e.stopPropagation()}
-      >
-        <header className="combat-panel__head">
-          {participant.image
-            ? <img className="combat-panel__img" src={participant.image} alt="" width={56} height={56} />
-            : <span className="combat-panel__img combat-panel__img--fallback" aria-hidden>⚔</span>}
-          <div className="combat-panel__titles">
-            <p className="combat-panel__kicker">{kindTag(participant.kind)}</p>
-            <h2 className="combat-panel__title">{participant.name}</h2>
-          </div>
-          <button type="button" className="combat-btn combat-btn--small" onClick={onClose} aria-label="Cerrar">×</button>
-        </header>
 
+  const initiativeBlock = (
         <div className="combat-panel__section">
           <h3 className="combat-panel__label">Iniciativa</h3>
           <div className="combat-panel__row">
@@ -152,20 +169,119 @@ export default function CombatParticipantPanel({
             )}
           </div>
         </div>
-
-        {(participant.kind === 'player' || participant.kind === 'champion') && (
+  );
+  const effectsBlock = (
+        <div className="combat-panel__section">
+          <h3 className="combat-panel__label">Estados</h3>
+          <div className="combat-panel__effects">
+            {participant.effects.length === 0 && <p className="combat-page__hint">Sin estados.</p>}
+            {participant.effects.map((effect: CombatEffect) => (
+              <span
+                key={effect.id}
+                className={`combat-effect ${effectToneClass(effect.name)}`.trim()}
+              >
+                <button
+                  type="button"
+                  className="combat-effect__main"
+                  disabled={!isAdmin || saving}
+                  title={isAdmin ? 'Quitar' : formatEffectLabel(effect)}
+                  onClick={() => isAdmin && onRemoveEffect(effect.id)}
+                >
+                  <span aria-hidden>{effectIcon(effect.name)}</span> {formatEffectLabel(effect)} · {effect.duration}
+                </button>
+                {isAdmin && (
+                  <span className="combat-effect__stepper">
+                    <button
+                      type="button"
+                      className="combat-effect__step"
+                      disabled={saving}
+                      aria-label={`Quitar stack de ${effect.name}`}
+                      onClick={() => onEffectStacksChange(effect.id, (effect.stacks ?? 1) - 1)}
+                    >
+                      −
+                    </button>
+                    <button
+                      type="button"
+                      className="combat-effect__step"
+                      disabled={saving}
+                      aria-label={`Añadir stack de ${effect.name}`}
+                      onClick={() => {
+                        const max = maxStacksForSource(effect.source);
+                        const next = (effect.stacks ?? 1) + 1;
+                        onEffectStacksChange(effect.id, typeof max === 'number' ? Math.min(next, max) : next);
+                      }}
+                    >
+                      +
+                    </button>
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+          {isAdmin && (
+            <div className="combat-panel__effect-add">
+              <select className="combat-panel__effect-preset" value={effectPick} onChange={e => onEffectPick(e.target.value)}>
+                {COMBAT_EFFECT_PRESETS.map(name => <option key={name} value={name}>{name}</option>)}
+              </select>
+              <input className="combat-panel__effect-custom" value={customEffect} placeholder="Custom" onChange={e => onCustomEffect(e.target.value)} />
+              {effectNeedsValue(customEffect.trim() || effectPick) && (
+                <input
+                  className="combat-panel__effect-num"
+                  value={effectValue}
+                  inputMode="numeric"
+                  placeholder="−N"
+                  title="Reducción (p. ej. 2 → AC −2)"
+                  onChange={e => onEffectValue(e.target.value)}
+                />
+              )}
+              <input
+                className="combat-panel__effect-num"
+                value={effectDur}
+                inputMode="numeric"
+                title="Duración (turnos)"
+                placeholder="T"
+                onChange={e => onEffectDur(e.target.value)}
+              />
+              <button type="button" className="combat-btn combat-btn--small" disabled={saving} onClick={onAddEffect}>+</button>
+            </div>
+          )}
+        </div>
+  );
+  const actionsBlock = (
+    isAdmin && (
+          <div className={cx('combat-panel__actions')}>
+            <button type="button" className="combat-btn" disabled={saving} onClick={onToggleDefeated}>
+              {participant.defeated ? 'Revivir' : 'Derrotado'}
+            </button>
+            <button type="button" className="combat-btn combat-btn--danger" disabled={saving} onClick={onRemove}>
+              Quitar
+            </button>
+          </div>
+        )
+  );
+  const abilitiesFor = (variant: 'panel' | 'sheet') => (
+    (participant.kind === 'player' || participant.kind === 'champion') && (
           <CombatAbilityUseSection
             participant={participant}
             isAdmin={isAdmin}
+            canSeeHp={canSeeHp(participant, isAdmin, myPlayer)}
+            onBarSave={(kind, current, max) => (kind === 'hp' ? onHpSave(current, max) : onResourceSave(current, max))}
             saving={saving}
             participants={participants}
             onApplySourcedEffect={onApplySourcedEffect}
             onPlayerPatch={onPlayerResourceChange}
             onCombatPatch={onCombatPatch}
+            onActionsSave={onActionsSave}
+            onTargetDamage={onTargetDamage}
+            onBonusesSave={onBonusesSave}
+            onTargetBonuses={onTargetBonuses}
+            onPoolChange={onPoolChange}
+            variant={variant}
           />
-        )}
-
-        {participant.kind === 'player' && participant.sourceId && (() => {
+        )
+  );
+  const renderTrackers = (sheetMode: boolean) => (
+    participant.kind === 'player' && participant.sourceId && (() => {
           const live = PLAYERS.find(p => p.name === participant.sourceId);
           if (!live) return null;
           const playerName = live.name;
@@ -176,7 +292,7 @@ export default function CombatParticipantPanel({
             const item = findItem(name);
             if (!item) continue;
             const entry: TrackerRow = { key: `item:${name}`, label: name, kind: 'item', name };
-            if (item.hasStacks) entry.stacks = { value: readStack(live.stacks, itemStackKey(name)), max: item.maxStacks };
+            if (item.hasStacks && !sheetMode) entry.stacks = { value: readStack(live.stacks, itemStackKey(name)), max: item.maxStacks };
             if (typeof item.cooldown === 'number' && item.cooldown > 0) {
               entry.cd = { remaining: readCooldown(live.cooldowns, itemCooldownKey(name)), duration: item.cooldown };
             }
@@ -193,7 +309,7 @@ export default function CombatParticipantPanel({
             }
             if (entry.stacks || entry.cd || entry.effect) rows.push(entry);
           }
-          for (const name of abilityNames) {
+          for (const name of sheetMode ? [] : abilityNames) {
             const ref = findAbilityRef(name);
             const ability = ref?.ability;
             if (!ability) continue;
@@ -262,7 +378,7 @@ export default function CombatParticipantPanel({
 
           return (
             <div className="combat-panel__section">
-              <h3 className="combat-panel__label">Stacks / CD</h3>
+              <h3 className="combat-panel__label">{sheetMode ? 'Objetos · CD / efectos' : 'Stacks / CD'}</h3>
               <ul className="combat-panel__trackers">
                 {rows.map(row => {
                   const onCd = (row.cd?.remaining ?? 0) > 0;
@@ -342,94 +458,74 @@ export default function CombatParticipantPanel({
               )}
             </div>
           );
-        })()}
+        })()
+  );
 
-        <div className="combat-panel__section">
-          <h3 className="combat-panel__label">Estados</h3>
-          <div className="combat-panel__effects">
-            {participant.effects.length === 0 && <p className="combat-page__hint">Sin estados.</p>}
-            {participant.effects.map((effect: CombatEffect) => (
-              <span
-                key={effect.id}
-                className={`combat-effect ${effectToneClass(effect.name)}`.trim()}
-              >
-                <button
-                  type="button"
-                  className="combat-effect__main"
-                  disabled={!isAdmin || saving}
-                  title={isAdmin ? 'Quitar' : formatEffectLabel(effect)}
-                  onClick={() => isAdmin && onRemoveEffect(effect.id)}
-                >
-                  <span aria-hidden>{effectIcon(effect.name)}</span> {formatEffectLabel(effect)} · {effect.duration}
-                </button>
-                {isAdmin && (
-                  <span className="combat-effect__stepper">
-                    <button
-                      type="button"
-                      className="combat-effect__step"
-                      disabled={saving}
-                      aria-label={`Quitar stack de ${effect.name}`}
-                      onClick={() => onEffectStacksChange(effect.id, (effect.stacks ?? 1) - 1)}
-                    >
-                      −
-                    </button>
-                    <button
-                      type="button"
-                      className="combat-effect__step"
-                      disabled={saving}
-                      aria-label={`Añadir stack de ${effect.name}`}
-                      onClick={() => {
-                        const max = maxStacksForSource(effect.source);
-                        const next = (effect.stacks ?? 1) + 1;
-                        onEffectStacksChange(effect.id, typeof max === 'number' ? Math.min(next, max) : next);
-                      }}
-                    >
-                      +
-                    </button>
-                  </span>
-                )}
-              </span>
-            ))}
-          </div>
-          {isAdmin && (
-            <div className="combat-panel__effect-add">
-              <select className="combat-panel__effect-preset" value={effectPick} onChange={e => onEffectPick(e.target.value)}>
-                {COMBAT_EFFECT_PRESETS.map(name => <option key={name} value={name}>{name}</option>)}
-              </select>
-              <input className="combat-panel__effect-custom" value={customEffect} placeholder="Custom" onChange={e => onCustomEffect(e.target.value)} />
-              {effectNeedsValue(customEffect.trim() || effectPick) && (
-                <input
-                  className="combat-panel__effect-num"
-                  value={effectValue}
-                  inputMode="numeric"
-                  placeholder="−N"
-                  title="Reducción (p. ej. 2 → AC −2)"
-                  onChange={e => onEffectValue(e.target.value)}
-                />
-              )}
-              <input
-                className="combat-panel__effect-num"
-                value={effectDur}
-                inputMode="numeric"
-                title="Duración (turnos)"
-                placeholder="T"
-                onChange={e => onEffectDur(e.target.value)}
-              />
-              <button type="button" className="combat-btn combat-btn--small" disabled={saving} onClick={onAddEffect}>+</button>
-            </div>
-          )}
-        </div>
+  if (layout === 'sheet') {
+    return (
+      <CombatSheetView
+        participant={participant}
+        isAdmin={isAdmin}
+        myPlayer={myPlayer}
+        saving={saving}
+        participants={participants}
+        onSelect={onSelect}
+        onHpSave={onHpSave}
+        onResourceSave={onResourceSave}
+        onPlayerChange={onPlayerResourceChange}
+        strip={<>{initiativeBlock}{effectsBlock}{actionsBlock}</>}
+        abilities={abilitiesFor('sheet')}
+        trackers={renderTrackers(true)}
+        onPlayerTrackersChange={onPlayerTrackersChange}
+        onCombatPatch={onCombatPatch}
+        onTargetDamage={onTargetDamage}
+        onBonusesSave={onBonusesSave}
+            onTargetBonuses={onTargetBonuses}
+            onPoolChange={onPoolChange}
+        onApplySourcedEffect={onApplySourcedEffect}
+      />
+    );
+  }
 
-        {isAdmin && (
-          <div className={cx('combat-panel__actions')}>
-            <button type="button" className="combat-btn" disabled={saving} onClick={onToggleDefeated}>
-              {participant.defeated ? 'Revivir' : 'Derrotado'}
-            </button>
-            <button type="button" className="combat-btn combat-btn--danger" disabled={saving} onClick={onRemove}>
-              Quitar
-            </button>
+  return createPortal(
+    <div className="combat-panel-backdrop" onClick={onClose}>
+      <aside
+        className="combat-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={participant.name}
+        onClick={e => e.stopPropagation()}
+      >
+        <header className="combat-panel__head">
+          {participant.image
+            ? <img className="combat-panel__img" src={participant.image} alt="" width={56} height={56} />
+            : <span className="combat-panel__img combat-panel__img--fallback" aria-hidden>⚔</span>}
+          <div className="combat-panel__titles">
+            <p className="combat-panel__kicker">{kindTag(participant.kind)}</p>
+            <h2 className="combat-panel__title">{participant.name}</h2>
           </div>
-        )}
+          <button type="button" className="combat-btn combat-btn--small" onClick={onClose} aria-label="Cerrar">×</button>
+        </header>
+
+        {initiativeBlock}
+
+        <CombatHpSection
+          participant={participant}
+          hp={participantHp(participant)}
+          canSee={canSeeHp(participant, isAdmin, myPlayer)}
+          saving={saving}
+          onSave={onHpSave}
+        />
+
+        <CombatSheetSection participant={participant} isAdmin={isAdmin} />
+
+        {abilitiesFor('panel')}
+
+        {renderTrackers(false)}
+
+        {effectsBlock}
+
+        {actionsBlock}
       </aside>
     </div>,
     document.body,

@@ -1,3 +1,4 @@
+import { newNamedEffectClash } from '../items/namedEffectClash';
 import { useEffect, useRef, useState } from 'react';
 import {
   ABILITY_KEYS,
@@ -143,6 +144,13 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
 
   const persist = async (patch: Parameters<typeof saveChampionPatch>[1]) => {
     if (!canEdit || saving) return;
+    // Efectos con nombre exclusivos (Salvavidas…): no dos ítems con el mismo en la build.
+    const clash = (patch.equipamiento ? newNamedEffectClash(champion.equipamiento ?? [], patch.equipamiento) : null)
+      ?? (patch.build ? newNamedEffectClash(champion.build ?? [], patch.build) : null);
+    if (clash) {
+      setError(clash);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {

@@ -1,9 +1,10 @@
 import { championRoleId, type Ability, type Champion } from '../../data/champions';
 import { findRoleTable } from '../../data/roles';
 import { playerBonusLine, playerTotalLine } from './playerTotals';
+import type { StatLine } from './statLine';
 
 /** Champion sheets use their own level/role/equipment, never the party or a player. */
-export function championDamageContext(champion: Champion) {
+export function championDamageContext(champion: Champion, extra: StatLine[] = []) {
   const equipment = champion.equipamiento ?? [];
   const level = typeof champion.level === 'number' && Number.isFinite(champion.level)
     ? Math.min(20, Math.max(1, Math.floor(champion.level))) : 1;
@@ -12,8 +13,8 @@ export function championDamageContext(champion: Champion) {
   const tableLevel = roleTable ? Math.min(level, roleTable.levels.length) : level;
   const sheet = roleId ? { roleId } : undefined;
   const stats = {
-    ...playerTotalLine(sheet, equipment, tableLevel),
-    bonus: playerBonusLine(sheet, equipment),
+    ...playerTotalLine(sheet, equipment, tableLevel, extra),
+    bonus: playerBonusLine(sheet, equipment, extra),
   };
   return { equipment, level, roleId, roleTable, tableLevel, stats };
 }
