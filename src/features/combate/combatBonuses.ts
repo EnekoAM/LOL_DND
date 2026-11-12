@@ -35,6 +35,15 @@ export function formatBonus(bonus: CombatBonus): string {
   // Marcadores de efectos con nombre: «Hoja encantada armada · 5 t.», «CD Hoja encantada · 1 t.».
   if (bonus.stat === 'armed') return `${bonus.label ?? 'Efecto'} armada (siguiente AA)${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'charges') return chargesText(bonus.label ?? 'Cargas', bonus.amount, bonus.maxStacks ?? bonus.amount, bonus.recharge);
+  // Habilidades: cargas por impacto «Concentración 3/4 · 2 t.» y buff activo «Concentración activa · 3 t.».
+  if (bonus.stat === 'stacks') return `${bonus.label ?? 'Cargas'} ${bonus.amount}${bonus.maxStacks ? `/${bonus.maxStacks}` : ''}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('shield:')) return `Escudo ${bonus.label ?? ''} ${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('recast:')) return `Recast ${bonus.label ?? ''} ×${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('chargeturn:')) return `${bonus.label ?? 'Cargas'}: ya gastada este turno`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('innate:')) return `Escudo automático ${bonus.label ?? ''} ${bonus.amount}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('innatecd:')) return `CD escudo ${bonus.label ?? ''} ${Math.round(bonus.amount * 100) / 100} t.`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('pending:')) return `Cura pendiente ${bonus.label ?? ''} ${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff') return `${bonus.label ?? 'Habilidad'} activa${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'cooldown') {
     const turns = typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : '';
     // CD por objetivo: label «Efecto (de Portador)» → «CD Efecto · 2 t. (de Portador)».
@@ -103,7 +112,8 @@ export function passiveDamagePct(items: Item[], trigger: PassiveTrigger): { pct:
 }
 
 /** note: texto antiguo; chips: en pantalla; log: desarrollo para la consola. */
-export type PassiveResult = { note: string; undo?: () => Promise<void>; chips?: ResultChip[]; log?: string[] };
+/** dealt: daño hecho por las pasivas (para el omnivampirismo del portador). */
+export type PassiveResult = { note: string; undo?: () => Promise<void>; chips?: ResultChip[]; log?: string[]; dealt?: number };
 
 /**
  * Salta las pasivas de los ítems con este disparador: bonus (acumulable) al usuario y daño % vida actual
@@ -122,6 +132,7 @@ export async function firePassives(options: {
   const chips: ResultChip[] = [];
   const log: string[] = [];
   const undos: (() => Promise<void>)[] = [];
+  let dealtTotal = 0;
   const prev = options.bonuses ?? [];
   const next = onBonusesSave ? triggerItemBonuses(prev, items, trigger) : null;
   if (next && onBonusesSave) {
@@ -149,6 +160,7 @@ export async function firePassives(options: {
     });
     if (damage) {
       undos.push(damage.undo);
+      dealtTotal += total;
       notes.push(`${passive.names.join(', ')}: ${formatStat(passive.pct)}% vida actual`);
       chips.push({ kind: 'damage-physical', text: `−${formatStat(total)} ${damage.name}`, title: `${passive.names.join(', ')}: ${formatStat(passive.pct)}% vida actual` });
       log.push(`Pasiva de ${passive.names.join(', ')}: ${perTarget.join(' · ')} → ${damage.name} · sin mitigación automática`);
@@ -163,6 +175,7 @@ export async function firePassives(options: {
     chips,
     log,
     note: notes.length ? ` · ${notes.join(' · ')}` : '',
+    ...(dealtTotal > 0 ? { dealt: dealtTotal } : {}),
     undo: undos.length ? async () => { for (const undo of [...undos].reverse()) await undo(); } : undefined,
   };
 }

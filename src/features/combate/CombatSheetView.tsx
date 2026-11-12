@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import type { CombatBonus, CombatParticipant, SourcedEffectInput } from '../../data/combat';
 import { bonusValue, firePassives, formatBonus, equippedItems, newBonusId, type PassiveResult } from './combatBonuses';
 import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
-import { armAfterAbility, chargeStatus, itemRulePlan, rangeInfo, vigorChainTargets, activeNamedEffects, combatExtraLines, fireEffectRules, hasVigorItem, participantContext, participantSpeed, targetMarks, vigorEffects, type EffectCallbacks } from './effectRules';
+import { armAfterAbility, chargeStatus, itemRulePlan, rangeInfo, vigorChainTargets, activeNamedEffects, combatExtraLines, fireEffectRules, hasVigorItem, participantContext, participantSpeed, targetMarks, vampHeal, vigorEffects, type EffectCallbacks } from './effectRules';
 import { VIGOR_MAX, VIGOR_PER_MOVE_DEFAULT } from '../../data/combat';
 import { cx } from '../../lib/cx';
 import { participantChampion, participantNpc } from '../../data/combatSheet';
@@ -506,6 +506,10 @@ export default function CombatSheetView({
       }
       const passive = await firePassives({ bonuses: bonusesNow, items: [item], trigger: 'on-use', targetIds, onBonusesSave, onTargetDamage });
       if (passive.undo) ruleUndos.push(passive.undo);
+      const vampBase = passive.dealt ? participantContext(participant, level, extra) : null;
+      const vamp = vampBase && passive.dealt ? await vampHeal({ dealt: passive.dealt, ctx: vampBase.ctx, lifeSteal: false, onSelfPool: onPoolChange, origin: `Pasiva de ${name}`, bearerName: participant.name }) : null;
+      if (vamp?.undo) ruleUndos.push(vamp.undo);
+      if (vamp) { ruleNotes.push(`${vamp.word} +${vamp.heal}`); logCombat({ title: `Usa ${name}`, actor: participant.name, lines: vamp.log }); }
       const combined: PassiveResult = {
         note: `${ruleNotes.length ? ` · ${ruleNotes.join(' · ')}` : ''}${passive.note}`,
         undo: ruleUndos.length ? async () => { for (const undo of [...ruleUndos].reverse()) await undo(); } : undefined,
@@ -523,8 +527,16 @@ export default function CombatSheetView({
     if (target.damage && onTargetDamage) {
       setItemBusy(true);
       try {
-        const { damage, error: failed } = await damageTargets(onTargetDamage, targetIds, target.damage);
+        const { damage, error: failed, hits } = await damageTargets(onTargetDamage, targetIds, target.damage);
         if (failed) setItemError(failed);
+        // Omnivampirismo: el daño del activo del objeto también cura.
+        const vampBase = damage ? participantContext(participant, level, extra) : null;
+        const vamp = vampBase && damage ? await vampHeal({ dealt: target.damage * (hits ?? targetIds.length), ctx: vampBase.ctx, lifeSteal: false, onSelfPool: onPoolChange, origin: target.name, bearerName: participant.name }) : null;
+        if (vamp) logCombat({ title: `Usa ${target.name}`, actor: participant.name, lines: vamp.log });
+        if (damage && vamp?.undo) {
+          const undoDamage = damage.undo;
+          damage.undo = async () => { await vamp.undo!(); await undoDamage(); };
+        }
         if (damage) {
           damaged = true;
           setItemUse(current => {
@@ -739,8 +751,8 @@ export default function CombatSheetView({
                     <span>◈ {mark.text}</span>
                   </span>
                 ))}
-                {bonuses.filter(bonus => bonus.stat !== 'charges').map(bonus => (
-                  <span key={bonus.id} className="combat-bonus" title={bonus.source?.startsWith('item:') ? `Pasiva de ${bonus.source.slice(5)}` : 'Bonus manual'}>
+                {bonuses.filter(bonus => bonus.stat !== 'charges' || bonus.source?.startsWith('charges:ability:')).map(bonus => (
+                  <span key={bonus.id} className="combat-bonus" title={bonus.source?.startsWith('item:') ? `Pasiva de ${bonus.source.slice(5)}` : /^(charges|stacks|buff|buffstat):ability:/.test(bonus.source ?? '') ? `Habilidad ${bonus.label ?? ''}`.trim() : 'Bonus manual'}>
                     {bonus.label && <span className="combat-bonus__src">{bonus.label}</span>}
                     <span>{formatBonus(bonus)}</span>
                     {canEditBonuses && typeof bonus.stacks === 'number' && (

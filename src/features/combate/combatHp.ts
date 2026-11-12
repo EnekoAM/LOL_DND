@@ -68,7 +68,7 @@ export async function damageTargets(
   apply: TargetDamageFn,
   targetIds: string[],
   amount: DamageAmount,
-): Promise<{ damage: TargetDamage | null; error?: string; kills?: string[] }> {
+): Promise<{ damage: TargetDamage | null; error?: string; kills?: string[]; hits?: number }> {
   const done: TargetDamage[] = [];
   /** Objetivos que pasan de vida > 0 a 0 (para «Al matar / asistir»). */
   const kills: string[] = [];
@@ -87,6 +87,7 @@ export async function damageTargets(
   }
   if (done.length === 0) return { damage: null, error };
   return {
+    hits: done.length,
     damage: {
       name: done.map(entry => entry.name).join(', '),
       before: 0,

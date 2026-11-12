@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '../../components/Modal';
 import ScalingSourceFields from './ScalingSourceFields';
+import MechanicsFields from './MechanicsFields';
+import { mechanicsSummary } from '../../data/abilityMechanics';
 import PhaseTabs from './PhaseTabs';
 import { MAX_ABILITY_VARIANTS, abilityPhase, hasVariants, isChoosePhases, phaseLabels } from '../../data/abilityVariants';
 import { saveChampionAbility, type Ability, type AbilityKey, type Champion } from '../../data/champions';
@@ -75,11 +77,14 @@ const AbilityView = ({ ability: fullAbility, championResource, onEdit, canEdit }
       {fullAbility?.appliesOnHit && (
         <p className="hab-modal__meta"><strong>Aplica efectos de impacto:</strong> sí</p>
       )}
+      {mechanicsSummary(fullAbility?.mechanics).length > 0 && (
+        <div className="hab-modal__block">
+          <span className="hab-modal__tag">Mecánicas de combate</span>
+          {mechanicsSummary(fullAbility?.mechanics).map(line => <p key={line} className="hab-modal__meta">{line}</p>)}
+        </div>
+      )}
       {ability?.hasStacks && (
         <p className="hab-modal__meta"><strong>Stacks:</strong> sí{typeof ability.maxStacks === 'number' ? ` (máx. ${ability.maxStacks})` : ''}</p>
-      )}
-      {typeof ability?.cooldown === 'number' && (
-        <p className="hab-modal__meta"><strong>Cooldown:</strong> {ability.cooldown} turno{ability.cooldown === 1 ? '' : 's'}</p>
       )}
       {typeof ability?.effectDuration === 'number' && (
         <p className="hab-modal__meta"><strong>Efecto:</strong> {ability.effectDuration} turno{ability.effectDuration === 1 ? '' : 's'}</p>
@@ -134,6 +139,7 @@ const AbilityView = ({ ability: fullAbility, championResource, onEdit, canEdit }
 
 type FormProps = {
   draft: AbilityDraft;
+  slot: AbilityKey;
   originalName: string;
   championResource?: ResourceId;
   saving: boolean;
@@ -148,6 +154,7 @@ type FormProps = {
 
 const AbilityForm = ({
   draft,
+  slot,
   originalName,
   championResource,
   saving,
@@ -314,13 +321,8 @@ const AbilityForm = ({
         </label>
       )}
 
-      <label className="hab-field">
-        <span>Cooldown (turnos)</span>
-        <input value={draft.cooldown} placeholder="Sin cooldown" onChange={e => onChange({ cooldown: e.target.value })} />
-      </label>
-
-      <label className="hab-field">
-        <span>Efecto (turnos)</span>
+      <label className="hab-field" title="Las habilidades no tienen CD: mientras dure su efecto no se pueden volver a usar">
+        <span>Efecto (turnos) · sin CD: bloquea la habilidad mientras dura</span>
         <input value={draft.effectDuration} placeholder="Sin duración" onChange={e => onChange({ effectDuration: e.target.value })} />
       </label>
 
@@ -389,6 +391,8 @@ const AbilityForm = ({
         <AreaGridEditor value={draft.area} disabled={saving} onChange={area => onChange({ area })} />
       </div>
 
+      <MechanicsFields draft={draft.mechanics} slot={slot} disabled={saving} onChange={patch => onChange({ mechanics: { ...draft.mechanics, ...patch } })} />
+
       {actions}
     </>
   );
@@ -434,10 +438,6 @@ const VariantFields = ({ base, variant, index, championResource, saving, onChang
             <option key={id} value={id}>{RESOURCE_LABELS[id]}</option>
           ))}
         </select>
-      </label>
-      <label className="hab-field">
-        <span>Cooldown (turnos)</span>
-        <input value={variant.cooldown} placeholder={inherit(base.cooldown, 'sin cooldown')} onChange={e => onChange({ cooldown: e.target.value })} />
       </label>
       <label className="hab-field">
         <span>Efecto (turnos)</span>
@@ -594,6 +594,7 @@ const AbilityModal = ({ champion, slot, onClose, onSaved }: Props) => {
         {editing ? (
           <AbilityForm
             draft={draft}
+            slot={slot}
             originalName={ability?.name ?? ''}
             championResource={champion.resource}
             saving={saving}

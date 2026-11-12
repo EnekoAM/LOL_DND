@@ -1,6 +1,6 @@
 import type { CombatBonus, CombatParticipant, SourcedEffectInput } from '../../data/combat';
 import { participantChampion, participantNpc } from '../../data/combatSheet';
-import { isMeleeRange, rangeConditionShort, rangeTypeLabel, ruleAppliesTo, ruleMatchesRange, scalingLabel, type EffectBonusConfig, type EffectRule, type ScalingStat } from '../../data/effectBonus';
+import { isMeleeRange, rangeConditionShort, rangeTypeLabel, ruleAppliesTo, ruleMatchesRange, scalingLabel, withLevelCooldown, type EffectBonusConfig, type EffectRule, type ScalingStat } from '../../data/effectBonus';
 import { damageChipKind, fmt, signed, statShort, type ResultChip } from './combatResult';
 import { effectiveResistLine } from './combatMitigation';
 import type { Item } from '../../data/items';
@@ -15,6 +15,7 @@ import { emptyStatLine, formatStat, type StatKey, type StatLine } from '../calcu
 import { rollDamageStat } from '../players/abilityDamage';
 import { bonusLines, chargesText, equippedItems, isStatKey, newBonusId, statTitle } from './combatBonuses';
 import { participantHp, type TargetDamageFn } from './combatHp';
+import { abilityNamedEffects, participantAbilities } from './abilityRules';
 
 /**
  * Motor del configurador de bonus de los efectos con nombre (pasivas/activas de ítems) en combate.
@@ -128,7 +129,13 @@ const ruleStat = (rule: EffectRule): StatKey | null => {
 const STAT_KINDS = new Set(['stat', 'attack-speed', 'move-speed']);
 
 /** Contexto de stats de un participante (players: ficha; campeones: su copia), sin la regla always-on. */
-export function participantContext(participant: CombatParticipant, level: number, extra: StatLine[] = bonusLines(participant)): { ctx: EffectContext; items: Item[] } | null {
+export type BearerContext = { ctx: EffectContext; items: Item[]; /** Reglas de sus habilidades (como efectos con nombre). */ abilityEffects: ActiveNamedEffect[] };
+
+/** Efectos con reglas del portador: los de sus ítems + los de sus habilidades aprendidas. */
+export const bearerEffects = (context: BearerContext, data: NamedEffectData): ActiveNamedEffect[] =>
+  [...activeNamedEffects(context.items, data), ...context.abilityEffects];
+
+export function participantContext(participant: CombatParticipant, level: number, extra: StatLine[] = bonusLines(participant)): BearerContext | null {
   const context = baseParticipantContext(participant, level, extra);
   if (!context) return null;
   context.ctx.melee = isMeleeRange(statNumber(context.ctx.stats.range));
@@ -152,7 +159,12 @@ export function isMelee(participant: CombatParticipant, level: number, extra?: S
 /** ¿La regla se aplica a este portador? (condición «Solo cuerpo a cuerpo» / «Solo a distancia»). */
 const rangeOk = (rule: EffectRule, ctx: EffectContext): boolean => ruleMatchesRange(rule, ctx.melee === true);
 
-function baseParticipantContext(participant: CombatParticipant, level: number, extra: StatLine[]): { ctx: EffectContext; items: Item[] } | null {
+function baseParticipantContext(participant: CombatParticipant, level: number, extra: StatLine[]): BearerContext | null {
+  const context = itemContext(participant, level, extra);
+  return context ? { ...context, abilityEffects: abilityNamedEffects(participantAbilities(participant, level)) } : null;
+}
+
+function itemContext(participant: CombatParticipant, level: number, extra: StatLine[]): { ctx: EffectContext; items: Item[] } | null {
   if (participant.kind === 'player') {
     const player = PLAYERS.find(p => p.name === participant.sourceId);
     if (!player) return null;
@@ -221,7 +233,7 @@ export function combatExtraLines(participant: CombatParticipant, level: number, 
   const extra = bonusLines(participant);
   const base = participantContext(participant, level, extra);
   if (!base) return extra;
-  const effects = activeNamedEffects(base.items, data);
+  const effects = bearerEffects(base, data);
   return [...extra, ...alwaysOnLines(effects, base.ctx), ...permanentStackLines(effects, base.ctx, playerPermanentStacks(participant))];
 }
 
@@ -241,8 +253,8 @@ export function targetMarks(target: CombatParticipant, participants: CombatParti
     if (bearer.id === target.id || bearer.defeated) continue;
     const context = participantContext(bearer, 1, []);
     if (!context) continue;
-    for (const effect of activeNamedEffects(context.items, data)) {
-      if (!effect.config.perTargetCooldown || !effect.config.cooldown) continue;
+    for (const effect of bearerEffects(context, data)) {
+      if (!effect.config.perTargetCooldown || !(effect.config.cooldown || effect.config.cooldownByLevel?.length)) continue;
       if (marker(target.bonuses ?? [], perTargetCdSource(effect.base, bearer.id))) continue;
       out.push({ key: `${bearer.id}:${effect.base}`, text: `Marca de ${effect.name} (de ${bearer.name})` });
     }
@@ -281,7 +293,7 @@ export function armAfterAbility(
   let next = bonuses;
   const names: string[] = [];
   for (const effect of effects) {
-    const { config } = effect;
+    const config = ctx ? withLevelCooldown(effect.config, ctx.level) : effect.config;
     // Con ctx: solo si alguna regla «Tras habilidad» vale para el portador (cuerpo a cuerpo / a distancia).
     if (!config.rules.some(rule => rule.trigger === trigger && (!ctx || rangeOk(rule, ctx)))) continue;
     if (cooldownLeft(next, effect.base) > 0) continue;
@@ -398,6 +410,26 @@ const DAMAGE_WORD = { physical: 'físico', magic: 'mágico', true: 'verdadero' }
  * Cura / escudo al aplicarlo: el valor de la fórmula (con decimales) × (1 + poder de curación y escudos % del que lo da),
  * redondeado al más cercano solo aquí. El robo de vida / omnisucción no usa el poder de curación (como en LoL).
  */
+/**
+ * Curación por daño hecho: omnivampirismo % (todo el daño) + robo de vida % (solo si lifeSteal: AA o regla con
+ * «Aplica robo de vida»). Una cura, sin poder de curación y escudos (como el robo de vida), redondeo al más cercano.
+ * null si no tiene ninguno de los dos.
+ */
+export async function vampHeal(options: { dealt: number; ctx: EffectContext; lifeSteal: boolean; onSelfPool?: EffectCallbacks['onSelfPool']; origin: string; bearerName: string }): Promise<{ heal: number; word: string; log: string[]; chips: ResultChip[]; undo?: () => Promise<void> } | null> {
+  const { dealt, ctx, onSelfPool, origin, bearerName } = options;
+  const ls = options.lifeSteal ? statNumber(ctx.stats.lifeStealPct) : 0;
+  const ov = statNumber(ctx.stats.omnivampPct);
+  if (!(dealt > 0) || (ls <= 0 && ov <= 0)) return null;
+  const parts = [ls > 0 ? `robo de vida ${fmt(ls)}%` : '', ov > 0 ? `omnivampirismo ${fmt(ov)}%` : ''].filter(Boolean);
+  const word = ls > 0 && ov > 0 ? 'robo de vida + omnivamp.' : ls > 0 ? 'robo de vida' : 'omnivamp.';
+  const final = poolAmount((dealt * (ls + ov)) / 100, ctx, false);
+  const heal = final.amount;
+  const undo = heal > 0 && onSelfPool ? await onSelfPool('heal', heal) : null;
+  const chips: ResultChip[] = heal > 0 ? [{ kind: undo ? 'heal' : 'manual', text: `+${heal} PV ${ls > 0 && ov > 0 ? 'RV+OV' : ls > 0 ? 'RV' : 'OV'}${undo ? '' : ' a mano'}`, title: `${parts.join(' + ')} → ${bearerName}` }] : [];
+  const log = [`${origin}: ${parts.join(' + ')} = ${fmt(dealt)} de daño × ${fmt(ls + ov)}% = ${final.text} (sin poder de curación y escudos) → ${heal > 0 ? `cura ${heal} a ${bearerName}${undo ? '' : ' (a mano / vida al máximo)'}` : 'nada'}`];
+  return { heal, word, log, chips, ...(undo ? { undo } : {}) };
+}
+
 export function poolAmount(raw: number, ctx: EffectContext, usePower = true): { amount: number; text: string } {
   const pct = usePower ? statNumber(ctx.stats.healShieldPct) : 0;
   const boosted = raw * (1 + pct / 100);
@@ -552,6 +584,13 @@ export async function fireEffectRules(options: {
               const source = chargesSource(effect.id);
               const current = bonuses.find(bonus => bonus.source === source);
               const left = current ? current.amount : charges.start;
+              // Máx. 1 por turno: marcador de 1 turno (se quita al empezar el turno del portador).
+              const turnSource = chargeTurnSource(effect.id);
+              if (charges.perTurn && bonuses.some(bonus => bonus.source === turnSource)) {
+                result.chips.push({ kind: 'cd', text: `${label}: ya gastada`, title: `${label}: máx. 1 carga por turno` });
+                result.log.push(`${origin}: carga de combate ya gastada este turno (máx. 1 por turno) → no da carga permanente`);
+                continue;
+              }
               if (left <= 0) {
                 result.chips.push({ kind: 'cd', text: chargesText(label, 0, charges.max, current?.recharge), title: `${label}: sin cargas de combate` });
                 result.log.push(`${origin}: sin cargas (0/${charges.max}${current?.recharge ? `, recarga en ${current.recharge} t.` : ''}) → no da carga permanente`);
@@ -559,6 +598,7 @@ export async function fireEffectRules(options: {
               }
               const recharge = current?.recharge ?? charges.every;
               bonuses = [...bonuses.filter(bonus => bonus.source !== source), { id: current?.id ?? newBonusId(), stat: 'charges', amount: left - 1, maxStacks: charges.max, recharge, rechargeEvery: charges.every, source, label }];
+              if (charges.perTurn) bonuses = [...bonuses.filter(bonus => bonus.source !== turnSource), { id: newBonusId(), stat: 'buff', amount: 1, turns: 1, source: turnSource, label }];
               result.changed = true;
               result.chips.push({ kind: 'mana', text: chargesText(label, left - 1, charges.max, recharge), title: `${label}: cargas de combate (recarga 1 cada ${charges.every} t.)` });
               result.log.push(`${origin}: gasta 1 carga de combate ${left} → ${left - 1}/${charges.max} · recarga en ${recharge} t. (1 cada ${charges.every} t.)`);
@@ -630,20 +670,15 @@ export async function fireEffectRules(options: {
             }
           }
           if (parts.length) result.notes.push(`${label}: +${parts.join(', ')} ${DAMAGE_WORD[type]}`);
-          // «Aplica robo de vida»: cura al portador el daño hecho × su robo de vida % (100% de eficacia).
-          if (rule.lifeSteal && totalDealt > 0) {
-            const pct = statNumber(ctx.stats.lifeStealPct);
-            const stolen = poolAmount(totalDealt * pct / 100, ctx, false);
-            const heal = stolen.amount;
-            if (heal > 0 && callbacks.onSelfPool) {
-              const undo = await callbacks.onSelfPool('heal', heal);
-              if (undo) {
-                result.undos.push(undo);
-                result.notes.push(`${label}: robo de vida +${heal}`);
-                result.chips.push({ kind: 'heal', text: `+${heal} PV (robo de vida)`, title: `${label} → ${bearerName}` });
-              }
+          // Omnivampirismo (siempre) + robo de vida (solo con «Aplica robo de vida»): cura al portador.
+          if (totalDealt > 0) {
+            const vamp = await vampHeal({ dealt: totalDealt, ctx, lifeSteal: rule.lifeSteal === true, onSelfPool: callbacks.onSelfPool, origin, bearerName });
+            if (vamp) {
+              if (vamp.undo) result.undos.push(vamp.undo);
+              if (vamp.heal > 0) result.notes.push(`${label}: ${vamp.word} +${vamp.heal}`);
+              result.chips.push(...vamp.chips);
+              result.log.push(...vamp.log);
             }
-            result.log.push(`${origin}: robo de vida = ${fmt(totalDealt)} de daño × ${fmt(pct)}% = ${stolen.text} (el robo de vida no usa el poder de curación y escudos) → ${heal > 0 ? `cura ${heal}` : 'nada'}${heal > 0 && !callbacks.onSelfPool ? ' (a mano)' : ''}`);
           }
           break;
         }
@@ -720,7 +755,9 @@ export async function fireEffectRules(options: {
   let extraHits = 0;
   const rangeText = `${bearerName} es ${rangeTypeLabel(ctx.melee === true).toLowerCase()} (rango ${fmt(statNumber(ctx.stats.range))}; cuerpo a cuerpo = rango 1)`;
   for (const effect of effects) {
-    const { config } = effect;
+    // CD por tramo de nivel del portador (Cadencia marcial: 3/3/2/2): se resuelve aquí.
+    const config = withLevelCooldown(effect.config, ctx.level);
+    const levelCdNote = effect.config.cooldownByLevel?.length ? ` (CD por nivel ${effect.config.cooldownByLevel.join('/')}: nivel ${ctx.level} → ${config.cooldown ?? '—'} t.)` : '';
     const allRules = config.rules.map((rule, index) => ({ rule, index }));
     // «Solo si» cuerpo a cuerpo / a distancia: las que no valen para el portador ni cuentan (ni ponen CD).
     const armedNow = basicAttack && !!marker(bonuses, `armed:${effect.base}`);
@@ -763,7 +800,7 @@ export async function fireEffectRules(options: {
         const undo = await callbacks.onTargetBonuses(id, current => setMarker(current, 'cooldown', source, turns, `${effect.name} (de ${bearer.name})`.slice(0, 80)));
         if (undo) result.undos.push(undo);
         result.chips.push({ kind: 'mark', text: `Marca ${effect.name} · ${nameOf(id)} → CD ${turns} t.`, title: 'Marca consumida; el CD queda en ese objetivo' });
-        result.log.push(`${effect.name} (${effect.item}): marca de ${bearerName} consumida en ${nameOf(id)} → CD ${turns} t. en ${nameOf(id)}${config.cdStart === 'on-end' ? ` (${config.duration ?? 0} de efecto + ${config.cooldown} de CD)` : ''}`);
+        result.log.push(`${effect.name} (${effect.item}): marca de ${bearerName} consumida en ${nameOf(id)} → CD ${turns} t. en ${nameOf(id)}${config.cdStart === 'on-end' ? ` (${config.duration ?? 0} de efecto + ${config.cooldown} de CD)` : ''}${levelCdNote}`);
       }
       result.notes.push(`${effect.name}: marca de ${marked.map(nameOf).join(', ')} (CD ${turns} t. en el objetivo)`);
       extraHits += await applyRules(effect, own, marked);
@@ -781,7 +818,7 @@ export async function fireEffectRules(options: {
       bonuses = setMarker(bonuses, 'cooldown', `cd:${effect.base}`, turns, effect.name);
       result.changed = true;
       result.chips.push({ kind: 'cd', text: `CD ${effect.name} ${turns} t.` });
-      result.log.push(`${effect.name} (${effect.item}): CD ${turns} t. en ${bearerName}${config.cdStart === 'on-end' ? ` (${config.duration ?? 0} de efecto + ${config.cooldown} de CD)` : ''}`);
+      result.log.push(`${effect.name} (${effect.item}): CD ${turns} t. en ${bearerName}${config.cdStart === 'on-end' ? ` (${config.duration ?? 0} de efecto + ${config.cooldown} de CD)` : ''}${levelCdNote}`);
     }
     extraHits += await applyRules(effect, own);
   }
@@ -803,6 +840,8 @@ export async function fireEffectRules(options: {
 
 /** Marcador de cargas de combate de un efecto (id con variante). */
 export const chargesSource = (id: string): string => `charges:${id}`.slice(0, 80);
+/** «Ya gastada este turno» de unas cargas de combate con perTurn. */
+export const chargeTurnSource = (id: string): string => `chargeturn:${id}`.slice(0, 80);
 
 /**
  * Cargas de combate de los efectos del portador para enseñar: «Flujo de maná 3/4 · recarga en 2t».
@@ -812,7 +851,8 @@ export function chargeStatus(effects: ActiveNamedEffect[], bonuses: CombatBonus[
   return effects.filter(effect => effect.config.charges).map(effect => {
     const charges = effect.config.charges!;
     const marker = (bonuses ?? []).find(bonus => bonus.source === chargesSource(effect.id));
-    return { id: effect.id, text: chargesText(effect.name, marker ? marker.amount : charges.start, charges.max, marker?.recharge) };
+    const spent = charges.perTurn && (bonuses ?? []).some(bonus => bonus.source === chargeTurnSource(effect.id));
+    return { id: effect.id, text: `${chargesText(effect.name, marker ? marker.amount : charges.start, charges.max, marker?.recharge)}${spent ? ' · ya gastada este turno' : ''}` };
   });
 }
 
@@ -821,5 +861,13 @@ export function markerText(bonus: CombatBonus): string | null {
   if (bonus.stat === 'armed') return `${bonus.label ?? 'Efecto'} armado${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'cooldown') return `CD ${bonus.label ?? 'efecto'}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'charges') return chargesText(bonus.label ?? 'Cargas', bonus.amount, bonus.maxStacks ?? bonus.amount, bonus.recharge);
+  if (bonus.stat === 'stacks') return `${bonus.label ?? 'Cargas'} ${bonus.amount}${bonus.maxStacks ? `/${bonus.maxStacks}` : ''}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('shield:')) return `Escudo ${bonus.label ?? ''} ${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('recast:')) return `Recast ${bonus.label ?? ''} ×${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('chargeturn:')) return `${bonus.label ?? 'Cargas'}: ya gastada este turno`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('innate:')) return `Escudo automático ${bonus.label ?? ''} ${bonus.amount}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('innatecd:')) return `CD escudo ${bonus.label ?? ''} ${Math.round(bonus.amount * 100) / 100} t.`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('pending:')) return `Cura pendiente ${bonus.label ?? ''} ${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff') return `${bonus.label ?? 'Habilidad'} activa${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
   return null;
 }

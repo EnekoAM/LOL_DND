@@ -1,4 +1,5 @@
 import { STAT_COLUMNS, formatStat } from '../features/calculos/statLine';
+import { milestoneRank } from './abilityRanks';
 
 /**
  * Configurador de bonus de los efectos con nombre de los ítems (pasivas/activas): reglas que da cada
@@ -169,6 +170,8 @@ export const rangeConditionShort = (condition: RuleRangeCondition | undefined): 
 export type EffectBonusConfig = {
   /** Enfriamiento en turnos (por efecto base y participante). */
   cooldown?: number;
+  /** CD por tramo de nivel del portador (1–5 / 6–10 / 11–15 / 16–20); si está, manda sobre cooldown. */
+  cooldownByLevel?: number[];
   /** Duración del efecto en turnos (p. ej. ventana de Hoja encantada). */
   duration?: number;
   /** Cuándo empieza el CD: al activarse o al terminar el efecto (Hoja encantada: al usar el AA potenciado). */
@@ -189,7 +192,8 @@ export type EffectBonusConfig = {
   rules: EffectRule[];
 };
 
-export type EffectCharges = { start: number; max: number; every: number };
+/** perTurn: como mucho 1 carga gastada por turno del portador (Flujo de maná). */
+export type EffectCharges = { start: number; max: number; every: number; perTurn?: boolean };
 
 export const MAX_EFFECT_RULES = 12;
 
@@ -265,15 +269,27 @@ export function ruleSummary(rule: EffectRule): string {
 }
 
 /** «CD 1 t. (al terminar) · dura 5 t.» */
+/** CD del efecto al nivel del portador: el de su tramo (1–5 / 6–10 / 11–15 / 16–20) si tiene CD por nivel; si no, cooldown. */
+export function levelCooldown(config: EffectBonusConfig, level: number): number | undefined {
+  const list = config.cooldownByLevel;
+  if (!list?.length) return config.cooldown;
+  return list[Math.min(list.length, milestoneRank(level)) - 1];
+}
+
+/** La config con el CD resuelto para ese nivel (el motor sigue leyendo cooldown). */
+export const withLevelCooldown = (config: EffectBonusConfig, level: number): EffectBonusConfig =>
+  (config.cooldownByLevel?.length ? { ...config, cooldown: levelCooldown(config, level) } : config);
+
 export function configTimingText(config: EffectBonusConfig): string {
   return [
-    config.cooldown ? `CD ${config.cooldown} t.${config.cdStart === 'on-end' ? ' (al terminar)' : ''}` : '',
+    config.cooldownByLevel?.length ? `CD por nivel ${config.cooldownByLevel.join(' / ')} t. (niveles 1–5 / 6–10 / 11–15 / 16–20)${config.cdStart === 'on-end' ? ' (al terminar)' : ''}`
+      : config.cooldown ? `CD ${config.cooldown} t.${config.cdStart === 'on-end' ? ' (al terminar)' : ''}` : '',
     config.duration ? `dura ${config.duration} t.` : '',
     config.abilityDischarge ? 'las habilidades también descargan el Vigor' : '',
     config.chainTargets && config.chainTargets > 1 ? `Vigor al máximo encadena a ${config.chainTargets} objetivos` : '',
     config.perTargetCooldown ? 'CD por objetivo (marca)' : '',
     config.maxTargets ? `hasta ${config.maxTargets} objetivos` : '',
-    config.charges ? `cargas de combate: empieza con ${config.charges.start}, máx. ${config.charges.max}, recarga 1 cada ${config.charges.every} t.` : '',
+    config.charges ? `cargas de combate: empieza con ${config.charges.start}, máx. ${config.charges.max}, recarga 1 cada ${config.charges.every} t.${config.charges.perTurn ? ', máx. 1 por turno' : ''}` : '',
   ].filter(Boolean).join(' · ');
 }
 
@@ -330,6 +346,10 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
   const config: EffectBonusConfig = { rules };
   const cooldown = turns(source.cooldown);
   if (cooldown) config.cooldown = cooldown;
+  if (Array.isArray(source.cooldownByLevel)) {
+    const list = source.cooldownByLevel.map(turns).filter((n): n is number => n !== undefined).slice(0, 4);
+    if (list.length) config.cooldownByLevel = list;
+  }
   const duration = turns(source.duration);
   if (duration) config.duration = duration;
   if (source.cdStart === 'on-end' || source.cdStart === 'on-activate') config.cdStart = source.cdStart;
@@ -341,7 +361,7 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
     const c = source.charges as Record<string, unknown>;
     const max = turns(c.max);
     const every = turns(c.every);
-    if (max && every) config.charges = { start: finite(c.start) ? Math.max(0, Math.min(max, Math.floor(c.start))) : max, max, every };
+    if (max && every) config.charges = { start: finite(c.start) ? Math.max(0, Math.min(max, Math.floor(c.start))) : max, max, every, ...(c.perTurn === true ? { perTurn: true } : {}) };
   }
   return config;
 }

@@ -284,6 +284,7 @@ export default function CombatParticipantPanel({
             onBonusesSave={onBonusesSave}
             onTargetBonuses={onTargetBonuses}
             onPoolChange={onPoolChange}
+            onTargetPool={onTargetPool}
             variant={variant}
           />
         )
@@ -323,9 +324,7 @@ export default function CombatParticipantPanel({
             if (!ability) continue;
             const entry: TrackerRow = { key: `ability:${name}`, label: name, kind: 'ability', name };
             if (ability.hasStacks) entry.stacks = { value: readStack(live.stacks, abilityStackKey(name)), max: ability.maxStacks };
-            if (typeof ability.cooldown === 'number' && ability.cooldown > 0) {
-              entry.cd = { remaining: readCooldown(live.cooldowns, abilityCooldownKey(name)), duration: ability.cooldown };
-            }
+            // Las habilidades no tienen CD (se bloquean mientras dura su efecto).
             if (typeof ability.effectDuration === 'number' && ability.effectDuration > 0) {
               const enemy = ability.effectTarget === 'enemy';
               entry.effectTarget = enemy ? 'enemy' : 'self';

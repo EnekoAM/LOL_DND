@@ -226,15 +226,7 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                     onChange={next => { void onStacksChange({ [abilityStackKey(abilityName)]: next }); }}
                   />
                 ) : undefined}
-                cooldown={ability && abilityName && typeof ability.cooldown === 'number' && ability.cooldown > 0 ? (
-                  <CooldownControl
-                    remaining={readCooldown(player.cooldowns, abilityCooldownKey(abilityName))}
-                    duration={ability.cooldown}
-                    disabled={saving}
-                    label={`CD · ${abilityName}`}
-                    onChange={next => { void onCooldownsChange({ [abilityCooldownKey(abilityName)]: next }); }}
-                  />
-                ) : undefined}
+                // Sin CD: las habilidades se bloquean mientras dura su efecto.
                 action={(
                   <button
                     type="button"

@@ -1,5 +1,7 @@
 import { logCombat } from './combatConsole';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { innatePlan, tickInnateCooldowns } from './innateShield';
+import { partyLevel, subscribeParty } from '../../data/party';
 import { useAppRole, useMyPlayerName } from '../../data/appRoleContext';
 import { canSeeHp, participantHp, participantHpPools, type DamageAmount, type TargetDamage } from './combatHp';
 import { CHAMPIONS } from '../../data/champions';
@@ -51,10 +53,14 @@ const MODE_LABEL: Record<AddMode, string> = {
   custom: 'Custom',
 };
 
+/** Marcadores que no pasan de un combate a otro: cargas de combate y cargas / buffs de habilidades. */
+const isCombatScoped = (bonus: CombatBonus): boolean =>
+  bonus.stat === 'charges' || bonus.stat === 'stacks' || bonus.stat === 'buff' || (bonus.source ?? '').startsWith('buffstat:ability:');
+
 /** Quita los marcadores de cargas de combate (al empezar un combate). */
 function withoutCharges(participant: CombatParticipant): CombatParticipant {
-  if (!participant.bonuses?.some(bonus => bonus.stat === 'charges')) return participant;
-  const bonuses = participant.bonuses.filter(bonus => bonus.stat !== 'charges');
+  if (!participant.bonuses?.some(isCombatScoped)) return participant;
+  const bonuses = participant.bonuses.filter(bonus => !isCombatScoped(bonus));
   const { bonuses: _old, ...rest } = participant;
   return bonuses.length ? { ...rest, bonuses } : rest;
 }
@@ -72,6 +78,13 @@ function logChargeRecharges(before: CombatParticipant | undefined, after: Combat
     else if (now.recharge !== old.recharge && now.recharge) lines.push(`${now.label ?? 'Cargas'}: ${now.amount}/${max} · recarga en ${now.recharge} t.`);
   }
   if (lines.length) logCombat({ title: 'Cargas de combate', actor: after.name, lines });
+}
+
+/** Escudos de habilidad (castPool) cuyo marcador ha caducado al empezar el turno del portador. */
+function expiredAbilityShields(before: CombatParticipant | undefined, after: CombatParticipant | undefined): CombatBonus[] {
+  if (!before || !after) return [];
+  return (before.bonuses ?? []).filter(old => old.stat === 'buff' && (old.source ?? '').startsWith('shield:')
+    && !(after.bonuses ?? []).some(bonus => bonus.source === old.source));
 }
 
 export default function Combate() {
@@ -439,12 +452,90 @@ export default function Combate() {
     }
     const target = ordered[turnIndex];
     const targetId = target?.id;
-    const participants = state.participants.map(p => (p.id === targetId ? tickCombatTrackers(tickEffectsFor(p)) : p));
+    const participants = state.participants.map(p => (p.id === targetId ? tickInnateCooldowns(tickCombatTrackers(tickEffectsFor(p))) : p));
+    const beforeTarget = state.participants.find(p => p.id === targetId);
+    const afterTarget = participants.find(p => p.id === targetId);
+    const expiredHeals = (beforeTarget?.bonuses ?? []).filter(old => old.stat === 'buff' && (old.source ?? '').startsWith('pending:') && !(afterTarget?.bonuses ?? []).some(bonus => bonus.source === old.source));
     logChargeRecharges(state.participants.find(p => p.id === targetId), participants.find(p => p.id === targetId));
+    const expiredShields = expiredAbilityShields(state.participants.find(p => p.id === targetId), participants.find(p => p.id === targetId));
     const sorted = sortByInitiative(participants);
     const idx = sorted.findIndex(p => p.id === targetId);
     if (target) tickPlayerTrackers(target);
-    void persist({ ...stateRef.current, active: true, round, turnIndex: idx >= 0 ? idx : 0, participants: sorted });
+    void persist({ ...stateRef.current, active: true, round, turnIndex: idx >= 0 ? idx : 0, participants: sorted })
+      .then(() => (targetId && expiredShields.length ? removeExpiredShields(targetId, expiredShields) : undefined))
+      .then(() => (targetId && expiredHeals.length ? firePendingHeals(targetId, expiredHeals) : undefined));
+  };
+
+  /** Cura retrasada (Pluma resplandeciente) que vence al empezar el turno del lanzador: cura al lanzador y a los aliados marcados. */
+  const firePendingHeals = async (casterId: string, expired: CombatBonus[]) => {
+    const caster = stateRef.current.participants.find(p => p.id === casterId);
+    for (const marker of expired) {
+      const lines: string[] = [];
+      const done = await poolChange(casterId, 'heal', marker.amount);
+      lines.push(`${caster?.name ?? 'Lanzador'}: +${marker.amount} PV${done ? '' : ' (a mano / ya al máximo)'}`);
+      for (const ally of stateRef.current.participants) {
+        if (ally.id === casterId) continue;
+        const held = (ally.bonuses ?? []).find(bonus => bonus.source === marker.source);
+        if (!held) continue;
+        const healed = await poolChange(ally.id, 'heal', held.amount);
+        lines.push(`${ally.name}: +${held.amount} PV${healed ? '' : ' (a mano / ya al máximo)'}`);
+        const saved = await saveCombatBonuses(ally.id, (stateRef.current.participants.find(p => p.id === ally.id)?.bonuses ?? []).filter(bonus => bonus.source !== marker.source));
+        stateRef.current = saved;
+        setState(saved);
+      }
+      logCombat({ title: `Cura de ${marker.label ?? 'habilidad'} (pasados los turnos)`, actor: caster?.name ?? '', lines });
+    }
+  };
+
+  /** Escudos automáticos (Plumas feéricas): al empezar el combate, al romperse → CD, al acabar el CD → vuelve. */
+  const level = useSyncExternalStore(subscribeParty, partyLevel);
+  const innateBusy = useRef(false);
+  useEffect(() => {
+    if (!isAdmin || loading || saving || !state.active || innateBusy.current) return;
+    const plans = state.participants.map(p => ({ p, plan: innatePlan(p, level) })).filter(entry => entry.plan);
+    if (!plans.length) return;
+    innateBusy.current = true;
+    void (async () => {
+      try {
+        for (const { p, plan } of plans) {
+          if (!plan) continue;
+          if (plan.shield) await poolChange(p.id, 'shield', plan.shield);
+          const saved = await saveCombatBonuses(p.id, plan.bonuses);
+          stateRef.current = saved;
+          setState(saved);
+          setTrackerBump(n => n + 1);
+          logCombat({ title: 'Escudo automático', actor: p.name, lines: plan.lines });
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'No se pudo aplicar el escudo automático');
+      } finally {
+        innateBusy.current = false;
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, isAdmin, loading, saving, level]);
+
+  /** Al caducar el escudo de una habilidad se quita lo que quede de él (como mucho lo que dio). */
+  const removeExpiredShields = async (participantId: string, expired: CombatBonus[]) => {
+    const self = stateRef.current.participants.find(p => p.id === participantId);
+    const pools = self ? participantHpPools(self) : null;
+    if (!self || !pools) return;
+    const given = expired.reduce((sum, bonus) => sum + Math.max(0, bonus.amount), 0);
+    const removed = Math.min(pools.shield, given);
+    const names = expired.map(bonus => bonus.label ?? 'habilidad').join(', ');
+    if (removed <= 0) {
+      logCombat({ title: 'Escudo caducado', actor: self.name, lines: [`Escudo de ${names}: caduca (ya estaba gastado)`] });
+      return;
+    }
+    try {
+      const result = await saveCombatHp(participantId, pools.current, undefined, { tempHp: pools.tempHp, shield: pools.shield - removed });
+      stateRef.current = result.combat;
+      setState(result.combat);
+      setTrackerBump(n => n + 1);
+      logCombat({ title: 'Escudo caducado', actor: self.name, lines: [`Escudo de ${names}: caduca → −${removed} (escudo ${pools.shield} → ${pools.shield - removed}; dio ${given})`] });
+    } catch {
+      logCombat({ title: 'Escudo caducado', actor: self.name, lines: [`Escudo de ${names}: caduca → quitar ${removed} a mano`] });
+    }
   };
 
   const prevTurn = () => {

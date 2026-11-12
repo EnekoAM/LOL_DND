@@ -32,7 +32,7 @@ const numberOrUndefined = (text: string): number | undefined => {
 };
 
 /** Cargas de combate a medio rellenar: se guardan al tener máx. y recarga (el guardado descarta lo incompleto). */
-function chargesWith(draft: EffectBonusConfig, patch: { start?: number; max?: number; every?: number }): EffectBonusConfig['charges'] {
+function chargesWith(draft: EffectBonusConfig, patch: { start?: number; max?: number; every?: number; perTurn?: boolean }): EffectBonusConfig['charges'] {
   const next = { ...(draft.charges ?? {}), ...patch } as Partial<NonNullable<EffectBonusConfig['charges']>>;
   if (next.start === undefined && next.max === undefined && next.every === undefined) return undefined;
   return next as NonNullable<EffectBonusConfig['charges']>;
@@ -193,9 +193,13 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cdLevelText, setCdLevelText] = useState(() => effective?.cooldownByLevel?.join(', ') ?? '');
 
   useEffect(() => {
-    if (!dirty) setDraft(effective ?? { rules: [] });
+    if (!dirty) {
+      setDraft(effective ?? { rules: [] });
+      setCdLevelText(effective?.cooldownByLevel?.join(', ') ?? '');
+    }
   }, [effective, dirty]);
 
   const summary = configSummary(effective);
@@ -228,6 +232,14 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
       {!own && inherited && <p className="bonus-summary__note">Usa la del efecto base; al guardar, esta variante tendrá la suya.</p>}
       <div className="bonus-editor__row">
         <NumberField label="CD (turnos)" step="1" value={draft.cooldown} onChange={cooldown => update({ ...draft, cooldown })} />
+        <label className="bonus-editor__field" title="Un CD por tramo de nivel del portador (1–5 / 6–10 / 11–15 / 16–20); si está, manda sobre el CD. Vacío = CD fijo">
+          <span>CD por nivel (4 tramos)</span>
+          <input style={{ width: 110 }} placeholder="3, 3, 2, 2" value={cdLevelText} onChange={e => {
+            setCdLevelText(e.target.value);
+            const list = e.target.value.split(/[,/\s]+/).map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= 99).slice(0, 4);
+            update({ ...draft, cooldownByLevel: list.length ? list : undefined });
+          }} />
+        </label>
         <label className="bonus-editor__field">
           <span>CD empieza</span>
           <select value={draft.cdStart ?? 'on-activate'} onChange={e => update({ ...draft, cdStart: e.target.value as EffectBonusConfig['cdStart'] })}>
@@ -267,6 +279,13 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
           value={draft.charges?.every}
           onChange={value => update({ ...draft, charges: chargesWith(draft, { every: value }) })}
         />
+        <label className="bonus-editor__field bonus-editor__check" title="Como mucho gasta 1 carga por turno del portador aunque golpeen varias habilidades">
+          <span>Cargas</span>
+          <span>
+            <input type="checkbox" checked={!!draft.charges?.perTurn} disabled={!draft.charges} onChange={e => update({ ...draft, charges: chargesWith(draft, { perTurn: e.target.checked || undefined }) })} />
+            {' '}Máx. 1 por turno
+          </span>
+        </label>
         <NumberField
           label="Máx. objetivos (al usar)"
           step="1"
@@ -293,7 +312,7 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
           <button type="button" className="bonus-editor__add" onClick={() => update({ ...draft, rules: [...draft.rules, { trigger: 'on-hit', kind: 'damage', damageType: 'physical' }] })}>+ Regla</button>
         )}
         <button type="button" className="bonus-editor__save" disabled={saving || !dirty} onClick={() => void save(clean(draft))}>{saving ? 'Guardando…' : 'Guardar'}</button>
-        {dirty && <button type="button" className="bonus-editor__add" disabled={saving} onClick={() => { setDirty(false); setDraft(effective ?? { rules: [] }); }}>Descartar</button>}
+        {dirty && <button type="button" className="bonus-editor__add" disabled={saving} onClick={() => { setDirty(false); setDraft(effective ?? { rules: [] }); setCdLevelText(effective?.cooldownByLevel?.join(', ') ?? ''); }}>Descartar</button>}
         {own && (
           <button type="button" className="bonus-editor__add" disabled={saving} onClick={() => void save(null)}>{inherited ? 'Usar la del base' : 'Borrar todo'}</button>
         )}

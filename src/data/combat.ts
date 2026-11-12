@@ -252,11 +252,25 @@ export type SourcedEffectInput = {
   duration: number;
   hasStacks?: boolean;
   maxStacks?: number;
+  /** Valor del estado (p. ej. 20 = ralentización 20 %). Entero 1-99. */
+  value?: number;
+  /**
+   * Deshacer: estado anterior de ese efecto (source) por objetivo; null = no lo tenía (se quita).
+   * Con restore no se aplica nada nuevo.
+   */
+  restore?: Record<string, CombatEffect | null>;
 };
 
 /** Aplica un efecto de ítem/habilidad al objetivo. Si ya está, refresca duración y suma 1 stack. */
 export function applySourcedEffect(target: CombatParticipant, input: SourcedEffectInput): CombatParticipant {
+  if (input.restore) {
+    if (!(target.id in input.restore)) return target;
+    const previous = input.restore[target.id];
+    const others = target.effects.filter(effect => effect.source !== input.source);
+    return { ...target, effects: previous ? [...others, previous] : others };
+  }
   const name = input.name.trim().slice(0, 80) || input.source;
+  const value = typeof input.value === 'number' && Number.isInteger(input.value) && input.value >= 1 && input.value <= 99 ? input.value : undefined;
   const duration = Math.max(1, Math.trunc(input.duration));
   const existing = target.effects.find(effect => effect.source === input.source);
   if (existing) {
@@ -265,12 +279,12 @@ export function applySourcedEffect(target: CombatParticipant, input: SourcedEffe
     return {
       ...target,
       effects: target.effects.map(effect => (
-        effect.id === existing.id ? { ...effect, name, duration, stacks } : effect
+        effect.id === existing.id ? { ...effect, name, duration, stacks, ...(value ? { value } : {}) } : effect
       )),
     };
   }
   if (target.effects.length >= COMBAT_MAX_EFFECTS) return target;
-  const effect: CombatEffect = { id: newId(), name, duration, source: input.source };
+  const effect: CombatEffect = { id: newId(), name, duration, source: input.source, ...(value ? { value } : {}) };
   if (input.hasStacks) effect.stacks = 1;
   return { ...target, effects: [...target.effects, effect] };
 }

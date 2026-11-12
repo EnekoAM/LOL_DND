@@ -1,3 +1,4 @@
+import type { AbilityMechanics } from './abilityMechanics';
 import type { AreaPattern } from './areaPattern';
 import { matchesSearch, normalizeName } from '../lib/text';
 import { ROLE_TABLES, findRoleTable } from './roles';
@@ -52,6 +53,8 @@ export type Ability = {
   area?: AreaPattern;
   /** Aplica efectos de impacto: en combate dispara las reglas «Al aplicar efecto de impacto» de los ítems. */
   appliesOnHit?: boolean;
+  /** Mecánicas de combate (cargas, cargas por impacto, buff al activar, estado de la pasiva…). */
+  mechanics?: AbilityMechanics;
 };
 
 /** Fase alternativa de una habilidad (Q de Aatrox, Riven, básicas de Hwei…). */
