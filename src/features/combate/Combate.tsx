@@ -1,3 +1,4 @@
+import { logCombat } from './combatConsole';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppRole, useMyPlayerName } from '../../data/appRoleContext';
 import { canSeeHp, participantHp, participantHpPools, type DamageAmount, type TargetDamage } from './combatHp';
@@ -49,6 +50,29 @@ const MODE_LABEL: Record<AddMode, string> = {
   champion: 'Campeón',
   custom: 'Custom',
 };
+
+/** Quita los marcadores de cargas de combate (al empezar un combate). */
+function withoutCharges(participant: CombatParticipant): CombatParticipant {
+  if (!participant.bonuses?.some(bonus => bonus.stat === 'charges')) return participant;
+  const bonuses = participant.bonuses.filter(bonus => bonus.stat !== 'charges');
+  const { bonuses: _old, ...rest } = participant;
+  return bonuses.length ? { ...rest, bonuses } : rest;
+}
+
+/** Consola: cargas de combate recargadas / cuenta atrás al empezar el turno del portador. */
+function logChargeRecharges(before: CombatParticipant | undefined, after: CombatParticipant | undefined): void {
+  if (!before || !after) return;
+  const lines: string[] = [];
+  for (const old of before.bonuses ?? []) {
+    if (old.stat !== 'charges') continue;
+    const now = after.bonuses?.find(bonus => bonus.source === old.source);
+    if (!now) continue;
+    const max = now.maxStacks ?? now.amount;
+    if (now.amount > old.amount) lines.push(`${now.label ?? 'Cargas'}: recarga 1 carga → ${now.amount}/${max}${now.recharge ? ` · siguiente en ${now.recharge} t.` : ''}`);
+    else if (now.recharge !== old.recharge && now.recharge) lines.push(`${now.label ?? 'Cargas'}: ${now.amount}/${max} · recarga en ${now.recharge} t.`);
+  }
+  if (lines.length) logCombat({ title: 'Cargas de combate', actor: after.name, lines });
+}
 
 export default function Combate() {
   const { role } = useAppRole();
@@ -375,7 +399,8 @@ export default function Combate() {
   };
 
   const startCombat = () => {
-    const sorted = sortByInitiative(state.participants).map(p => withSheet(p, npcs));
+    // Cargas de combate (Flujo de maná…): cada combate empieza con las de inicio (sin marcador).
+    const sorted = sortByInitiative(state.participants).map(p => withSheet(withoutCharges(p), npcs));
     if (sorted.length === 0) return;
     const first = tickCombatTrackers(tickEffectsFor(sorted[0]));
     const participants = sorted.map((p, i) => (i === 0 ? first : p));
@@ -415,10 +440,11 @@ export default function Combate() {
     const target = ordered[turnIndex];
     const targetId = target?.id;
     const participants = state.participants.map(p => (p.id === targetId ? tickCombatTrackers(tickEffectsFor(p)) : p));
+    logChargeRecharges(state.participants.find(p => p.id === targetId), participants.find(p => p.id === targetId));
     const sorted = sortByInitiative(participants);
     const idx = sorted.findIndex(p => p.id === targetId);
     if (target) tickPlayerTrackers(target);
-    void persist({ active: true, round, turnIndex: idx >= 0 ? idx : 0, participants: sorted });
+    void persist({ ...stateRef.current, active: true, round, turnIndex: idx >= 0 ? idx : 0, participants: sorted });
   };
 
   const prevTurn = () => {
@@ -468,13 +494,19 @@ export default function Combate() {
           onTargetDamage={isAdmin ? damageTarget : undefined}
           onTargetBonuses={isAdmin ? targetBonuses : undefined}
           onPoolChange={isAdmin ? (kind, amount) => poolChange(p.id, kind, amount) : undefined}
+          onTargetPool={isAdmin ? (targetId, kind, amount) => poolChange(targetId, kind, amount) : undefined}
+          vigorPerMove={state.vigorPerMove}
+          onVigorPerMoveChange={isAdmin ? rate => persist({ ...stateRef.current, vigorPerMove: rate }) : undefined}
           onBonusesSave={async bonuses => {
             const saved = await saveCombatBonuses(p.id, bonuses);
             stateRef.current = saved;
             setState(saved);
           }}
           onActionsSave={async (kind, left, extra) => {
-            setState(await saveCombatActions(p.id, kind, left, extra));
+            // También en stateRef: lo siguiente que se guarde (CD del ítem, bonus…) parte de aquí y no lo pisa.
+            const saved = await saveCombatActions(p.id, kind, left, extra);
+            stateRef.current = saved;
+            setState(saved);
           }}
           saving={saving}
           trackerRev={playersRev + trackerBump}

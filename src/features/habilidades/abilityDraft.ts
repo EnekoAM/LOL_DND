@@ -1,3 +1,4 @@
+import { isAreaEmpty, normalizeArea, type AreaPattern } from '../../data/areaPattern';
 import type { Ability, AbilityDamage, AbilityEffect, AbilityVariant, DamageScalingSource } from '../../data/champions';
 import { isResourceId } from '../../data/resources';
 
@@ -20,6 +21,8 @@ export type AbilityDraft = {
   damageBonus: string;
   effects: EffectDraft[];
   hasStacks: boolean;
+  /** Aplica efectos de impacto (reglas «Al aplicar efecto de impacto»). */
+  appliesOnHit: boolean;
   maxStacks: string;
   cooldown: string;
   effectDuration: string;
@@ -29,6 +32,8 @@ export type AbilityDraft = {
   /** Fases 2, 3… En blanco = igual que la fase 1. */
   variants: VariantDraft[];
   phaseMode: 'sequential' | 'choose';
+  /** Tablero de área (null = sin área). */
+  area: AreaPattern | null;
 };
 
 /** Fase alternativa. Los textos vacíos y '' heredan de la base. */
@@ -81,6 +86,7 @@ export function abilityToDraft(ability: Ability | null): AbilityDraft {
     apSource: ability?.damage?.apSource ?? 'total',
     damageBonus: bonus === undefined ? '' : String(bonus),
     hasStacks: ability?.hasStacks === true,
+    appliesOnHit: ability?.appliesOnHit === true,
     maxStacks: typeof ability?.maxStacks === 'number' ? String(ability.maxStacks) : '',
     cooldown: typeof ability?.cooldown === 'number' ? String(ability.cooldown) : '',
     effectDuration: typeof ability?.effectDuration === 'number' ? String(ability.effectDuration) : '',
@@ -90,6 +96,7 @@ export function abilityToDraft(ability: Ability | null): AbilityDraft {
     effects: effectsToDraft(ability?.effect),
     variants: (ability?.variants ?? []).map(variantToDraft),
     phaseMode: ability?.phaseMode === 'choose' ? 'choose' : 'sequential',
+    area: normalizeArea(ability?.area) ?? null,
   };
 }
 
@@ -256,6 +263,7 @@ export function draftToAbility(draft: AbilityDraft): Ability {
 
   const effect = parseEffects(draft.effects);
   if (effect) ability.effect = effect;
+  if (draft.appliesOnHit) ability.appliesOnHit = true;
   if (draft.hasStacks) {
     ability.hasStacks = true;
     const trimmed = draft.maxStacks.trim();
@@ -292,6 +300,7 @@ export function draftToAbility(draft: AbilityDraft): Ability {
     ability.variants = variants;
     if (draft.phaseMode === 'choose') ability.phaseMode = 'choose';
   }
+  if (draft.area && !isAreaEmpty(draft.area)) ability.area = draft.area;
   return ability;
 }
 

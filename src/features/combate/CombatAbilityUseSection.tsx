@@ -5,8 +5,13 @@ import { ABILITY_KEYS, findAbilityRef, type Ability, type Champion } from '../..
 import { participantChampion } from '../../data/combatSheet';
 import type { CombatBonus, CombatParticipant, SourcedEffectInput } from '../../data/combat';
 import { firePassives, type PassiveResult } from './combatBonuses';
+import { CHIP_ICON, fmt, rollText, type ResultChip } from './combatResult';
+import { logCombat } from './combatConsole';
+import { critMultiplier, effectiveResistLine, hitRollLines } from './combatMitigation';
+import { permanentStackSaver } from '../../data/permanentStacks';
 import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
-import { activeNamedEffects, armAfterAbility, combatExtraLines, fireEffectRules, participantContext, type EffectCallbacks, type EffectTriggerName } from './effectRules';
+import { abilityDischargesVigor, vigorChainTargets, activeNamedEffects, armAfterAbility, combatExtraLines, fireEffectRules, hasVigorItem, participantContext, vigorEffects, type EffectCallbacks, type EffectTriggerName } from './effectRules';
+import { VIGOR_MAX, VIGOR_PER_AA } from '../../data/combat';
 import { partyLevel, subscribeParty } from '../../data/party';
 import { PLAYERS, PLAYER_ABILITY_SLOTS, type Player, type PlayerListPatch } from '../../data/players';
 import { championResourceBar, type ResourceId } from '../../data/resources';
@@ -58,7 +63,7 @@ type Props = {
   onTargetBonuses?: EffectCallbacks['onTargetBonuses'];
   onPoolChange?: EffectCallbacks['onSelfPool'];
   /** Acciones del turno vía PATCH (admin o su propio player). */
-  onActionsSave?: (kind: 'attacks' | 'abilities', left: number, extra: number) => Promise<void>;
+  onActionsSave?: (kind: 'attacks' | 'abilities' | 'items', left: number, extra: number) => Promise<void>;
   /** panel: lista compacta con barra (Preparación); sheet: tarjetas de hechizo como la ficha (sin barra). */
   variant?: 'panel' | 'sheet';
 };
@@ -79,7 +84,17 @@ type LastUse = {
   headline: string;
   detail?: string;
   undo?: () => void;
+  /** En pantalla: un chip por efecto. */
+  chips?: ResultChip[];
+  /** Desarrollo completo (va a la consola del navegador). */
+  log?: string[];
 };
+
+/** ¿La habilidad hace daño físico? (tipo físico o sin tipo, como en la consola). Mágico, verdadero y mixto no critean. */
+function abilityIsPhysical(ability: Ability): boolean {
+  const type = formatDamageType(ability.damage?.type);
+  return type === 'daño físico' || type === 'daño';
+}
 
 function suggestedOr(value: number | undefined, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
@@ -225,7 +240,14 @@ export default function CombatAbilityUseSection({
   const [lastUse, setLastUse] = useState<LastUse | null>(null);
   /** Ataque básico esperando objetivo. */
   const [attackPick, setAttackPick] = useState<'AD' | 'AP' | null>(null);
+  /** «Crít.»: el player ha sacado crítico en su tirada; el daño físico base de la acción × DAÑO CRÍT. Se apaga tras usarlo. */
+  const [crit, setCrit] = useState(false);
   const [busy, setBusy] = useState(false);
+  /** «Vigor al máximo» que encadena: espera a que se elijan hasta N objetivos. */
+  const [chainAsk, setChainAsk] = useState<{ title: string; max?: number; primary: string; resolve: (ids: string[]) => void } | null>(null);
+  const askTargets = (title: string, primary: string, max?: number): Promise<string[]> =>
+    new Promise(resolve => setChainAsk({ title, max, primary, resolve: ids => { setChainAsk(null); resolve(ids); } }));
+  const askChainTargets = (max: number, primary: string) => askTargets('⚡ Vigor al máximo: encadena a', primary, max);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -237,6 +259,7 @@ export default function CombatAbilityUseSection({
     setError(null);
     setAttackPick(null);
     setPickingPhase(undefined);
+    setCrit(false);
   }, [participant.id]);
 
   const player = participant.kind === 'player' && participant.sourceId
@@ -408,6 +431,7 @@ export default function CombatAbilityUseSection({
     setPickingKey(null);
     setPickingAbility(null);
     setPickingPhase(undefined);
+    setCrit(false);
   };
 
   /** Gasta coste / CD / fase / acción, tira el daño una vez y lo aplica a los objetivos (vacío = a nadie). */
@@ -433,6 +457,11 @@ export default function CombatAbilityUseSection({
     let headline: string;
     let damageTotal = 0;
     let detail: string | undefined;
+    const abilityLog: string[] = [`${row.seal} «${row.name}»${phaseNote} de ${participant.name}`];
+    const critOn = crit;
+    setCrit(false);
+    const abilityChips: ResultChip[] = [];
+    let abilityStats: Record<string, unknown> | null = null;
     if (hasDamageScaling(ability.damage)) {
       try {
         const stats = player
@@ -442,9 +471,20 @@ export default function CombatAbilityUseSection({
             : null;
         if (!stats) return;
         const result = rollAbilityDamage(ability.damage!, stats, row.rank);
-        headline = formatUseHeadline(row.seal, { kind: 'roll', total: result.total, type: ability.damage?.type });
-        damageTotal = result.total;
+        // Crítico: solo si la habilidad hace daño físico (el mágico / verdadero / mixto no critea).
+        const critical = critOn && abilityIsPhysical(ability);
+        const mult = critical ? critMultiplier(stats as Record<string, unknown>) : 1;
+        damageTotal = critical ? Math.ceil(result.total * mult) : result.total;
+        headline = formatUseHeadline(row.seal, { kind: 'roll', total: damageTotal, type: ability.damage?.type });
+        if (critical) headline = headline.replace(/^(\S+)/, '$1 CRÍTICO');
         detail = formatDiceBreakdown(result);
+        abilityLog.push(
+          `Daño${ability.damage?.type ? ` ${ability.damage.type}` : ''} (rango ${row.rank}) = ${result.contributions.map(entry =>
+            `${fmt(entry.scaling * 100)}% ${entry.stat.toUpperCase()} ${entry.source === 'bonus' ? 'bonus' : 'total'} (${rollText(entry.roll)}) = ${fmt(entry.damage)}`).join(' + ')} → ${fmt(result.total)}`,
+          ...(critical ? [`CRÍTICO: ${fmt(result.total)} × DAÑO CRÍT ${fmt(mult)} = ${fmt(result.total * mult)}${damageTotal !== result.total * mult ? ` → ${fmt(damageTotal)} (redondeo ↑)` : ''}`] : []),
+        );
+        if (critical) abilityChips.push({ kind: 'crit', text: 'CRÍTICO', title: `× ${fmt(mult)} (DAÑO CRÍT)` });
+        abilityStats = stats as Record<string, unknown>;
       } catch (caught) {
         headline = formatUseHeadline(row.seal, {
           kind: 'error',
@@ -540,10 +580,29 @@ export default function CombatAbilityUseSection({
           }
         : undefined;
 
-      setLastUse({ headline, detail, undo });
+      if (cost > 0 && spendPool) abilityLog.push(`Coste: ${cost} ${spend.label} (${spendPool.current} → ${Math.max(0, spendPool.current - cost)})`);
+      if (cdDuration > 0) abilityLog.push(`CD de la habilidad: ${cdDuration} t.`);
+      if (effectDuration > 0) abilityLog.push(`Efecto «${(ability.effectName ?? '').trim() || row.name}» ${effectDuration} t. ${enemyEffect ? `a ${targets.filter(t => targetIds.includes(t.id)).map(t => t.name).join(', ') || 'nadie'}` : `en ${participant.name}`}`);
+      if (ability.appliesOnHit) abilityLog.push('Aplica efectos de impacto');
+      setLastUse({ headline, detail, undo, log: abilityLog, ...(abilityChips.length ? { chips: abilityChips } : {}) });
       const kills = targetIds.length > 0 ? await applyToTargets(row, ability, damageTotal, targetIds) : [];
-      const passive = await passivesFor('on-ability', targetIds, kills);
-      setLastUse(current => (current ? withPassives(current, passive) : current));
+      if (abilityStats && targetIds.length > 0 && damageTotal > 0) {
+        const kind = /m[aá]gic/i.test(ability.damage?.type ?? '') ? 'magic' : 'physical';
+        const trueDamage = /verdader|\btrue\b/i.test(ability.damage?.type ?? '');
+        abilityLog.push(
+          `Objetivos: ${targets.filter(t => targetIds.includes(t.id)).map(t => t.name).join(', ')} (${fmt(damageTotal)} a cada uno)`,
+          ...(trueDamage ? ['Daño verdadero: no necesita tirada contra resistencia (ignora CA / RM)'] : defenseLines(targetIds, abilityStats, kind)),
+        );
+      }
+      // Cargas de combate (Flujo de maná): solo si la habilidad ha hecho daño a algún objetivo (1 carga por uso).
+      const passive = await passivesFor('on-ability', targetIds, kills, ability.appliesOnHit === true, damageTotal > 0);
+      setLastUse(current => (current ? withPassives({ ...current, log: abilityLog }, passive) : current));
+      const targetNames = targets.filter(t => targetIds.includes(t.id)).map(t => t.name).join(', ');
+      logCombat({
+        title: `${headline}${targetNames ? ` → ${targetNames}` : ''}`,
+        lines: [...abilityLog, ...(passive.log ?? [])],
+        actor: participant.name,
+      });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo usar la habilidad');
     } finally {
@@ -558,13 +617,15 @@ export default function CombatAbilityUseSection({
    * on-ability arma el siguiente AA y salta «Al acertar habilidad»; kills dispara «Al matar / asistir».
    * Un solo guardado de los bonus del usuario y un Deshacer que lo revierte todo.
    */
-  const passivesFor = async (trigger: 'on-hit' | 'on-ability', targetIds: string[], kills: string[] = []): Promise<PassiveResult> => {
+  const passivesFor = async (trigger: 'on-hit' | 'on-ability', targetIds: string[], kills: string[] = [], abilityOnHit = false, damaged?: boolean): Promise<PassiveResult> => {
     const base = participantContext(participant, level, extra);
     const items = base?.items ?? [];
     const prev = participant.bonuses ?? [];
     let bonuses = prev;
     let changed = false;
     const notes: string[] = [];
+    const chips: ResultChip[] = [];
+    const log: string[] = [];
     const undos: (() => Promise<void>)[] = [];
     if (base) {
       const effects = activeNamedEffects(items, effectData);
@@ -573,25 +634,94 @@ export default function CombatAbilityUseSection({
         onTargetBonuses,
         onApplySourcedEffect: (ids, input) => onApplySourcedEffect(ids, input),
         onSelfPool: onPoolChange,
+        pickArea: (primary, name) => askTargets(`${name}: objetivo + cercanos`, primary),
+        onPermanentStack: permanentStackSaver(participant, onPlayerPatch),
       };
-      const fire = async (name: EffectTriggerName, ids: string[]) => {
-        const result = await fireEffectRules({ trigger: name, effects, ctx: base.ctx, bonuses, targetIds: ids, participants, level, callbacks });
+      const fire = async (name: EffectTriggerName, ids: string[], basicAttack = true) => {
+        const result = await fireEffectRules({ trigger: name, effects, ctx: base.ctx, bonuses, targetIds: ids, participants, level, callbacks, bearer: { id: participant.id, name: participant.name }, basicAttack, ...(name === 'on-ability-hit' && damaged !== undefined ? { damaged } : {}) });
         bonuses = result.bonuses;
         changed = changed || result.changed;
         notes.push(...result.notes, ...result.manual.map(text => `a mano: ${text}`));
+        chips.push(...result.chips);
+        log.push(...result.log);
         undos.push(...result.undos);
         return result;
       };
       if (trigger === 'on-ability') {
-        const armed = armAfterAbility(effects, bonuses);
+        const armed = armAfterAbility(effects, bonuses, base.ctx);
         if (armed.names.length) {
           bonuses = armed.bonuses;
           changed = true;
           notes.push(`${armed.names.join(', ')} armada (siguiente AA)`);
+          chips.push({ kind: 'buff', text: `${armed.names.join(', ')} armada`, title: 'El siguiente AA va potenciado' });
+          log.push(`${armed.names.join(', ')}: armada por la habilidad (se gasta en el siguiente AA)`);
         }
       }
       const allKills = [...kills];
-      if (targetIds.length > 0) allKills.push(...(await fire(trigger === 'on-hit' ? 'on-hit' : 'on-ability-hit', targetIds)).kills);
+      let ruleVigor = 0;
+      if (targetIds.length > 0) {
+        // AA: «Al auto-atacar» + «Al aplicar efecto de impacto». Habilidad: «Al acertar una habilidad».
+        const hit = await fire(trigger === 'on-hit' ? 'on-hit' : 'on-ability-hit', targetIds);
+        allKills.push(...hit.kills);
+        ruleVigor = hit.vigor;
+        // Habilidad con «Aplica efectos de impacto»: también las reglas de impacto (no las de solo AA ni el Vigor del AA).
+        if (trigger === 'on-ability' && abilityOnHit) {
+          const onHit = await fire('on-hit', targetIds, false);
+          allKills.push(...onHit.kills);
+        }
+      }
+      // Vigor (solo con un ítem de Vigor): cada AA da 7 (+ «Vigor extra» de las reglas, p. ej. Statikk +9).
+      // Con 100 cargas, el AA gasta el Vigor: salta «Vigor al máximo» y vuelve a 0.
+      // Con «Las habilidades también descargan Vigor» (Espada ciclovoltaica), una habilidad que golpea con
+      // el Vigor a 100 lo descarga en su primer objetivo (una sola vez por uso); no suma Vigor.
+      const abilityDischarge = trigger === 'on-ability' && targetIds.length > 0 && hasVigorItem(items)
+        && (participant.vigor ?? 0) >= VIGOR_MAX && abilityDischargesVigor(items, effectData);
+      if (abilityDischarge) {
+        const before = Math.max(0, Math.min(VIGOR_MAX, participant.vigor ?? 0));
+        const chain = vigorChainTargets(items, effectData);
+        const chainIds = chain > 1 ? await askChainTargets(chain, targetIds[0]) : [targetIds[0]];
+        log.push(`⚡ Vigor al máximo (${before}/${VIGOR_MAX}) descargado por la habilidad en ${chainIds.map(id => participants.find(p => p.id === id)?.name ?? id).join(', ')}`);
+        const charged = await fire('energized-max', chainIds.length ? chainIds : [targetIds[0]]);
+        allKills.push(...charged.kills);
+        notes.splice(notes.length - charged.notes.length - charged.manual.length, 0, '⚡ Vigor al máximo (habilidad)');
+        if (!charged.notes.length && !charged.manual.length) {
+          notes.push('sin reglas «Vigor al máximo» configuradas: no aplica nada');
+          log.push('sin reglas «Vigor al máximo» configuradas: no aplica nada');
+        }
+        await combatPatchRef.current({ vigor: undefined });
+        undos.push(async () => { await combatPatchRef.current({ vigor: before }); });
+        notes.push(`Vigor ${before}→0/${VIGOR_MAX}`);
+        chips.push({ kind: 'vigor', text: `Vigor ${before}→0`, title: 'Vigor al máximo descargado por la habilidad' });
+        log.push(`Vigor de ${participant.name}: ${before} → 0/${VIGOR_MAX}`);
+      }
+      if (trigger === 'on-hit' && targetIds.length > 0 && hasVigorItem(items)) {
+        const before = Math.max(0, Math.min(VIGOR_MAX, participant.vigor ?? 0));
+        let after: number;
+        if (before >= VIGOR_MAX) {
+          const chain = vigorChainTargets(items, effectData);
+          const chainIds = chain > 1 ? await askChainTargets(chain, targetIds[0]) : targetIds;
+          log.push(`⚡ Vigor al máximo (${before}/${VIGOR_MAX}): el AA lo descarga en ${(chainIds.length ? chainIds : targetIds).map(id => participants.find(p => p.id === id)?.name ?? id).join(', ')}`);
+          const charged = await fire('energized-max', chainIds.length ? chainIds : targetIds);
+          allKills.push(...charged.kills);
+          notes.splice(notes.length - charged.notes.length - charged.manual.length, 0, '⚡ Vigor al máximo');
+          if (!charged.notes.length && !charged.manual.length) {
+            notes.push('sin reglas «Vigor al máximo» configuradas: no aplica nada');
+            log.push('sin reglas «Vigor al máximo» configuradas: no aplica nada');
+          }
+          after = 0;
+        } else {
+          after = Math.min(VIGOR_MAX, before + VIGOR_PER_AA + ruleVigor);
+        }
+        if (after !== before) {
+          await combatPatchRef.current({ vigor: after || undefined });
+          undos.push(async () => { await combatPatchRef.current({ vigor: before || undefined }); });
+          notes.push(`Vigor ${before}→${after}/${VIGOR_MAX}`);
+          chips.push({ kind: 'vigor', text: `Vigor ${before}→${after}`, title: `Vigor ${after}/${VIGOR_MAX}` });
+          log.push(after === 0
+            ? `Vigor de ${participant.name}: ${before} → 0/${VIGOR_MAX} (descargado)`
+            : `Vigor de ${participant.name}: ${before} + ${VIGOR_PER_AA} (AA)${ruleVigor ? ` + ${ruleVigor} (reglas «Vigor extra»)` : ''} = ${before + VIGOR_PER_AA + ruleVigor}${before + VIGOR_PER_AA + ruleVigor > VIGOR_MAX ? ` → tope ${VIGOR_MAX}` : ''}`);
+        }
+      }
       for (const _kill of new Set(allKills)) await fire('on-takedown', []);
     }
     if (changed && onBonusesSave) {
@@ -603,17 +733,22 @@ export default function CombatAbilityUseSection({
     const note = `${notes.length ? ` · ${notes.join(' · ')}` : ''}${passive.note}`;
     return {
       note,
+      chips: [...chips, ...(passive.chips ?? [])],
+      log: [...log, ...(passive.log ?? [])],
       undo: undos.length ? async () => { for (const undo of [...undos].reverse()) await undo(); } : undefined,
     };
   };
   /** Suma la nota de las pasivas y encadena su Deshacer antes que el resto. */
   const withPassives = (use: LastUse, passive: PassiveResult): LastUse => {
-    if (!passive.note && !passive.undo) return use;
+    if (!passive.note && !passive.undo && !passive.chips?.length && !passive.log?.length) return use;
     const previous = use.undo;
     const undoPassive = passive.undo;
+    const structured = passive.chips !== undefined;
     return {
       ...use,
-      headline: `${use.headline}${passive.note}`,
+      headline: structured ? use.headline : `${use.headline}${passive.note}`,
+      chips: [...(use.chips ?? []), ...(passive.chips ?? [])],
+      log: [...(use.log ?? []), ...(passive.log ?? [])],
       undo: undoPassive
         ? () => {
             setBusy(true);
@@ -642,6 +777,32 @@ export default function CombatAbilityUseSection({
     };
   };
 
+  /** Deshacer (y su línea en la consola). */
+  const undoLastUse = () => {
+    if (!lastUse?.undo) return;
+    logCombat({ title: `↶ Deshecho: ${lastUse.headline}`, lines: [], actor: participant.name });
+    lastUse.undo();
+  };
+
+  /** Consola: vida antes → después de cada objetivo y por qué no hay mitigación (CA / RM, penetraciones del atacante). */
+  const statNum = (value: unknown): number => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    const parsed = Number(String(value ?? '').replace(',', '.'));
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  const defenseLines = (targetIds: string[], stats: Record<string, unknown>, kind: 'physical' | 'magic'): string[] => targetIds.map((id): string[] => {
+    const target = participants.find(p => p.id === id);
+    if (!target) return [];
+    // Sus stats con los bonus del combate (debuffs como Carve incluidos): las reducciones van antes que la penetración.
+    const ctx = participantContext(target, level);
+    const resist = statNum(kind === 'physical' ? ctx?.ctx.stats.ac : ctx?.ctx.stats.mr);
+    return [effectiveResistLine(kind, target.name, resist, stats), ...hitRollLines(kind, target.name, resist, stats)];
+  }).flat().filter(Boolean);
+  const hpLine = (damage: { name: string; before: number; after: number; absorbed: number } | null): string[] =>
+    damage && damage.name && !damage.name.includes(', ')
+      ? [`Vida de ${damage.name}: ${fmt(damage.before)} → ${fmt(damage.after)}${damage.absorbed ? ` (${fmt(damage.absorbed)} absorbido por escudo / vida temporal)` : ''}${damage.before > 0 && damage.after <= 0 ? ' · ¡derrotado!' : ''}`]
+      : [];
+
   /** Ataque básico: daño = AD (o AP) TOTAL de la ficha, tirando sus dados si los tiene; gasta un ataque y daña al objetivo. */
   const basicAttack = async (type: 'AD' | 'AP', target: CombatParticipant | null) => {
     const stored = player ? basicAttackEntries(player.basicAttack).find(entry => (entry.type === 'AP' ? 'AP' : 'AD') === type)?.scaling : undefined;
@@ -654,14 +815,23 @@ export default function CombatAbilityUseSection({
       : champion ? championDamageContext(champion, extra).stats : null;
     if (!stats) return;
     const source = type === 'AP' ? stats.ap : stats.ad;
+    const critOn = crit;
+    setCrit(false);
+    const critChips: ResultChip[] = [];
     let headline: string;
     let detail: string | undefined;
     let total: number;
+    const mainLog: string[] = [];
     try {
       const roll = rollDamageStat(source);
       // AP: % del AP total por tramo de nivel, redondeando hacia arriba. AD: el AD total.
       total = pct === 1 ? roll.total : Math.ceil(roll.total * pct);
-      headline = `«AA» ${formatDamageAmount(total)} de ${formatDamageType(type === 'AP' ? 'magico' : 'fisico')}`;
+      // Crítico (solo AA físico): daño × DAÑO CRÍT, hacia arriba. Las reglas de impacto no critean.
+      const critical = critOn && type === 'AD';
+      const normal = total;
+      const mult = critical ? critMultiplier(stats as Record<string, unknown>) : 1;
+      if (critical) total = Math.ceil(normal * mult);
+      headline = `«AA»${critical ? ' CRÍTICO' : ''} ${formatDamageAmount(total)} de ${formatDamageType(type === 'AP' ? 'magico' : 'fisico')}`;
       const dice = roll.groups.map(group => `${group.sign < 0 ? '−' : ''}${group.count}d${group.sides}: [${group.rolls.join(', ')}]`);
       const pctLabel = `${Math.round(pct * 1000) / 10}%`;
       detail = [
@@ -669,6 +839,13 @@ export default function CombatAbilityUseSection({
         `${type} total ${String(source)}`,
         ...dice,
       ].filter(Boolean).join(' · ');
+      const raw = pct === 1 ? roll.total : roll.total * pct;
+      mainLog.push(
+        `AA ${type} de ${participant.name}${target ? ` → ${target.name}` : ' (sin objetivo)'}`,
+        `Daño ${type === 'AP' ? 'mágico' : 'físico'} = ${type} total ${String(source)}: ${rollText(roll)}${pct === 1 ? '' : ` × ${pctLabel} (AP por nivel ${attackLevel}) = ${fmt(raw)}${total !== raw ? ` → ${fmt(total)} (redondeo ↑)` : ''}`}`,
+        ...(critical ? [`CRÍTICO: ${fmt(normal)} × DAÑO CRÍT ${fmt(mult)} = ${fmt(normal * mult)}${total !== normal * mult ? ` → ${fmt(total)} (redondeo ↑)` : ''} (los efectos de impacto no critean)`] : []),
+      );
+      if (critical) critChips.push({ kind: 'crit', text: 'CRÍTICO', title: `× ${fmt(mult)} (DAÑO CRÍT)` });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo tirar el ataque');
       return;
@@ -680,15 +857,20 @@ export default function CombatAbilityUseSection({
       if (actions) await combatPatchRef.current({ actionsLeft: actions });
       const damage = target && onTargetDamage ? await onTargetDamage(target.id, total) : null;
       if (target && !damage) headline = `${headline} → ${target.name}`;
+      if (target) mainLog.push(...hpLine(damage), ...defenseLines([target.id], stats as Record<string, unknown>, type === 'AP' ? 'magic' : 'physical'));
       const use: LastUse = {
         headline,
         detail,
+        log: mainLog,
+        ...(critChips.length ? { chips: critChips } : {}),
         undo: actions ? () => { void combatPatchRef.current({ actionsLeft: prevActions }); setLastUse(null); } : undefined,
       };
       // On-hit: solo si golpea a alguien.
       const kills = damage && damage.before > 0 && damage.after <= 0 && target ? [target.id] : [];
-      const passive = target ? await passivesFor('on-hit', [target.id], kills) : { note: '' };
-      setLastUse(withPassives(withTargetDamage(use, damage), passive));
+      const passive: PassiveResult = target ? await passivesFor('on-hit', [target.id], kills) : { note: '' };
+      const finalUse = withPassives(withTargetDamage(use, damage), passive);
+      setLastUse(finalUse);
+      logCombat({ title: finalUse.headline, lines: finalUse.log ?? [], actor: participant.name });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo aplicar el ataque');
     } finally {
@@ -731,7 +913,26 @@ export default function CombatAbilityUseSection({
   };
 
   const picking = pickingKey ? rows.find(row => row.key === pickingKey) ?? null : null;
+  /** «Crít.» antes de aplicar (el player ha sacado crítico): solo daño físico base de la acción. */
+  const critToggle = (
+    <label className="combat-crit-toggle" title="Si el player ha sacado crítico (20 natural o la segunda tirada): daño físico × DAÑO CRÍT">
+      <input type="checkbox" checked={crit} disabled={saving || busy} onChange={e => setCrit(e.target.checked)} />
+      Crít.
+    </label>
+  );
   const targets = participants.filter(entry => entry.id !== participant.id);
+  const chainPicker = chainAsk && (
+    <CombatTargetPicker
+      key={`${chainAsk.title}-${chainAsk.primary}`}
+      title={chainAsk.title}
+      targets={targets}
+      initial={[chainAsk.primary]}
+      maxTargets={chainAsk.max}
+      confirmLabel="Descargar"
+      onConfirm={ids => chainAsk.resolve(ids)}
+      onSkip={() => chainAsk.resolve([chainAsk.primary])}
+    />
+  );
   const missing = participant.kind === 'player' ? !player : !champion;
 
   const rowState = (row: AbilityRow, phase?: number) => {
@@ -832,6 +1033,7 @@ export default function CombatAbilityUseSection({
             {attackPick && (
               <div className="combat-panel__picker">
                 <p className="combat-panel__picker-title">Objetivo del ataque básico {attackPick}</p>
+                {attackPick === 'AD' && critToggle}
                 <ul className="combat-panel__picker-list">
                   {targets.map(target => (
                     <li key={target.id}>
@@ -843,7 +1045,7 @@ export default function CombatAbilityUseSection({
                   ))}
                 </ul>
                 <button type="button" className="combat-btn combat-btn--small" disabled={saving || busy} onClick={() => void basicAttack(attackPick, null)}>Sin objetivo</button>
-                <button type="button" className="combat-btn combat-btn--small" onClick={() => setAttackPick(null)}>Cancelar</button>
+                <button type="button" className="combat-btn combat-btn--small" onClick={() => { setAttackPick(null); setCrit(false); }}>Cancelar</button>
               </div>
             )}
           </section>
@@ -885,6 +1087,8 @@ export default function CombatAbilityUseSection({
                     name={row.name}
                     image={row.image}
                     note={note}
+                    area={row.ability.area}
+                    onHit={row.ability.appliesOnHit === true}
                     badge={resolved ? <ResourceChip resource={resolved.id} inherited={resolved.inherited} /> : undefined}
                     ranks={ranks}
                     stacks={player && row.ability.hasStacks ? (
@@ -936,16 +1140,9 @@ export default function CombatAbilityUseSection({
               })}
             </div>
           )}
-          {lastUse && (
-            <div className="combat-panel__use-result" aria-live="polite">
-              <p className="combat-panel__use-headline">{lastUse.headline}</p>
-              {lastUse.detail && <p className="combat-panel__use-detail">{lastUse.detail}</p>}
-              {lastUse.undo && (
-                <button type="button" className="combat-btn combat-btn--small" disabled={saving || busy} onClick={lastUse.undo}>Deshacer</button>
-              )}
-            </div>
-          )}
+          {lastUse && <UseResultCard use={lastUse} disabled={saving || busy} onUndo={undoLastUse} />}
           {error && <p className="combat-page__error">{error}</p>}
+          {picking && abilityIsPhysical(pickingAbility ?? picking.ability) && hasDamageScaling((pickingAbility ?? picking.ability).damage) && critToggle}
           {picking && (
             <CombatTargetPicker
               key={picking.key}
@@ -957,6 +1154,7 @@ export default function CombatAbilityUseSection({
               onCancel={cancelPicking}
             />
           )}
+          {chainPicker}
         </section>
       </>
     );
@@ -1114,24 +1312,10 @@ export default function CombatAbilityUseSection({
         </ul>
       )}
 
-      {lastUse && (
-        <div className="combat-panel__use-result" aria-live="polite">
-          <p className="combat-panel__use-headline">{lastUse.headline}</p>
-          {lastUse.detail && <p className="combat-panel__use-detail">{lastUse.detail}</p>}
-          {lastUse.undo && (
-            <button
-              type="button"
-              className="combat-btn combat-btn--small"
-              disabled={saving || busy}
-              onClick={lastUse.undo}
-            >
-              Deshacer
-            </button>
-          )}
-        </div>
-      )}
+      {lastUse && <UseResultCard use={lastUse} disabled={saving || busy} onUndo={undoLastUse} />}
       {error && <p className="combat-page__error">{error}</p>}
 
+      {picking && abilityIsPhysical(pickingAbility ?? picking.ability) && hasDamageScaling((pickingAbility ?? picking.ability).damage) && critToggle}
       {picking && (
         <CombatTargetPicker
           key={picking.key}
@@ -1142,6 +1326,32 @@ export default function CombatAbilityUseSection({
           onSkip={() => void runAbility(picking, pickingPhase, [])}
           onCancel={cancelPicking}
         />
+      )}
+      {chainPicker}
+    </div>
+  );
+}
+
+/** Resultado de la última acción: línea principal + un chip por efecto. */
+function UseResultCard({ use, disabled, onUndo }: { use: LastUse; disabled: boolean; onUndo: () => void }) {
+  return (
+    <div className="combat-panel__use-result use-card" aria-live="polite">
+      <div className="use-card__main">
+        <p className="combat-panel__use-headline use-card__headline" title={use.detail}>{use.headline}</p>
+        {use.undo && (
+          <button type="button" className="combat-btn combat-btn--small" disabled={disabled} onClick={onUndo}>Deshacer</button>
+        )}
+      </div>
+      {use.detail && <p className="combat-panel__use-detail use-card__detail">🎲 {use.detail}</p>}
+      {use.chips && use.chips.length > 0 && (
+        <ul className="use-card__chips">
+          {use.chips.map((chip, index) => (
+            <li key={index} className={`use-chip use-chip--${chip.kind}`} title={chip.title}>
+              <span className="use-chip__icon" aria-hidden>{CHIP_ICON[chip.kind]}</span>
+              {chip.text}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

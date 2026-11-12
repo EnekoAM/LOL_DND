@@ -70,11 +70,15 @@ export type CombatParticipant = {
    * Ataques / habilidades que le quedan este turno. Ausente = todos (los de su ficha: Attacks / Abilities).
    * Se borra al empezar su turno.
    */
-  actionsLeft?: { attacks?: number; abilities?: number };
+  actionsLeft?: { attacks?: number; abilities?: number; items?: number };
   /** Ataques / habilidades extra concedidos este turno (ya sumados en actionsLeft). Se borra al empezar su turno. */
-  actionsExtra?: { attacks?: number; abilities?: number };
+  actionsExtra?: { attacks?: number; abilities?: number; items?: number };
   /** Bonus temporales de stats (manuales o de pasivas de ítems). */
   bonuses?: CombatBonus[];
+  /** Cargas de Vigor (0-100). Solo se ven y suben si lleva un ítem con Vigor (energized). */
+  vigor?: number;
+  /** Movimiento gastado este turno (casillas, como Velocidad). Se borra al empezar su turno. */
+  movementUsed?: number;
 };
 
 /** Bonus temporal: amount × stacks se suma al total; turns baja al empezar su turno (ausente = hasta quitarlo). */
@@ -86,6 +90,9 @@ export type CombatBonus = {
   stacks?: number;
   maxStacks?: number;
   turns?: number;
+  /** Marcador 'charges' (cargas de combate, source charges:<efecto>): amount = cargas, maxStacks = máx.; recarga en recharge turnos, cada rechargeEvery. */
+  recharge?: number;
+  rechargeEvery?: number;
   /** "manual" o "item:<nombre>". */
   source?: string;
   label?: string;
@@ -105,8 +112,16 @@ export type CombatState = {
   round: number;
   turnIndex: number;
   participants: CombatParticipant[];
+  /** Vigor por casilla de movimiento (ajustable en el combate; por defecto VIGOR_PER_MOVE_DEFAULT). */
+  vigorPerMove?: number;
   updatedAt?: string;
 };
+
+export const VIGOR_MAX = 100;
+/** Vigor por ataque básico. */
+export const VIGOR_PER_AA = 7;
+/** Vigor por casilla de movimiento si el combate no fija otro (en LoL: 1 carga cada 24 unidades). */
+export const VIGOR_PER_MOVE_DEFAULT = 1;
 
 const OFFLINE = 'No se pudo contactar con la API. Arranca npm run dev:api';
 const ADMIN_JSON = { 'Content-Type': 'application/json', 'X-App-Role': 'admin' };
@@ -128,6 +143,7 @@ function normalize(raw: unknown): CombatState {
     round: typeof source.round === 'number' && source.round >= 1 ? Math.trunc(source.round) : 1,
     turnIndex: typeof source.turnIndex === 'number' && source.turnIndex >= 0 ? Math.trunc(source.turnIndex) : 0,
     participants: Array.isArray(source.participants) ? (source.participants as CombatParticipant[]) : [],
+    ...(typeof source.vigorPerMove === 'number' && Number.isFinite(source.vigorPerMove) ? { vigorPerMove: source.vigorPerMove } : {}),
     updatedAt: typeof source.updatedAt === 'string' ? source.updatedAt : undefined,
   };
 }
@@ -155,6 +171,7 @@ export async function saveCombat(state: CombatState): Promise<CombatState> {
         round: state.round,
         turnIndex: state.turnIndex,
         participants: state.participants,
+        ...(typeof state.vigorPerMove === 'number' ? { vigorPerMove: state.vigorPerMove } : {}),
       }),
     });
   } catch {
@@ -268,15 +285,32 @@ export function setEffectStacks(participant: CombatParticipant, effectId: string
   };
 }
 /** Baja CD y efectos propios guardados en el participante (campeones en combate). */
+/** Cargas de combate al empezar el turno del portador: cuenta atrás; a 0, +1 carga (hasta el máx.) y vuelve a contar si falta. */
+export function tickCharges(bonus: CombatBonus): CombatBonus {
+  const max = bonus.maxStacks ?? 0;
+  if (typeof bonus.recharge !== 'number' || bonus.amount >= max) return bonus;
+  const left = bonus.recharge - 1;
+  if (left > 0) return { ...bonus, recharge: left };
+  const amount = Math.min(max, bonus.amount + 1);
+  const { recharge: _done, ...rest } = bonus;
+  return amount < max && bonus.rechargeEvery ? { ...rest, amount, recharge: bonus.rechargeEvery } : { ...rest, amount };
+}
+
 export function tickCombatTrackers(participant: CombatParticipant): CombatParticipant {
   // Empieza su turno: vuelve a tener todos sus ataques y habilidades.
   if (participant.actionsLeft || participant.actionsExtra) {
     const { actionsLeft: _reset, actionsExtra: _extra, ...rest } = participant;
     participant = rest;
   }
+  // Y vuelve a tener todo su movimiento.
+  if (participant.movementUsed) {
+    const { movementUsed: _moved, ...rest } = participant;
+    participant = rest;
+  }
   if (participant.bonuses?.length) {
     // Bonus con duración: un turno menos; a 0 se quitan.
     const bonuses = participant.bonuses
+      .map(bonus => (bonus.stat === 'charges' ? tickCharges(bonus) : bonus))
       .map(bonus => (typeof bonus.turns === 'number' ? { ...bonus, turns: bonus.turns - 1 } : bonus))
       .filter(bonus => typeof bonus.turns !== 'number' || bonus.turns > 0);
     const { bonuses: _old, ...rest } = participant;
@@ -333,7 +367,7 @@ export async function saveCombatBonuses(participantId: string, bonuses: CombatBo
  */
 export async function saveCombatActions(
   participantId: string,
-  kind: 'attacks' | 'abilities',
+  kind: 'attacks' | 'abilities' | 'items',
   left: number,
   extra: number,
 ): Promise<CombatState> {

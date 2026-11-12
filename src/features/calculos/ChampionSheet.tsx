@@ -572,6 +572,8 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
                     type={SPELL_TYPE_LABEL[tone]}
                     name={ability?.name || 'Sin nombre'}
                     empty={empty}
+                    area={empty ? undefined : ability?.area}
+                    onHit={!empty && ability?.appliesOnHit === true}
                     note={empty ? (!ability ? 'No implementada' : undefined) : (ability?.learned ? 'Aprendida' : undefined)}
                     badge={(() => {
                       const resolved = resolveAbilityResource(ability, champion);

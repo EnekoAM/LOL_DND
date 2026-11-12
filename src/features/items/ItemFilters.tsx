@@ -85,7 +85,7 @@ const ItemFilters = ({ filters, resultCount, onChange }: Props) => {
         <option value={ALL}>Activas y pasivas</option>
         <option value="active">{NAMED_EFFECT_KIND_LABEL.active}s</option>
         <option value="passive">{NAMED_EFFECT_KIND_LABEL.passive}s</option>
-        <option value="onHit">Al impactar</option>
+        <option value="onHit">Efecto de impacto</option>
       </select>
     </div>
 

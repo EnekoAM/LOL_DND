@@ -1410,8 +1410,28 @@
   outline-offset: 1px;
 }
 
-.combat-sheet__tile--cd .calc-item-card {
+.combat-sheet__tile--cd .calc-item-card,
+.combat-sheet__tile--dim .calc-item-card {
   filter: grayscale(0.75) brightness(0.7);
+}
+/* Ítems con activa: borde dorado + brillo (más fuerte si se puede usar ya). */
+.combat-sheet__tile--active .calc-item-card {
+  border-color: rgba(232, 190, 80, 0.7);
+}
+.combat-sheet__tile--active.combat-sheet__tile--ready .calc-item-card {
+  box-shadow: 0 0 0 1px rgba(232, 190, 80, 0.45), 0 0 14px rgba(232, 190, 80, 0.4);
+}
+.combat-sheet__tile--dim .calc-item-card__active,
+.combat-sheet__tile--cd .calc-item-card__active {
+  opacity: 0.55;
+}
+.combat-sheet__tile--cd .calc-item-card__active {
+  display: none;
+}
+/* Activa en CD / sin usos: la carta sigue gris (filtro), pero el contenedor (sin filtro) lleva un borde dorado tenue. */
+.combat-sheet__tile--active.combat-sheet__tile--dim,
+.combat-sheet__tile--active.combat-sheet__tile--cd {
+  box-shadow: 0 0 0 1px rgba(232, 190, 80, 0.55), 0 0 6px rgba(232, 190, 80, 0.18);
 }
 
 .combat-sheet__tile-cd {
@@ -1498,6 +1518,22 @@
 }
 .combat-sheet .combat-sheet__utility .sheet-defense__label { font-size: 10px; }
 .combat-sheet .combat-sheet__utility .sheet-defense__value { font-size: 14px; }
+.combat-sheet__range-badge {
+  margin-top: 2px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  line-height: 14px;
+  white-space: nowrap;
+  color: #9ec5ff;
+  background: rgba(80, 140, 230, 0.16);
+  border: 1px solid rgba(80, 140, 230, 0.35);
+}
+.combat-sheet__range-badge--melee {
+  color: #ffc58a;
+  background: rgba(230, 140, 60, 0.16);
+  border-color: rgba(230, 140, 60, 0.4);
+}
 
 /* Bonus temporales (+ Bonus / pasivas de ítems) bajo las penetraciones. */
 .combat-bonuses {
@@ -1557,3 +1593,65 @@
   font-size: 12px;
   color-scheme: dark;
 }
+
+/* «Vigor al máximo» (reglas del configurador de bonus) bajo los ítems */
+.combat-sheet__vigor { display: flex; justify-content: flex-start; margin-top: 8px; }
+.combat-sheet__vigor--ready { border-color: #f0d27a; box-shadow: 0 0 6px rgba(240, 210, 122, 0.55); color: #f0d27a; }
+
+/* Movimiento del turno y contador de Vigor (ficha de combate) */
+.combat-sheet__move { display: flex; flex-direction: column; gap: 6px; }
+.combat-sheet__move-row { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; }
+.combat-sheet__move-label strong { color: #f0d27a; }
+.combat-sheet__move-input, .combat-sheet__vigor-rate input {
+  background: rgba(10, 9, 8, 0.85);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 6px;
+  color: #e8dcc0;
+  padding: 2px 6px;
+  width: 72px;
+}
+.combat-sheet__vigor-label { font-weight: bold; min-width: 110px; }
+.combat-sheet__vigor-bar { background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(201, 162, 39, 0.35); border-radius: 4px; display: inline-block; height: 8px; overflow: hidden; width: 120px; }
+.combat-sheet__vigor-bar > span { background: linear-gradient(90deg, #c9a84c, #f0d27a); display: block; height: 100%; }
+.combat-sheet__vigor-rate { align-items: center; display: inline-flex; font-size: 0.8rem; gap: 4px; opacity: 0.9; }
+
+/* Marca de un efecto «Enfriamiento por objetivo» (p. ej. Firmamento desgarrado) */
+.combat-bonus--mark { border-color: #8b5cf6; color: #d8c8ff; background: rgba(139, 92, 246, 0.14); }
+
+/* Resultado de la última acción: línea principal + chips por efecto */
+.use-card { display: flex; flex-direction: column; gap: 6px; }
+.use-card__main { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.use-card__headline { margin: 0; font-weight: 600; }
+.use-card__detail { margin: 0; font-size: 11px; opacity: 0.7; }
+.use-card__chips { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.use-chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; line-height: 1.5; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.06); color: #e5e7eb;
+  white-space: nowrap;
+}
+.use-chip__icon { font-size: 10px; opacity: 0.9; }
+.use-chip--damage-physical { border-color: #f97316; background: rgba(249, 115, 22, 0.15); color: #fed7aa; }
+.use-chip--damage-magic { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); color: #e9d5ff; }
+.use-chip--damage-true { border-color: #f1f5f9; background: rgba(241, 245, 249, 0.12); color: #ffffff; }
+.use-chip--heal { border-color: #22c55e; background: rgba(34, 197, 94, 0.15); color: #bbf7d0; }
+.use-chip--shield { border-color: #bae6fd; background: rgba(186, 230, 253, 0.12); color: #f0f9ff; }
+.use-chip--mana { border-color: #3b82f6; background: rgba(59, 130, 246, 0.15); color: #bfdbfe; }
+.use-chip--debuff { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.14); color: #ddd6fe; }
+.use-chip--buff { border-color: #eab308; background: rgba(234, 179, 8, 0.13); color: #fef08a; }
+.use-chip--cd { border-color: #6b7280; background: rgba(107, 114, 128, 0.18); color: #d1d5db; }
+.use-chip--mark { border-color: #c084fc; background: rgba(192, 132, 252, 0.12); color: #f3e8ff; }
+.use-chip--vigor { border-color: #facc15; background: rgba(250, 204, 21, 0.12); color: #fef9c3; }
+.use-chip--manual { border-style: dashed; color: #fcd34d; }
+.use-chip--crit { border-color: #ef4444; background: rgba(239, 68, 68, 0.22); color: #fff1f2; font-weight: 800; letter-spacing: 0.04em; }
+.combat-crit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fca5a5;
+  cursor: pointer;
+}
+.combat-crit-toggle input { accent-color: #ef4444; }
+.use-chip--error { border-color: #ef4444; background: rgba(239, 68, 68, 0.15); color: #fecaca; }

@@ -1,5 +1,7 @@
 import { Fragment, memo, useEffect, useMemo, useState } from 'react';
 import EffectBonusEditor from './EffectBonusEditor';
+import { AreaGridEditor, AreaGridView } from '../../components/AreaGrid';
+import type { AreaPattern } from '../../data/areaPattern';
 import { configTimingText } from '../../data/effectBonus';
 import { useAppRole } from '../../data/appRoleContext';
 import { ITEMS } from '../../data/items';
@@ -13,6 +15,7 @@ import {
 } from '../../data/namedEffects';
 import {
   NAMED_EFFECT_DESCRIPTION_MAX,
+  namedEffectArea,
   namedEffectBonus,
   namedEffectOnHit,
   saveNamedEffectData,
@@ -129,7 +132,7 @@ const OnHitCell = ({ row, data, canEdit }: { row: Row; data: NamedEffectData; ca
   const inherited = row.variant && !own;
 
   if (!canEdit) {
-    return <span className={value ? 'item-effect-badge' : 'effects-table__empty'}>{value ? 'Al impactar' : '—'}</span>;
+    return <span className={value ? 'item-effect-badge' : 'effects-table__empty'}>{value ? 'Efecto de impacto' : '—'}</span>;
   }
 
   const save = async (onHit: boolean | null) => {
@@ -227,7 +230,7 @@ const NamedEffectsTable = () => {
         </label>
         <label className="effects-table__toggle">
           <input type="checkbox" checked={onlyOnHit} onChange={e => setOnlyOnHit(e.target.checked)} />
-          Al impactar
+          Efecto de impacto
         </label>
         <label className="effects-table__toggle">
           <input type="checkbox" checked={onlyBonus} onChange={e => setOnlyBonus(e.target.checked)} />
@@ -250,9 +253,10 @@ const NamedEffectsTable = () => {
               <th>Tipo</th>
               <th title="Solo un ítem con este efecto por build">★</th>
               <th>Ítems</th>
-              <th title="Efecto que se aplica al impactar (on-hit)">Al impactar</th>
+              <th title="Es un efecto de impacto (on-hit): lo aplican los AA y las habilidades con «Aplica efectos de impacto». Informativo / filtro; en combate mandan los disparadores de las reglas.">Efecto de impacto</th>
               <th>Descripción</th>
               <th title="Configurador de bonus: reglas en combate, CD y duración">Bonus</th>
+              <th title="Tablero: usuario, objetivo y casillas donde hace efecto">Área</th>
             </tr>
           </thead>
           <tbody>
@@ -260,6 +264,9 @@ const NamedEffectsTable = () => {
               const config = namedEffectBonus(effectData, row.id);
               const ruleCount = config?.rules.length ?? 0;
               const timing = config ? configTimingText(config) : '';
+              const area = namedEffectArea(effectData, row.id);
+              const ownArea = effectData.area[row.id];
+              const areaKey = `area:${row.id}`;
               return (
               <Fragment key={row.id}>
               <tr className={cx(row.variant && 'effects-table__variant')}>
@@ -278,10 +285,28 @@ const NamedEffectsTable = () => {
                   </button>
                   {timing && <div className="effects-table__inherited">{timing}</div>}
                 </td>
+                <td className="effects-table__bonus">
+                  <button type="button" className="bonus-toggle" onClick={() => toggle(areaKey)} aria-expanded={open.has(areaKey)} disabled={!canEdit && !area}>
+                    {open.has(areaKey) ? '▾' : '▸'} {area ? `${area.tiles.length} casilla${area.tiles.length === 1 ? '' : 's'}` : canEdit ? 'Área' : '—'}
+                  </button>
+                  {area && !ownArea && <div className="effects-table__inherited">Heredada del base</div>}
+                </td>
               </tr>
+              {open.has(areaKey) && (
+                <tr className="effects-table__bonus-row">
+                  <td colSpan={9}>
+                    <AreaRow
+                      own={ownArea}
+                      inherited={row.variant ? effectData.area[baseNamedEffectId(row.id)] : undefined}
+                      canEdit={canEdit}
+                      onSave={next => saveNamedEffectData(row.id, { area: next })}
+                    />
+                  </td>
+                </tr>
+              )}
               {open.has(row.id) && (
                 <tr className="effects-table__bonus-row">
-                  <td colSpan={8}>
+                  <td colSpan={9}>
                     <EffectBonusEditor
                       id={row.id}
                       own={effectData.bonus[row.id]}
@@ -301,5 +326,52 @@ const NamedEffectsTable = () => {
     </div>
   );
 };
+
+/** Fila desplegable del tablero de área de un efecto / variante (admin edita; el resto solo ve). */
+function AreaRow({ own, inherited, canEdit, onSave }: {
+  own: AreaPattern | undefined;
+  inherited: AreaPattern | undefined;
+  canEdit: boolean;
+  onSave: (area: AreaPattern | null) => Promise<void>;
+}) {
+  const [draft, setDraft] = useState<AreaPattern | null>(own ?? null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  useEffect(() => { setDraft(own ?? null); }, [own]);
+  const dirty = JSON.stringify(draft ?? null) !== JSON.stringify(own ?? null);
+  if (!canEdit) return <AreaGridView area={own ?? inherited} cellPx={14} caption={own ? undefined : 'Heredada del efecto base'} />;
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      await onSave(draft);
+      setSaved(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo guardar');
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <div className="bonus-editor">
+      {!own && inherited && (
+        <div className="bonus-editor__inherited">
+          <p className="item-edit__hint">Sin área propia: usa la del efecto base. Dibuja una para sobrescribirla.</p>
+          <AreaGridView area={inherited} cellPx={10} />
+        </div>
+      )}
+      <AreaGridEditor value={draft} disabled={saving} onChange={next => { setDraft(next); setSaved(false); }} />
+      <div className="bonus-editor__actions">
+        <button type="button" className="bonus-toggle" disabled={saving || !dirty} onClick={() => void save()}>{saving ? 'Guardando…' : 'Guardar área'}</button>
+        <button type="button" className="bonus-toggle" disabled={saving || !dirty} onClick={() => setDraft(own ?? null)}>Deshacer cambios</button>
+        {own && <button type="button" className="bonus-toggle" disabled={saving} onClick={() => setDraft(null)}>Quitar área</button>}
+        {saved && !dirty && <span className="item-edit__hint">Guardado</span>}
+        {error && <span className="item-edit__error">{error}</span>}
+      </div>
+    </div>
+  );
+}
 
 export default NamedEffectsTable;

@@ -155,7 +155,7 @@ export type Player = {
   background?: string | null;
   /** Mecánica propia (Ruina / Humanidad / Fama). Opcional. */
   mechanic?: PlayerMechanic | null;
-  /** Contadores de stacks (item:<nombre> | ability:<nombre>). */
+  /** Contadores de stacks (item:<nombre> | ability:<nombre> | effect:<efecto base> = cargas permanentes). */
   stacks?: Record<string, number>;
   /** Cooldowns restantes en turnos (item:<nombre> | ability:<nombre>). */
   cooldowns?: Record<string, number>;

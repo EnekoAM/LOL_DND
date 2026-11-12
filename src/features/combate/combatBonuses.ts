@@ -1,6 +1,7 @@
 import type { CombatBonus, CombatParticipant } from '../../data/combat';
 import { findItem, type Item, type PassiveTrigger } from '../../data/items';
 import { damageTargets, type TargetDamageFn } from './combatHp';
+import type { ResultChip } from './combatResult';
 import { emptyStatLine, STAT_COLUMNS, formatStat, type StatKey, type StatLine } from '../calculos/statLine';
 
 const STAT_KEYS = new Set<string>(STAT_COLUMNS.map(column => column.key));
@@ -25,11 +26,22 @@ export function bonusLines(participant: CombatParticipant): StatLine[] {
   });
 }
 
+/** «Flujo de maná 3/4 · recarga en 2t» */
+export const chargesText = (name: string, left: number, max: number, recharge?: number): string =>
+  `${name} ${left}/${max}${left < max && recharge ? ` · recarga en ${recharge}t` : ''}`;
+
 /** "+0,3 Letalidad ×2 · 2 t." */
 export function formatBonus(bonus: CombatBonus): string {
   // Marcadores de efectos con nombre: «Hoja encantada armada · 5 t.», «CD Hoja encantada · 1 t.».
   if (bonus.stat === 'armed') return `${bonus.label ?? 'Efecto'} armada (siguiente AA)${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
-  if (bonus.stat === 'cooldown') return `CD ${bonus.label ?? 'efecto'}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'charges') return chargesText(bonus.label ?? 'Cargas', bonus.amount, bonus.maxStacks ?? bonus.amount, bonus.recharge);
+  if (bonus.stat === 'cooldown') {
+    const turns = typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : '';
+    // CD por objetivo: label «Efecto (de Portador)» → «CD Efecto · 2 t. (de Portador)».
+    const split = bonus.source?.includes('@') ? /^(.*) \((de .*)\)$/.exec(bonus.label ?? '') : null;
+    if (split) return `CD ${split[1]}${turns} (${split[2]})`;
+    return `CD ${bonus.label ?? 'efecto'}${turns}`;
+  }
   const value = bonusValue(bonus);
   const amount = `${value > 0 ? '+' : ''}${formatStat(Math.round(value * 100) / 100)}`;
   const stacks = (bonus.stacks ?? 1) > 1 || bonus.maxStacks ? ` ×${bonus.stacks ?? 1}${bonus.maxStacks ? `/${bonus.maxStacks}` : ''}` : '';
@@ -90,7 +102,8 @@ export function passiveDamagePct(items: Item[], trigger: PassiveTrigger): { pct:
   return { pct, names };
 }
 
-export type PassiveResult = { note: string; undo?: () => Promise<void> };
+/** note: texto antiguo; chips: en pantalla; log: desarrollo para la consola. */
+export type PassiveResult = { note: string; undo?: () => Promise<void>; chips?: ResultChip[]; log?: string[] };
 
 /**
  * Salta las pasivas de los ítems con este disparador: bonus (acumulable) al usuario y daño % vida actual
@@ -106,25 +119,49 @@ export async function firePassives(options: {
 }): Promise<PassiveResult> {
   const { items, trigger, targetIds, onBonusesSave, onTargetDamage } = options;
   const notes: string[] = [];
+  const chips: ResultChip[] = [];
+  const log: string[] = [];
   const undos: (() => Promise<void>)[] = [];
   const prev = options.bonuses ?? [];
   const next = onBonusesSave ? triggerItemBonuses(prev, items, trigger) : null;
   if (next && onBonusesSave) {
     await onBonusesSave(next);
     undos.push(() => onBonusesSave(prev));
-    const names = items.filter(item => item.passiveBonus?.trigger === trigger).map(item => item.nombre);
-    notes.push(`pasiva ${names.join(', ')}`);
+    const fired = items.filter(item => item.passiveBonus?.trigger === trigger);
+    notes.push(`pasiva ${fired.map(item => item.nombre).join(', ')}`);
+    for (const item of fired) {
+      const passive = item.passiveBonus!;
+      const entry = next.find(bonus => bonus.source === `item:${item.nombre}`);
+      const stacks = entry?.maxStacks ? ` · stack ${entry.stacks ?? 1}/${entry.maxStacks}` : '';
+      chips.push({ kind: passive.amount < 0 ? 'debuff' : 'buff', text: `${passive.amount > 0 ? '+' : ''}${formatStat(passive.amount)} ${statTitle(passive.stat)}`, title: `Pasiva de ${item.nombre}` });
+      log.push(`Pasiva de ${item.nombre}: ${passive.amount > 0 ? '+' : ''}${formatStat(passive.amount)} ${statTitle(passive.stat)} al portador${stacks}${passive.durationTurns ? ` · ${passive.durationTurns} t.` : ''}`);
+    }
   }
   const passive = passiveDamagePct(items, trigger);
   if (passive.pct > 0 && onTargetDamage && targetIds.length > 0) {
-    const { damage, error } = await damageTargets(onTargetDamage, targetIds, hp => Math.ceil((hp * passive.pct) / 100));
+    const perTarget: string[] = [];
+    let total = 0;
+    const { damage, error } = await damageTargets(onTargetDamage, targetIds, hp => {
+      const dealt = Math.ceil((hp * passive.pct) / 100);
+      total += dealt;
+      perTarget.push(`${formatStat(passive.pct)}% de vida actual (${formatStat(hp)}) = ${formatStat(Math.round(hp * passive.pct) / 100)} → ${dealt} (redondeo ↑)`);
+      return dealt;
+    });
     if (damage) {
       undos.push(damage.undo);
       notes.push(`${passive.names.join(', ')}: ${formatStat(passive.pct)}% vida actual`);
+      chips.push({ kind: 'damage-physical', text: `−${formatStat(total)} ${damage.name}`, title: `${passive.names.join(', ')}: ${formatStat(passive.pct)}% vida actual` });
+      log.push(`Pasiva de ${passive.names.join(', ')}: ${perTarget.join(' · ')} → ${damage.name} · sin mitigación automática`);
     }
-    if (error) notes.push(`error: ${error}`);
+    if (error) {
+      notes.push(`error: ${error}`);
+      chips.push({ kind: 'error', text: error });
+      log.push(`Pasiva de ${passive.names.join(', ')}: error ${error}`);
+    }
   }
   return {
+    chips,
+    log,
     note: notes.length ? ` · ${notes.join(' · ')}` : '',
     undo: undos.length ? async () => { for (const undo of [...undos].reverse()) await undo(); } : undefined,
   };

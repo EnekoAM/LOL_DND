@@ -7,6 +7,10 @@ import {
   MAX_EFFECT_RULES,
   SCALING_STATS,
   configSummary,
+  RULE_RANGE_CONDITIONS,
+  appliesToOptions,
+  ruleAppliesTo,
+  type RuleAppliesTo,
   type EffectBonusConfig,
   type EffectRule,
 } from '../../data/effectBonus';
@@ -27,6 +31,13 @@ const numberOrUndefined = (text: string): number | undefined => {
   return text.trim() === '' || !Number.isFinite(value) ? undefined : value;
 };
 
+/** Cargas de combate a medio rellenar: se guardan al tener máx. y recarga (el guardado descarta lo incompleto). */
+function chargesWith(draft: EffectBonusConfig, patch: { start?: number; max?: number; every?: number }): EffectBonusConfig['charges'] {
+  const next = { ...(draft.charges ?? {}), ...patch } as Partial<NonNullable<EffectBonusConfig['charges']>>;
+  if (next.start === undefined && next.max === undefined && next.every === undefined) return undefined;
+  return next as NonNullable<EffectBonusConfig['charges']>;
+}
+
 const NumberField = ({ label, value, onChange, step = 'any', width = 70 }: {
   label: string; value: number | undefined; onChange: (value: number | undefined) => void; step?: string; width?: number;
 }) => (
@@ -36,7 +47,7 @@ const NumberField = ({ label, value, onChange, step = 'any', width = 70 }: {
   </label>
 );
 
-const NEEDS_FORMULA = new Set(['stat', 'damage', 'heal', 'shield', 'mana', 'attack-speed', 'move-speed']);
+const NEEDS_FORMULA = new Set(['stat', 'damage', 'heal', 'shield', 'mana', 'attack-speed', 'move-speed', 'vigor']);
 
 const RuleEditor = ({ rule, onChange, onRemove }: { rule: EffectRule; onChange: (rule: EffectRule) => void; onRemove: () => void }) => {
   const set = (patch: Partial<EffectRule>) => onChange({ ...rule, ...patch });
@@ -53,17 +64,34 @@ const RuleEditor = ({ rule, onChange, onRemove }: { rule: EffectRule; onChange: 
         {rule.trigger === 'hp-below' && <NumberField label="Vida < %" value={rule.hpBelowPct} onChange={hpBelowPct => set({ hpBelowPct })} />}
         <label className="bonus-editor__field">
           <span>Qué</span>
-          <select value={rule.kind} onChange={e => set({ kind: e.target.value as EffectRule['kind'] })}>
+          <select value={rule.kind} onChange={e => {
+            const kind = e.target.value as EffectRule['kind'];
+            // Si «A quién» no vale para el nuevo tipo, vuelve al de por defecto.
+            const keep = rule.appliesTo && appliesToOptions(kind).some(option => option.id === rule.appliesTo) && rule.appliesTo !== appliesToOptions(kind)[0].id;
+            set({ kind, appliesTo: keep ? rule.appliesTo : undefined, lifeSteal: kind === 'damage' ? rule.lifeSteal : undefined });
+          }}>
             {EFFECT_RULE_KINDS.map(kind => <option key={kind.id} value={kind.id}>{kind.label}</option>)}
           </select>
         </label>
-        {(rule.kind === 'stat' || rule.kind === 'attack-speed' || rule.kind === 'move-speed') && (
+        {appliesToOptions(rule.kind).length > 1 && (
           <label className="bonus-editor__field">
             <span>A quién</span>
-            <select value={rule.appliesTo ?? 'self'} onChange={e => set({ appliesTo: e.target.value === 'target' ? 'target' : undefined })}>
-              <option value="self">Portador</option>
-              <option value="target">Objetivo (debuff)</option>
+            <select
+              value={ruleAppliesTo(rule)}
+              onChange={e => {
+                const value = e.target.value as RuleAppliesTo;
+                const fallback = appliesToOptions(rule.kind)[0].id;
+                set({ appliesTo: value === fallback ? undefined : value });
+              }}
+            >
+              {appliesToOptions(rule.kind).map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
             </select>
+          </label>
+        )}
+        {rule.kind === 'damage' && (
+          <label className="bonus-editor__field bonus-editor__check" title="Cura al portador el daño hecho × su robo de vida % (Hidra voraz)">
+            <span>Robo de vida</span>
+            <span><input type="checkbox" checked={!!rule.lifeSteal} onChange={e => set({ lifeSteal: e.target.checked || undefined })} /> aplica</span>
           </label>
         )}
         {rule.kind === 'stat' && (
@@ -91,9 +119,22 @@ const RuleEditor = ({ rule, onChange, onRemove }: { rule: EffectRule; onChange: 
           </label>
         )}
         {rule.kind === 'extra-on-hit' && <NumberField label="Veces" step="1" value={rule.count} onChange={count => set({ count })} />}
+        <label className="bonus-editor__field" title="Cuerpo a cuerpo = rango de ataque total 1; a distancia = cualquier otro rango (también 0)">
+          <span>Solo si</span>
+          <select value={rule.onlyIf ?? 'always'} onChange={e => set({ onlyIf: e.target.value === 'melee' || e.target.value === 'ranged' ? e.target.value : undefined })}>
+            <option value="always">Siempre</option>
+            {RULE_RANGE_CONDITIONS.map(condition => <option key={condition.id} value={condition.id}>{condition.label}</option>)}
+          </select>
+        </label>
         <NumberField label="Dura (t.)" step="1" value={rule.duration} onChange={duration => set({ duration })} />
         {(rule.kind === 'stat' || rule.kind === 'attack-speed' || rule.kind === 'move-speed') && (
           <NumberField label="Máx. stacks" step="1" value={rule.maxStacks} onChange={maxStacks => set({ maxStacks })} />
+        )}
+        {(rule.kind === 'stat' || rule.kind === 'attack-speed' || rule.kind === 'move-speed') && (
+          <label className="bonus-editor__field" title="Cargas permanentes: cada disparo suma 1 carga en la ficha del personaje (players.stacks effect:<id>), hasta «Máx. stacks». Siguen entre combates y aunque se quite el ítem; el bonus (valor × cargas) solo suma con el ítem equipado. Ignora «Dura». Campeones / NPCs: solo en ese combate.">
+            <span>Cargas permanentes</span>
+            <input type="checkbox" checked={!!rule.permanent} onChange={e => set({ permanent: e.target.checked || undefined })} />
+          </label>
         )}
         <button type="button" className="bonus-editor__remove" onClick={onRemove} title="Quitar regla">✕</button>
       </div>
@@ -127,6 +168,12 @@ const RuleEditor = ({ rule, onChange, onRemove }: { rule: EffectRule; onChange: 
               }}
             />
           </label>
+          {!!rule.perLevel?.length && (
+            <label className="bonus-editor__field bonus-editor__check" title="Medallón, Redención…: el valor sale del nivel de cada objetivo">
+              <span>Nivel</span>
+              <span><input type="checkbox" checked={rule.levelFrom === 'target'} onChange={e => set({ levelFrom: e.target.checked ? 'target' : undefined })} /> del objetivo</span>
+            </label>
+          )}
         </div>
       )}
       <div className="bonus-editor__row">
@@ -188,6 +235,50 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
           </select>
         </label>
         <NumberField label="Duración (turnos)" step="1" value={draft.duration} onChange={duration => update({ ...draft, duration })} />
+        <label className="bonus-editor__field bonus-editor__check" title="Vigor: con el Vigor al máximo, usar una habilidad que golpea también lo descarga (Espada ciclovoltaica)">
+          <span>Vigor</span>
+          <span>
+            <input type="checkbox" checked={!!draft.abilityDischarge} onChange={e => update({ ...draft, abilityDischarge: e.target.checked || undefined })} />
+            {' '}Las habilidades también descargan Vigor
+          </span>
+        </label>
+        <label className="bonus-editor__field bonus-editor__check" title="Cada objetivo tiene su marca: al golpear a uno marcado se aplican las reglas y el CD se pone en ESE objetivo (los demás siguen marcados). Necesita CD.">
+          <span>CD</span>
+          <span>
+            <input type="checkbox" checked={!!draft.perTargetCooldown} onChange={e => update({ ...draft, perTargetCooldown: e.target.checked || undefined })} />
+            {' '}Enfriamiento por objetivo{draft.perTargetCooldown && !draft.cooldown ? ' (pon un CD)' : ''}
+          </span>
+        </label>
+        <NumberField
+          label="Cargas de combate: inicio"
+          step="1"
+          value={draft.charges?.start}
+          onChange={value => update({ ...draft, charges: chargesWith(draft, { start: value }) })}
+        />
+        <NumberField
+          label="Cargas: máx."
+          step="1"
+          value={draft.charges?.max}
+          onChange={value => update({ ...draft, charges: chargesWith(draft, { max: value }) })}
+        />
+        <NumberField
+          label="Recarga 1 cada (t.)"
+          step="1"
+          value={draft.charges?.every}
+          onChange={value => update({ ...draft, charges: chargesWith(draft, { every: value }) })}
+        />
+        <NumberField
+          label="Máx. objetivos (al usar)"
+          step="1"
+          value={draft.maxTargets}
+          onChange={value => update({ ...draft, maxTargets: value && value >= 1 ? Math.min(20, Math.floor(value)) : undefined })}
+        />
+        <NumberField
+          label="Encadena a N objetivos"
+          step="1"
+          value={draft.chainTargets ?? 1}
+          onChange={value => update({ ...draft, chainTargets: value && value > 1 ? Math.min(10, Math.floor(value)) : undefined })}
+        />
       </div>
       {draft.rules.map((rule, index) => (
         <RuleEditor

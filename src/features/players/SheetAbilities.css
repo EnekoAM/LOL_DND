@@ -1,4 +1,4 @@
-﻿/* ── FICHA · HABILIDADES (cartas de hechizo) ─────────────── */
+/* ── FICHA · HABILIDADES (cartas de hechizo) ─────────────── */
 .spell-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -506,4 +506,13 @@
   color: var(--accent-hi);
   background: linear-gradient(180deg, rgba(var(--accent), 0.2), rgba(var(--accent), 0.06));
   border-color: rgba(var(--accent), 0.6);
+}
+
+/* Habilidad que aplica efectos de impacto */
+.spell__onhit {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #e0a84a;
 }

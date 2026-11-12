@@ -43,6 +43,10 @@ import SheetAbilities from './SheetAbilities';
 import ReorderableItem from './ReorderableItem';
 import StackCounter from './StackCounter';
 import { itemStackKey, readStack } from '../../data/stacks';
+import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
+import { itemHasPermanentStacks, permanentStackEntries } from '../../data/permanentStacks';
+import { equippedItems } from '../combate/combatBonuses';
+import PermanentStacks from './PermanentStacks';
 import { equipmentAccess } from './equipmentAccess';
 import { canReplaceEquipment, isCurrentEquipmentTarget, replaceEquipment, type EquipmentSwapTarget } from './equipmentSwap';
 import { moveItem, type ItemDragState } from './itemOrder';
@@ -267,6 +271,7 @@ const PlayerSheet = ({
   // La ficha (PG, maná, fondo…) la edita cualquiera que la abre: User, invitado y admin, como hasta ahora.
   // canEdit (solo admin) es para mutaciones globales y extras como quests/aumentos.
   const canEditSheet = true;
+  const effectData = useNamedEffectDescriptions();
   const unlocks = player.unlocks ?? {};
   /** 19–20 se desbloquean al completar una quest cuyo nombre contenga «top» (p. ej. «Quest de top»). */
   const topUnlocked = unlocks.questTop === true || (player.quests ?? []).some(q => q.done && /\btop\b/i.test(q.name));
@@ -633,7 +638,7 @@ const PlayerSheet = ({
                       if (!trackItem) return null;
                       return (
                         <>
-                          {trackItem.hasStacks && (
+                          {trackItem.hasStacks && !itemHasPermanentStacks(trackItem, effectData) && (
                             <StackCounter
                               value={readStack(player.stacks, itemStackKey(itemName))}
                               max={typeof trackItem.maxStacks === 'number' ? trackItem.maxStacks : undefined}
@@ -674,6 +679,11 @@ const PlayerSheet = ({
                   Ya había 7 objetos: se conservan y siguen contando en las estadísticas. Puedes consultar, ordenar y quitar; para volver a añadir el 7º debes completar la misión de bot.
                 </p>
               )}
+              <PermanentStacks
+                entries={permanentStackEntries(equippedItems(player.equipamiento), effectData, player.stacks)}
+                disabled={saving || !canEditSheet}
+                onChange={(key, next) => { void onStacksChange({ [key]: next }); }}
+              />
               {equipError && <p className="calc-build-error">{equipError}</p>}
             </section>
           )}

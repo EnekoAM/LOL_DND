@@ -1,6 +1,15 @@
 import ThumbImg from '../../components/ThumbImg';
 import type { Item } from '../../data/items';
 import { cx } from '../../lib/cx';
+import { findNamedEffect } from '../../data/namedEffects';
+
+/**
+ * ¿Tiene activa? Solo si alguno de sus efectos con nombre es de tipo activa (namedEffects.ts kind).
+ * No cuentan el texto de activa, el CD ni la duración del ítem (p. ej. Cuchilla negra tiene duración 3 para sus cargas).
+ */
+export function itemHasActive(item: Item | undefined): boolean {
+  return !!item && (item.namedEffects ?? []).some(id => findNamedEffect(id)?.kind === 'active');
+}
 
 export type ItemTileState = 'equipped' | 'owned' | 'none';
 
@@ -19,12 +28,13 @@ type Props = {
 };
 
 const ItemTile = ({ name, item, state, onRemove, onChange, onInspect, onEquip, equipDisabled, equipTitle, removeDisabled }: Props) => (
-  <div className={cx('calc-item-card', state && `calc-item-card--${state}`)}>
+  <div className={cx('calc-item-card', state && `calc-item-card--${state}`, itemHasActive(item) && 'calc-item-card--active')}>
     {item?.imagen
       ? <ThumbImg className="calc-item-card__img" src={item.imagen} thumbWidth={128} alt={name} />
       : <div className="calc-item-card__no-img">✦</div>
     }
     <div className="calc-item-card__name" title={name}>{name}</div>
+    {itemHasActive(item) && <div className="calc-item-card__active" title="Tiene activa (se usa)">⚡ Activa</div>}
 
     {state === 'equipped' && <div className="calc-item-card__badge calc-item-card__badge--check">✓</div>}
     {state === 'owned' && <div className="calc-item-card__badge">🎒</div>}

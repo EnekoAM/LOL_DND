@@ -88,3 +88,38 @@
 .calc-item-card .stack-counter {
   align-self: center;
 }
+
+/* Cargas permanentes (players.stacks effect:<id>): ficha y combate. */
+.permanent-stacks {
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  border-radius: 6px;
+  background: rgba(250, 204, 21, 0.05);
+}
+.permanent-stacks__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fcd34d;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.permanent-stacks__list {
+  list-style: none;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.permanent-stacks__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+.permanent-stacks__row .stack-counter { margin-top: 0; }
+.permanent-stacks__row--off { opacity: 0.6; }
+.permanent-stacks__name { font-weight: 600; }
+.permanent-stacks__hint { font-size: 0.72rem; opacity: 0.75; }

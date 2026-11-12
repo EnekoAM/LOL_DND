@@ -11,8 +11,10 @@ import { STAT_COLUMNS, formatStat } from '../features/calculos/statLine';
 
 export const EFFECT_TRIGGERS = [
   { id: 'always', label: 'Siempre (mientras lo lleve)' },
-  { id: 'on-hit', label: 'Al impactar (AA)' },
+  { id: 'on-attack', label: 'Al auto-atacar (AA)' },
+  { id: 'on-hit', label: 'Al aplicar efecto de impacto' },
   { id: 'after-ability', label: 'Tras habilidad: siguiente AA' },
+  { id: 'after-use', label: 'Tras usar (activa): siguiente AA' },
   { id: 'on-ability-hit', label: 'Al acertar una habilidad' },
   { id: 'on-use', label: 'Al usar (activa)' },
   { id: 'on-takedown', label: 'Al matar / asistir' },
@@ -20,6 +22,7 @@ export const EFFECT_TRIGGERS = [
   { id: 'on-damage-taken', label: 'Al recibir daño' },
   { id: 'on-attacked', label: 'Al recibir un AA' },
   { id: 'each-turn', label: 'Cada turno' },
+  { id: 'energized-max', label: 'Vigor al máximo (100 cargas)' },
 ] as const;
 export type EffectTrigger = (typeof EFFECT_TRIGGERS)[number]['id'];
 
@@ -31,9 +34,10 @@ export const EFFECT_RULE_KINDS = [
   { id: 'mana', label: 'Recupera maná' },
   { id: 'slow', label: 'Ralentización' },
   { id: 'status', label: 'Estado al objetivo' },
-  { id: 'extra-on-hit', label: 'Efectos al impactar extra' },
+  { id: 'extra-on-hit', label: 'Efectos de impacto extra' },
   { id: 'attack-speed', label: 'Velocidad de ataque' },
   { id: 'move-speed', label: 'Velocidad de movimiento' },
+  { id: 'vigor', label: 'Vigor extra (cargas)' },
 ] as const;
 export type EffectRuleKind = (typeof EFFECT_RULE_KINDS)[number]['id'];
 
@@ -45,6 +49,7 @@ export const SCALING_STATS = [
   { id: 'ap', label: 'AP' },
   { id: 'hp', label: 'Vida máx.' },
   { id: 'bonusHp', label: 'Vida extra' },
+  { id: 'missingHp', label: 'Vida faltante' },
   { id: 'mana', label: 'Maná máx.' },
   { id: 'bonusMana', label: 'Maná extra' },
   { id: 'armor', label: 'Armadura (CA)' },
@@ -54,11 +59,13 @@ export const SCALING_STATS = [
   { id: 'critChance', label: 'Prob. crítico' },
   { id: 'manaRegen', label: 'Regen. maná' },
   { id: 'level', label: 'Nivel' },
+  { id: 'spe', label: 'Velocidad' },
   { id: 'targetMaxHp', label: 'Vida máx. del objetivo' },
   { id: 'targetCurrentHp', label: 'Vida actual del objetivo' },
-  { id: 'targetMissingHp', label: 'Vida perdida del objetivo' },
+  { id: 'targetMissingHp', label: 'Vida faltante del objetivo' },
   { id: 'targetArmor', label: 'Armadura (CA) del objetivo' },
   { id: 'targetMr', label: 'MR del objetivo' },
+  { id: 'targetSpe', label: 'Velocidad del objetivo' },
 ] as const;
 export type ScalingStat = (typeof SCALING_STATS)[number]['id'];
 
@@ -81,8 +88,16 @@ export type EffectRatio = { stat: ScalingStat; pct: number };
 export type EffectRule = {
   trigger: EffectTrigger;
   kind: EffectRuleKind;
-  /** A quién: al portador (por defecto) o a los objetivos golpeados (debuffs de stat). */
-  appliesTo?: 'self' | 'target';
+  /**
+   * A quién. Stats / curación / escudo: portador por defecto. Daño / ralentización / estado: objetivo por defecto.
+   * area = objetivo + cercanos; nearby = solo los cercanos (no el objetivo principal);
+   * allies = aliados elegidos (el portador puede ir incluido); self en un estado = al portador.
+   */
+  appliesTo?: RuleAppliesTo;
+  /** Por nivel: con 'target', el valor sale del nivel de cada objetivo (aliado o enemigo), no del portador. */
+  levelFrom?: 'target';
+  /** Daño: cura al portador el daño hecho × su robo de vida % (Hidra voraz). */
+  lifeSteal?: boolean;
   /** Stat que sube (kind stat). attack-speed / move-speed usan ATK spe % / SPE. */
   stat?: string;
   flat?: number;
@@ -101,9 +116,55 @@ export type EffectRule = {
   duration?: number;
   /** Acumulaciones máximas (bonus de stat). */
   maxStacks?: number;
-  /** Solo contra campeones, solo melee… (texto libre). */
+  /**
+   * «Cargas permanentes» (bonus de stat al portador): cada disparo suma 1 carga en la ficha del personaje
+   * (players.stacks effect:<efecto base>, hasta maxStacks); siguen entre combates y sin el ítem. El bonus
+   * (valor × cargas) solo suma con el ítem equipado. Ignora «Dura». Campeones / NPCs: bonus sin turnos en ese combate.
+   */
+  permanent?: boolean;
+  /** Solo si el portador es cuerpo a cuerpo (rango total 1) o a distancia (cualquier otro rango); vacío = siempre. */
+  onlyIf?: RuleRangeCondition;
+  /** Solo contra campeones, una vez por turno… (texto libre). */
   note?: string;
 };
+
+export type RuleAppliesTo = 'self' | 'target' | 'area' | 'nearby' | 'allies';
+/** Tipos de regla que por defecto van al objetivo (el resto, al portador). */
+export const TARGET_DEFAULT_KINDS: readonly string[] = ['damage', 'slow', 'status'];
+/** A quién puede ir cada tipo de regla (el primero es el de por defecto). */
+export function appliesToOptions(kind: string): { id: RuleAppliesTo; label: string }[] {
+  const debuff = [{ id: 'target', label: 'Objetivo' }, { id: 'area', label: 'Objetivo + cercanos' }, { id: 'nearby', label: 'Solo cercanos (no el principal)' }] as const;
+  switch (kind) {
+    case 'stat': case 'attack-speed': case 'move-speed':
+      return [{ id: 'self', label: 'Portador' }, { id: 'allies', label: 'Aliados' }, { id: 'target', label: 'Objetivo (debuff)' }, { id: 'area', label: 'Objetivo + cercanos (debuff)' }, { id: 'nearby', label: 'Solo cercanos (debuff)' }];
+    case 'heal': case 'shield':
+      return [{ id: 'self', label: 'Portador' }, { id: 'allies', label: 'Aliados' }];
+    case 'damage': case 'slow':
+      return [...debuff];
+    case 'status':
+      return [...debuff, { id: 'self', label: 'Portador' }, { id: 'allies', label: 'Aliados' }];
+    default:
+      return [{ id: 'self', label: 'Portador' }];
+  }
+}
+/** A quién va la regla (con el valor por defecto de su tipo). */
+export const ruleAppliesTo = (rule: Pick<EffectRule, 'appliesTo' | 'kind'>): RuleAppliesTo =>
+  rule.appliesTo ?? (TARGET_DEFAULT_KINDS.includes(rule.kind) ? 'target' : 'self');
+
+/** Condición «Solo si» de una regla: cuerpo a cuerpo = rango de ataque total 1; a distancia = cualquier otro (también 0). */
+export type RuleRangeCondition = 'melee' | 'ranged';
+export const RULE_RANGE_CONDITIONS = [
+  { id: 'melee', label: 'Solo cuerpo a cuerpo', short: 'cuerpo a cuerpo' },
+  { id: 'ranged', label: 'Solo a distancia', short: 'a distancia' },
+] as const;
+/** Rango de ataque total 1 = cuerpo a cuerpo; cualquier otro valor (0 incluido) = a distancia. */
+export const isMeleeRange = (range: number): boolean => range === 1;
+export const rangeTypeLabel = (melee: boolean): string => (melee ? 'Cuerpo a cuerpo' : 'A distancia');
+/** ¿La regla vale para un portador cuerpo a cuerpo / a distancia? */
+export const ruleMatchesRange = (rule: Pick<EffectRule, 'onlyIf'>, melee: boolean): boolean =>
+  !rule.onlyIf || (rule.onlyIf === 'melee') === melee;
+export const rangeConditionShort = (condition: RuleRangeCondition | undefined): string =>
+  RULE_RANGE_CONDITIONS.find(entry => entry.id === condition)?.short ?? '';
 
 export type EffectBonusConfig = {
   /** Enfriamiento en turnos (por efecto base y participante). */
@@ -112,8 +173,23 @@ export type EffectBonusConfig = {
   duration?: number;
   /** Cuándo empieza el CD: al activarse o al terminar el efecto (Hoja encantada: al usar el AA potenciado). */
   cdStart?: CdStartMode;
+  /** Vigor: las habilidades que golpean también descargan el Vigor al máximo (Espada ciclovoltaica). */
+  abilityDischarge?: boolean;
+  /** Vigor al máximo: encadena a N objetivos (1-10; ausente = 1). */
+  chainTargets?: number;
+  /** Enfriamiento por objetivo: el CD se pone en el objetivo golpeado (cada objetivo tiene su marca), no en el portador. */
+  perTargetCooldown?: boolean;
+  /** Al usar: máximo de objetivos enemigos (1-20; ausente = sin límite). */
+  maxTargets?: number;
+  /**
+   * Cargas de combate (Flujo de maná): empieza el combate con start, máx. max; cada disparo de sus reglas de cargas
+   * permanentes gasta 1 (sin cargas, no da nada) y recarga 1 cada every turnos (al empezar el turno del portador).
+   */
+  charges?: EffectCharges;
   rules: EffectRule[];
 };
+
+export type EffectCharges = { start: number; max: number; every: number };
 
 export const MAX_EFFECT_RULES = 12;
 
@@ -128,9 +204,9 @@ export const statLabel = (key: string | undefined): string => STAT_COLUMNS.find(
 const num = (value: number): string => formatStat(Math.round(value * 1000) / 1000);
 
 /** «100% AD base + 45% AP» (o «5»). */
-export function formulaText(rule: Pick<EffectRule, 'flat' | 'ratios' | 'perLevel'>): string {
+export function formulaText(rule: Pick<EffectRule, 'flat' | 'ratios' | 'perLevel' | 'levelFrom'>): string {
   const parts: string[] = [];
-  if (rule.perLevel?.length) parts.push(`${rule.perLevel.map(num).join('/')} (por nivel)`);
+  if (rule.perLevel?.length) parts.push(`${rule.perLevel.map(num).join('/')} (por nivel${rule.levelFrom === 'target' ? ' del objetivo' : ''})`);
   else if (rule.flat) parts.push(num(rule.flat));
   for (const ratio of rule.ratios ?? []) parts.push(`${num(ratio.pct)}% ${scalingLabel(ratio.stat)}`);
   return parts.join(' + ').replace(/\+ -/g, '− ') || '0';
@@ -138,8 +214,10 @@ export function formulaText(rule: Pick<EffectRule, 'flat' | 'ratios' | 'perLevel
 
 const TRIGGER_SHORT: Record<EffectTrigger, string> = {
   always: 'Siempre',
-  'on-hit': 'Al impactar',
+  'on-attack': 'Al auto-atacar',
+  'on-hit': 'Al aplicar efecto de impacto',
   'after-ability': 'Tras habilidad (siguiente AA)',
+  'after-use': 'Tras usar (siguiente AA)',
   'on-ability-hit': 'Al acertar habilidad',
   'on-use': 'Al usar',
   'on-takedown': 'Al matar/asistir',
@@ -147,11 +225,13 @@ const TRIGGER_SHORT: Record<EffectTrigger, string> = {
   'on-damage-taken': 'Al recibir daño',
   'on-attacked': 'Al recibir AA',
   'each-turn': 'Cada turno',
+  'energized-max': 'Vigor al máximo',
 };
 
 /** Resumen legible de una regla: «Tras habilidad (siguiente AA): +100% AD base físico». */
 export function ruleSummary(rule: EffectRule): string {
-  const when = rule.trigger === 'hp-below' ? `Vida < ${num(rule.hpBelowPct ?? 30)}%` : TRIGGER_SHORT[rule.trigger] ?? rule.trigger;
+  const trigger = rule.trigger === 'hp-below' ? `Vida < ${num(rule.hpBelowPct ?? 30)}%` : TRIGGER_SHORT[rule.trigger] ?? rule.trigger;
+  const when = rule.onlyIf ? `${trigger} (${rangeConditionShort(rule.onlyIf)})` : trigger;
   const amount = formulaText(rule);
   let what: string;
   switch (rule.kind) {
@@ -166,14 +246,21 @@ export function ruleSummary(rule: EffectRule): string {
     case 'mana': what = `recupera ${amount} maná`; break;
     case 'slow': what = `ralentiza ${num(rule.slowPct ?? 0)}%`; break;
     case 'status': what = `aplica ${rule.statusName || 'estado'}`; break;
-    case 'extra-on-hit': what = `aplica los efectos al impactar ${rule.count ?? 1} vez${(rule.count ?? 1) === 1 ? '' : 'es'} más`; break;
+    case 'vigor': what = `+${amount} Vigor`; break;
+    case 'extra-on-hit': what = `aplica los efectos de impacto ${rule.count ?? 1} vez${(rule.count ?? 1) === 1 ? '' : 'es'} más`; break;
     default: what = rule.kind;
   }
   const extras = [
-    rule.duration ? `${rule.duration} t.` : '',
+    rule.permanent ? 'cargas permanentes (ficha)' : rule.duration ? `${rule.duration} t.` : '',
     rule.maxStacks ? `hasta ×${rule.maxStacks}` : '',
     rule.note ? rule.note : '',
   ].filter(Boolean);
+  if (rule.lifeSteal) extras.push('aplica robo de vida');
+  const to = rule.appliesTo;
+  if (to === 'area') what = `${what.replace(/^al objetivo /, '')} (objetivo + cercanos)`;
+  else if (to === 'nearby') what = `${what.replace(/^al objetivo /, '')} (solo cercanos, no el principal)`;
+  else if (to === 'allies') what = `${what.replace(/^al objetivo /, '')} (aliados)`;
+  else if (to === 'self' && TARGET_DEFAULT_KINDS.includes(rule.kind)) what = `${what} (al portador)`;
   return `${when}: ${what}${extras.length ? ` (${extras.join(', ')})` : ''}`;
 }
 
@@ -182,12 +269,18 @@ export function configTimingText(config: EffectBonusConfig): string {
   return [
     config.cooldown ? `CD ${config.cooldown} t.${config.cdStart === 'on-end' ? ' (al terminar)' : ''}` : '',
     config.duration ? `dura ${config.duration} t.` : '',
+    config.abilityDischarge ? 'las habilidades también descargan el Vigor' : '',
+    config.chainTargets && config.chainTargets > 1 ? `Vigor al máximo encadena a ${config.chainTargets} objetivos` : '',
+    config.perTargetCooldown ? 'CD por objetivo (marca)' : '',
+    config.maxTargets ? `hasta ${config.maxTargets} objetivos` : '',
+    config.charges ? `cargas de combate: empieza con ${config.charges.start}, máx. ${config.charges.max}, recarga 1 cada ${config.charges.every} t.` : '',
   ].filter(Boolean).join(' · ');
 }
 
 export function configSummary(config: EffectBonusConfig | undefined): string[] {
-  if (!config || config.rules.length === 0) return [];
+  if (!config) return [];
   const timing = configTimingText(config);
+  if (config.rules.length === 0) return timing ? [timing] : [];
   return [...config.rules.map(ruleSummary), ...(timing ? [timing] : [])];
 }
 
@@ -209,7 +302,9 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
     const r = entry as Record<string, unknown>;
     if (typeof r.trigger !== 'string' || !TRIGGER_IDS.has(r.trigger) || typeof r.kind !== 'string' || !KIND_IDS.has(r.kind)) continue;
     const rule: EffectRule = { trigger: r.trigger as EffectTrigger, kind: r.kind as EffectRuleKind };
-    if (r.appliesTo === 'target') rule.appliesTo = 'target';
+    if (r.appliesTo === 'target' || r.appliesTo === 'area' || r.appliesTo === 'nearby' || r.appliesTo === 'allies' || (r.appliesTo === 'self' && rule.kind === 'status')) rule.appliesTo = r.appliesTo;
+    if (r.levelFrom === 'target') rule.levelFrom = 'target';
+    if (r.lifeSteal === true) rule.lifeSteal = true;
     if (typeof r.stat === 'string') rule.stat = r.stat;
     if (finite(r.flat)) rule.flat = r.flat;
     if (Array.isArray(r.ratios)) {
@@ -225,8 +320,10 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
     if (finite(r.hpBelowPct)) rule.hpBelowPct = r.hpBelowPct;
     const duration = turns(r.duration);
     if (duration) rule.duration = duration;
-    const maxStacks = turns(r.maxStacks);
+    const maxStacks = finite(r.maxStacks) && r.maxStacks >= 1 ? Math.min(999, Math.floor(r.maxStacks)) : undefined;
     if (maxStacks) rule.maxStacks = maxStacks;
+    if (r.permanent === true && (rule.kind === 'stat' || rule.kind === 'attack-speed' || rule.kind === 'move-speed')) rule.permanent = true;
+    if (r.onlyIf === 'melee' || r.onlyIf === 'ranged') rule.onlyIf = r.onlyIf;
     if (typeof r.note === 'string' && r.note.trim()) rule.note = r.note.trim();
     rules.push(rule);
   }
@@ -236,8 +333,18 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
   const duration = turns(source.duration);
   if (duration) config.duration = duration;
   if (source.cdStart === 'on-end' || source.cdStart === 'on-activate') config.cdStart = source.cdStart;
+  if (source.abilityDischarge === true) config.abilityDischarge = true;
+  if (source.perTargetCooldown === true) config.perTargetCooldown = true;
+  if (finite(source.maxTargets) && source.maxTargets >= 1) config.maxTargets = Math.min(20, Math.floor(source.maxTargets));
+  if (finite(source.chainTargets) && source.chainTargets > 1) config.chainTargets = Math.min(10, Math.floor(source.chainTargets));
+  if (source.charges && typeof source.charges === 'object') {
+    const c = source.charges as Record<string, unknown>;
+    const max = turns(c.max);
+    const every = turns(c.every);
+    if (max && every) config.charges = { start: finite(c.start) ? Math.max(0, Math.min(max, Math.floor(c.start))) : max, max, every };
+  }
   return config;
 }
 
 /** Estado de una regla que el combate aplica solo (el resto se apunta a mano). */
-export const AUTOMATED_TRIGGERS: readonly EffectTrigger[] = ['always', 'on-hit', 'after-ability', 'on-ability-hit', 'on-use', 'on-takedown'];
+export const AUTOMATED_TRIGGERS: readonly EffectTrigger[] = ['always', 'on-attack', 'on-hit', 'after-ability', 'after-use', 'on-ability-hit', 'on-use', 'on-takedown', 'energized-max'];

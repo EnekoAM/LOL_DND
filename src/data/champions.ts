@@ -1,3 +1,4 @@
+import type { AreaPattern } from './areaPattern';
 import { matchesSearch, normalizeName } from '../lib/text';
 import { ROLE_TABLES, findRoleTable } from './roles';
 import type { ResourceId } from './resources';
@@ -47,6 +48,10 @@ export type Ability = {
   variants?: AbilityVariant[];
   /** sequential (por defecto) = Usar avanza de fase; choose = se elige la fase al usar. */
   phaseMode?: 'sequential' | 'choose';
+  /** Tablero de área: usuario, objetivo y casillas donde hace efecto. */
+  area?: AreaPattern;
+  /** Aplica efectos de impacto: en combate dispara las reglas «Al aplicar efecto de impacto» de los ítems. */
+  appliesOnHit?: boolean;
 };
 
 /** Fase alternativa de una habilidad (Q de Aatrox, Riven, básicas de Hwei…). */

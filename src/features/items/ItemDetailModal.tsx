@@ -7,8 +7,9 @@ import { draftToItemUpdate, itemToDraft, type ItemDraft } from './itemDraft';
 import ItemStock from './ItemStock';
 import { RARITIES, rarityClass } from './rarity';
 import { useCanEdit } from '../../data/appRoleContext';
-import { describeNamedEffect, namedEffectBonus, namedEffectOnHit, useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
+import { describeNamedEffect, namedEffectArea, namedEffectBonus, namedEffectOnHit, useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
 import { configSummary } from '../../data/effectBonus';
+import { AreaGridView } from '../../components/AreaGrid';
 import { formatStatValue, getVisibleStats } from './stats';
 
 import { NAMED_EFFECTS, NAMED_EFFECT_KIND_LABEL, baseNamedEffectId, findNamedEffect, groupNamedEffects, namedEffectDescription, namedEffectName, namedEffectOptions } from '../../data/namedEffects';
@@ -77,12 +78,13 @@ const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; c
               <li key={id}>
                 <strong>{namedEffectName(id)}</strong>
                 {effect && <span className="item-effects-list__meta"> · {NAMED_EFFECT_KIND_LABEL[effect.kind]}{effect.exclusive ? ' · ★ único en la build' : ''}</span>}
-                {namedEffectOnHit(effectDescriptions, id) && <span className="item-effect-badge">Al impactar</span>}
+                {namedEffectOnHit(effectDescriptions, id) && <span className="item-effect-badge">Efecto de impacto</span>}
                 {text && <p className="item-effects-list__text">{text}</p>}
                 {(() => {
                   const lines = configSummary(namedEffectBonus(effectDescriptions, id));
                   return lines.length ? <ul className="bonus-summary">{lines.map((line, i) => <li key={i}>{line}</li>)}</ul> : null;
                 })()}
+                <AreaGridView area={namedEffectArea(effectDescriptions, id)} cellPx={9} />
               </li>
             );
           })}

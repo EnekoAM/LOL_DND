@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { CombatBonus, CombatParticipant, SourcedEffectInput } from '../../data/combat';
-import { bonusValue, firePassives, formatBonus, newBonusId, type PassiveResult } from './combatBonuses';
+import { bonusValue, firePassives, formatBonus, equippedItems, newBonusId, type PassiveResult } from './combatBonuses';
 import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
-import { activeNamedEffects, combatExtraLines, fireEffectRules, participantContext, type EffectCallbacks } from './effectRules';
+import { armAfterAbility, chargeStatus, itemRulePlan, rangeInfo, vigorChainTargets, activeNamedEffects, combatExtraLines, fireEffectRules, hasVigorItem, participantContext, participantSpeed, targetMarks, vigorEffects, type EffectCallbacks } from './effectRules';
+import { VIGOR_MAX, VIGOR_PER_MOVE_DEFAULT } from '../../data/combat';
 import { cx } from '../../lib/cx';
 import { participantChampion, participantNpc } from '../../data/combatSheet';
 import { findItem, type Item } from '../../data/items';
@@ -14,19 +15,22 @@ import { partyLevel, subscribeParty } from '../../data/party';
 import { PLAYERS, type PlayerListPatch } from '../../data/players';
 import { itemActiveEffectKey, itemCooldownKey, itemStackKey, readActiveEffect, readCooldown, readStack } from '../../data/stacks';
 import { championDamageContext } from '../calculos/championDamage';
-import ItemTile from '../calculos/ItemTile';
+import ItemTile, { itemHasActive } from '../calculos/ItemTile';
 import { playerBonusLine, playerMaxHp, playerTotalLine } from '../calculos/playerTotals';
 import { STAT_COLUMNS, formatDefenseStat, formatStat, type StatValue } from '../calculos/statLine';
 import HpPanel from '../players/HpPanel';
 import ManaPanel from '../players/ManaPanel';
 import PlayerSwitcher from '../players/PlayerSwitcher';
 import StackCounter from '../players/StackCounter';
+import PermanentStacks from '../players/PermanentStacks';
+import { itemHasPermanentStacks, permanentStackEntries, permanentStackSaver } from '../../data/permanentStacks';
 import { championPool } from './CombatAbilityUseSection';
 import { resolvedSpendKind } from './combatAbilityUse';
 import { kindTag } from './combatHelpers';
 import { itemActiveDamage, itemIsUsable, itemUseHeadline, rollItemDamage, type ItemDamageRoll } from './combatItemUse';
 import { canSeeHp, damageTargets, participantHp, targetHpLine, type TargetDamageFn } from './combatHp';
 import CombatTargetPicker from './CombatTargetPicker';
+import { logCombat } from './combatConsole';
 import '../calculos/Calculos.css';
 import '../players/Players.css';
 import '../players/SheetAbilities.css';
@@ -53,12 +57,19 @@ type Props = {
   onPlayerTrackersChange: (playerName: string, patch: { cooldowns?: Record<string, number>; activeEffects?: Record<string, number> }) => Promise<void>;
   /** Cambios en el participante del combate (solo admin). */
   onCombatPatch: (patch: Partial<CombatParticipant>) => void | Promise<void>;
+  /** Vigor por casilla de movimiento (ajuste del combate). */
+  vigorPerMove?: number;
+  onVigorPerMoveChange?: (rate: number) => void | Promise<void>;
   /** Daño a un objetivo (solo admin). */
   onTargetDamage?: TargetDamageFn;
   /** Bonus temporales: PATCH op bonuses (admin o su propio player). */
   onBonusesSave?: (bonuses: CombatBonus[]) => Promise<void>;
   onTargetBonuses?: EffectCallbacks['onTargetBonuses'];
   onPoolChange?: EffectCallbacks['onSelfPool'];
+  /** Usos de objeto del turno (left) y cuántos son extra (mismo endpoint que ataques / habilidades). */
+  onActionsSave?: (kind: 'attacks' | 'abilities' | 'items', left: number, extra: number) => Promise<void>;
+  /** Cura / escudo a otro participante (reglas «Aliados» de las activas). */
+  onTargetPool?: EffectCallbacks['onTargetPool'];
   onApplySourcedEffect: (targetIds: string | string[], input: SourcedEffectInput) => void | Promise<void>;
 };
 
@@ -81,7 +92,7 @@ const DefenseCards = ({ stats }: { stats: Defense[] }) => (
 );
 
 /** Penetraciones (letalidad / pen. mágica planas y % de armadura / MR), bajo CA / Velocidad / MR. */
-type Pen = { label: string; title: string; value: StatValue | undefined; pct?: boolean };
+type Pen = { label: string; title: string; value: StatValue | undefined; pct?: boolean; badge?: { text: string; melee: boolean } };
 
 const penetrationOf = (stats: Partial<Record<'lethality' | 'magicPen' | 'armorPenPct' | 'magicPenPct', StatValue>>): Pen[] => [
   { label: 'PEN. ARM', title: 'Letalidad (penetración de armadura plana)', value: stats.lethality },
@@ -97,17 +108,22 @@ const utilityOf = (stats: Partial<Record<'healShieldPct' | 'tenacityPct' | 'slow
   { label: 'RES. RAL.', title: 'Resistencia a ralentizaciones % (se suma)', value: stats.slowResistPct, pct: true },
   { label: 'ROBO V.', title: 'Robo de vida %', value: stats.lifeStealPct, pct: true },
   { label: 'OMNIS.', title: 'Omnisucción %', value: stats.omnivampPct, pct: true },
-  { label: 'RANGO', title: 'Rango de ataque', value: stats.range },
+  (() => {
+    // Rango total 1 = cuerpo a cuerpo; cualquier otro (0 incluido) = a distancia (condición «Solo si» de los efectos).
+    const { melee } = rangeInfo({ range: stats.range });
+    return { label: 'RANGO', title: `Rango de ataque · ${melee ? 'Cuerpo a cuerpo (rango 1)' : 'A distancia (rango distinto de 1)'}`, value: stats.range, badge: { text: melee ? 'Cuerpo a cuerpo' : 'A distancia', melee } };
+  })(),
   { label: 'REG. VIDA', title: 'Regeneración de vida', value: stats.healthRegen },
   { label: 'REG. MANÁ', title: 'Regeneración de maná', value: stats.manaRegen },
 ];
 
 const PenetrationCards = ({ stats, className = 'combat-sheet__pen' }: { stats: Pen[]; className?: string }) => (
   <div className={`sheet-defense combat-sheet__defense ${className}`}>
-    {stats.map(({ label, title, value, pct }) => (
+    {stats.map(({ label, title, value, pct, badge }) => (
       <div key={label} className="sheet-defense__card" title={title}>
         <div className="sheet-defense__label">{label}</div>
         <div className="sheet-defense__value">{value === undefined ? '—' : `${formatStat(value)}${pct && typeof value === 'number' ? '%' : ''}`}</div>
+        {badge && <div className={`combat-sheet__range-badge${badge.melee ? ' combat-sheet__range-badge--melee' : ''}`}>{badge.text}</div>}
       </div>
     ))}
   </div>
@@ -129,10 +145,14 @@ export default function CombatSheetView({
   trackers,
   onPlayerTrackersChange,
   onCombatPatch,
+  vigorPerMove,
+  onVigorPerMoveChange,
   onTargetDamage,
   onBonusesSave,
   onTargetBonuses,
   onPoolChange,
+  onTargetPool,
+  onActionsSave,
   onApplySourcedEffect,
 }: Props) {
   const level = useSyncExternalStore(subscribeParty, partyLevel);
@@ -147,6 +167,14 @@ export default function CombatSheetView({
   const [itemUse, setItemUse] = useState<ItemUse | null>(null);
   const [itemTarget, setItemTarget] = useState<{ name: string; item: Item; damage?: number } | null>(null);
   const [itemBusy, setItemBusy] = useState(false);
+  /** Reglas «Aliados» de una activa esperando a quién (el portador puede ir incluido). */
+  const [allyAsk, setAllyAsk] = useState<{ title: string; resolve: (ids: string[]) => void } | null>(null);
+  const askAllies = (effectName: string): Promise<string[]> =>
+    new Promise(resolve => setAllyAsk({ title: `${effectName}: aliados`, resolve: ids => { setAllyAsk(null); resolve(ids); } }));
+  /** «Vigor al máximo» esperando objetivos. */
+  const [vigorPick, setVigorPick] = useState(false);
+  /** Casillas a restar del movimiento. */
+  const [moveInput, setMoveInput] = useState('');
   const [itemError, setItemError] = useState<string | null>(null);
   const [bonusForm, setBonusForm] = useState<{ stat: string; amount: string; turns: string; stacks: string } | null>(null);
   const [bonusBusy, setBonusBusy] = useState(false);
@@ -157,6 +185,8 @@ export default function CombatSheetView({
     setInspectedItem(null);
     setItemUse(null);
     setItemTarget(null);
+    setAllyAsk(null);
+    setVigorPick(false);
     setItemError(null);
     setBonusForm(null);
     setBonusError(null);
@@ -180,6 +210,22 @@ export default function CombatSheetView({
 
   // Usar ítems: admin con cualquiera; un User solo con su player.
   const canUseItems = participant.kind === 'player' ? !!player && (isAdmin || canSee) : isAdmin;
+  // Usos de objeto por turno: 1 (+ los extra para pruebas). Se reinicia al empezar su turno, como ataques / habilidades.
+  const ITEM_USES_PER_TURN = 1;
+  const itemExtra = participant.actionsExtra?.items ?? 0;
+  const itemLimit = ITEM_USES_PER_TURN + itemExtra;
+  const itemsLeft = participant.actionsLeft?.items ?? itemLimit;
+  const [itemActionsBusy, setItemActionsBusy] = useState(false);
+  const saveItemActions = (nextLeft: number, nextExtra: number) => {
+    if (!onActionsSave || itemActionsBusy) return;
+    setItemActionsBusy(true);
+    setItemError(null);
+    void onActionsSave('items', Math.max(0, Math.min(99, nextLeft)), Math.max(0, Math.min(99, nextExtra)))
+      .catch(caught => setItemError(caught instanceof Error ? caught.message : 'No se pudieron guardar los usos de objeto'))
+      .finally(() => setItemActionsBusy(false));
+  };
+  /** Ítem con activa usable: config del ítem (CD / duración / daño) o reglas «Al usar» / «Tras usar». */
+  const itemUsable = (item: Item | undefined): boolean => !!item && (itemIsUsable(item) || itemRulePlan(item, effectData).authoritative);
   const itemCd = (name: string): number => readCooldown(player ? player.cooldowns : participant.cooldowns, itemCooldownKey(name));
   const withItemPassive = (use: ItemUse, passive: PassiveResult): ItemUse => {
     const previous = use.undo;
@@ -202,6 +248,11 @@ export default function CombatSheetView({
   // Bonus temporales («+ Bonus»): admin con cualquiera; un User solo con su player.
   const canEditBonuses = !!onBonusesSave && (isAdmin || (participant.kind === 'player' && canSee));
   const bonuses = participant.bonuses ?? [];
+  // Marcas de los efectos «Enfriamiento por objetivo» de los demás (sin CD de ese portador).
+  const marks = targetMarks(participant, participants, effectData);
+  // Cargas de combate (Flujo de maná): solo de los efectos de sus ítems equipados.
+  const chargeBase = participantContext(participant, level, extra);
+  const chargeChips = chargeBase ? chargeStatus(activeNamedEffects(chargeBase.items, effectData), bonuses) : [];
   const saveBonuses = (next: CombatBonus[]) => {
     if (!onBonusesSave || bonusBusy) return;
     setBonusBusy(true);
@@ -241,12 +292,95 @@ export default function CombatSheetView({
     }]);
   };
 
+  // «Vigor al máximo»: efectos con reglas de ese disparador en los ítems equipados.
+  const vigorBase = participantContext(participant, level, extra);
+  const vigorList = vigorBase ? vigorEffects(activeNamedEffects(vigorBase.items, effectData)) : [];
+  /** Contador de Vigor: oculto hasta que lleve un ítem con Vigor (energized). */
+  const hasVigor = !!vigorBase && hasVigorItem(vigorBase.items);
+  const vigorValue = Math.max(0, Math.min(VIGOR_MAX, participant.vigor ?? 0));
+  const vigorReady = hasVigor && vigorValue >= VIGOR_MAX;
+  const vigorRate = typeof vigorPerMove === 'number' ? vigorPerMove : VIGOR_PER_MOVE_DEFAULT;
+  // Movimiento del turno (casillas, como Velocidad): se borra al empezar su turno.
+  const speed = participantSpeed(participant, level, extra);
+  const moved = participant.movementUsed ?? 0;
+  const canMove = isAdmin && !saving && !itemBusy;
+  const setVigor = (value: number) => {
+    const next = Math.max(0, Math.min(VIGOR_MAX, Math.round(value)));
+    if (next !== vigorValue) void onCombatPatch({ vigor: next || undefined });
+  };
+  /** Resta casillas del movimiento del turno; con ítem de Vigor, cada casilla da vigorRate cargas. */
+  const registerMove = async (squares: number) => {
+    if (!canMove || !Number.isFinite(squares) || squares === 0) return;
+    const nextMoved = Math.max(0, Math.min(999, Math.round(moved + squares)));
+    const gain = hasVigor && squares > 0 ? Math.floor(squares * vigorRate) : 0;
+    const nextVigor = Math.min(VIGOR_MAX, vigorValue + gain);
+    const prev = { movementUsed: moved || undefined, vigor: vigorValue || undefined };
+    setItemError(null);
+    await onCombatPatch({ movementUsed: nextMoved || undefined, ...(gain ? { vigor: nextVigor || undefined } : {}) });
+    setMoveInput('');
+    const left = Math.max(0, speed - nextMoved);
+    setItemUse({
+      headline: `Movimiento ${squares > 0 ? '−' : '+'}${Math.abs(squares)} casilla${Math.abs(squares) === 1 ? '' : 's'} · quedan ${left}/${speed}${gain ? ` · Vigor ${vigorValue}→${nextVigor}/${VIGOR_MAX}` : ''}`,
+      undo: () => { void Promise.resolve(onCombatPatch(prev)).finally(() => setItemUse(null)); },
+    });
+  };
+  /** Aplica las reglas «Vigor al máximo» (botón manual) y vacía el contador de Vigor del participante. */
+  const runVigor = async (targetIds: string[]) => {
+    setVigorPick(false);
+    if (!vigorBase || vigorList.length === 0 || !canUseItems || saving || itemBusy) return;
+    setItemBusy(true);
+    setItemError(null);
+    try {
+      const prevBonuses = participant.bonuses ?? [];
+      const result = await fireEffectRules({
+        trigger: 'energized-max',
+        effects: vigorList,
+        ctx: vigorBase.ctx,
+        bonuses: prevBonuses,
+        targetIds,
+        participants,
+        level,
+        callbacks: { onTargetDamage, onTargetBonuses, onApplySourcedEffect: (ids, input) => onApplySourcedEffect(ids, input), onSelfPool: onPoolChange },
+        bearer: { id: participant.id, name: participant.name },
+      });
+      const undos = [...result.undos];
+      if (result.changed && onBonusesSave) {
+        await onBonusesSave(result.bonuses);
+        undos.unshift(() => onBonusesSave(prevBonuses));
+      }
+      if (vigorValue > 0) {
+        const before = vigorValue;
+        await onCombatPatch({ vigor: undefined });
+        undos.push(async () => { await onCombatPatch({ vigor: before }); });
+      }
+      const notes = [...result.notes, ...result.manual.map(text => `a mano: ${text}`)];
+      setItemUse({
+        headline: `«Vigor al máximo»${notes.length ? ` · ${notes.join(' · ')}` : ' · sin efecto'}`,
+        undo: undos.length
+          ? () => {
+              setItemBusy(true);
+              void (async () => { for (const undo of [...undos].reverse()) await undo(); })()
+                .then(() => setItemUse(null))
+                .catch(caught => setItemError(caught instanceof Error ? caught.message : 'No se pudo deshacer'))
+                .finally(() => setItemBusy(false));
+            }
+          : undefined,
+      });
+    } catch (caught) {
+      setItemError(caught instanceof Error ? caught.message : 'No se pudo aplicar el Vigor');
+    } finally {
+      setItemBusy(false);
+    }
+  };
+
   /** Clic: si hace daño o pone un efecto enemigo, primero los objetivos (nada se gasta hasta Atacar). */
   const useItem = (name: string, item: Item | undefined) => {
-    if (!item || !canUseItems || saving || itemBusy || itemCd(name) > 0 || !itemIsUsable(item)) return;
+    if (!item || !canUseItems || saving || itemBusy || itemCd(name) > 0 || !itemUsable(item) || itemsLeft <= 0) return;
     const enemy = typeof item.effectDuration === 'number' && item.effectDuration > 0 && item.effectTarget === 'enemy';
-    const damaging = !!itemActiveDamage(item) && !!onTargetDamage;
-    if (enemy || damaging) {
+    // Con reglas «Al usar» / «Tras usar» en el configurador, mandan ellas (no el daño leído del texto del ítem).
+    const plan = itemRulePlan(item, effectData);
+    const damaging = !plan.authoritative && !!itemActiveDamage(item) && !!onTargetDamage;
+    if (enemy || damaging || plan.needsEnemies) {
       setItemError(null);
       setItemTarget({ name, item });
       return;
@@ -255,10 +389,10 @@ export default function CombatSheetView({
   };
   const runItem = async (name: string, item: Item, targetIds: string[]) => {
     setItemTarget(null);
-    if (!canUseItems || saving || itemBusy || itemCd(name) > 0 || !itemIsUsable(item)) return;
+    if (!canUseItems || saving || itemBusy || itemCd(name) > 0 || !itemUsable(item) || itemsLeft <= 0) return;
     setItemError(null);
     let roll: ItemDamageRoll | null = null;
-    const damage = itemActiveDamage(item);
+    const damage = itemRulePlan(item, effectData).authoritative ? null : itemActiveDamage(item);
     if (damage) {
       const stats = player
         ? { ...playerTotalLine(player.sheet, player.equipamiento, level, extra), bonus: playerBonusLine(player.sheet, player.equipamiento, extra) }
@@ -280,9 +414,17 @@ export default function CombatSheetView({
     const enemy = duration > 0 && item.effectTarget === 'enemy';
     const self = duration > 0 && !enemy;
     setItemBusy(true);
+    // Gasta 1 uso de objeto del turno (Deshacer lo devuelve).
+    const prevActions = participant.actionsLeft;
+    const actionsAfter = { ...participant.actionsLeft, items: Math.max(0, itemsLeft - 1) };
     try {
       let undo: (() => void) | undefined;
+      // Players: por el endpoint de acciones (vale también para el propio player sin ser admin).
+      const setItemsLeft = (value: number) => (onActionsSave
+        ? onActionsSave('items', value, itemExtra)
+        : Promise.resolve(onCombatPatch({ actionsLeft: { ...participant.actionsLeft, items: value } })));
       if (player) {
+        await setItemsLeft(actionsAfter.items);
         const prevCd = readCooldown(player.cooldowns, cdKey);
         const prevEffect = readActiveEffect(player.activeEffects, effectKey);
         const patch: { cooldowns?: Record<string, number>; activeEffects?: Record<string, number> } = {};
@@ -294,26 +436,29 @@ export default function CombatSheetView({
             const back: typeof patch = {};
             if (patch.cooldowns) back.cooldowns = { [cdKey]: prevCd };
             if (patch.activeEffects) back.activeEffects = { [effectKey]: prevEffect };
-            void onPlayerTrackersChange(player.name, back).finally(() => setItemUse(null));
+            void onPlayerTrackersChange(player.name, back)
+              .then(() => setItemsLeft(itemsLeft))
+              .finally(() => setItemUse(null));
           };
+        } else {
+          undo = () => { void setItemsLeft(itemsLeft).finally(() => setItemUse(null)); };
         }
       } else {
         const prev = { cooldowns: participant.cooldowns, activeEffects: participant.activeEffects };
-        const patch: Partial<CombatParticipant> = {};
+        const patch: Partial<CombatParticipant> = { actionsLeft: actionsAfter };
         if (cd) patch.cooldowns = { ...participant.cooldowns, [cdKey]: cd };
         if (self) patch.activeEffects = { ...participant.activeEffects, [effectKey]: duration };
-        if (patch.cooldowns || patch.activeEffects) {
-          await onCombatPatch(patch);
-          undo = () => {
-            onCombatPatch({
-              ...(patch.cooldowns ? { cooldowns: prev.cooldowns ?? {} } : {}),
-              ...(patch.activeEffects ? { activeEffects: prev.activeEffects ?? {} } : {}),
-            });
-            setItemUse(null);
-          };
-        }
+        await onCombatPatch(patch);
+        undo = () => {
+          onCombatPatch({
+            actionsLeft: prevActions,
+            ...(patch.cooldowns ? { cooldowns: prev.cooldowns ?? {} } : {}),
+            ...(patch.activeEffects ? { activeEffects: prev.activeEffects ?? {} } : {}),
+          });
+          setItemUse(null);
+        };
       }
-      const notes = [cd ? `CD ${cd}` : '', self ? `efecto ${duration} t.` : ''].filter(Boolean).join(' · ');
+      const notes = [cd ? `CD ${cd}` : '', self ? `efecto ${duration} t.` : '', `objetos ${actionsAfter.items}/${itemLimit}`].filter(Boolean).join(' · ');
       setItemUse({ headline: `${itemUseHeadline(name, roll)}${notes ? ` · ${notes}` : ''}`, detail: roll?.detail, undo });
       if (targetIds.length > 0) await confirmItemTarget({ name, item, damage: roll && roll.total > 0 ? roll.total : undefined }, targetIds);
       // Pasiva «al usar el objeto» (solo la de este ítem).
@@ -329,23 +474,34 @@ export default function CombatSheetView({
           onTargetBonuses,
           onApplySourcedEffect: (ids, input) => onApplySourcedEffect(ids, input),
           onSelfPool: onPoolChange,
+          onTargetPool,
+          pickAllies: askAllies,
+          onPermanentStack: permanentStackSaver(participant, onPlayerChange),
         };
+        const useEffects = activeNamedEffects([item], effectData);
         const result = await fireEffectRules({
           trigger: 'on-use',
-          effects: activeNamedEffects([item], effectData),
+          effects: useEffects,
           ctx: base.ctx,
           bonuses: prevBonuses,
           targetIds,
           participants,
           level,
           callbacks,
+          bearer: { id: participant.id, name: participant.name },
         });
         ruleNotes.push(...result.notes, ...result.manual.map(text => `a mano: ${text}`));
         ruleUndos.push(...result.undos);
-        if (result.changed && onBonusesSave) {
-          await onBonusesSave(result.bonuses);
+        // «Tras usar: siguiente AA» (Hidra titánica): arma el siguiente AA.
+        const armed = armAfterAbility(useEffects, result.bonuses, base.ctx, 'after-use');
+        if (armed.names.length) ruleNotes.push(`${armed.names.join(', ')} armada (siguiente AA)`);
+        const changed = result.changed || armed.names.length > 0;
+        const lines = [...result.log, ...(armed.names.length ? [`${armed.names.join(', ')}: armada al usar (se gasta en el siguiente AA)`] : [])];
+        if (lines.length) logCombat({ title: `Usa ${name}`, actor: participant.name, lines });
+        if (changed && onBonusesSave) {
+          await onBonusesSave(armed.bonuses);
           ruleUndos.unshift(() => onBonusesSave(prevBonuses));
-          bonusesNow = result.bonuses;
+          bonusesNow = armed.bonuses;
         }
       }
       const passive = await firePassives({ bonuses: bonusesNow, items: [item], trigger: 'on-use', targetIds, onBonusesSave, onTargetDamage });
@@ -570,10 +726,20 @@ export default function CombatSheetView({
           {defense && <DefenseCards stats={defense} />}
           {penetration && <PenetrationCards stats={penetration} />}
           {utility && <PenetrationCards stats={utility} className="combat-sheet__pen combat-sheet__utility" />}
-          {(bonuses.length > 0 || canEditBonuses) && (
+          {(bonuses.length > 0 || marks.length > 0 || chargeChips.length > 0 || canEditBonuses) && (
             <div className="combat-bonuses">
               <div className="combat-bonuses__chips">
-                {bonuses.map(bonus => (
+                {chargeChips.map(chip => (
+                  <span key={chip.id} className="combat-bonus combat-bonus--charges" title="Cargas de combate: se gastan al dañar con habilidades; cada una da 1 carga permanente">
+                    <span>💧 {chip.text}</span>
+                  </span>
+                ))}
+                {marks.map(mark => (
+                  <span key={mark.key} className="combat-bonus combat-bonus--mark" title="Al golpearle, el portador aplica el efecto y le pone el CD a este objetivo">
+                    <span>◈ {mark.text}</span>
+                  </span>
+                ))}
+                {bonuses.filter(bonus => bonus.stat !== 'charges').map(bonus => (
                   <span key={bonus.id} className="combat-bonus" title={bonus.source?.startsWith('item:') ? `Pasiva de ${bonus.source.slice(5)}` : 'Bonus manual'}>
                     {bonus.label && <span className="combat-bonus__src">{bonus.label}</span>}
                     <span>{formatBonus(bonus)}</span>
@@ -630,22 +796,57 @@ export default function CombatSheetView({
           )}
           {equipment.length > 0 && (
             <section className="sheet-panel">
-              <div className="sheet-panel__title">Objetos</div>
+              <div className="sheet-panel__title sheet-abilities__title">
+                <span>Objetos</span>
+                {(player || champion) && (
+                  <span className={cx('combat-actions', itemsLeft === 0 && 'combat-actions--empty')} title="Usos de objeto que quedan este turno (1 por turno)">
+                    {isAdmin && (
+                      <button type="button" className="sheet-rank__btn" disabled={saving || itemBusy || itemActionsBusy || itemsLeft <= 0} aria-label="Quitar 1 (objetos)" onClick={() => saveItemActions(itemsLeft - 1, itemExtra)}>−</button>
+                    )}
+                    <span>Quedan {itemsLeft}/{ITEM_USES_PER_TURN}{itemExtra > 0 ? ` (+${itemExtra})` : ''}</span>
+                    {isAdmin && (
+                      <button type="button" className="sheet-rank__btn" disabled={saving || itemBusy || itemActionsBusy || itemsLeft >= itemLimit} aria-label="Añadir 1 (objetos)" onClick={() => saveItemActions(itemsLeft + 1, itemExtra)}>+</button>
+                    )}
+                    {(isAdmin || canSee) && onActionsSave && (
+                      <button
+                        type="button"
+                        className="combat-actions__extra"
+                        disabled={itemActionsBusy || participant.defeated}
+                        title="Clic: +1 uso de objeto extra este turno · Clic derecho: quitar un extra"
+                        onClick={() => saveItemActions(itemsLeft + 1, itemExtra + 1)}
+                        onContextMenu={event => { event.preventDefault(); if (itemExtra > 0) saveItemActions(itemsLeft - 1, itemExtra - 1); }}
+                      >
+                        + Extra
+                      </button>
+                    )}
+                    {(isAdmin || canSee) && onActionsSave && itemExtra > 0 && (
+                      <button type="button" className="combat-actions__extra" disabled={itemActionsBusy} title="Quitar un uso de objeto extra" onClick={() => saveItemActions(itemsLeft - 1, itemExtra - 1)}>
+                        − Extra
+                      </button>
+                    )}
+                  </span>
+                )}
+              </div>
               <div className="calc-equip-grid">
                 {equipment.map((itemName, index) => {
                   const item = findItem(itemName);
-                  const usable = itemIsUsable(item);
+                  const usable = itemUsable(item);
+                  // Resaltado de activa: solo por sus efectos con nombre de tipo activa (no por CD / duración del ítem).
+                  const active = itemHasActive(item);
                   const cdLeft = usable ? itemCd(itemName) : 0;
-                  const ready = usable && canUseItems && cdLeft === 0 && !saving && !itemBusy;
+                  const noUses = usable && itemsLeft <= 0;
+                  const ready = usable && canUseItems && cdLeft === 0 && !noUses && !saving && !itemBusy;
                   const hint = !usable
-                    ? 'Sin activa ni daño · Clic derecho: info'
+                    ? active ? 'Activa sin configurar (sin CD, duración ni reglas «Al usar») · Clic derecho: info' : 'Sin activa ni daño · Clic derecho: info'
                     : cdLeft > 0
                       ? `En enfriamiento (CD ${cdLeft}) · Clic derecho: info`
-                      : canUseItems ? 'Clic: usar · Clic derecho: info' : 'Clic derecho: info';
+                      : noUses
+                        ? 'Ya has usado un objeto este turno (+ Extra para más) · Clic derecho: info'
+                        : canUseItems ? 'Clic: usar · Clic derecho: info' : 'Clic derecho: info';
                   return (
                     <div key={`${itemName}-${index}`} className="combat-sheet__item">
                       <div
-                        className={cx('combat-sheet__tile', usable && 'combat-sheet__tile--usable', ready && 'combat-sheet__tile--ready', cdLeft > 0 && 'combat-sheet__tile--cd')}
+                        className={cx('combat-sheet__tile', usable && 'combat-sheet__tile--usable', active && 'combat-sheet__tile--active', ready && 'combat-sheet__tile--ready', (cdLeft > 0 || noUses) && 'combat-sheet__tile--dim', cdLeft > 0 && 'combat-sheet__tile--cd')}
                         role="button"
                         tabIndex={0}
                         title={hint}
@@ -665,7 +866,7 @@ export default function CombatSheetView({
                         <ItemTile name={itemName} item={item} />
                         {cdLeft > 0 && <span className="combat-sheet__tile-cd">CD {cdLeft}</span>}
                       </div>
-                      {player && item?.hasStacks && (
+                      {player && item?.hasStacks && !itemHasPermanentStacks(item, effectData) && (
                         <StackCounter
                           value={readStack(player.stacks, itemStackKey(itemName))}
                           max={typeof item.maxStacks === 'number' ? item.maxStacks : undefined}
@@ -678,9 +879,86 @@ export default function CombatSheetView({
                   );
                 })}
               </div>
+              {player && (
+                <PermanentStacks
+                  entries={permanentStackEntries(equippedItems(player.equipamiento), effectData, player.stacks)}
+                  disabled={!canTrack}
+                  onChange={(key, next) => { void onPlayerChange(player.name, { stacks: { [key]: next } }); }}
+                />
+              )}
+              {vigorList.length > 0 && canUseItems && (
+                <div className="combat-sheet__vigor">
+                  <button
+                    type="button"
+                    className={cx('combat-btn combat-btn--small', vigorReady && 'combat-sheet__vigor--ready')}
+                    disabled={saving || itemBusy}
+                    title={`Aplica las reglas «Vigor al máximo» (${vigorList.map(effect => effect.name).join(', ')}) y vacía el Vigor. El AA lo hace solo cuando el Vigor está a ${VIGOR_MAX}.`}
+                    onClick={() => { setItemError(null); setVigorPick(true); }}
+                  >
+                    ⚡ Vigor al máximo{vigorReady ? ' · cargado' : ''}
+                  </button>
+                </div>
+              )}
             </section>
           )}
-          {(itemUse || itemError || itemTarget) && (
+          <section className="sheet-panel combat-sheet__move">
+            <div className="combat-sheet__move-row">
+              <span className="combat-sheet__move-label" title="Velocidad = casillas por turno. Se recupera al empezar su turno.">
+                Movimiento: <strong>{Math.max(0, speed - moved)}</strong>/{speed} casillas{moved ? ` (usado ${moved})` : ''}
+              </span>
+              {canMove && (
+                <>
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    className="combat-sheet__move-input"
+                    placeholder="casillas"
+                    aria-label="Movimiento usado (casillas)"
+                    value={moveInput}
+                    onChange={e => setMoveInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') void registerMove(Number(moveInput)); }}
+                  />
+                  <button type="button" className="combat-btn combat-btn--small" disabled={!(Number(moveInput) > 0)} onClick={() => void registerMove(Number(moveInput))}>Restar</button>
+                  <button type="button" className="combat-btn combat-btn--small" disabled={moved === 0} title="Devuelve 1 casilla" onClick={() => void registerMove(-1)}>+1</button>
+                  <button type="button" className="combat-btn combat-btn--small" disabled={moved === 0} title="Recupera todo el movimiento" onClick={() => void onCombatPatch({ movementUsed: undefined })}>↺</button>
+                </>
+              )}
+            </div>
+            {hasVigor && (
+              <div className="combat-sheet__move-row">
+                <span className={cx('combat-sheet__vigor-label', vigorReady && 'combat-sheet__vigor--ready')} title="Cargas de Vigor: +7 por AA (+ «Vigor extra» de los ítems), y por casilla movida. A 100, el siguiente AA aplica «Vigor al máximo» y vuelve a 0.">
+                  ⚡ Vigor {vigorValue}/{VIGOR_MAX}
+                </span>
+                <span className="combat-sheet__vigor-bar" aria-hidden="true"><span style={{ width: `${vigorValue}%` }} /></span>
+                {canMove && (
+                  <>
+                    <button type="button" className="combat-btn combat-btn--small" disabled={vigorValue === 0} onClick={() => setVigor(vigorValue - 10)}>−10</button>
+                    <button type="button" className="combat-btn combat-btn--small" disabled={vigorValue === 0} onClick={() => setVigor(vigorValue - 1)}>−</button>
+                    <button type="button" className="combat-btn combat-btn--small" disabled={vigorValue >= VIGOR_MAX} onClick={() => setVigor(vigorValue + 1)}>+</button>
+                    <button type="button" className="combat-btn combat-btn--small" disabled={vigorValue >= VIGOR_MAX} onClick={() => setVigor(vigorValue + 10)}>+10</button>
+                    <label className="combat-sheet__vigor-rate" title="Vigor que da cada casilla de movimiento (ajuste de todo el combate). En LoL: 1 carga cada 24 unidades.">
+                      Vigor/casilla
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        defaultValue={vigorRate}
+                        key={vigorRate}
+                        disabled={!onVigorPerMoveChange}
+                        onBlur={e => {
+                          const rate = Number(e.target.value.replace(',', '.'));
+                          if (onVigorPerMoveChange && Number.isFinite(rate) && rate >= 0 && rate <= 100 && rate !== vigorRate) void onVigorPerMoveChange(rate);
+                        }}
+                      />
+                    </label>
+                  </>
+                )}
+              </div>
+            )}
+          </section>
+          {(itemUse || itemError || itemTarget || vigorPick || allyAsk) && (
             <section className="sheet-panel">
               {itemUse && (
                 <div className="combat-panel__use-result" aria-live="polite">
@@ -697,10 +975,35 @@ export default function CombatSheetView({
                   key={itemTarget.name}
                   title={`Objetivos de ${itemTarget.item.effectName || itemTarget.name}`}
                   targets={participants.filter(entry => entry.id !== participant.id)}
+                  maxTargets={itemRulePlan(itemTarget.item, effectData).maxTargets}
                   disabled={saving || itemBusy}
                   onConfirm={ids => void runItem(itemTarget.name, itemTarget.item, ids)}
                   onSkip={() => void runItem(itemTarget.name, itemTarget.item, [])}
                   onCancel={() => setItemTarget(null)}
+                />
+              )}
+              {allyAsk && (
+                <CombatTargetPicker
+                  key={allyAsk.title}
+                  title={allyAsk.title}
+                  targets={participants}
+                  initial={[participant.id]}
+                  confirmLabel="Aplicar"
+                  disabled={saving}
+                  onConfirm={ids => allyAsk.resolve(ids)}
+                  onSkip={() => allyAsk.resolve([])}
+                />
+              )}
+              {vigorPick && (
+                <CombatTargetPicker
+                  title="Objetivos de Vigor al máximo"
+                  maxTargets={vigorBase ? vigorChainTargets(vigorBase.items, effectData) : 1}
+                  targets={participants.filter(entry => entry.id !== participant.id)}
+                  disabled={saving || itemBusy}
+                  confirmLabel="Aplicar"
+                  onConfirm={ids => void runVigor(ids)}
+                  onSkip={() => void runVigor([])}
+                  onCancel={() => setVigorPick(false)}
                 />
               )}
             </section>

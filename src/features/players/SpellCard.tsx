@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { cx } from '../../lib/cx';
 import PhaseTabs from '../habilidades/PhaseTabs';
+import { AreaGridView } from '../../components/AreaGrid';
+import type { AreaPattern } from '../../data/areaPattern';
 
 export type SpellTone = 'pasiva' | 'basica' | 'definitiva' | 'auto';
 
@@ -34,6 +36,10 @@ type SpellCardProps = {
   phases?: string[];
   /** Las fases se eligen al usar (combos). */
   phasesChoose?: boolean;
+  /** Tablero de área (mini, solo lectura). */
+  area?: AreaPattern;
+  /** La habilidad aplica efectos de impacto. */
+  onHit?: boolean;
 };
 
 const SpellCard = ({
@@ -55,6 +61,8 @@ const SpellCard = ({
   footerAction,
   phases,
   phasesChoose,
+  area,
+  onHit,
 }: SpellCardProps) => (
   <article
     className={cx(
@@ -95,9 +103,15 @@ const SpellCard = ({
         <div className="spell__name">{name}</div>
         {champion && <div className="spell__origin">{champion}</div>}
         {note && <div className="spell__note">{note}</div>}
+        {onHit && <div className="spell__onhit" title="Aplica efectos de impacto">Efecto de impacto</div>}
         {badge && <div className="spell__badge">{badge}</div>}
       </div>
     </header>
+    {area && (
+      <div className="spell__area" title="Área: usuario (azul), objetivo (rojo), casillas afectadas">
+        <AreaGridView area={area} cellPx={area.size > 13 ? 4 : 6} />
+      </div>
+    )}
     {ranks && (
       <div className="spell__ranks" onClick={event => event.stopPropagation()}>
         {ranks}

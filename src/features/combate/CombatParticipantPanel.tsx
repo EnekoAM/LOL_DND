@@ -36,7 +36,7 @@ type Props = {
   /** Guarda el recurso actual (maná, energía…); mismos permisos que la vida. */
   onResourceSave: (current: number, max?: number) => Promise<void>;
   /** Acciones del turno (PATCH op actions: admin o su propio player). */
-  onActionsSave?: (kind: 'attacks' | 'abilities', left: number, extra: number) => Promise<void>;
+  onActionsSave?: (kind: 'attacks' | 'abilities' | 'items', left: number, extra: number) => Promise<void>;
   /** Daño a un objetivo (solo admin). */
   onTargetDamage?: TargetDamageFn;
   /** Bonus temporales (PATCH op bonuses: admin o su propio player). */
@@ -45,6 +45,11 @@ type Props = {
   onTargetBonuses?: EffectCallbacks['onTargetBonuses'];
   /** Cura / escudo / maná a este participante (reglas de efectos con nombre). */
   onPoolChange?: EffectCallbacks['onSelfPool'];
+  /** Cura / escudo a otro participante (reglas «Aliados»). */
+  onTargetPool?: EffectCallbacks['onTargetPool'];
+  /** Vigor por casilla de movimiento (ajuste del combate). */
+  vigorPerMove?: number;
+  onVigorPerMoveChange?: (rate: number) => void | Promise<void>;
   saving: boolean;
   /** Fuerza relectura de PLAYERS tras Activar / tick. */
   trackerRev: number;
@@ -121,6 +126,9 @@ export default function CombatParticipantPanel({
   onBonusesSave,
   onTargetBonuses,
   onPoolChange,
+  onTargetPool,
+  vigorPerMove,
+  onVigorPerMoveChange,
   saving,
   trackerRev,
   onPlayerTrackersChange,
@@ -482,7 +490,11 @@ export default function CombatParticipantPanel({
         onBonusesSave={onBonusesSave}
             onTargetBonuses={onTargetBonuses}
             onPoolChange={onPoolChange}
+            onTargetPool={onTargetPool}
+        onActionsSave={onActionsSave}
         onApplySourcedEffect={onApplySourcedEffect}
+        vigorPerMove={vigorPerMove}
+        onVigorPerMoveChange={onVigorPerMoveChange}
       />
     );
   }

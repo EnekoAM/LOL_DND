@@ -203,6 +203,8 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                 seal={key}
                 type={SPELL_TYPE_LABEL[tone]}
                 name={abilityName ?? 'No definida'}
+                area={empty ? undefined : ability?.area ?? undefined}
+                onHit={!empty && ability?.appliesOnHit === true}
                 champion={ref?.champion}
                 image={ref?.image}
                 empty={empty}

@@ -7,6 +7,7 @@ import { MAX_ABILITY_VARIANTS, abilityPhase, hasVariants, isChoosePhases, phaseL
 import { saveChampionAbility, type Ability, type AbilityKey, type Champion } from '../../data/champions';
 import { RESOURCE_IDS, RESOURCE_LABELS, resolveAbilityResource, type ResourceId } from '../../data/resources';
 import ResourceChip from '../../components/ResourceChip';
+import { AreaGridEditor, AreaGridView } from '../../components/AreaGrid';
 import { useCanEdit } from '../../data/appRoleContext';
 import { cx } from '../../lib/cx';
 import { formatPercentList } from '../../lib/format';
@@ -71,6 +72,9 @@ const AbilityView = ({ ability: fullAbility, championResource, onEdit, canEdit }
           <p className="hab-modal__cost">{ability?.cost}{resourceChip}</p>
         </div>
       )}
+      {fullAbility?.appliesOnHit && (
+        <p className="hab-modal__meta"><strong>Aplica efectos de impacto:</strong> sí</p>
+      )}
       {ability?.hasStacks && (
         <p className="hab-modal__meta"><strong>Stacks:</strong> sí{typeof ability.maxStacks === 'number' ? ` (máx. ${ability.maxStacks})` : ''}</p>
       )}
@@ -109,6 +113,13 @@ const AbilityView = ({ ability: fullAbility, championResource, onEdit, canEdit }
               {effect.duration && <span>Duración: {listText(effect.duration)}</span>}
             </div>
           ))}
+        </div>
+      )}
+
+      {fullAbility?.area && (
+        <div className="hab-modal__block">
+          <span className="hab-modal__tag">Área</span>
+          <AreaGridView area={fullAbility.area} cellPx={12} />
         </div>
       )}
 
@@ -276,6 +287,18 @@ const AbilityForm = ({
 
       <button
         type="button"
+        className={cx('hab-learned', draft.appliesOnHit && 'hab-learned--on')}
+        aria-pressed={draft.appliesOnHit}
+        disabled={saving}
+        title="En combate, al acertar dispara también las reglas «Al aplicar efecto de impacto» de los ítems (no las de solo AA)"
+        onClick={() => onChange({ appliesOnHit: !draft.appliesOnHit })}
+      >
+        <span>Aplica efectos de impacto</span>
+        <span className="hab-learned__switch" aria-hidden="true" />
+      </button>
+
+      <button
+        type="button"
         className={cx('hab-learned', draft.hasStacks && 'hab-learned--on')}
         aria-pressed={draft.hasStacks}
         disabled={saving}
@@ -359,6 +382,11 @@ const AbilityForm = ({
         <button type="button" className="hab-modal__btn hab-modal__btn--ghost" onClick={onAddEffect}>
           Añadir efecto
         </button>
+      </div>
+
+      <div className="hab-modal__block">
+        <span className="hab-modal__tag">Área (tablero)</span>
+        <AreaGridEditor value={draft.area} disabled={saving} onChange={area => onChange({ area })} />
       </div>
 
       {actions}

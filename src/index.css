@@ -38,3 +38,25 @@ html {
 .search-clear-wrap > input { width: 100%; box-sizing: border-box; padding-right: 30px; }
 .search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: inherit; opacity: .6; cursor: pointer; font-size: 18px; line-height: 1; padding: 0 4px; }
 .search-clear:hover { opacity: 1; }
+
+/* Listas desplegables nativas (select): tema oscuro legible también con la lista abierta (Chrome/Windows) */
+select {
+  color-scheme: dark;
+}
+select option,
+select optgroup {
+  background-color: #1a1712;
+  color: #e8dcc0;
+}
+select optgroup {
+  color: #c9a84c;
+  font-style: normal;
+  font-weight: bold;
+}
+select option:checked {
+  background-color: #3a2e14;
+  color: #f0d27a;
+}
+select option:disabled {
+  color: #9a8d70;
+}

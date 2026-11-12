@@ -674,3 +674,16 @@
 .bonus-summary { font-size: 0.8rem; margin: 4px 0 0; padding-left: 18px; }
 .bonus-summary li { margin: 1px 0; }
 .bonus-summary__note { font-size: 0.75rem; font-style: italic; opacity: 0.7; }
+
+/* Configurador de bonus: controles oscuros y selects anchos para que no se corten las etiquetas */
+.bonus-editor select,
+.bonus-editor input {
+  background: rgba(10, 9, 8, 0.85);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 6px;
+  color: #e8dcc0;
+  padding: 3px 6px;
+}
+.bonus-editor select { min-width: 11rem; max-width: 100%; }
+.bonus-editor__ratio select { min-width: 13.5rem; }
+.bonus-editor__field > span { opacity: 0.85; color: #d4c49a; }
