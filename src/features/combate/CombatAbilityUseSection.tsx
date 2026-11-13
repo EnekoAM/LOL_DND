@@ -5,36 +5,36 @@ import { ABILITY_KEYS, findAbilityRef, type Ability, type Champion } from '../..
 import { participantChampion } from '../../data/combatSheet';
 import type { CombatBonus, CombatEffect, CombatParticipant, SourcedEffectInput } from '../../data/combat';
 import { firePassives, newBonusId, type PassiveResult } from './combatBonuses';
-import { abilityBreakSource, abilityBuff, abilityBuffSource, abilityBuffStatSource, abilityCharges, abilityRecast, abilityRecastSource, abilityShieldSource, abilityStacks, abilityStacksSource, gainAbilityStack, passiveStatus, rankValue, reduceChargeRecharge, spendAbilityCharge } from '../../data/abilityMechanics';
-import { participantHpPools } from './combatHp';
+import { abilityBreakSource, abilityBuff, abilityBuffSource, abilityBuffStatSource, abilityCharges, abilityRecast, abilityRecastSource, abilitySelfStatSource, abilityShieldSource, abilityStacks, abilityStacksSource, abilityFixedAttacks, abilityFixedAttacksSource, abilityToggle, abilityToggleSource, abilityTrap, abilityTrapSource, empoweredAaState, startEmpoweredAaCooldown, reduceEmpoweredAaCooldown, gainAbilityStack, isCrowdControlEffectName, abilityStackHealCdSource, isBelowExecuteThreshold, passiveStatus, rankValue, reduceChargeRecharge, sectorShotState, selfStatusStatBonus, spendAbilityCharge, spendSectorShot, stacksRequirement, type AbilityExecute, readPermanentAbilityStacks, stackDamageAmount, permanentAbilityStackSource, sameAbilityName, applyEvolve, isAbilityEvolved, abilityEvolveSource, abilityArmedAaMarker, abilityArmedAaSource, armAbilityArmedAa, grantAbilityRecast, evolutionSlotCount, evolvedAbilityCount, stackedAbilityCost, gainAbilityCostStack, abilityCostStackCount, abilityDeathBurst, abilityDeathBurstSource, abilityResistShredSource, abilityAaOnHitActive, aaOnHitDamage, damageLowHpMultiplier, abilityStrikeCount, resolveSelfStatusTurns, sectorShotTrigger, sectorGapSource, resetSectorShots, incomingDamageReductionPct, abilitySelfDrSource, abilityAaOnHitStackSource, abilityStackMaxStatusSource, hasPermanentMaxStacks, mergedAaWave } from '../../data/abilityMechanics';
+import { participantHp, participantHpPools } from './combatHp';
 import { innateCdSource, innateShieldSource, pendingHealSource, reduceInnateCooldowns } from './innateShield';
 import { CHIP_ICON, fmt, rollText, type ResultChip } from './combatResult';
 import { logCombat } from './combatConsole';
 import { critMultiplier, effectiveResistLine, hitRollLines } from './combatMitigation';
 import { permanentStackSaver } from '../../data/permanentStacks';
 import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
-import { participantAbilities } from './abilityRules';
+import { participantAbilities, stackGainOwners } from './abilityRules';
 import { abilityDischargesVigor, vigorChainTargets, activeNamedEffects, armAfterAbility, combatExtraLines, fireEffectRules, hasVigorItem, participantContext, poolAmount, vampHeal, vigorEffects, type EffectCallbacks, type EffectTriggerName } from './effectRules';
 import { VIGOR_MAX, VIGOR_PER_AA } from '../../data/combat';
 import { partyLevel, subscribeParty } from '../../data/party';
 import { PLAYERS, PLAYER_ABILITY_SLOTS, type Player, type PlayerListPatch } from '../../data/players';
 import { championResourceBar, type ResourceId } from '../../data/resources';
-import { abilityActiveEffectKey, abilityCooldownKey, readActiveEffect, readCooldown } from '../../data/stacks';
+import { abilityActiveEffectKey, abilityCooldownKey, abilityStackKey, readActiveEffect, readCooldown, readStack } from '../../data/stacks';
 import { cx } from '../../lib/cx';
 import { abilityPhase, abilityPhaseCount, abilityPhaseKey, clampPhase, hasVariants, isChoosePhases, phaseLabels } from '../../data/abilityVariants';
 import PhaseTabs from '../habilidades/PhaseTabs';
 import ResourceChip from '../../components/ResourceChip';
 import { resolveAbilityResource } from '../../data/resources';
-import { abilityStackKey, readStack } from '../../data/stacks';
 import { basicAttackEntries } from '../../data/players';
 import SpellCard, { SPELL_TYPE_LABEL, type SpellTone } from '../players/SpellCard';
 import StackCounter from '../players/StackCounter';
 import CooldownControl from '../players/CooldownControl';
 import { BarInputs } from './CombatBar';
-import { actionLimits, actionsLeft, basicAttackPct } from './combatActions';
+import { actionLimits, actionsLeft, basicAttackPct, leftoverAfterAttackLimitChange, withFixedAttacks } from './combatActions';
+import { consumeSpellShields, hasCinderbloom, healFromManaSpent, participantItems } from './itemCombatHooks';
 import { damageTargets, targetHpLine, type TargetDamageFn } from './combatHp';
 import CombatTargetPicker from './CombatTargetPicker';
-import { rollDamageStat } from '../players/abilityDamage';
+import { hpDamageAmount, rollDamageStat } from '../players/abilityDamage';
 import { formatDamageAmount, formatDamageType } from './combatAbilityUse';
 import { championDamageContext } from '../calculos/championDamage';
 import { playerBonusLine, playerMaxHp, playerTotalLine } from '../calculos/playerTotals';
@@ -87,7 +87,7 @@ type AbilityRow = {
 };
 
 /** Cambios de las mecánicas de habilidad que se guardan junto con los bonus de las pasivas (un guardado, un Deshacer). */
-type MechanicsSeed = { bonuses: CombatBonus[]; log: string[]; chips: ResultChip[]; undos: (() => Promise<void>)[] };
+type MechanicsSeed = { bonuses: CombatBonus[]; log: string[]; chips: ResultChip[]; undos: (() => Promise<void>)[]; usedName?: string; usedRequires?: { name: string }; consumedStacks?: { from: string; count: number } };
 
 type LastUse = {
   headline: string;
@@ -100,10 +100,39 @@ type LastUse = {
 };
 
 /** ¿La habilidad hace daño físico? (tipo físico o sin tipo, como en la consola). Mágico, verdadero y mixto no critean. */
+
 function abilityIsPhysical(ability: Ability): boolean {
   const type = formatDamageType(ability.damage?.type);
   return type === 'daño físico' || type === 'daño';
 }
+
+function abilityDamageKind(ability: Ability): 'physical' | 'magic' | 'true' | undefined {
+  const type = formatDamageType(ability.damage?.type);
+  if (type === 'daño físico' || type === 'daño') return 'physical';
+  if (type === 'daño mágico') return 'magic';
+  if (type === 'daño verdadero') return 'true';
+  return undefined;
+}
+
+const foldName = (value: string): string => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+const IMMOBILIZE_EFFECT_KEYS = [
+  'aturdimiento', 'lanzado al aire', 'lanzado por los aires', 'levantado', 'enraizamiento',
+  'encantado', 'encanto', 'miedo', 'provocacion', 'supresion',
+  'stun', 'root', 'charm', 'fear', 'taunt', 'suppression', 'airborne', 'knock up', 'knockup',
+  'inmovilizacion', 'inmovilizado', 'inmovil',
+];
+
+function isImmobilizeEffectName(name: string): boolean {
+  const folded = foldName(name);
+  if (folded.includes('ralent') || folded === 'slow' || folded.includes('slow ')) return false;
+  return IMMOBILIZE_EFFECT_KEYS.some(key => folded === key || folded.includes(key));
+}
+
+function activeMandateAmp(bearer: CombatParticipant, data: ReturnType<typeof useNamedEffectDescriptions>): boolean {
+  return activeNamedEffects(participantItems(bearer), data).some(effect => effect.config.rules.some(rule => !!rule.damageAmpPct));
+}
+
 
 function suggestedOr(value: number | undefined, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
@@ -174,7 +203,7 @@ function slotPipCount(seal: string): number {
 }
 
 function clampRank(value: number, maxRank: number): number {
-  return Math.min(maxRank, Math.max(1, Math.floor(value)));
+  return Math.min(maxRank, Math.max(0, Math.floor(value)));
 }
 
 export type PoolView = {
@@ -250,8 +279,11 @@ export default function CombatAbilityUseSection({
   const [lastUse, setLastUse] = useState<LastUse | null>(null);
   /** Ataque básico esperando objetivo. */
   const [attackPick, setAttackPick] = useState<'AD' | 'AP' | null>(null);
+  const [trapPicking, setTrapPicking] = useState<AbilityRow | null>(null);
   /** «Crít.»: el player ha sacado crítico en su tirada; el daño físico base de la acción × DAÑO CRÍT. Se apaga tras usarlo. */
   const [crit, setCrit] = useState(false);
+  const [isolated, setIsolated] = useState(false);
+  const [selfInArea, setSelfInArea] = useState(false);
   const [busy, setBusy] = useState(false);
   /** «Vigor al máximo» que encadena: espera a que se elijan hasta N objetivos. */
   const [chainAsk, setChainAsk] = useState<{ title: string; max?: number; primary: string; candidates?: CombatParticipant[]; confirmLabel?: string; resolve: (ids: string[]) => void } | null>(null);
@@ -268,6 +300,7 @@ export default function CombatAbilityUseSection({
     setLastUse(null);
     setError(null);
     setAttackPick(null);
+    setTrapPicking(null);
     setPickingPhase(undefined);
     setCrit(false);
   }, [participant.id]);
@@ -287,7 +320,7 @@ export default function CombatAbilityUseSection({
 
   /** Rango de la copia: el admin lo guarda en el combate; el resto solo lo ve en pantalla. */
   const setRank = (key: string, rank: number) => {
-    rank = Math.max(1, Math.min(20, Math.floor(rank)));
+    rank = Math.max(0, Math.min(20, Math.floor(rank)));
     setRankOverride(cur => ({ ...cur, [key]: rank }));
     if (isAdmin && participant.sheet?.kind === 'champion') {
       onCombatPatch({ sheet: { ...participant.sheet, abilityRanks: { ...participant.sheet.abilityRanks, [key]: rank } } });
@@ -301,15 +334,36 @@ export default function CombatAbilityUseSection({
     ? rows.find(row => row.ownerResource)?.ownerResource
     : champion?.resource;
   // Economía de acciones del turno (Attacks / Abilities de la ficha).
-  const baseLimits = actionLimits(player, champion, level, extra);
   const extras = { attacks: participant.actionsExtra?.attacks ?? 0, abilities: participant.actionsExtra?.abilities ?? 0 };
-  // Máximo del turno = el de la ficha + los extra concedidos.
-  const limits = {
-    attacks: baseLimits.attacks === undefined ? undefined : baseLimits.attacks + extras.attacks,
-    abilities: baseLimits.abilities === undefined ? undefined : baseLimits.abilities + extras.abilities,
+  const limitsFrom = (bonuses: typeof participant.bonuses) => {
+    const base = withFixedAttacks(actionLimits(player, champion, level, extra), bonuses);
+    return {
+      attacks: base.attacks === undefined ? undefined : base.attacks + extras.attacks,
+      abilities: base.abilities === undefined ? undefined : base.abilities + extras.abilities,
+    };
   };
+  // Máximo del turno = el de la ficha (o el número de ataques fijo del estado/interruptor) + los extra concedidos.
+  const baseLimits = withFixedAttacks(actionLimits(player, champion, level, extra), participant.bonuses);
+  const limits = limitsFrom(participant.bonuses);
   const left = actionsLeft(participant, limits);
+  const hpForDamage = (damage: Ability['damage'] | undefined, target?: CombatParticipant | null) => {
+    const who = damage?.hpFrom === 'self' ? participant : target ?? null;
+    return who ? participantHp(who) : null;
+  };
+  const hpOrigin = (damage: Ability['damage'] | undefined) => {
+    const origin = damage?.hpSource === 'current' ? 'vida actual' : damage?.hpSource === 'missing' ? 'vida faltante' : damage?.hpSource === 'bonus' ? 'vida bonus' : 'vida máx.';
+    return damage?.hpFrom === 'self' ? `${origin} del portador` : origin;
+  };
   const prevActions = participant.actionsLeft;
+  const actionsAfterFixedAttacks = (bonuses: typeof participant.bonuses, spentAbilities = false) => {
+    const nextLeft = leftoverAfterAttackLimitChange(limits.attacks, left.attacks, limitsFrom(bonuses).attacks);
+    const abilities = spentAbilities ? Math.max(0, (left.abilities ?? 0) - 1) : left.abilities;
+    if (nextLeft === left.attacks && !spentAbilities) return undefined;
+    if (nextLeft === left.attacks && spentAbilities) {
+      return { ...participant.actionsLeft, attacks: left.attacks, abilities };
+    }
+    return { ...participant.actionsLeft, attacks: nextLeft, abilities };
+  };
   const spendAction = (kind: 'attacks' | 'abilities'): CombatParticipant['actionsLeft'] | undefined => {
     const current = left[kind];
     if (current === undefined) return undefined;
@@ -424,12 +478,14 @@ export default function CombatAbilityUseSection({
   const useAbility = (row: AbilityRow, chosenPhase?: number) => {
     if (locked) return;
     const phaseIndex = typeof chosenPhase === 'number' ? clampPhase(row.ability, chosenPhase) : phaseOf(row);
-    const ability = activeAbility(row, phaseIndex);
+    const ability = applyEvolve(activeAbility(row, phaseIndex), isAbilityEvolved(participant.bonuses, row.name));
     const enemy = typeof ability.effectDuration === 'number' && ability.effectDuration > 0 && ability.effectTarget === 'enemy';
     const damaging = hasDamageScaling(ability.damage) && !!onTargetDamage;
     // «A todos los enemigos» sin daño: no hay que elegir objetivos.
-    if (enemy && row.ability.mechanics?.allEnemies && !damaging) return runAbility(row, chosenPhase, []);
-    const allyCast = row.ability.mechanics?.castPool?.target === 'ally';
+    if (enemy && ability.mechanics?.allEnemies && !damaging) return runAbility(row, chosenPhase, []);
+    const allyCast = ability.mechanics?.castPool?.target === 'ally';
+    // Efecto retrasado sin golpe inicial: se coloca sin elegir objetivos; el daño va en Detonar.
+    if (ability.mechanics?.trap && !ability.mechanics.trap.applyOnPlace) return runAbility(row, chosenPhase, []);
     if (enemy || damaging || allyCast) {
       setAttackPick(null);
       setPickingKey(row.key);
@@ -445,17 +501,105 @@ export default function CombatAbilityUseSection({
     setPickingAbility(null);
     setPickingPhase(undefined);
     setCrit(false);
+    setIsolated(false);
+    setSelfInArea(false);
+  };
+
+  const toggleEvolve = async (row: AbilityRow) => {
+    if (locked || !onBonusesSave) return;
+    const source = abilityEvolveSource(row.name);
+    const ev = row.ability.mechanics?.evolve;
+    if (!ev) return;
+    const prev = participant.bonuses ?? [];
+    const already = isAbilityEvolved(prev, row.name);
+    let next = prev.filter(bonus => bonus.source !== source);
+    if (!already) {
+      const slots = evolutionSlotCount(rows);
+      if (evolvedAbilityCount(prev, rows) >= slots) return;
+      next = [...next, { id: newBonusId(), stat: 'buff', amount: 1, source, label: ev.name.slice(0, 80) }];
+    }
+    setBusy(true);
+    try {
+      await onBonusesSave(next);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const armArmed = async (row: AbilityRow) => {
+    if (locked || !onBonusesSave || row.rank < 1 || !row.ability.mechanics?.armedAa) return;
+    const prev = participant.bonuses ?? [];
+    if (abilityArmedAaMarker(prev, row.name)) return;
+    setBusy(true);
+    try {
+      await onBonusesSave(armAbilityArmedAa(prev, row.name, newBonusId, row.name));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const startDeathBurst = async (row: AbilityRow) => {
+    if (locked || !onBonusesSave || row.rank < 1) return;
+    const burst = row.ability.mechanics?.deathBurst;
+    if (!burst || abilityDeathBurst(participant.bonuses, row.name)) return;
+    const prev = participant.bonuses ?? [];
+    const source = abilityDeathBurstSource(row.name);
+    const effectSource = `ability:${row.name}`;
+    const statusName = burst.name ?? row.name;
+    setBusy(true);
+    try {
+      const snapshot: Record<string, CombatEffect | null> = { [participant.id]: participant.effects.find(effect => effect.source === effectSource) ?? null };
+      await onApplySourcedEffect([participant.id], { source: effectSource, name: statusName, duration: burst.turns });
+      let bonuses = [...prev.filter(bonus => bonus.source !== source && bonus.source !== abilitySelfStatSource(row.name)), { id: newBonusId(), stat: 'buff', amount: 1, turns: burst.turns, source, label: statusName.slice(0, 80) }];
+      if (burst.stat && (burst.pct != null || burst.amount != null)) {
+        const context = participantContext(participant, level, extra);
+        const current = context ? Number(context.ctx.stats[burst.stat] ?? 0) || 0 : 0;
+        const bonus = selfStatusStatBonus({ name: statusName, turns: burst.turns, stat: burst.stat, pct: burst.pct, amount: burst.amount }, current);
+        if (bonus) bonuses = [...bonuses, { id: newBonusId(), stat: burst.stat as CombatBonus['stat'], amount: bonus.amount, turns: burst.turns, source: abilitySelfStatSource(row.name), label: statusName.slice(0, 80) }];
+      }
+      await onBonusesSave(bonuses);
+      const lines = [`${row.seal} «${row.name}»: ${statusName} ${burst.turns} t. (zombi: inobjetivo / no actúa, a mano)${burst.pct ? ` · +${burst.pct}% ${burst.stat ?? 'spe'}` : ''}. «Explotar» al acabar.`];
+      setLastUse({ headline: `${row.seal} «${row.name}»: al morir`, log: lines, chips: [{ kind: 'buff', text: `${statusName} ${burst.turns}t`, title: lines[0] }], undo: () => { void (async () => { await onApplySourcedEffect([participant.id], { source: effectSource, name: statusName, duration: 1, restore: snapshot }); await onBonusesSave(prev); setLastUse(null); })(); } });
+      logCombat({ title: `${row.seal} «${row.name}»: al morir`, lines, actor: participant.name });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const explodeDeathBurst = async (row: AbilityRow) => {
+    if (locked || !onBonusesSave) return;
+    const burst = row.ability.mechanics?.deathBurst;
+    const marker = abilityDeathBurst(participant.bonuses, row.name);
+    if (!burst || !marker) return;
+    const prev = participant.bonuses ?? [];
+    const source = abilityDeathBurstSource(row.name);
+    const effectSource = `ability:${row.name}`;
+    const statusName = burst.name ?? row.name;
+    setBusy(true);
+    try {
+      const bonuses = prev.filter(bonus => bonus.source !== source && bonus.source !== abilitySelfStatSource(row.name));
+      await onBonusesSave(bonuses);
+      const snapshot: Record<string, CombatEffect | null> = { [participant.id]: participant.effects.find(effect => effect.source === effectSource) ?? null };
+      await onApplySourcedEffect([participant.id], { source: effectSource, name: statusName, duration: 1, restore: { [participant.id]: null } });
+      void snapshot;
+      const lines = [`${row.seal} «${row.name}»: explota (radio del área de la habilidad). El daño verdadero de base plana se omite: va a mano.`];
+      setLastUse({ headline: `${row.seal} «${row.name}»: explosión`, log: lines, chips: [{ kind: 'buff', text: 'Explosión', title: lines[0] }], undo: () => { void onBonusesSave(prev).then(() => setLastUse(null)); } });
+      logCombat({ title: `${row.seal} «${row.name}»: explosión`, lines, actor: participant.name });
+    } finally {
+      setBusy(false);
+    }
   };
 
   /** Gasta coste / CD / fase / acción, tira el daño una vez y lo aplica a los objetivos (vacío = a nadie). */
   const runAbility = async (row: AbilityRow, chosenPhase: number | undefined, targetIds: string[]) => {
+    pendingCcGrants.length = 0;
     cancelPicking();
     if (locked) return;
     const phased = hasVariants(row.ability);
     // En modo «a elegir» se usa la fase pulsada y no se avanza.
     const choose = isChoosePhases(row.ability);
     const phaseIndex = typeof chosenPhase === 'number' ? clampPhase(row.ability, chosenPhase) : phaseOf(row);
-    const ability = activeAbility(row, phaseIndex);
+    const ability = applyEvolve(activeAbility(row, phaseIndex), isAbilityEvolved(participant.bonuses, row.name));
     const prevPhases = participant.abilityPhases;
     const nextPhases = phased && !choose
       ? { ...prevPhases, [abilityPhaseKey(row.name)]: (phaseIndex + 1) % abilityPhaseCount(row.ability) }
@@ -463,30 +607,57 @@ export default function CombatAbilityUseSection({
     const phaseNote = phased ? ` (${phaseLabels(row.ability)[phaseIndex]})` : '';
     const spend = resolvedSpendKind(ability, row.ownerResource ? { resource: row.ownerResource } : undefined);
     // Recast gratis (Danza de guerra): sin coste ni bloqueo por su efecto.
-    const recastOn = !!row.ability.mechanics?.recast && !!abilityRecast(participant.bonuses, row.name);
-    const noAction = row.ability.mechanics?.noAction === true;
-    const cost = spend.kind === 'none' || recastOn ? 0 : (parseAbilityCost(ability.cost, row.rank) ?? 0);
-    const spendPool = spend.kind === 'none' ? null : currentFor(spend.kind === 'hp' ? 'hp' : 'pool');
-    if (spendPool && cost > spendPool.current) return;
-    if (row.rank < 1 && hasDamageScaling(ability.damage)) return;
     const mechanics = row.ability.mechanics;
+    const toggleOn = !!mechanics?.toggle && !!abilityToggle(participant.bonuses, row.name);
+    const selfOn = !!(participant.effects.find(effect => effect.source === `ability:${row.name}`) || (participant.bonuses ?? []).some(bonus => bonus.source === abilitySelfStatSource(row.name) || (bonus.source ?? '').startsWith(`${abilitySelfStatSource(row.name)}:`) || bonus.source === abilitySelfDrSource(row.name)));
+    const recastOn = !!abilityRecast(participant.bonuses, row.name);
+    const noAction = row.ability.mechanics?.noAction === true;
+    const cost = spend.kind === 'none' || recastOn || toggleOn ? 0 : stackedAbilityCost(parseAbilityCost(ability.cost, row.rank) ?? 0, participant.bonuses, row.name, ability.mechanics?.costStacks);
+    const spendPool = spend.kind === 'none' ? null : currentFor(spend.kind === 'hp' ? 'hp' : 'pool');
+    if (toggleOn || (mechanics?.selfStatus?.cancelable && selfOn)) {
+      await endAbilityToggle(row);
+      return;
+    }
+    if (spendPool && cost > spendPool.current) return;
+    const hpPool = currentFor('hp');
+    const hpPct = mechanics?.costHpMaxPct;
+    const hpMinPct = mechanics?.costHpMinCurrentPct;
+    let hpCost = 0;
+    if (hpPct && !recastOn && !toggleOn && hpPool && hpPool.max) {
+      if (hpMinPct && (hpPool.current / hpPool.max) * 100 < hpMinPct) return;
+      hpCost = Math.round(hpPool.max * hpPct / 100);
+    }
+    if (row.rank < 1) return;
     const usesCharges = !!mechanics?.charges;
     if (usesCharges && (abilityCharges(row.ability, participant.bonuses, row.name)?.left ?? 0) <= 0) return;
-    if (mechanics?.stacks?.required && abilityStacks(participant.bonuses, row.name).count < mechanics.stacks.required) return;
-    if (mechanics?.buff && abilityBuff(participant.bonuses, row.name)) return;
+    const need = stacksRequirement(ability.mechanics, row.name);
+    if (need && stacksFor(need.name) < need.count) return;
+    if (mechanics?.buff && abilityBuff(participant.bonuses, row.name) && !mechanics.toggle) return;
+    const shots = mechanics?.sectorShots;
+    if (shots && (sectorShotTrigger(shots) === 'cast' || sectorShotTrigger(shots) === 'both')) {
+      const gap = (participant.bonuses ?? []).find(bonus => bonus.source === sectorGapSource(row.name) && (bonus.turns ?? 0) > 0);
+      if (gap) return;
+      if (sectorShotState(participant.bonuses, row.name, shots.count).ready <= 0) return;
+    }
     // Sin CD: no se puede usar mientras su propio efecto siga activo.
-    if (!recastOn && activeEffectOf(row)) return;
+    if ((!recastOn || ability.mechanics?.selfStatus?.blocksRecast) && mechanics?.selfStatus?.blocksAbility !== false && activeEffectOf(row)) return;
 
-    let headline: string;
+    let headline = `${row.seal} «${row.name}»`;
     let damageTotal = 0;
     let detail: string | undefined;
     const abilityLog: string[] = [`${row.seal} «${row.name}»${phaseNote} de ${participant.name}`];
     const critOn = crit;
+    const isolatedOn = isolated;
+    const inAreaOn = selfInArea;
     setCrit(false);
+    setIsolated(false);
+    setSelfInArea(false);
     let abilityCritical = false;
     const abilityChips: ResultChip[] = [];
     let abilityStats: Record<string, unknown> | null = null;
-    if (hasDamageScaling(ability.damage)) {
+    const placingTrap = !!mechanics?.trap && !mechanics.trap.applyOnPlace;
+    const placingMark = !!mechanics?.mark && mechanics.mark.damageOnDetonate !== false;
+    if (hasDamageScaling(ability.damage) && !(recastOn && mechanics?.execute) && !placingTrap && !placingMark) {
       try {
         const stats = player
           ? { ...playerTotalLine(player.sheet, player.equipamiento, level, extra), bonus: playerBonusLine(player.sheet, player.equipamiento, extra) }
@@ -501,6 +672,12 @@ export default function CombatAbilityUseSection({
         const noCrit = critical ? critNoDamageOwner() : undefined;
         const mult = critical && !noCrit ? critMultiplier(stats as Record<string, unknown>) : 1;
         damageTotal = critical && !noCrit ? Math.ceil(result.total * mult) : result.total;
+        if (isolatedOn && ability.mechanics?.isolated?.multiplier) {
+          const before = damageTotal;
+          damageTotal = Math.ceil(damageTotal * ability.mechanics.isolated.multiplier);
+          abilityLog.push(`Objetivo aislado: ${fmt(before)} × ${ability.mechanics.isolated.multiplier} = ${fmt(damageTotal)}`);
+          abilityChips.push({ kind: 'buff', text: `Aislado ×${ability.mechanics.isolated.multiplier}`, title: `Daño ${fmt(before)} × ${ability.mechanics.isolated.multiplier}` });
+        }
         headline = formatUseHeadline(row.seal, { kind: 'roll', total: damageTotal, type: ability.damage?.type });
         if (critical) headline = headline.replace(/^(\S+)/, '$1 CRÍTICO');
         detail = formatDiceBreakdown(result);
@@ -527,6 +704,7 @@ export default function CombatAbilityUseSection({
     } else if (ability.cost?.trim() && spend.kind !== 'none' && parseAbilityCost(ability.cost, row.rank) === null) {
       headline = `${headline} · coste: ${ability.cost.trim()}`;
     }
+    if (hpCost > 0) headline = `${headline} · −${hpCost} PV (${hpPct}% vida máx.)`;
 
     const cooldownKey = abilityCooldownKey(row.name);
     const effectKey = abilityActiveEffectKey(row.name);
@@ -570,6 +748,9 @@ export default function CombatAbilityUseSection({
         if (spendPool && cost > 0) await persistSpend(spendPool.kind, nextCurrent, extra);
         else if (Object.keys(extra).length > 0) await onCombatPatch(extra);
       }
+      if (spendPool && spendPool.kind === 'pool' && cost > 0) {
+        await healFromManaSpent(participant, cost, { level, effectData, callbacks: { onSelfPool: onPoolChange }, participants });
+      }
 
       const undo = isAdmin
         ? () => {
@@ -583,6 +764,10 @@ export default function CombatAbilityUseSection({
                   patch.mana = spendPool.max;
                   patch.actualMana = spendPool.current;
                 }
+              }
+              if (hpCost > 0 && hpPool) {
+                patch.hp = hpPool.max;
+                patch.actualHp = hpPool.current;
               }
               if (cdDuration > 0) {
                 patch.cooldowns = { [cooldownKey]: readCooldown(prevPlayer.cooldowns, cooldownKey) };
@@ -598,6 +783,7 @@ export default function CombatAbilityUseSection({
                 if (spendPool.kind === 'hp') patch.hp = prevCombat.hp ?? spendPool.current;
                 else patch.currentResource = prevCombat.currentResource ?? spendPool.current;
               }
+              if (hpCost > 0) patch.hp = prevCombat.hp ?? hpPool?.current;
               if (cdDuration > 0) patch.cooldowns = prevCombat.cooldowns;
               if (selfEffect) patch.activeEffects = prevCombat.activeEffects;
               if (nextPhases) patch.abilityPhases = prevPhases ?? {};
@@ -609,14 +795,105 @@ export default function CombatAbilityUseSection({
         : undefined;
 
       if (cost > 0 && spendPool) abilityLog.push(`Coste: ${cost} ${spend.label} (${spendPool.current} → ${Math.max(0, spendPool.current - cost)})`);
+      if (hpCost > 0 && hpPool) {
+        const nextHp = Math.max(1, hpPool.current - hpCost);
+        abilityLog.push(`Coste de vida: ${hpCost} PV (${hpPct}% vida máx.; ${hpPool.current} → ${nextHp}; no baja de 1)`);
+        await persistSpend('hp', nextHp);
+      }
       if (cdDuration > 0) abilityLog.push(`CD de la habilidad: ${cdDuration} t.`);
-      const allEnemies = enemyEffect && row.ability.mechanics?.allEnemies === true;
+      let usedAbility = ability;
+      if (isolatedOn && usedAbility.mechanics?.isolated?.slowPct != null && usedAbility.effect?.length) {
+        const slow = usedAbility.mechanics.isolated.slowPct;
+        usedAbility = { ...usedAbility, effect: usedAbility.effect.map((entry, index) => index === 0 ? { ...entry, values: [slow] } : entry) };
+        abilityLog.push(`Objetivo aislado: ralentización ${slow}%`);
+      }
+      const allEnemies = enemyEffect && usedAbility.mechanics?.allEnemies === true;
       const effectIds = allEnemies ? enemiesOf().map(entry => entry.id) : targetIds;
       if (effectDuration > 0) abilityLog.push(`Efecto «${(ability.effectName ?? '').trim() || row.name}» ${effectDuration} t. ${enemyEffect ? `a ${targets.filter(t => effectIds.includes(t.id)).map(t => t.name).join(', ') || 'nadie'}${allEnemies ? ' (todos los enemigos)' : ''}` : `en ${participant.name}`}`);
       abilityLog.push(...shieldUpNotes(targetIds));
       if (ability.appliesOnHit) abilityLog.push('Aplica efectos de impacto');
       setLastUse({ headline, detail, undo, log: abilityLog, ...(abilityChips.length ? { chips: abilityChips } : {}) });
-      const kills = targetIds.length > 0 || allEnemies ? await applyToTargets(row, ability, damageTotal, targetIds, effectIds, abilityLog) : [];
+      const executeRecast = !!(recastOn && mechanics?.execute);
+      let kills: string[] = [];
+      if (!placingTrap && (targetIds.length > 0 || allEnemies)) {
+        const lowHp = usedAbility.mechanics?.damageLowHp;
+        const strikeCfg = usedAbility.mechanics?.strikes;
+        const bonusAs = abilityStats ? Number((abilityStats as { atkSpePct?: number; bonus?: { atkSpePct?: number } }).atkSpePct ?? (abilityStats as { bonus?: { atkSpePct?: number } }).bonus?.atkSpePct ?? 0) || 0 : 0;
+        const strikeCount = strikeCfg ? abilityStrikeCount(strikeCfg, row.rank, bonusAs) : 1;
+        if (strikeCount > 1) abilityLog.push(`${strikeCount} golpes${strikeCfg?.perBonusAtkSpe ? ` (base ${rankValue(strikeCfg.count, row.rank) ?? strikeCfg.count[0]} + vel. ataque bonus ${fmt(bonusAs)}%)` : ''}`);
+        for (let strike = 0; strike < strikeCount; strike++) {
+          const skipFx = executeRecast || strike > 0;
+        if (lowHp && damageTotal > 0 && !executeRecast) {
+          for (const id of (allEnemies ? effectIds : targetIds)) {
+            const who = participants.find(entry => entry.id === id);
+            const hp = who ? participantHp(who) : null;
+            let dealt = damageTotal;
+            if (hp?.max) {
+              const mult = damageLowHpMultiplier(lowHp, hp.current, hp.max);
+              dealt = Math.ceil(damageTotal * mult);
+              if (mult !== 1 && strike === 0) abilityLog.push(`${who?.name ?? id}: vida ${fmt(hp.current)}/${fmt(hp.max)} → daño ×${fmt(mult)} = ${fmt(dealt)}`);
+            } else if (strike === 0) {
+              abilityLog.push(`${who?.name ?? id}: bonus de vida baja a mano (no hay vida de combate)`);
+            }
+            const more = await applyToTargets(row, usedAbility, dealt, [id], skipFx ? [] : (effectIds.includes(id) ? [id] : []), abilityLog, skipFx ? { skipEffects: true, lifeSteal: false } : undefined);
+            kills = [...new Set([...kills, ...more])];
+          }
+          // efectos a quienes no recibieron daño en el bucle (solo allEnemies sin estar en damage list)
+        } else {
+          kills = [...new Set([...kills, ...await applyToTargets(row, usedAbility, damageTotal, targetIds, skipFx ? [] : effectIds, abilityLog, skipFx ? { skipEffects: true, lifeSteal: false } : undefined)])];
+        }
+        }
+      }
+      if (executeRecast && !headline) headline = `${row.seal} «${row.name}» · Execute`;
+      const stackCfg = ability.mechanics?.stackDamage;
+      if (stackCfg && targetIds.length > 0 && !placingTrap) {
+        const stacks = stacksFor(stackCfg.from);
+        const dmgRank = stackCfg.byLevel ? milestoneRank(level) : row.rank;
+        const extra = stackDamageAmount(stackCfg.pct, dmgRank, stacks);
+        if (extra > 0) {
+          const typ = stackCfg.type === 'physical' ? 'físico' : stackCfg.type === 'true' ? 'verdadero' : 'mágico';
+          abilityLog.push(`Daño extra por cargas de «${stackCfg.from}»: ${extra} ${typ} a cada objetivo (${rankValue(stackCfg.pct, dmgRank)}% × ${stacks}${stackCfg.byLevel ? ', tramo de nivel' : ''})`);
+          const more = await applyToTargets(row, ability, extra, targetIds, [], abilityLog, { skipEffects: true, lifeSteal: false });
+          kills = [...new Set([...kills, ...more])];
+        }
+      }
+
+      // Daño % de vida (por objetivo).
+      if (ability.damage?.hp && targetIds.length && !(recastOn && mechanics?.execute) && !placingTrap) {
+        for (const id of targetIds) {
+          const who = participants.find(entry => entry.id === id);
+          if (!who) continue;
+          const hp = hpForDamage(ability.damage, who);
+          const extra = hp ? hpDamageAmount(ability.damage, row.rank, hp) : 0;
+          if (extra <= 0) continue;
+          const origin = hpOrigin(ability.damage);
+          abilityLog.push(`Daño de vida (${origin}): ${extra} a ${who.name}`);
+          const more = await applyToTargets(row, ability, extra, [id], [], abilityLog, { skipEffects: true });
+          kills = [...new Set([...kills, ...more])];
+        }
+      }
+      if (mechanics?.returnStrike && targetIds.length && damageTotal > 0 && !placingTrap && !(recastOn && mechanics?.execute)) {
+        const typ = mechanics.returnStrike.type;
+        const typLabel = typ === 'physical' ? 'físico' : typ === 'true' ? 'verdadero' : 'mágico';
+        const typeName = typ === 'true' ? 'verdadero' : typ === 'physical' ? 'físico' : 'mágico';
+        const returned = { ...usedAbility, damage: { ...(usedAbility.damage ?? ability.damage), type: typeName } };
+        abilityLog.push(`Vuelta: ${fmt(damageTotal)} ${typLabel} a cada objetivo (el mismo monto; si la trayectoria de vuelta no coincide, a mano)`);
+        const more = await applyToTargets(row, returned, damageTotal, targetIds, [], abilityLog, { skipEffects: true, lifeSteal: false });
+        kills = [...new Set([...kills, ...more])];
+      }
+      if (mechanics?.execute && recastOn) {
+        const done = await applyExecute(row, mechanics.execute, targetIds, abilityLog);
+        kills = [...new Set([...kills, ...done.kills])];
+        if (done.headline) headline = done.headline;
+        abilityChips.push(...done.chips);
+      } else if (mechanics?.execute && targetIds.length && !placingTrap) {
+        const ready = targetIds.filter(id => {
+          const who = participants.find(entry => entry.id === id);
+          const hp = who ? participantHp(who) : null;
+          return hp && isBelowExecuteThreshold(hp, mechanics.execute!.hpPct);
+        });
+        if (ready.length) abilityLog.push(`Execute listo (≤ ${mechanics.execute.hpPct}% vida máx. en ${ready.map(id => participants.find(entry => entry.id === id)?.name).join(', ')}): usa Recast`);
+      }
       if (abilityStats && targetIds.length > 0 && damageTotal > 0) {
         const kind = /m[aá]gic/i.test(ability.damage?.type ?? '') ? 'magic' : 'physical';
         const trueDamage = /verdader|\btrue\b/i.test(ability.damage?.type ?? '');
@@ -627,11 +904,29 @@ export default function CombatAbilityUseSection({
       }
       // Mecánicas de la habilidad (cargas de uso, cargas por impacto gastadas, buff, estado de la pasiva): van con los bonus de las pasivas.
       if (recastOn) abilityLog.push('Recast: gratis (sin coste)');
-      const seed = await abilityMechanicsSeed(row, targetIds, abilityCritical);
+      let seed = reduceEmpoweredOnAbilityUse(await abilityMechanicsSeed(row, targetIds, abilityCritical, usedAbility, { selfInArea: inAreaOn }));
+      if (seed) seed.bonuses = await applyCcStackGrants(seed.bonuses, seed.log, seed.chips);
+      if (kills.length && seed) {
+        let nextBonuses = seed.bonuses;
+        for (const entry of rows) {
+          const resolved = applyEvolve(activeAbility(entry, phaseOf(entry)), isAbilityEvolved(nextBonuses, entry.name) || isAbilityEvolved(participant.bonuses, entry.name));
+          const rec = resolved.mechanics?.recastOnTakedown;
+          if (!rec || entry.rank < 1) continue;
+          const takeIds = rec.champion ? championKillIds(kills) : [...new Set(kills)];
+          if (!takeIds.length) continue;
+          nextBonuses = grantAbilityRecast(nextBonuses, entry.name, rec, newBonusId, entry.name);
+          seed.log.push(`${entry.seal} «${entry.name}»: recast por ${rec.champion ? 'derribo de campeón' : 'eliminación/asistencia'} ×${rec.times}${rec.turns ? ` ${rec.turns} t.` : ' hasta usarlo'}${rec.max ? ` (máx. ${rec.max})` : ''}`);
+          seed.chips.push({ kind: 'buff', text: `Recast ${entry.name}`, title: rec.champion ? 'Al derribar campeón' : 'Al matar / asistir' });
+        }
+        seed.bonuses = nextBonuses;
+      }
+      const nextActions = actionsAfterFixedAttacks(seed?.bonuses ?? participant.bonuses, !noAction);
+      if (nextActions) await combatPatchRef.current({ actionsLeft: nextActions });
       // Escudo / cura a un aliado: los objetivos son aliados, no cuentan como impactos.
       const hitIds = row.ability.mechanics?.castPool?.target === 'ally' ? [] : targetIds;
+      if (hitIds.length) seed = await detonateMarks(hitIds, 'ability', row, seed);
       // Cargas de combate (Flujo de maná): solo si la habilidad ha hecho daño a algún objetivo (1 carga por uso).
-      const passive = noAction ? await seedOnly(seed) : await passivesFor('on-ability', hitIds, kills, ability.appliesOnHit === true, damageTotal > 0, seed);
+      const passive = noAction ? await seedOnly(seed) : await passivesFor('on-ability', hitIds, kills, ability.appliesOnHit === true, damageTotal > 0, seed, { ultimate: row.seal === 'R' });
       setLastUse(current => (current ? withPassives({ ...current, log: abilityLog }, passive) : current));
       const targetNames = targets.filter(t => targetIds.includes(t.id)).map(t => t.name).join(', ');
       logCombat({
@@ -653,7 +948,164 @@ export default function CombatAbilityUseSection({
    * on-ability arma el siguiente AA y salta «Al acertar habilidad»; kills dispara «Al matar / asistir».
    * Un solo guardado de los bonus del usuario y un Deshacer que lo revierte todo.
    */
-  const passivesFor = async (trigger: 'on-hit' | 'on-ability', targetIds: string[], kills: string[] = [], abilityOnHit = false, damaged?: boolean, seed?: MechanicsSeed): Promise<PassiveResult> => {
+  const pendingCcGrants: { count: number; effectName: string }[] = [];
+
+  const syncStackMaxStatus = (owner: { seal: string; name: string; rank: number; ability: Ability }, bonuses: CombatBonus[], log?: string[], chips?: ResultChip[]): CombatBonus[] => {
+    const stacks = owner.ability.mechanics?.stacks;
+    const source = abilityStackMaxStatusSource(owner.name);
+    const without = bonuses.filter(bonus => bonus.source !== source);
+    const status = stacks?.onMaxStatus;
+    if (!stacks || !status || owner.rank < 1) return without;
+    const permanent = hasPermanentMaxStacks(owner.ability.mechanics?.levelThresholds, level);
+    const count = permanent ? stacks.max : abilityStacks(bonuses, owner.name).count;
+    if (count < stacks.max) return without;
+    const context = participantContext(participant, level, extra);
+    const stats = context?.ctx.stats as Record<string, unknown> | undefined;
+    const current = status.stat && stats ? (typeof stats[status.stat] === 'number' ? Number(stats[status.stat]) : 0) : 0;
+    const raw = (status.amount ?? 0) + (status.pct && current ? (status.pct / 100) * current : 0);
+    const amount = Math.round(raw * 10) / 10;
+    const turns = permanent ? undefined : stacks.turns;
+    if (amount === 0 && status.pct) {
+      log?.push(`${owner.seal} «${owner.name}»: ${status.name ?? 'al máximo'} ${status.pct}% ${status.stat} a mano (sin stat actual)`);
+      return without;
+    }
+    if (!status.stat || !amount) return without;
+    log?.push(`${owner.seal} «${owner.name}»: ${status.name ?? 'al máximo'} +${fmt(amount)} ${status.stat}${status.pct ? ` (${status.pct}% de ${fmt(current)})` : ''}${turns ? ` ${turns} t.` : ' permanente'}`);
+    chips?.push({ kind: 'buff', text: `${status.name ?? owner.name} +${fmt(amount)} ${status.stat}`, title: 'Al máximo de cargas' });
+    return [...without, { id: newBonusId(), stat: status.stat, amount, ...(turns ? { turns } : {}), source, label: (status.name ?? owner.name).slice(0, 80) }];
+  };
+
+  const ensurePermanentMaxStacks = (owner: { name: string; rank: number; ability: Ability }, bonuses: CombatBonus[]): CombatBonus[] => {
+    const stacks = owner.ability.mechanics?.stacks;
+    if (!stacks || owner.rank < 1 || !hasPermanentMaxStacks(owner.ability.mechanics?.levelThresholds, level)) return bonuses;
+    const source = abilityStacksSource(owner.name);
+    const current = abilityStacks(bonuses, owner.name);
+    if (current.count >= stacks.max && current.marker && current.marker.turns == null) return bonuses;
+    const marker: CombatBonus = { id: current.marker?.id ?? newBonusId(), stat: 'stacks', amount: stacks.max, maxStacks: stacks.max, source, label: owner.name.slice(0, 80) };
+    return [...bonuses.filter(bonus => bonus.source !== source), marker];
+  };
+
+  const applyStackThresholds = async (owner: { seal: string; name: string; rank: number; ability: Ability }, bonuses: CombatBonus[], log: string[], chips: ResultChip[]): Promise<CombatBonus[]> => {
+    const stacks = owner.ability.mechanics?.stacks;
+    if (!stacks || owner.rank < 1) return bonuses;
+    const current = abilityStacks(bonuses, owner.name);
+    if (current.count < stacks.max) return bonuses;
+    let next = bonuses;
+    if (stacks.armArmedAaAtMax && owner.ability.mechanics?.armedAa) {
+      next = armAbilityArmedAa(next, owner.name, newBonusId, owner.name, stacks.armArmedAaTurns);
+      log.push(`${owner.seal} «${owner.name}»: ${current.count}/${stacks.max} cargas → AA armado${stacks.armArmedAaTurns ? ` ${stacks.armArmedAaTurns} t.` : ''}`);
+      chips.push({ kind: 'buff', text: `${owner.name} AA armado`, title: 'Al llegar al máximo de cargas' });
+    }
+    next = syncStackMaxStatus(owner, next, log, chips);
+    const heal = stacks.onMaxHeal;
+    if (!heal || (!heal.selfRatios?.length && !heal.allyRatios?.length && !heal.flat?.length)) return next;
+    if (stacks.onMaxCooldown && next.some(bonus => bonus.source === abilityStackHealCdSource(owner.name) && (bonus.turns ?? 0) > 0)) {
+      log.push(`${owner.seal} «${owner.name}»: ${current.count}/${stacks.max} cargas, cura en intervalo (ruge cuando acabe, a mano)`);
+      return next;
+    }
+    if (stacks.consumeAtMax) {
+      next = next.filter(bonus => bonus.source !== abilityStacksSource(owner.name));
+    }
+    if (stacks.onMaxCooldown) {
+      const cdSource = abilityStackHealCdSource(owner.name);
+      next = [...next.filter(bonus => bonus.source !== cdSource), { id: newBonusId(), stat: 'buff', amount: 1, turns: stacks.onMaxCooldown, source: cdSource, label: owner.name.slice(0, 80) }];
+    }
+    const selfHeal = computeAbilityHeal(owner, heal);
+    if (selfHeal && selfHeal.amount > 0 && onPoolChange) {
+      await onPoolChange('heal', selfHeal.amount);
+      log.push(`${owner.seal} «${owner.name}»: cura a ${participant.name} ${selfHeal.amount} (${selfHeal.text})`);
+      chips.push({ kind: 'buff', text: `Cura ${selfHeal.amount}`, title: owner.name });
+    }
+    if (heal.alliesToo && heal.allyRatios?.length && onTargetPool) {
+      const allies = participants.filter(entry => entry.id !== participant.id && !entry.defeated && !enemiesOf().some(foe => foe.id === entry.id));
+      for (const ally of allies) {
+        const hp = participantHp(ally);
+        const pct = rankValue(heal.allyRatios[0]?.values, owner.rank) ?? 0;
+        const raw = (pct / 100) * (hp?.max ?? 0);
+        if (raw <= 0) continue;
+        const context = participantContext(participant, level, extra);
+        const done = context ? poolAmount(raw, context.ctx, true) : { amount: Math.round(raw), text: `${Math.round(raw)}` };
+        if (done.amount <= 0) continue;
+        await onTargetPool(ally.id, 'heal', done.amount);
+        log.push(`${owner.seal} «${owner.name}»: cura a ${ally.name} ${done.amount} (${pct}% vida máx. de ${ally.name} → ${done.text}; radio 5 casillas, a mano si está fuera)`);
+      }
+    }
+    return next;
+  };
+
+  const applyCcStackGrants = async (bonuses: CombatBonus[], log: string[], chips: ResultChip[]): Promise<CombatBonus[]> => {
+    const total = pendingCcGrants.reduce((sum, grant) => sum + grant.count, 0);
+    pendingCcGrants.length = 0;
+    if (total <= 0) return bonuses;
+    let next = bonuses;
+    for (const owner of rows) {
+      const stacks = owner.ability.mechanics?.stacks;
+      if (!stacks?.onChampionCc || owner.rank < 1) continue;
+      const times = stacks.perTarget ? total : 1;
+      for (let i = 0; i < times; i++) {
+        const gained = gainAbilityStack(next, owner.ability, owner.name, newBonusId);
+        if (!gained) break;
+        next = gained.bonuses;
+        log.push(`${owner.seal} «${owner.name}»: control a campeón → carga ${gained.before} → ${gained.after}/${gained.max}${gained.turns ? ` (${gained.turns} t.)` : ''}`);
+        chips.push({ kind: 'buff', text: `${owner.name} ${gained.after}/${gained.max}`, title: 'Cargas al aplicar control a un campeón' });
+        if (gained.after >= gained.max) next = await applyStackThresholds(owner, next, log, chips);
+      }
+    }
+    return next;
+  };
+
+  const championKillIds = (ids: string[]): string[] => [...new Set(ids)].filter(id => {
+    const kind = participants.find(entry => entry.id === id)?.kind;
+    return kind === 'champion' || kind === 'player';
+  });
+
+  const computeAbilityHeal = (owner: { rank: number }, heal: { flat?: number[]; flatByLevel?: boolean; ratios?: { stat: string; values: number[] }[]; selfRatios?: { stat: string; values: number[] }[] }): { amount: number; text: string } | null => {
+    const context = participantContext(participant, level, extra);
+    const stats = context ? context.ctx.stats as Record<string, unknown> & { bonus?: Record<string, unknown> } : undefined;
+    const key: Record<string, string> = { armor: 'ac', bonusArmor: 'ac', mr: 'mr', bonusMr: 'mr', hp: 'hp', bonusHp: 'hp', mana: 'mana', bonusMana: 'mana', ad: 'ad', bonusAd: 'ad', ap: 'ap' };
+    const statNum = (value: unknown): number => (typeof value === 'number' && Number.isFinite(value) ? value : 0);
+    const statValue = (stat: string): number => {
+      if (!stats) return 0;
+      if (stat === 'baseAd') return Math.max(0, statNum(stats.ad) - statNum(stats.bonus?.ad));
+      if (stat === 'missingHp') return Math.max(0, context?.ctx.missingHp ?? 0);
+      if (stat === 'hp' || stat === 'maxHp') return participantHp(participant)?.max ?? statNum(stats.hp);
+      if (stat.startsWith('bonus')) return statNum(stats.bonus?.[key[stat] ?? stat]);
+      return statNum(stats[key[stat] ?? stat]);
+    };
+    const healRank = heal.flatByLevel ? Math.max(1, milestoneRank(level)) : owner.rank;
+    const flat = rankValue(heal.flat, healRank) ?? 0;
+    let raw = flat;
+    const parts: string[] = flat ? [`${fmt(flat)} base${heal.flatByLevel ? ` (tramo ${healRank})` : ''}`] : [];
+    for (const ratio of [...(heal.ratios ?? []), ...(heal.selfRatios ?? [])]) {
+      const pct = rankValue(ratio.values, owner.rank) ?? (ratio.values[0] ?? 0);
+      if (!pct) continue;
+      const base = statValue(ratio.stat);
+      const add = (pct / 100) * base;
+      raw += add;
+      parts.push(`${fmt(pct)}% ${ratio.stat} (${fmt(base)}) = ${fmt(add)}`);
+    }
+    if (raw <= 0) return null;
+    const done = context ? poolAmount(raw, context.ctx, true) : { amount: Math.round(raw), text: `${Math.round(raw)}` };
+    return { amount: done.amount, text: `${parts.join(' + ') || '0'} → ${done.text}` };
+  };
+
+  const applyTakedownHeals = async (killIds: string[], log: string[], chips: ResultChip[]): Promise<void> => {
+    for (const owner of rows) {
+      const heal = owner.ability.mechanics?.takedownHeal;
+      if (!heal || owner.rank < 1) continue;
+      const ids = heal.champion ? championKillIds(killIds) : [...new Set(killIds)];
+      if (!ids.length) continue;
+      for (let i = 0; i < ids.length; i++) {
+        const given = computeAbilityHeal(owner, heal);
+        if (!given || given.amount <= 0 || !onPoolChange) continue;
+        await onPoolChange('heal', given.amount);
+        log.push(`${owner.seal} «${owner.name}»: cura al derribar ${given.amount} (${given.text})`);
+        chips.push({ kind: 'buff', text: `Cura ${given.amount}`, title: `${owner.name}: al derribar` });
+      }
+    }
+  };
+
+  const passivesFor = async (trigger: 'on-hit' | 'on-ability', targetIds: string[], kills: string[] = [], abilityOnHit = false, damaged?: boolean, seed?: MechanicsSeed, opts?: { ultimate?: boolean }): Promise<PassiveResult> => {
     const base = participantContext(participant, level, extra);
     const items = base?.items ?? [];
     const prev = participant.bonuses ?? [];
@@ -663,19 +1115,25 @@ export default function CombatAbilityUseSection({
     const chips: ResultChip[] = [...(seed?.chips ?? [])];
     const log: string[] = [...(seed?.log ?? [])];
     const undos: (() => Promise<void>)[] = [...(seed?.undos ?? [])];
-    // Cargas por efecto de impacto (Concentración de Ashe…): AA que golpea o habilidad con «Aplica efectos de impacto».
-    if (targetIds.length > 0 && (trigger === 'on-hit' || abilityOnHit)) {
-      for (const owner of rows) {
-        if (!owner.ability.mechanics?.stacks) continue;
-        const gained = gainAbilityStack(bonuses, owner.ability, owner.name, newBonusId);
-        if (!gained) {
-          if (abilityBuff(bonuses, owner.name)) log.push(`${owner.seal} «${owner.name}»: activa → no acumula cargas`);
-          continue;
+    // Cargas: AA, habilidad con «Aplica efectos de impacto», o habilidad que dañe si el contador tiene onAbilityHit.
+    const usedRequires = seed?.usedRequires;
+    if (targetIds.length > 0 && (trigger === 'on-hit' || trigger === 'on-ability' || abilityOnHit || damaged)) {
+      for (const owner of stackGainOwners(rows, { trigger, abilityOnHit, damaged: damaged === true, usedName: seed?.usedName, usedRequires })) {
+        const times = owner.ability.mechanics?.stacks?.perTarget ? targetIds.length : 1;
+        let stopped = false;
+        for (let n = 0; n < times && !stopped; n++) {
+          const gained = gainAbilityStack(bonuses, owner.ability, owner.name, newBonusId);
+          if (!gained) {
+            if (abilityBuff(bonuses, owner.name)) log.push(`${owner.seal} «${owner.name}»: activa → no acumula cargas`);
+            stopped = true;
+            continue;
+          }
+          bonuses = gained.bonuses;
+          changed = true;
+          chips.push({ kind: 'buff', text: `${owner.name} ${gained.after}/${gained.max}`, title: `Cargas por efecto de impacto (duran ${gained.turns} t.)` });
+          log.push(`${owner.seal} «${owner.name}»: efecto de impacto → carga ${gained.before} → ${gained.after}/${gained.max} (dura ${gained.turns} t., se refresca)${owner.ability.mechanics?.stacks?.required && gained.after >= owner.ability.mechanics.stacks.required ? ' · ya se puede activar' : ''}`);
+          if (gained.after >= gained.max) bonuses = await applyStackThresholds(owner, bonuses, log, chips);
         }
-        bonuses = gained.bonuses;
-        changed = true;
-        chips.push({ kind: 'buff', text: `${owner.name} ${gained.after}/${gained.max}`, title: `Cargas por efecto de impacto (duran ${gained.turns} t.)` });
-        log.push(`${owner.seal} «${owner.name}»: efecto de impacto → carga ${gained.before} → ${gained.after}/${gained.max} (dura ${gained.turns} t., se refresca)${owner.ability.mechanics.stacks.required && gained.after >= owner.ability.mechanics.stacks.required ? ' · ya se puede activar' : ''}`);
       }
     }
     // Recarga por campeón alcanzado (Plumas feéricas): AA o habilidad que alcanza campeones.
@@ -692,7 +1150,7 @@ export default function CombatAbilityUseSection({
     if (championHits > 0) {
       for (const owner of rows) {
         const per = owner.ability.mechanics?.charges?.reducePerChampionHit;
-        if (!per) continue;
+        if (!per || owner.rank < 1) continue;
         const reduced = reduceChargeRecharge(bonuses, owner.ability, owner.name, per * championHits);
         if (!reduced) continue;
         bonuses = reduced.bonuses;
@@ -701,6 +1159,122 @@ export default function CombatAbilityUseSection({
         chips.push({ kind: 'cd', text: reduced.recharged ? `${owner.name} lista` : `${owner.name} −${per * championHits}t`, title: 'Recarga por campeón alcanzado' });
       }
     }
+    // Cargas permanentes (p. ej. Dragon Practice): +1 por campeón único alcanzado; tope y derribos según grantPermanent.
+    if (trigger === 'on-ability' && (damaged || kills.length > 0 || (seed?.consumedStacks?.count ?? 0) > 0)) {
+      const used = seed?.usedName ? rows.find(entry => sameAbilityName(entry.name, seed.usedName!)) : undefined;
+      const defaultOwner = rows.find(entry => entry.ability.mechanics?.permanentStacks && entry.ability.mechanics.permanentStacks.onAbilityChampionHit !== false);
+      const grant = used?.ability.mechanics?.grantPermanent;
+      const fromName = grant?.from?.trim() || defaultOwner?.name;
+      const owner = fromName ? rows.find(entry => sameAbilityName(entry.name, fromName)) : undefined;
+      if (owner && owner.rank >= 1 && (grant || defaultOwner) && (grant || owner.ability.mechanics?.permanentStacks?.onAbilityChampionHit !== false)) {
+        const champIds = targetIds.filter(id => {
+          const kind = participants.find(entry => entry.id === id)?.kind;
+          return id !== participant.id && (kind === 'champion' || kind === 'player');
+        });
+        const minionKills = grant?.onKill ? kills.filter(id => {
+          const kind = participants.find(entry => entry.id === id)?.kind;
+          return kind !== 'champion' && kind !== 'player';
+        }) : [];
+        let add = grant?.perConsumedStack ? (seed?.consumedStacks?.count ?? 0) : (champIds.length + minionKills.length);
+        if (grant?.maxPerCast && !grant.perConsumedStack) add = Math.min(add, grant.maxPerCast);
+        const cap = owner.ability.maxStacks ?? 999;
+        if (add > 0) {
+          const key = abilityStackKey(owner.name);
+          const source = permanentAbilityStackSource(owner.name);
+          if (player && onPlayerPatch) {
+            const before = readStack(player.stacks, key);
+            const after = Math.min(cap, before + add);
+            if (after !== before) {
+              const prevStacks = { ...(player.stacks ?? {}) };
+              const nextStacks = { ...prevStacks, [key]: after };
+              await onPlayerPatch(player.name, { stacks: nextStacks });
+              undos.unshift(async () => { await onPlayerPatch(player.name, { stacks: prevStacks }); });
+              changed = true;
+              chips.push({ kind: 'buff', text: `${owner.name} ${after}`, title: 'Cargas permanentes (ficha)' });
+              log.push(`${owner.seal} «${owner.name}»: cargas permanentes ${before} → ${after}${cap < 999 ? `/${cap}` : ''}${champIds.length ? ` · +${Math.min(champIds.length, add)} por campeón` : ''}${minionKills.length ? ` · +${minionKills.length} por derribo` : ''}`);
+            }
+          } else if (onBonusesSave) {
+            const before = readPermanentAbilityStacks({ name: owner.name, bonuses });
+            const after = Math.min(cap, before + add);
+            if (after !== before) {
+              const marker = bonuses.find(bonus => bonus.source === source);
+              bonuses = [...bonuses.filter(bonus => bonus.source !== source), { id: marker?.id ?? newBonusId(), stat: 'stacks', amount: after, ...(cap < 999 ? { maxStacks: cap } : {}), source, label: owner.name.slice(0, 80) }];
+              changed = true;
+              chips.push({ kind: 'buff', text: `${owner.name} ${after}`, title: 'Cargas permanentes (este combate)' });
+              log.push(`${owner.seal} «${owner.name}»: cargas permanentes ${before} → ${after}${cap < 999 ? `/${cap}` : ''} (solo este combate)${champIds.length ? ` · +${Math.min(champIds.length, add)} por campeón` : ''}${minionKills.length ? ` · +${minionKills.length} por derribo` : ''}`);
+            }
+          }
+        }
+      }
+    }
+    if (kills.length) {
+      for (const owner of rows) {
+        if (owner.rank < 1) continue;
+        const perm = owner.ability.mechanics?.permanentStacks;
+        if (perm?.onTakedown) {
+          let add = 0;
+          for (const id of new Set(kills)) {
+            const kind = participants.find(entry => entry.id === id)?.kind;
+            if (kind === 'champion' || kind === 'player') add += perm.takedownChampion ?? 1;
+            else add += perm.takedownOther ?? 0;
+          }
+          const cap = owner.ability.maxStacks ?? 999;
+          if (add > 0 && player && onPlayerPatch) {
+            const key = abilityStackKey(owner.name);
+            const before = readStack(player.stacks, key);
+            const after = Math.min(cap, before + add);
+            if (after !== before) {
+              const prevStacks = { ...(player.stacks ?? {}) };
+              const nextStacks = { ...prevStacks, [key]: after };
+              await onPlayerPatch(player.name, { stacks: nextStacks });
+              undos.unshift(async () => { await onPlayerPatch(player.name, { stacks: prevStacks }); });
+              changed = true;
+              chips.push({ kind: 'buff', text: `${owner.name} ${after}`, title: 'Cargas permanentes (ficha)' });
+              log.push(`${owner.seal} «${owner.name}»: derribo → cargas permanentes ${before} → ${after} (+${add})`);
+            }
+          } else if (add > 0 && onBonusesSave) {
+            const source = permanentAbilityStackSource(owner.name);
+            const before = readPermanentAbilityStacks({ name: owner.name, bonuses });
+            const after = Math.min(cap, before + add);
+            if (after !== before) {
+              const marker = bonuses.find(bonus => bonus.source === source);
+              bonuses = [...bonuses.filter(bonus => bonus.source !== source), { id: marker?.id ?? newBonusId(), stat: 'stacks', amount: after, ...(cap < 999 ? { maxStacks: cap } : {}), source, label: owner.name.slice(0, 80) }];
+              changed = true;
+              chips.push({ kind: 'buff', text: `${owner.name} ${after}`, title: 'Cargas permanentes (este combate)' });
+              log.push(`${owner.seal} «${owner.name}»: derribo → cargas permanentes ${before} → ${after} (+${add}, solo este combate)`);
+            }
+          }
+        }
+        if (owner.ability.mechanics?.stacks?.onChampionTakedown) {
+          const champKills = championKillIds(kills).length;
+          for (let i = 0; i < champKills; i++) {
+            const gained = gainAbilityStack(bonuses, owner.ability, owner.name, newBonusId);
+            if (!gained) break;
+            bonuses = gained.bonuses;
+            changed = true;
+            log.push(`${owner.seal} «${owner.name}»: coral/carga ${gained.before} → ${gained.after}/${gained.max} (${gained.turns} t.)`);
+            chips.push({ kind: 'buff', text: `${owner.name} ${gained.after}/${gained.max}`, title: `${gained.turns} t.` });
+            if (gained.after >= gained.max) bonuses = await applyStackThresholds(owner, bonuses, log, chips);
+          }
+        }
+        if (owner.ability.mechanics?.stacks?.onNonChampionKill && owner.rank >= 1) {
+          const minionKills = [...new Set(kills)].filter(id => {
+            const kind = participants.find(entry => entry.id === id)?.kind;
+            return kind !== 'champion' && kind !== 'player';
+          }).length;
+          for (let i = 0; i < minionKills; i++) {
+            const gained = gainAbilityStack(bonuses, owner.ability, owner.name, newBonusId);
+            if (!gained) break;
+            bonuses = gained.bonuses;
+            changed = true;
+            log.push(`${owner.seal} «${owner.name}»: no campeón derribado → carga ${gained.before} → ${gained.after}/${gained.max} (${gained.turns} t.)`);
+            chips.push({ kind: 'buff', text: `${owner.name} ${gained.after}/${gained.max}`, title: `${gained.turns} t.` });
+            if (gained.after >= gained.max) bonuses = await applyStackThresholds(owner, bonuses, log, chips);
+          }
+        }
+      }
+    }
+    if (kills.length) await applyTakedownHeals(kills, log, chips);
     if (base) {
       const effects = [...activeNamedEffects(items, effectData), ...(base.abilityEffects ?? [])];
       const callbacks: EffectCallbacks = {
@@ -710,6 +1284,12 @@ export default function CombatAbilityUseSection({
         onSelfPool: onPoolChange,
         pickArea: (primary, name) => askTargets(`${name}: objetivo + cercanos`, primary),
         onPermanentStack: permanentStackSaver(participant, onPlayerPatch),
+        onGrantAction: async (kind, amount) => {
+          const nextLeft = (left[kind] ?? 0) + amount;
+          const nextExtra = extras[kind] + amount;
+          if (onActionsSave) await onActionsSave(kind, nextLeft, nextExtra);
+          else await combatPatchRef.current({ actionsLeft: { ...participant.actionsLeft, attacks: left.attacks, abilities: left.abilities, [kind]: nextLeft } });
+        },
       };
       const fire = async (name: EffectTriggerName, ids: string[], basicAttack = true) => {
         const result = await fireEffectRules({ trigger: name, effects, ctx: base.ctx, bonuses, targetIds: ids, participants, level, callbacks, bearer: { id: participant.id, name: participant.name }, basicAttack, ...(name === 'on-ability-hit' && damaged !== undefined ? { damaged } : {}) });
@@ -721,6 +1301,7 @@ export default function CombatAbilityUseSection({
         undos.push(...result.undos);
         return result;
       };
+      if (opts?.ultimate) await fire('on-ultimate-use', targetIds, false);
       if (trigger === 'on-ability') {
         const armed = armAfterAbility(effects, bonuses, base.ctx);
         if (armed.names.length) {
@@ -817,10 +1398,10 @@ export default function CombatAbilityUseSection({
   };
   /** Suma la nota de las pasivas y encadena su Deshacer antes que el resto. */
   /** Omnivampirismo (+ robo de vida si lifeSteal) del portador sobre un daño hecho. */
-  const vampFor = async (dealt: number, lifeSteal: boolean, origin: string) => {
+  const vampFor = async (dealt: number, lifeSteal: boolean, origin: string, efficacy?: number) => {
     const context = participantContext(participant, level, extra);
     if (!context || !(dealt > 0)) return null;
-    return vampHeal({ dealt, ctx: context.ctx, lifeSteal, onSelfPool: onPoolChange, origin, bearerName: participant.name });
+    return vampHeal({ dealt, ctx: context.ctx, lifeSteal, ...(lifeSteal && efficacy != null ? { lifeStealEfficacy: efficacy } : {}), onSelfPool: onPoolChange, origin, bearerName: participant.name });
   };
 
   /** Solo las mecánicas de la habilidad (sin reglas de ítems ni «tras habilidad»): habilidades que no gastan acción. */
@@ -902,11 +1483,92 @@ export default function CombatAbilityUseSection({
   const passiveRow = (): AbilityRow | undefined => rows.find(entry => entry.seal === 'P');
   const nameOf = (id: string): string => participants.find(entry => entry.id === id)?.name ?? id;
 
+  /** Cargas de un contador: permanentes (ficha o marcador de combate) si esa habilidad las tiene; si no, cargas de combate. */
+  const stacksFor = (name: string): number => {
+    const owner = rows.find(entry => sameAbilityName(entry.name, name));
+    if (owner?.ability.hasStacks || owner?.ability.mechanics?.permanentStacks) {
+      return readPermanentAbilityStacks({ name, playerStacks: player?.stacks, bonuses: participant.bonuses });
+    }
+    return abilityStacks(participant.bonuses, name).count;
+  };
+
+  /** Apaga un interruptor: quita buff, estado propio y el marcador, sin coste. */
+  const endAbilityToggle = async (row: AbilityRow) => {
+    const prev = participant.bonuses ?? [];
+    const selfStat = abilitySelfStatSource(row.name);
+    const sources = new Set([abilityToggleSource(row.name), abilityBuffSource(row.name), abilityBuffStatSource(row.name), selfStat, abilityRecastSource(row.name), abilityFixedAttacksSource(row.name), abilitySelfDrSource(row.name)]);
+    const next = prev.filter(bonus => {
+      const source = bonus.source ?? '';
+      return !sources.has(source) && !source.startsWith(`${selfStat}:`);
+    });
+    const undos: (() => Promise<void>)[] = [];
+    if (onBonusesSave && next.length !== prev.length) {
+      await onBonusesSave(next);
+      undos.push(async () => { await onBonusesSave(prev); });
+    }
+    const nextActions = actionsAfterFixedAttacks(next);
+    if (nextActions) {
+      await combatPatchRef.current({ actionsLeft: nextActions });
+      undos.push(async () => { await combatPatchRef.current({ actionsLeft: prevActions }); });
+    }
+    const source = `ability:${row.name}`;
+    const current = participant.effects.find(effect => effect.source === source) ?? null;
+    if (current) {
+      await onApplySourcedEffect([participant.id], { source, name: current.name, duration: 1, restore: { [participant.id]: null } });
+      undos.push(async () => { await onApplySourcedEffect([participant.id], { source, name: current.name, duration: current.duration, restore: { [participant.id]: current } }); });
+    }
+    const lines = [`${row.seal} «${row.name}»: se desactiva`];
+    setLastUse({
+      headline: `${row.seal} «${row.name}» desactivado`,
+      log: lines,
+      undo: undos.length ? () => { void (async () => { for (const undo of undos.reverse()) await undo(); setLastUse(null); })(); } : undefined,
+    });
+    logCombat({ title: `${row.seal} «${row.name}» desactivado`, lines, actor: participant.name });
+  };
+
+  /** Execute: daño igual a lo que le queda (vida + temporal + escudo). Luego, opcionalmente, miedo a cercanos. */
+  const applyExecute = async (row: AbilityRow, config: AbilityExecute, targetIds: string[], log: string[]): Promise<{ kills: string[]; chips: ResultChip[]; headline?: string }> => {
+    const chips: ResultChip[] = [];
+    const kills: string[] = [];
+    const executed: string[] = [];
+    for (const id of targetIds) {
+      const who = participants.find(entry => entry.id === id);
+      if (!who) continue;
+      const hp = participantHp(who);
+      if (!hp || !isBelowExecuteThreshold(hp, config.hpPct)) {
+        log.push(`${who.name}: no está a ≤ ${config.hpPct}% de su vida máx. → no hay execute`);
+        continue;
+      }
+      const pools = participantHpPools(who);
+      const amount = Math.max(1, (pools?.current ?? hp.current) + (pools?.tempHp ?? 0) + (pools?.shield ?? 0));
+      const more = await applyToTargets(row, row.ability, amount, [id], [], log, { skipEffects: true, lifeSteal: false });
+      log.push(`Execute (≤ ${config.hpPct}%): ${amount} a ${who.name}`);
+      chips.push({ kind: 'buff', text: `Execute ${who.name}`, title: `≤ ${config.hpPct}% vida máx.` });
+      executed.push(who.name);
+      kills.push(...more, id);
+    }
+    if (config.fear && executed.length) {
+      const candidates = participants.filter(entry => entry.id !== participant.id && !kills.includes(entry.id));
+      const ids = candidates.length ? await askTargets(`${row.seal} «${row.name}»: ${config.fear.name} a (cercanos)`, '', undefined, candidates, 'Aplicar') : [];
+      if (ids.length) {
+        await onApplySourcedEffect(ids, { source: `ability:${row.name}:fear`, name: config.fear.name, duration: config.fear.turns, ...(config.fear.value ? { value: config.fear.value } : {}) });
+        const names = ids.map(id => participants.find(entry => entry.id === id)?.name ?? id).join(', ');
+        log.push(`Al ejecutar: «${config.fear.name}»${config.fear.value ? ` ${config.fear.value}` : ''} ${config.fear.turns} t. → ${names}`);
+        chips.push({ kind: 'debuff', text: `${config.fear.name} ${config.fear.turns}t`, title: names });
+      } else log.push(`Al ejecutar: «${config.fear.name}» a cercanos → nadie elegido (a mano)`);
+    }
+    return { kills: [...new Set(kills)], chips, headline: executed.length ? `${row.seal} «${row.name}» Execute → ${executed.join(', ')}` : undefined };
+  };
+
   /** Aplica el estado de la pasiva (su primer efecto) a los objetivos, con Deshacer. */
   /** Nombre de la pasiva si sus críticos no hacen daño extra (Ashe). */
   const critNoDamageOwner = (): string | undefined => {
-    const owner = passiveRow();
-    return owner?.ability.mechanics?.critNoDamage ? owner.name : undefined;
+    for (const owner of rows) {
+      if (owner.rank < 1 || !owner.ability.mechanics?.critNoDamage) continue;
+      if (owner.seal === 'P') return owner.name;
+      if (abilityBuff(participant.bonuses, owner.name) || abilityToggle(participant.bonuses, owner.name)) return owner.name;
+    }
+    return undefined;
   };
 
   const passiveStatusSeed = async (ids: string[], why: string, base?: MechanicsSeed, critical = false): Promise<MechanicsSeed> => {
@@ -937,12 +1599,14 @@ export default function CombatAbilityUseSection({
   };
 
   /** Al usar una habilidad: gasta su carga de uso / las cargas por impacto, pone su buff y aplica el estado de la pasiva. */
-  const abilityMechanicsSeed = async (row: AbilityRow, targetIds: string[], critical = false): Promise<MechanicsSeed | undefined> => {
-    const mechanics = row.ability.mechanics;
-    if (!mechanics) return undefined;
-    const seed: MechanicsSeed = { bonuses: participant.bonuses ?? [], log: [], chips: [], undos: [] };
+  const abilityMechanicsSeed = async (row: AbilityRow, targetIds: string[], critical = false, phased?: Ability, flags?: { selfInArea?: boolean }): Promise<MechanicsSeed | undefined> => {
+    const mechanics = (phased ?? row.ability).mechanics;
+    const need = stacksRequirement((phased ?? row.ability).mechanics, row.name);
+    if (!mechanics && !need) return { bonuses: participant.bonuses ?? [], log: [], chips: [], undos: [], usedName: row.name };
+    const seed: MechanicsSeed = { bonuses: participant.bonuses ?? [], log: [], chips: [], undos: [], usedName: row.name };
+    if (need) seed.usedRequires = { name: need.name };
     const label = `${row.seal} «${row.name}»`;
-    if (mechanics.charges) {
+    if (mechanics?.charges) {
       const spent = spendAbilityCharge(seed.bonuses, row.ability, row.name, row.rank, newBonusId);
       if (spent) {
         seed.bonuses = spent.bonuses;
@@ -951,21 +1615,80 @@ export default function CombatAbilityUseSection({
         seed.chips.push({ kind: 'cd', text: `${row.name} ${spent.after}/${spent.max}`, title: spent.recharge ? `Recarga en ${spent.recharge} t.` : 'Cargas de la habilidad' });
       }
     }
-    if (mechanics.stacks?.required) {
-      const current = abilityStacks(seed.bonuses, row.name);
-      seed.bonuses = seed.bonuses.filter(bonus => bonus.source !== abilityStacksSource(row.name));
-      seed.log.push(`${label}: gasta sus ${current.count} cargas (hacían falta ${mechanics.stacks.required})`);
+    if (need?.consume) {
+      const owner = rows.find(entry => sameAbilityName(entry.name, need.name));
+      const permanent = !!(owner?.ability.hasStacks || owner?.ability.mechanics?.permanentStacks);
+      if (permanent) {
+        const key = abilityStackKey(need.name);
+        const source = permanentAbilityStackSource(need.name);
+        const before = stacksFor(need.name);
+        const after = 0; // gasta todas las actuales, como las de combate
+        if (player && onPlayerPatch) {
+          const prevStacks = { ...(player.stacks ?? {}) };
+          const nextStacks = { ...prevStacks };
+          if (after) nextStacks[key] = after; else delete nextStacks[key];
+          seed.undos.push(async () => { await onPlayerPatch(player.name, { stacks: prevStacks }); });
+          await onPlayerPatch(player.name, { stacks: nextStacks });
+        } else {
+          seed.bonuses = seed.bonuses.filter(bonus => bonus.source !== source);
+        }
+        seed.log.push(`${label}: gasta ${before} cargas permanentes de «${need.name}» (hacían falta ${need.count})`);
+        seed.consumedStacks = { from: need.name, count: before };
+      } else {
+        const current = abilityStacks(seed.bonuses, need.name);
+        seed.bonuses = seed.bonuses.filter(bonus => bonus.source !== abilityStacksSource(need.name));
+        seed.log.push(`${label}: gasta ${current.count} cargas de «${need.name}» (hacían falta ${need.count})`);
+        seed.consumedStacks = { from: need.name, count: current.count };
+      }
+    }
+    if (!mechanics) return seed;
+    if (mechanics.cleanse) {
+      const crowd = participant.effects.filter(effect => effect.duration > 0 && isCrowdControlEffectName(effect.name));
+      for (const effect of crowd) {
+        const source = effect.source ?? `ability:${row.name}`;
+        const snapshot: Record<string, CombatEffect | null> = { [participant.id]: effect };
+        await onApplySourcedEffect([participant.id], { source, name: effect.name, duration: 1, restore: { [participant.id]: null } });
+        seed.undos.push(async () => { await onApplySourcedEffect([participant.id], { source, name: effect.name, duration: effect.duration, restore: snapshot }); });
+        seed.log.push(`${label}: limpia «${effect.name}»`);
+        seed.chips.push({ kind: 'buff', text: `Limpia ${effect.name}`, title: `${label}: limpia control de masas` });
+      }
+      if (!crowd.length) seed.log.push(`${label}: no había control de masas que limpiar`);
+    }
+    if (mechanics.sectorShots && (sectorShotTrigger(mechanics.sectorShots) === 'cast' || sectorShotTrigger(mechanics.sectorShots) === 'both')) {
+      const cdRank = mechanics.sectorShots.byLevel ? milestoneRank(level) : row.rank;
+      const cooldown = rankValue(mechanics.sectorShots.cooldown, cdRank) ?? 0;
+      const spent = spendSectorShot(seed.bonuses, row.name, mechanics.sectorShots.count, cooldown, newBonusId, undefined, mechanics.sectorShots.labels);
+      if (spent) {
+        seed.bonuses = spent.bonuses;
+        const tag = mechanics.sectorShots.labels?.[spent.index] ?? String(spent.index + 1);
+        seed.log.push(`${label}: gasta dirección ${tag} · CD ${cooldown} t. · quedan ${spent.readyAfter} listas`);
+        seed.chips.push({ kind: 'cd', text: `${row.name} ${tag} CD ${cooldown}t`, title: `Quedan ${spent.readyAfter}/${mechanics.sectorShots.count}` });
+        const gap = rankValue(mechanics.sectorShots.gap, row.rank);
+        if (gap && gap > 0) {
+          const gapSource = sectorGapSource(row.name);
+          seed.bonuses = [...seed.bonuses.filter(bonus => bonus.source !== gapSource), { id: newBonusId(), stat: 'buff', amount: 1, turns: gap, source: gapSource, label: `${row.name} intervalo`.slice(0, 80) }];
+          seed.log.push(`${label}: ${gap} t. hasta el siguiente dash`);
+        }
+      }
+    }
+    const toggleTurns = mechanics.toggle ? (rankValue(mechanics.toggle.turns, row.rank) ?? 0) : undefined;
+    if (mechanics.toggle) {
+      const source = abilityToggleSource(row.name);
+      seed.bonuses = seed.bonuses.filter(bonus => bonus.source !== source);
+      seed.bonuses = [...seed.bonuses, { id: newBonusId(), stat: 'buff', amount: 1, ...(toggleTurns ? { turns: toggleTurns } : {}), source, label: row.name.slice(0, 80) }];
+      seed.log.push(`${label}: interruptor ON${toggleTurns ? ` ${toggleTurns} t.` : ' (hasta desactivar)'}`);
+      seed.chips.push({ kind: 'buff', text: toggleTurns ? `ON ${toggleTurns}t` : 'ON', title: `${label}: se puede desactivar` });
     }
     if (mechanics.buff) {
-      const { turns } = mechanics.buff;
+      const turns = toggleTurns === 0 ? undefined : (toggleTurns ?? mechanics.buff.turns);
       const speed = rankValue(mechanics.buff.attackSpeed, row.rank);
       const aaPct = rankValue(mechanics.buff.aaAd, row.rank);
       const name = row.name.slice(0, 80);
       seed.bonuses = seed.bonuses.filter(bonus => bonus.source !== abilityBuffSource(row.name) && bonus.source !== abilityBuffStatSource(row.name));
       seed.bonuses = [
         ...seed.bonuses,
-        { id: newBonusId(), stat: 'buff', amount: Math.max(1, row.rank), turns, source: abilityBuffSource(row.name), label: name },
-        ...(speed ? [{ id: newBonusId(), stat: 'atkSpePct', amount: speed, turns, source: abilityBuffStatSource(row.name), label: name }] : []),
+        { id: newBonusId(), stat: 'buff', amount: Math.max(1, row.rank), ...(turns ? { turns } : {}), source: abilityBuffSource(row.name), label: name },
+        ...(speed ? [{ id: newBonusId(), stat: 'atkSpePct', amount: speed, ...(turns ? { turns } : {}), source: abilityBuffStatSource(row.name), label: name }] : []),
       ];
       const parts = [
         speed ? `+${fmt(speed)}% vel. ataque` : '',
@@ -985,20 +1708,127 @@ export default function CombatAbilityUseSection({
         if (leftAfter > 0) seed.bonuses = [...seed.bonuses, { ...marker, amount: leftAfter }];
         seed.log.push(`${label}: recast usado${leftAfter > 0 ? ` (quedan ${leftAfter})` : ' (ya no quedan)'}`);
       } else {
-        seed.bonuses = [...seed.bonuses, { id: newBonusId(), stat: 'buff', amount: mechanics.recast.times, turns: mechanics.recast.turns, source, label: row.name.slice(0, 80) }];
-        seed.log.push(`${label}: se puede volver a lanzar gratis ×${mechanics.recast.times} durante ${mechanics.recast.turns} t. (botón «Recast»)`);
-        seed.chips.push({ kind: 'buff', text: `Recast ${mechanics.recast.turns}t`, title: `${label}: recast gratis` });
+        const recastTurns = mechanics.recast.turns;
+        seed.bonuses = [...seed.bonuses, { id: newBonusId(), stat: 'buff', amount: mechanics.recast.times, ...(recastTurns ? { turns: recastTurns } : {}), source, label: row.name.slice(0, 80) }];
+        seed.log.push(`${label}: se puede volver a lanzar gratis ×${mechanics.recast.times}${recastTurns ? ` durante ${recastTurns} t.` : ' hasta usarlo'} (botón «Recast»)`);
+        seed.chips.push({ kind: 'buff', text: recastTurns ? `Recast ${recastTurns}t` : 'Recast', title: `${label}: recast gratis` });
       }
     }
-    if (mechanics.castPool) await castPoolSeed(row, targetIds, seed);
+    if (mechanics.castPool) await castPoolSeed(row, targetIds, seed, mechanics.castPool, flags?.selfInArea !== false);
     if (mechanics.selfStatus) {
-      const status = mechanics.selfStatus;
+      const championHit = targetIds.some(id => {
+        const kind = participants.find(entry => entry.id === id)?.kind;
+        return id !== participant.id && (kind === 'champion' || kind === 'player');
+      });
+      if (mechanics.selfStatus.requiresChampionHit && !championHit) {
+        seed.log.push(`${label}: «${mechanics.selfStatus.name}» no se aplica (no alcanzó a ningún campeón)`);
+      } else {
+      const status = { ...mechanics.selfStatus };
+      if (status.pctValues?.length) {
+        const resolved = rankValue(status.pctValues, row.rank);
+        if (resolved != null) status.pct = resolved;
+      }
+      if (status.amountValues?.length) {
+        const resolved = rankValue(status.amountValues, row.rank);
+        if (resolved != null) status.amount = resolved;
+      }
+      const durationStacks = status.durationByStacks ? readPermanentAbilityStacks({ name: status.durationByStacks.from, playerStacks: player?.stacks, bonuses: seed.bonuses }) : 0;
+      const resolvedTurns = resolveSelfStatusTurns(status, durationStacks);
+      const statusTurns = toggleTurns === 0 || resolvedTurns === 0 ? (toggleTurns === 0 || resolvedTurns === 0 ? 0 : resolvedTurns) : (toggleTurns ?? resolvedTurns);
+      const untilEnd = statusTurns === 0;
       const source = `ability:${row.name}`;
       const snapshot: Record<string, CombatEffect | null> = { [participant.id]: participant.effects.find(effect => effect.source === source) ?? null };
-      await onApplySourcedEffect([participant.id], { source, name: status.name, duration: status.turns, ...(status.value ? { value: status.value } : {}) });
+      await onApplySourcedEffect([participant.id], { source, name: status.name, duration: untilEnd ? 99 : statusTurns, ...(status.value ? { value: status.value } : {}) });
       seed.undos.push(async () => { await onApplySourcedEffect([participant.id], { source, name: status.name, duration: 1, restore: snapshot }); });
-      seed.chips.push({ kind: 'buff', text: `${status.name} ${status.turns}t`, title: `${label} → ${participant.name}` });
-      seed.log.push(`${label}: «${status.name}»${status.value ? ` ${status.value}` : ''} en ${participant.name} ${status.turns} t.`);
+      seed.chips.push({ kind: 'buff', text: `${status.name} ${untilEnd ? 'hasta la muerte / desactivar' : `${statusTurns}t`}`, title: `${label} → ${participant.name}` });
+      seed.log.push(`${label}: «${status.name}»${status.value ? ` ${status.value}` : ''} en ${participant.name}${untilEnd ? ' hasta la muerte o desactivar' : ` ${statusTurns} t.`}${status.durationByStacks ? ` (${durationStacks} cargas de «${status.durationByStacks.from}»)` : ''}`);
+      const context = participantContext(participant, level, extra);
+      const statEntries = [
+        ...(status.stat ? [{ stat: status.stat, amount: status.amount, pct: status.pct, amountValues: status.amountValues, pctValues: status.pctValues }] : []),
+        ...(status.stats ?? []),
+      ];
+      const selfPrefix = abilitySelfStatSource(row.name);
+      seed.bonuses = seed.bonuses.filter(entry => entry.source !== selfPrefix && !(entry.source ?? '').startsWith(`${selfPrefix}:`) && entry.source !== abilitySelfDrSource(row.name));
+      for (const entry of statEntries) {
+        const resolved = {
+          ...entry,
+          amount: entry.amountValues?.length ? (rankValue(entry.amountValues, row.rank) ?? entry.amount) : entry.amount,
+          pct: entry.pctValues?.length ? (rankValue(entry.pctValues, row.rank) ?? entry.pct) : entry.pct,
+        };
+        const current = context ? Number(context.ctx.stats[entry.stat] ?? 0) || 0 : 0;
+        let raw = selfStatusStatBonus({ ...status, stat: entry.stat, amount: resolved.amount, pct: resolved.pct }, current)?.amount ?? 0;
+        const parts: string[] = [];
+        if (raw) parts.push(`${raw}`);
+        for (const ratio of entry.ratios ?? []) {
+          const pct = rankValue(ratio.values, row.rank) ?? 0;
+          const statValue = context ? Number((context.ctx.stats as Record<string, unknown>)[ratio.stat] ?? (context.ctx.stats as { bonus?: Record<string, number> }).bonus?.[ratio.stat === 'bonusAd' ? 'ad' : ratio.stat] ?? 0) || 0 : 0;
+          const add = (pct / 100) * statValue;
+          if (add) {
+            raw += add;
+            parts.push(`${pct}% ${ratio.stat} = ${Math.round(add * 1000) / 1000}`);
+          }
+        }
+        const amount = Math.round(raw);
+        if (!amount) continue;
+        const statSource = entry.stat === status.stat ? selfPrefix : `${selfPrefix}:${entry.stat}`.slice(0, 80);
+        seed.bonuses = [...seed.bonuses, { id: newBonusId(), stat: entry.stat as CombatBonus['stat'], amount, ...(untilEnd ? {} : { turns: statusTurns }), source: statSource, label: status.name.slice(0, 80) }];
+        seed.log.push(`${label}: ${entry.stat} ${amount > 0 ? '+' : ''}${amount} (${parts.join(' + ') || amount})${untilEnd ? ' hasta desactivar' : ` ${statusTurns} t.`}`);
+        seed.chips.push({ kind: 'buff', text: `${entry.stat} ${amount > 0 ? '+' : ''}${amount}`, title: `${parts.join(' + ')}${untilEnd ? ' · hasta desactivar' : ` · ${statusTurns} t.`}` });
+      }
+      const reduction = status.damageReductionValues?.length ? (rankValue(status.damageReductionValues, row.rank) ?? 0) : 0;
+      if (reduction) {
+        seed.bonuses = [...seed.bonuses, { id: newBonusId(), stat: 'buff', amount: reduction, ...(untilEnd ? {} : { turns: statusTurns }), source: abilitySelfDrSource(row.name), label: `${status.name} reducción`.slice(0, 80) }];
+        seed.log.push(`${label}: reducción de daño ${reduction}%${untilEnd ? ' hasta desactivar' : ` ${statusTurns} t.`}`);
+        seed.chips.push({ kind: 'buff', text: `−${reduction}% daño`, title: `${status.name}: reducción de daño ${reduction}%` });
+      }
+      }
+    }
+    const fixedAttacks = abilityFixedAttacks(mechanics);
+    if (fixedAttacks && (mechanics.toggle || mechanics.selfStatus)) {
+      const source = abilityFixedAttacksSource(row.name);
+      const turns = toggleTurns === 0 ? undefined : (toggleTurns ?? mechanics.selfStatus?.turns);
+      seed.bonuses = seed.bonuses.filter(bonus => bonus.source !== source);
+      seed.bonuses = [...seed.bonuses, { id: newBonusId(), stat: 'fixedAttacks', amount: fixedAttacks, ...(turns ? { turns } : {}), source, label: row.name.slice(0, 80) }];
+      seed.log.push(`${label}: número de ataques fijo ${fixedAttacks}${turns ? ` ${turns} t.` : ' hasta desactivar'}`);
+      seed.chips.push({ kind: 'buff', text: `Ataques ${fixedAttacks}`, title: `${label}: número de ataques fijo ${fixedAttacks}` });
+    }
+    if (mechanics.trap) {
+      const source = abilityTrapSource(row.name);
+      const turns = mechanics.trap.turns;
+      const trapName = (mechanics.trap.name ?? row.name).slice(0, 80);
+      seed.bonuses = seed.bonuses.filter(bonus => bonus.source !== source);
+      seed.bonuses = [...seed.bonuses, { id: newBonusId(), stat: 'buff', amount: 1, turns, source, label: trapName }];
+      seed.log.push(`${label}: ${trapName} se coloca ${turns} t. (${mechanics.trap.applyOnPlace ? 'primer golpe aplicado; Detonar para el segundo' : 'Detonar para explotar'}).`);
+      seed.chips.push({ kind: 'buff', text: `${trapName} ${turns}t`, title: `${label}: efecto retrasado ${turns} t.` });
+    }
+    if (mechanics.protect) {
+      const pct = rankValue(mechanics.protect.damageReductionPct, row.rank) ?? 0;
+      const protTurns = mechanics.protect.turns;
+      const protName = mechanics.protect.name ?? row.name;
+      const protSource = abilitySelfDrSource(row.name);
+      const mode = mechanics.protect.target;
+      const allyIds = targetIds.filter(id => {
+        const kind = participants.find(entry => entry.id === id)?.kind;
+        return id !== participant.id && (kind === 'champion' || kind === 'player');
+      });
+      const ids = mode === 'ally' ? allyIds : mode === 'allyOrSelf' ? (allyIds.length ? allyIds : [participant.id]) : [participant.id];
+      if (!ids.length) seed.log.push(`${label}: ${protName} ${pct}% reducción ${protTurns} t. (elige aliado; si no, va al portador)`);
+      for (const id of ids.length ? ids : []) {
+        const who = participants.find(entry => entry.id === id);
+        const bonus: CombatBonus = { id: newBonusId(), stat: 'buff', amount: pct, turns: protTurns, source: protSource, label: `${protName} reducción`.slice(0, 80) };
+        if (id === participant.id) {
+          seed.bonuses = [...seed.bonuses.filter(entry => entry.source !== protSource), bonus];
+        } else if (onTargetBonuses && who) {
+          await onTargetBonuses(id, current => [...current.filter(entry => entry.source !== protSource), bonus]);
+        } else if (who) {
+          seed.log.push(`${label}: ${protName} ${pct}% reducción a ${who.name} ${protTurns} t. (a mano)`);
+          continue;
+        }
+        if (who) {
+          seed.log.push(`${label}: ${protName} reducción de daño ${pct}% a ${who.name} ${protTurns} t.`);
+          seed.chips.push({ kind: 'buff', text: `${protName} −${pct}% daño`, title: `${who.name}: ${protTurns} t.` });
+        }
+      }
     }
     if (mechanics.spellShield) {
       const shield = mechanics.spellShield;
@@ -1009,6 +1839,92 @@ export default function CombatAbilityUseSection({
       seed.chips.push({ kind: 'buff', text: `${shield.status} ${shield.turns}t`, title: `${label} → ${participant.name}` });
       seed.log.push(`${label}: «${shield.status}» en ${participant.name} ${shield.turns} t. (si se rompe: bonus por tenerla aprendida × ${fmt(shield.learnedMultiplier)} durante ${shield.breakTurns} t.; botón «Romper» en la habilidad)`);
     }
+    if (mechanics.armArmedAa) {
+      for (const entry of rows) {
+        if (entry.rank < 1 || !entry.ability.mechanics?.armedAa) continue;
+        seed.bonuses = armAbilityArmedAa(seed.bonuses, entry.name, newBonusId, entry.name, entry.ability.mechanics.armedAa.turns);
+        seed.log.push(`${label}: arma «${entry.name}» (siguiente AA a un campeón)${entry.ability.mechanics.armedAa.turns ? ` ${entry.ability.mechanics.armedAa.turns} t.` : ''}`);
+        seed.chips.push({ kind: 'buff', text: `${entry.name} armado`, title: `${label}: arma el AA` });
+      }
+    }
+    if (mechanics.costStacks) {
+      const before = abilityCostStackCount(seed.bonuses, row.name);
+      seed.bonuses = gainAbilityCostStack(seed.bonuses, row.name, mechanics.costStacks, newBonusId, row.name);
+      const after = abilityCostStackCount(seed.bonuses, row.name);
+      seed.log.push(`${label}: acumulaciones de coste ${before} → ${after}/${mechanics.costStacks.max} (+${mechanics.costStacks.amount} al siguiente uso, ${mechanics.costStacks.turns} t.)`);
+      seed.chips.push({ kind: 'buff', text: `Coste ×${after}`, title: `${label}: +${mechanics.costStacks.amount} por acumulación` });
+    }
+    if (mechanics.resistShred && targetIds.length) {
+      const pct = rankValue(mechanics.resistShred.pct, row.rank) ?? 0;
+      const turns = mechanics.resistShred.turns;
+      const shredArmor = mechanics.resistShred.armor !== false;
+      const shredMr = mechanics.resistShred.mr !== false;
+      const source = abilityResistShredSource(row.name);
+      for (const id of targetIds) {
+        const who = participants.find(entry => entry.id === id);
+        if (!who) continue;
+        const context = participantContext(who, level, extra);
+        const stats = context?.ctx.stats as Record<string, unknown> | undefined;
+        const ac = shredArmor ? Math.round((Number(stats?.ac) || 0) * pct / 100) : 0;
+        const mr = shredMr ? Math.round((Number(stats?.mr) || 0) * pct / 100) : 0;
+        if (!stats) {
+          seed.log.push(`${label}: −${pct}% CA/RM a ${who.name} ${turns} t. (a mano: sin stats)`);
+          continue;
+        }
+        if (!onTargetBonuses) {
+          seed.log.push(`${label}: −${pct}% CA/RM a ${who.name} (−${ac} CA, −${mr} RM) ${turns} t. (a mano)`);
+          continue;
+        }
+        const apply = (stat: 'ac' | 'mr', amount: number) => amount > 0 ? { id: newBonusId(), stat, amount: -amount, turns, source: `${source}:${stat}`, label: row.name.slice(0, 80) } : null;
+        const added = [apply('ac', ac), apply('mr', mr)].filter((entry): entry is NonNullable<typeof entry> => !!entry);
+        if (!added.length) {
+          seed.log.push(`${label}: −${pct}% CA/RM a ${who.name} redondea a 0`);
+          continue;
+        }
+        const undo = await onTargetBonuses(id, current => [...current.filter(bonus => bonus.source !== `${source}:ac` && bonus.source !== `${source}:mr`), ...added]);
+        if (undo) seed.undos.push(undo);
+        seed.log.push(`${label}: −${pct}% resistencias a ${who.name} (−${ac} CA, −${mr} RM) ${turns} t.`);
+        seed.chips.push({ kind: 'buff', text: `−${pct}% res.`, title: `${who.name}: −${ac} CA, −${mr} RM` });
+      }
+    }
+    const resetShots = mechanics.resetSectorShots;
+    if (resetShots) {
+      const championHit = targetIds.some(id => {
+        const kind = participants.find(entry => entry.id === id)?.kind;
+        return id !== participant.id && (kind === 'champion' || kind === 'player');
+      });
+      if (resetShots.requiresChampionHit && !championHit) {
+        seed.log.push(`${label}: no reinicia disparos de «${resetShots.from}» (no alcanzó a ningún campeón)`);
+      } else {
+        const owner = rows.find(entry => sameAbilityName(entry.name, resetShots.from));
+        const shots = owner?.ability.mechanics?.sectorShots;
+        if (owner && owner.rank >= 1 && shots) {
+          const reset = resetSectorShots(seed.bonuses, owner.name, shots.count, resetShots.count);
+          seed.bonuses = reset.bonuses;
+          if (reset.reset) {
+            seed.log.push(`${label}: reinicia ${reset.reset} disparo(s) de «${owner.name}» (${reset.labels.join(', ')})`);
+            seed.chips.push({ kind: 'buff', text: `Reinicia ${owner.name}`, title: reset.labels.join(', ') });
+          } else {
+            seed.log.push(`${label}: no había disparos de «${owner.name}» en CD para reiniciar`);
+          }
+        }
+      }
+    }
+    for (const owner of rows) {
+      const haste = owner.ability.mechanics?.onAbilityUse;
+      if (!haste || owner.rank < 1) continue;
+      const turns = haste.turns;
+      const speed = rankValue(haste.attackSpeed, owner.rank) ?? (haste.attackSpeed?.[0] ?? 0);
+      const name = owner.name.slice(0, 80);
+      seed.bonuses = seed.bonuses.filter(bonus => bonus.source !== abilityBuffSource(owner.name) && bonus.source !== abilityBuffStatSource(owner.name));
+      seed.bonuses = [
+        ...seed.bonuses,
+        { id: newBonusId(), stat: 'buff', amount: 1, ...(turns ? { turns } : {}), source: abilityBuffSource(owner.name), label: name },
+        ...(speed ? [{ id: newBonusId(), stat: 'atkSpePct' as const, amount: speed, ...(turns ? { turns } : {}), source: abilityBuffStatSource(owner.name), label: name }] : []),
+      ];
+      seed.log.push(`${owner.seal} «${owner.name}»: al usar una habilidad, +${speed}% vel. ataque ${turns} t.`);
+      seed.chips.push({ kind: 'buff', text: `+${speed}% AS ${turns}t`, title: owner.name });
+    }
     return seed;
   };
 
@@ -1016,11 +1932,22 @@ export default function CombatAbilityUseSection({
    * Escudo / curación al usarla (Égida dorada): Σ % del rango × stat [+ % por campeón enemigo alcanzado] × poder de
    * curación y escudos (redondeo al aplicar). El escudo lleva un marcador con sus turnos (al caducar se quita lo que quede).
    */
-  const castPoolSeed = async (row: AbilityRow, targetIds: string[], seed: MechanicsSeed): Promise<void> => {
-    const pool = row.ability.mechanics?.castPool;
+  const castPoolSeed = async (row: AbilityRow, targetIds: string[], seed: MechanicsSeed, pool = row.ability.mechanics?.castPool, inArea = true): Promise<void> => {
     if (!pool) return;
     const label = `${row.seal} «${row.name}»`;
     const word = pool.kind === 'shield' ? 'escudo' : 'cura';
+    if (pool.requiresSelfInArea && !inArea) {
+      seed.log.push(`${label}: ${word} no se aplica (no está en el área)`);
+      return;
+    }
+    if (pool.requiresSelfStatus) {
+      const selfPrefix = abilitySelfStatSource(row.name);
+      const active = !!(participant.effects.find(effect => effect.source === `ability:${row.name}` && effect.duration > 0) || (participant.bonuses ?? []).some(bonus => bonus.source === selfPrefix || (bonus.source ?? '').startsWith(`${selfPrefix}:`)));
+      if (!active) {
+        seed.log.push(`${label}: ${word} no se aplica (el estado propio aún no está activo)`);
+        return;
+      }
+    }
     const context = participantContext(participant, level, extra);
     if (!context) { seed.log.push(`${label}: ${word} → a mano (sin stats)`); return; }
     const stats = context.ctx.stats as Record<string, unknown> & { bonus?: Record<string, unknown> };
@@ -1052,15 +1979,33 @@ export default function CombatAbilityUseSection({
     }
     const final = poolAmount(raw, context.ctx);
     const formula = `${parts.join(' + ') || '0'} → ${final.text}`;
-    if (pool.requiresHit && targetIds.length === 0) { seed.log.push(`${label}: ${word} → no alcanzó a ningún enemigo (nada)`); return; }
+    if (pool.requiresChampionHit) {
+      const champHit = targetIds.some(id => {
+        const kind = participants.find(entry => entry.id === id)?.kind;
+        return id !== participant.id && (kind === 'champion' || kind === 'player');
+      });
+      if (!champHit) { seed.log.push(`${label}: ${word} → no alcanzó a ningún campeón (nada)`); return; }
+    } else if (pool.requiresHit && targetIds.length === 0) { seed.log.push(`${label}: ${word} → no alcanzó a ningún enemigo (nada)`); return; }
     if (final.amount <= 0) { seed.log.push(`${label}: ${word} = ${formula} → nada`); return; }
     // A quién: al portador (y aliados elegidos) o a los aliados objetivo.
-    const recipients: string[] = pool.target === 'ally' ? targetIds.filter(id => id !== participant.id) : [participant.id];
-    if (pool.target === 'ally' && recipients.length === 0) { seed.log.push(`${label}: ${word} → sin aliado elegido (nada)`); return; }
-    if (pool.target !== 'ally' && pool.alliesToo) {
+    const allies = participants.filter(entry => !entry.defeated && !enemiesOf().some(foe => foe.id === entry.id));
+    const recipients: string[] = pool.allAllies
+      ? (pool.target === 'ally' ? allies.filter(entry => entry.id !== participant.id).map(entry => entry.id) : allies.map(entry => entry.id))
+      : (pool.target === 'ally' ? targetIds.filter(id => id !== participant.id) : [participant.id]);
+    if (!pool.allAllies && pool.target === 'ally' && recipients.length === 0) { seed.log.push(`${label}: ${word} → sin aliado elegido (nada)`); return; }
+    if (!pool.allAllies && pool.target !== 'ally' && pool.alliesToo) {
       const candidates = participants.filter(entry => entry.id !== participant.id && !entry.defeated && !targetIds.includes(entry.id));
       if (candidates.length) recipients.push(...(await askTargets(`${label}: ${word} también a (aliados en el área)`, '', undefined, candidates, 'Aplicar')));
     }
+    const amountFor = (who: CombatParticipant): { amount: number; formula: string; note: string } => {
+      const bonus = pool.lowHpBonus;
+      const hp = participantHp(who);
+      const low = !!(bonus && hp?.max && hp.max > 0 && (hp.current / hp.max) * 100 < bonus.belowHpPct);
+      const used = low ? raw * bonus!.multiplier : raw;
+      const done = poolAmount(used, context.ctx);
+      const note = low ? ` · ×${bonus!.multiplier} (por debajo del ${bonus!.belowHpPct}% de vida máx.)` : '';
+      return { amount: done.amount, formula: low ? `${parts.join(' + ') || '0'} ×${bonus!.multiplier} → ${done.text}` : formula, note };
+    };
     if (pool.kind === 'heal' && pool.delayTurns) {
       // Cura retrasada: marcador con turnos en el lanzador (vence al empezar su turno) y sin turnos en los aliados.
       const pending = pendingHealSource(row.name);
@@ -1069,15 +2014,16 @@ export default function CombatAbilityUseSection({
         const who = participants.find(entry => entry.id === id);
         if (!who) continue;
         names.push(who.name);
-        const marker: CombatBonus = { id: newBonusId(), stat: 'buff', amount: final.amount, ...(id === participant.id ? { turns: pool.delayTurns } : {}), source: pending, label: row.name.slice(0, 80) };
+        const given = amountFor(who);
+        const marker: CombatBonus = { id: newBonusId(), stat: 'buff', amount: given.amount, ...(id === participant.id ? { turns: pool.delayTurns } : {}), source: pending, label: row.name.slice(0, 80) };
         if (id === participant.id) seed.bonuses = [...seed.bonuses.filter(bonus => bonus.source !== pending), marker];
         else if (onTargetBonuses) {
           const undo = await onTargetBonuses(id, current => [...current.filter(bonus => bonus.source !== pending), marker]);
           if (undo) seed.undos.push(undo);
         }
       }
-      seed.chips.push({ kind: 'heal', text: `Cura ${final.amount} en ${pool.delayTurns}t`, title: `${label} → ${names.join(', ')} (o «Curar ahora»)` });
-      seed.log.push(`${label}: cura pendiente ${final.amount} a ${names.join(', ')} = ${formula} · se aplica al empezar el turno de ${participant.name} dentro de ${pool.delayTurns} t. (o «Curar ahora»)`);
+      seed.chips.push({ kind: 'heal', text: `Cura pendiente ${pool.delayTurns}t`, title: `${label} → ${names.join(', ')} (o «Curar ahora»)` });
+      seed.log.push(`${label}: cura pendiente a ${names.join(', ')} = ${formula} · se aplica al empezar el turno de ${participant.name} dentro de ${pool.delayTurns} t. (o «Curar ahora»)`);
       return;
     }
     const source = abilityShieldSource(row.name);
@@ -1085,8 +2031,10 @@ export default function CombatAbilityUseSection({
       const self = id === participant.id;
       const who = participants.find(entry => entry.id === id);
       if (!who) continue;
-      let amount = final.amount;
-      let note = '';
+      const given = amountFor(who);
+      let amount = given.amount;
+      let note = given.note;
+      const formulaLine = given.formula;
       // El escudo con turnos no se acumula en el mismo objetivo: refresca (da lo que falte hasta el valor nuevo).
       const old = pool.kind === 'shield' && pool.turns ? (who.bonuses ?? []).find(bonus => bonus.source === source) : undefined;
       if (old) {
@@ -1097,14 +2045,14 @@ export default function CombatAbilityUseSection({
       if (amount > 0) {
         const undo = self ? (onPoolChange ? await onPoolChange(pool.kind, amount) : null) : (onTargetPool ? await onTargetPool(id, pool.kind, amount) : null);
         if (!undo) {
-          seed.log.push(`${label}: ${word} a ${who.name} = ${formula} → a mano`);
-          seed.chips.push({ kind: 'manual', text: `${word} ${final.amount} a ${who.name}: a mano`, title: label });
+          seed.log.push(`${label}: ${word} a ${who.name} = ${formulaLine} → a mano`);
+          seed.chips.push({ kind: 'manual', text: `${word} ${given.amount} a ${who.name}: a mano`, title: label });
           continue;
         }
         seed.undos.push(undo);
       }
       seed.chips.push({ kind: pool.kind, text: `+${amount} ${pool.kind === 'shield' ? 'escudo' : 'PV'}${self ? '' : ` ${who.name}`}${pool.turns ? ` ${pool.turns}t` : ''}`, title: `${label} → ${who.name}` });
-      seed.log.push(`${label}: ${word} a ${who.name} = ${formula}${note}${old ? ` → +${amount}` : ''}${pool.turns ? ` · dura ${pool.turns} t. (al acabar se quita lo que quede)` : ''}`);
+      seed.log.push(`${label}: ${word} a ${who.name} = ${formulaLine}${note}${old ? ` → +${amount}` : ''}${pool.turns ? ` · dura ${pool.turns} t. (al acabar se quita lo que quede)` : ''}`);
       if (pool.kind === 'shield' && pool.turns) {
         const marker: CombatBonus = { id: newBonusId(), stat: 'buff', amount: final.amount, turns: pool.turns, source, label: row.name.slice(0, 80) };
         if (self) seed.bonuses = [...seed.bonuses.filter(bonus => bonus.source !== source), marker];
@@ -1121,7 +2069,7 @@ export default function CombatAbilityUseSection({
     const self = player
       ? readActiveEffect(player.activeEffects, abilityActiveEffectKey(row.name))
       : readActiveEffect(participant.activeEffects, abilityActiveEffectKey(row.name));
-    if (self > 0) return `Efecto activo (${self} t.)`;
+    if (self > 0 && row.ability.mechanics?.selfStatus?.blocksAbility !== false) return `Efecto activo (${self} t.)`;
     const pending = pendingHeal(row);
     if (pending) return `Cura pendiente (${pending.turns ?? '—'} t.)`;
     for (const owner of participants.some(entry => entry.id === participant.id) ? participants : [participant, ...participants]) {
@@ -1131,7 +2079,9 @@ export default function CombatAbilityUseSection({
     const source = `ability:${row.name}`;
     let longest = 0;
     const on: string[] = [];
+    const ignoreSelf = row.ability.mechanics?.selfStatus?.blocksAbility === false;
     for (const other of participants) {
+      if (ignoreSelf && other.id === participant.id) continue;
       const effect = other.effects.find(entry => entry.source === source && entry.duration > 0);
       if (!effect) continue;
       longest = Math.max(longest, effect.duration);
@@ -1182,6 +2132,124 @@ export default function CombatAbilityUseSection({
     } finally {
       setBusy(false);
     }
+  };
+
+  const reduceEmpoweredOnAbilityUse = (seed?: MechanicsSeed): MechanicsSeed | undefined => {
+    if (!seed) return seed;
+    let bonuses = seed.bonuses;
+    const log = [...seed.log];
+    const chips = [...seed.chips];
+    for (const owner of rows) {
+      const emp = owner.ability.mechanics?.empoweredAa;
+      if (!emp?.reduceOnAbility || owner.rank < 1) continue;
+      const reduced = reduceEmpoweredAaCooldown(bonuses, owner.name, emp.reduceOnAbility);
+      if (!reduced) continue;
+      bonuses = reduced.bonuses;
+      log.push(`${owner.seal} «${owner.name}»: CD del AA potenciado ${reduced.before} → ${reduced.after} t.${reduced.ready ? ' · listo' : ''}`);
+      chips.push({ kind: 'cd', text: reduced.ready ? `${owner.name} listo` : `${owner.name} CD −${emp.reduceOnAbility}t`, title: 'CD del AA potenciado al usar una habilidad' });
+    }
+    return { ...seed, bonuses, log, chips };
+  };
+
+  /** «Detonar»: aplica el daño y los efectos del área retrasada y quita el marcador. Sin coste ni acción. */
+  const detonateTrap = async (row: AbilityRow, targetIds: string[]) => {
+    const marker = abilityTrap(participant.bonuses, row.name);
+    if (!marker || !isAdmin || busy) return;
+    const ability = activeAbility(row);
+    const mechanics = row.ability.mechanics;
+    const trapName = mechanics?.trap?.name ?? row.name;
+    setBusy(true);
+    setError(null);
+    try {
+      const abilityLog: string[] = [`${row.seal} «${row.name}»: detonar ${trapName}`];
+      const chips: ResultChip[] = [];
+      const undos: (() => Promise<void>)[] = [];
+      let damageTotal = 0;
+      let headline = `${row.seal} «${row.name}»: detonar`;
+      if (hasDamageScaling(ability.damage)) {
+        const stats = player
+          ? { ...playerTotalLine(player.sheet, player.equipamiento, level, extra), bonus: playerBonusLine(player.sheet, player.equipamiento, extra) }
+          : champion
+            ? championDamageContext(champion, extra).stats
+            : null;
+        if (stats) {
+          const result = rollAbilityDamage(ability.damage!, stats, row.rank);
+          damageTotal = result.total;
+          headline = `${row.seal} «${row.name}»: detonar · ${fmt(damageTotal)}${ability.damage?.type ? ` ${ability.damage.type}` : ''}`;
+          abilityLog.push(
+            `Daño${ability.damage?.type ? ` ${ability.damage.type}` : ''} (rango ${row.rank}) = ${result.contributions.map(entry =>
+              `${fmt(entry.scaling * 100)}% ${entry.stat.toUpperCase()} ${entry.source === 'bonus' ? 'bonus' : 'total'} (${rollText(entry.roll)}) = ${fmt(entry.damage)}`).join(' + ')} → ${fmt(result.total)}`,
+          );
+        }
+      }
+      let kills: string[] = [];
+      const eruptName = mechanics?.trap?.eruptEffectName ?? mechanics?.trap?.eruptEffect?.[0]?.name;
+      const eruptDuration = mechanics?.trap?.eruptEffectDuration ?? mechanics?.trap?.eruptEffect?.[0]?.duration?.[0];
+      if (targetIds.length) {
+        kills = await applyToTargets(row, ability, damageTotal, targetIds, targetIds, abilityLog, eruptName || eruptDuration ? { effectName: eruptName, effectDuration: eruptDuration } : undefined);
+      }
+      if (ability.damage?.hp && targetIds.length) {
+        for (const id of targetIds) {
+          const who = participants.find(entry => entry.id === id);
+          if (!who) continue;
+          const hp = hpForDamage(ability.damage, who);
+          const extra = hp ? hpDamageAmount(ability.damage, row.rank, hp) : 0;
+          if (extra <= 0) continue;
+          abilityLog.push(`Daño de vida (${hpOrigin(ability.damage)}): ${extra} a ${who.name}`);
+          const more = await applyToTargets(row, ability, extra, [id], [], abilityLog, { skipEffects: true });
+          kills = [...new Set([...kills, ...more])];
+        }
+      }
+      const prev = participant.bonuses ?? [];
+      const source = abilityTrapSource(row.name);
+      let bonuses = prev.filter(bonus => bonus.source !== source);
+      if (mechanics?.reduceEmpoweredAaOnHit) {
+        const champHit = targetIds.some(id => {
+          const kind = participants.find(entry => entry.id === id)?.kind;
+          return id !== participant.id && (kind === 'champion' || kind === 'player');
+        });
+        if (champHit) {
+          for (const owner of rows) {
+            if (owner.rank < 1 || !owner.ability.mechanics?.empoweredAa) continue;
+            const reduced = reduceEmpoweredAaCooldown(bonuses, owner.name, mechanics.reduceEmpoweredAaOnHit);
+            if (!reduced) continue;
+            bonuses = reduced.bonuses;
+            abilityLog.push(`${owner.seal} «${owner.name}»: CD del AA potenciado ${reduced.before} → ${reduced.after} t. por acertar a un campeón${reduced.ready ? ' · listo' : ''}`);
+            chips.push({ kind: 'cd', text: reduced.ready ? `${owner.name} listo` : `${owner.name} CD −${mechanics.reduceEmpoweredAaOnHit}t`, title: 'CD del AA potenciado al acertar' });
+          }
+        }
+      }
+      if (onBonusesSave) {
+        await onBonusesSave(bonuses);
+        undos.push(() => onBonusesSave(prev));
+      }
+      abilityLog.push(`${trapName}: detonado${kills.length ? ` · derribos ${kills.length}` : ''}`);
+      const undo = async () => { for (const step of [...undos].reverse()) await step(); setLastUse(null); };
+      const targetNames = targets.filter(entry => targetIds.includes(entry.id)).map(entry => entry.name).join(', ');
+      setLastUse({ headline, log: abilityLog, ...(chips.length ? { chips } : {}), undo: () => { void undo(); } });
+      logCombat({ title: `${headline}${targetNames ? ` → ${targetNames}` : ''}`, lines: abilityLog, actor: participant.name });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No se pudo detonar');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const reduceEmpoweredStruck = async (row: AbilityRow) => {
+    const emp = row.ability.mechanics?.empoweredAa;
+    if (!emp?.reduceOnStruck || !isAdmin || busy) return;
+    const reduced = reduceEmpoweredAaCooldown(participant.bonuses ?? [], row.name, emp.reduceOnStruck);
+    if (!reduced || !onBonusesSave) return;
+    const prev = participant.bonuses ?? [];
+    await onBonusesSave(reduced.bonuses);
+    const lines = [`${row.seal} «${row.name}»: le han lanzado una habilidad → CD del AA potenciado ${reduced.before} → ${reduced.after} t.${reduced.ready ? ' · listo' : ''}`];
+    setLastUse({
+      headline: `${row.seal} «${row.name}»: CD −${emp.reduceOnStruck} t.`,
+      log: lines,
+      chips: [{ kind: 'cd', text: reduced.ready ? `${row.name} listo` : `${row.name} CD −${emp.reduceOnStruck}t`, title: lines[0] }],
+      undo: () => { void onBonusesSave(prev); setLastUse(null); },
+    });
+    logCombat({ title: lines[0], lines, actor: participant.name });
   };
 
   /** Enemigos del combate: los players contra el resto (campeones, NPCs…); sin los derrotados. */
@@ -1244,7 +2312,7 @@ export default function CombatAbilityUseSection({
 
   /** ¿Algún buff activo hace que los AA apliquen el estado de la pasiva? */
   const aaAppliesPassive = (): boolean =>
-    rows.some(owner => owner.ability.mechanics?.buff?.aaAppliesPassive === true && !!abilityBuff(participant.bonuses, owner.name));
+    rows.some(owner => owner.rank >= 1 && owner.ability.mechanics?.buff?.aaAppliesPassive === true && !!abilityBuff(participant.bonuses, owner.name));
 
   /** AA físico: % AD del buff activo y daño extra de la pasiva por prob. de crítico. */
   const basicAttackMods = (type: 'AD' | 'AP', total: number, stats: Record<string, unknown>): { total: number; log: string[]; chips: ResultChip[] } => {
@@ -1255,7 +2323,7 @@ export default function CombatAbilityUseSection({
     for (const owner of rows) {
       const buff = owner.ability.mechanics?.buff;
       const marker = buff ? abilityBuff(participant.bonuses, owner.name) : undefined;
-      if (!buff || !marker) continue;
+      if (!buff || !marker || owner.rank < 1) continue;
       const pct = rankValue(buff.aaAd, marker.amount);
       if (!pct) continue;
       const raw = (next * pct) / 100;
@@ -1286,6 +2354,7 @@ export default function CombatAbilityUseSection({
 
   /** Ataque básico: daño = AD (o AP) TOTAL de la ficha, tirando sus dados si los tiene; gasta un ataque y daña al objetivo. */
   const basicAttack = async (type: 'AD' | 'AP', target: CombatParticipant | null) => {
+    pendingCcGrants.length = 0;
     const stored = player ? basicAttackEntries(player.basicAttack).find(entry => (entry.type === 'AP' ? 'AP' : 'AD') === type)?.scaling : undefined;
     const attackLevel = player ? level : champion ? championDamageContext(champion, extra).level : level;
     const pct = basicAttackPct(type, attackLevel, stored);
@@ -1344,7 +2413,9 @@ export default function CombatAbilityUseSection({
     setBusy(true);
     try {
       if (actions) await combatPatchRef.current({ actionsLeft: actions });
-      const damage = target && onTargetDamage ? await onTargetDamage(target.id, total) : null;
+      const aaType = type === 'AP' ? 'magic' as const : 'physical' as const;
+      const aaCrit = (type === 'AD' && critOn) || (type === 'AP' && critOn && hasCinderbloom(participant, effectData));
+      const damage = target && onTargetDamage ? await onTargetDamage(target.id, total, { fromAutoAttack: true, damageType: aaType, critical: aaCrit, attackerId: participant.id }) : null;
       if (target && !damage) headline = `${headline} → ${target.name}`;
       if (target) mainLog.push(...hpLine(damage), ...defenseLines([target.id], stats as Record<string, unknown>, type === 'AP' ? 'magic' : 'physical'));
       // Robo de vida (el AA) + omnivampirismo: cura el % del daño del AA.
@@ -1358,10 +2429,295 @@ export default function CombatAbilityUseSection({
         undo: actions || vamp?.undo ? () => { void (async () => { if (vamp?.undo) await vamp.undo(); if (actions) await combatPatchRef.current({ actionsLeft: prevActions }); })(); setLastUse(null); } : undefined,
       };
       // On-hit: solo si golpea a alguien.
-      const kills = damage && damage.before > 0 && damage.after <= 0 && target ? [target.id] : [];
-      // Buff con «los AA aplican el estado de la pasiva» (Concentración de Ashe): la ralentización al objetivo.
-      const seed = target && aaAppliesPassive() ? await passiveStatusSeed([target.id], 'AA potenciado', undefined, aaCritical) : undefined;
-      const passive: PassiveResult = target ? await passivesFor('on-hit', [target.id], kills, false, undefined, seed) : { note: '' };
+      let kills = damage && damage.before > 0 && damage.after <= 0 && target ? [target.id] : [];
+      const shotKills: string[] = [];
+      let seed = target && aaAppliesPassive() ? await passiveStatusSeed([target.id], 'AA potenciado', undefined, aaCritical) : undefined;
+      // Disparos por sector (p. ej. patas de Urgot): uno listo se dispara al acertar el AA.
+      if (target && damage && damage.before > 0 && onBonusesSave) {
+        let bonuses = seed?.bonuses ?? participant.bonuses ?? [];
+        const shotLog: string[] = [];
+        const shotChips: ResultChip[] = [];
+        const shotUndos: (() => Promise<void>)[] = [...(seed?.undos ?? [])];
+        for (const owner of rows) {
+          const shots = owner.ability.mechanics?.sectorShots;
+          if (!shots || owner.rank < 1 || sectorShotTrigger(shots) === 'cast') continue;
+          const cdRank = shots.byLevel ? milestoneRank(attackLevel) : owner.rank;
+          const cooldown = rankValue(shots.cooldown, cdRank);
+          if (!cooldown) continue;
+          const spent = spendSectorShot(bonuses, owner.name, shots.count, cooldown, newBonusId);
+          if (!spent) {
+            shotLog.push(`${owner.seal} «${owner.name}»: ningún disparo de sector listo`);
+            continue;
+          }
+          bonuses = spent.bonuses;
+          const adRatio = owner.ability.damage?.ad ? (rankValue(owner.ability.damage.ad, owner.rank) ?? 0) : 0;
+          const ad = numericStat((stats as Record<string, unknown>).ad);
+          const adPart = Math.round(ad * adRatio);
+          const hpPart = hpDamageAmount(owner.ability.damage, owner.rank, hpForDamage(owner.ability.damage, target) ?? { current: 0 });
+          const extra = adPart + hpPart;
+          shotLog.push(`${owner.seal} «${owner.name}»: disparo de sector ${spent.index + 1}/${shots.count} → ${extra} ( ${fmt(adRatio * 100)}% AD = ${adPart}${hpPart ? ` + vida ${hpPart}` : ''} ); CD ${cooldown} t. · quedan ${spent.readyAfter} listos. Cono (dirección a mano) a otros enemigos.`);
+          shotChips.push({ kind: 'buff', text: `${owner.name} ${spent.readyAfter}/${shots.count}`, title: `Disparo ${spent.index + 1} en CD ${cooldown} t.` });
+          if (extra > 0 && onTargetDamage) {
+            const { damage: shotDamage, kills: more } = await damageTargets(onTargetDamage, [target.id], extra);
+            if (more) shotKills.push(...more);
+            if (shotDamage) {
+              const vamp = await vampFor(extra, false, `${owner.seal} «${owner.name}» (disparo de sector)`);
+              if (vamp) { shotLog.push(...vamp.log); shotChips.push(...vamp.chips); if (vamp.undo) shotUndos.push(vamp.undo); }
+            }
+          }
+        }
+        if (shotLog.length) {
+          const prev = participant.bonuses ?? [];
+          if (bonuses !== prev) {
+            await onBonusesSave(bonuses);
+            shotUndos.unshift(async () => { await onBonusesSave(prev); });
+          }
+          seed = { bonuses, log: [...(seed?.log ?? []), ...shotLog], chips: [...(seed?.chips ?? []), ...shotChips], undos: shotUndos };
+        }
+      }
+      if (target && onBonusesSave) {
+        let bonuses = seed?.bonuses ?? participant.bonuses ?? [];
+        const empLog: string[] = [];
+        const empChips: ResultChip[] = [];
+        const empUndos: (() => Promise<void>)[] = [...(seed?.undos ?? [])];
+        for (const owner of rows) {
+          const emp = owner.ability.mechanics?.empoweredAa;
+          if (!emp || owner.rank < 1) continue;
+          const state = empoweredAaState(bonuses, owner.name);
+          if (!state.ready) continue;
+          const selfHp = participantHp(participant);
+          if (emp.skipAboveHpPct && selfHp?.max && selfHp.current / selfHp.max > emp.skipAboveHpPct / 100) {
+            empLog.push(`${owner.seal} «${owner.name}»: AA potenciado no se dispara (vida ${fmt(selfHp.current)}/${fmt(selfHp.max)} por encima del ${emp.skipAboveHpPct}%)`);
+            continue;
+          }
+          const tier = emp.byLevel ? milestoneRank(attackLevel) : owner.rank;
+          const pct = rankValue(emp.healHpPct, tier) ?? 0;
+          const source = emp.hpSource ?? 'max';
+          const base = source === 'current' ? (selfHp?.current ?? 0)
+            : source === 'missing' ? Math.max(0, (selfHp?.max ?? 0) - (selfHp?.current ?? 0))
+            : source === 'bonus' ? (selfHp?.bonus ?? 0)
+            : (selfHp?.max ?? 0);
+          const raw = base * pct / 100;
+          const context = participantContext(participant, level, extra);
+          const final = context ? poolAmount(raw, context.ctx, true) : { amount: Math.round(raw), text: `${fmt(raw)}` };
+          const healUndo = onPoolChange && final.amount ? await onPoolChange('heal', final.amount) : null;
+          if (healUndo) empUndos.push(healUndo);
+          const origin = source === 'current' ? 'vida actual' : source === 'missing' ? 'vida faltante' : source === 'bonus' ? 'vida bonus' : 'vida máx.';
+          empLog.push(`${owner.seal} «${owner.name}»: AA potenciado cura ${final.amount} (${fmt(pct)}% ${origin}${context ? ` · ${final.text}` : ''}${healUndo ? '' : ' · a mano / ya al máximo'})`);
+          empChips.push({ kind: 'heal', text: `Cura ${final.amount}`, title: `${owner.name}: ${fmt(pct)}% ${origin}` });
+          const started = startEmpoweredAaCooldown(bonuses, owner.name, emp, tier, newBonusId);
+          bonuses = started.bonuses;
+          empLog.push(`${owner.seal} «${owner.name}»: AA potenciado entra en CD ${started.turns} t.`);
+        }
+        if (empLog.length) {
+          const alreadySaved = (seed?.undos?.length ?? 0) > 0;
+          const original = participant.bonuses ?? [];
+          await onBonusesSave(bonuses);
+          if (!alreadySaved) empUndos.unshift(async () => { await onBonusesSave(original); });
+          seed = { bonuses, log: [...(seed?.log ?? []), ...empLog], chips: [...(seed?.chips ?? []), ...empChips], undos: empUndos };
+        }
+      }
+      if (target) {
+        const aaLog: string[] = [];
+        const aaChips: ResultChip[] = [];
+        let onHitBonuses = seed?.bonuses ?? participant.bonuses ?? [];
+        const hp = participantHp(target);
+        const atkStats = player
+          ? { ...playerTotalLine(player.sheet, player.equipamiento, level, extra), bonus: playerBonusLine(player.sheet, player.equipamiento, extra) }
+          : champion
+            ? championDamageContext(champion, extra).stats
+            : null;
+        const ap = atkStats ? Number((atkStats as { ap?: number }).ap ?? 0) || 0 : 0;
+        for (const owner of rows) {
+          const onHit = owner.ability.mechanics?.aaOnHit;
+          if (!onHit || !abilityAaOnHitActive(onHitBonuses, owner.name, onHit, owner.rank)) continue;
+          const source = onHit.hpSource ?? 'max';
+          const base = source === 'current' ? (hp?.current ?? 0)
+            : source === 'missing' ? Math.max(0, (hp?.max ?? 0) - (hp?.current ?? 0))
+            : source === 'bonus' ? (hp?.bonus ?? 0)
+            : (hp?.max ?? 0);
+          if (onHit.hp?.length && !hp?.max) {
+            aaLog.push(`${owner.seal} «${owner.name}»: daño de AA según vida a mano (sin vida del objetivo)`);
+            continue;
+          }
+          const adStat = atkStats as { ad?: number; bonus?: { ad?: number } } | null;
+          const ad = onHit.adSource === 'bonus' ? Number(adStat?.bonus?.ad ?? 0) || 0 : Number(adStat?.ad ?? 0) || 0;
+          let dealt = aaOnHitDamage(onHit, owner.rank, ap, base, ad);
+          let stacks = 0;
+          if (onHit.perTargetStacks && target) {
+            const mark = abilityAaOnHitStackSource(owner.name, target.id);
+            const marker = onHitBonuses.find(bonus => bonus.source === mark);
+            stacks = marker && (marker.turns ?? 0) > 0 ? marker.amount : 0;
+            dealt = Math.round(dealt * (stacks + 1));
+            const nextStacks = Math.min(onHit.perTargetStacks.max ?? 999, stacks + 1);
+            onHitBonuses = [...onHitBonuses.filter(bonus => bonus.source !== mark), { id: marker?.id ?? newBonusId(), stat: 'buff', amount: nextStacks, turns: onHit.perTargetStacks.turns, source: mark, label: `${owner.name}`.slice(0, 80) }];
+          }
+          if (dealt <= 0) continue;
+          const more = await applyToTargets(owner, { ...owner.ability, effectTarget: owner.ability.effectTarget }, dealt, [target.id], [], aaLog, { skipEffects: true, lifeSteal: false });
+          kills = [...new Set([...kills, ...more])];
+          const origin = onHit.ad?.length && !onHit.hp?.length
+            ? `${onHit.adSource === 'bonus' ? 'AD bonus' : 'AD'}${onHit.ap?.length ? ` + ${onHit.apSource === 'bonus' ? 'AP bonus' : 'AP'}` : ''}${stacks ? ` · ×${stacks + 1}` : ''}`
+            : (source === 'current' ? 'vida actual' : source === 'missing' ? 'vida faltante' : source === 'bonus' ? 'vida bonus' : 'vida máx.');
+          aaLog.push(`${owner.seal} «${owner.name}»: AA +${fmt(dealt)}${onHit.type ? ` ${onHit.type}` : ''} (${origin})`);
+          aaChips.push({ kind: 'buff', text: `AA +${fmt(dealt)}`, title: `${owner.name}: ${origin}` });
+        }
+        if (aaLog.length) {
+          const undos = [...(seed?.undos ?? [])];
+          if (onBonusesSave && onHitBonuses !== (participant.bonuses ?? [])) {
+            const original = participant.bonuses ?? [];
+            await onBonusesSave(onHitBonuses);
+            undos.unshift(async () => { await onBonusesSave(original); });
+          }
+          seed = { bonuses: onHitBonuses, log: [...(seed?.log ?? []), ...aaLog], chips: [...(seed?.chips ?? []), ...aaChips], undos };
+        }
+      }
+      if (target && onBonusesSave) {
+        const kind = target.kind;
+        const championTarget = kind === 'champion' || kind === 'player';
+        if (championTarget) {
+          let bonuses = seed?.bonuses ?? participant.bonuses ?? [];
+          const armLog: string[] = [];
+          const armChips: ResultChip[] = [];
+          const armUndos: (() => Promise<void>)[] = [...(seed?.undos ?? [])];
+          const stats = player
+            ? { ...playerTotalLine(player.sheet, player.equipamiento, level, extra), bonus: playerBonusLine(player.sheet, player.equipamiento, extra) }
+            : champion
+              ? championDamageContext(champion, extra).stats
+              : null;
+          for (const owner of rows) {
+            const armed = owner.ability.mechanics?.armedAa;
+            if (!armed || owner.rank < 1 || !abilityArmedAaMarker(bonuses, owner.name)) continue;
+            bonuses = bonuses.filter(bonus => bonus.source !== abilityArmedAaSource(owner.name));
+            if (stats && (armed.ad?.length || armed.ap?.length)) {
+              try {
+                const rolled = rollAbilityDamage({ type: armed.type, ad: armed.ad, ap: armed.ap, adSource: armed.adSource, apSource: armed.apSource }, stats, owner.rank);
+                if (rolled.total > 0 && onTargetDamage) {
+                  const extra = await applyToTargets(owner, { ...owner.ability, effect: armed.effect, effectName: armed.effectName, effectDuration: armed.effectDuration, effectTarget: armed.effectName ? 'enemy' : owner.ability.effectTarget }, rolled.total, [target.id], armed.effectName ? [target.id] : [], armLog, armed.effectName ? undefined : { skipEffects: true, lifeSteal: false });
+                  kills = [...new Set([...kills, ...extra])];
+                  armLog.push(`${owner.seal} «${owner.name}»: AA armado ${fmt(rolled.total)}${armed.type ? ` ${armed.type}` : ''}`);
+                  armChips.push({ kind: 'buff', text: `AA armado ${fmt(rolled.total)}`, title: owner.name });
+                }
+              } catch (caught) {
+                armLog.push(`${owner.seal} «${owner.name}»: AA armado a mano (${caught instanceof Error ? caught.message : 'no se pudo calcular'})`);
+              }
+            }
+            if ((armed.hp?.length || armed.apPer100) && onTargetDamage) {
+              const hp = participantHp(target);
+              const source = armed.hpSource ?? 'max';
+              const base = source === 'current' ? (hp?.current ?? 0) : source === 'missing' ? Math.max(0, (hp?.max ?? 0) - (hp?.current ?? 0)) : source === 'bonus' ? (hp?.bonus ?? 0) : (hp?.max ?? 0);
+              if (armed.hp?.length && !hp?.max) {
+                armLog.push(`${owner.seal} «${owner.name}»: AA armado según vida a mano (sin vida del objetivo)`);
+              } else {
+                const apStat = stats as { ap?: number; bonus?: { ap?: number } } | null;
+                const apVal = armed.apSource === 'bonus' ? Number(apStat?.bonus?.ap ?? 0) || 0 : Number(apStat?.ap ?? 0) || 0;
+                const dealt = aaOnHitDamage({ hp: armed.hp, hpSource: armed.hpSource, apPer100: armed.apPer100 }, owner.rank, apVal, base);
+                if (dealt > 0) {
+                  const extra = await applyToTargets(owner, { ...owner.ability, effectTarget: owner.ability.effectTarget }, dealt, [target.id], [], armLog, { skipEffects: true, lifeSteal: false });
+                  kills = [...new Set([...kills, ...extra])];
+                  const origin = source === 'missing' ? 'vida faltante' : source === 'current' ? 'vida actual' : source === 'bonus' ? 'vida bonus' : 'vida máx.';
+                  armLog.push(`${owner.seal} «${owner.name}»: AA armado +${fmt(dealt)}${armed.type ? ` ${armed.type}` : ''} (${origin}${armed.apPer100 ? ` + ${armed.apPer100}%/100 AP` : ''})`);
+                  armChips.push({ kind: 'buff', text: `AA armado +${fmt(dealt)}`, title: `${owner.name}: ${origin}` });
+                }
+              }
+            }
+            if (armed.explodeFromLevel && level >= armed.explodeFromLevel) {
+              armLog.push(`${owner.seal} «${owner.name}»: a partir del nivel ${armed.explodeFromLevel} este AA explota a enemigos cercanos (elige zona; on-hits a otros, a mano)`);
+            } else if (armed.effectName && armed.effectDuration) {
+              const extra = await applyToTargets(owner, { ...owner.ability, effect: armed.effect, effectName: armed.effectName, effectDuration: armed.effectDuration, effectTarget: 'enemy' }, 0, [], [target.id], armLog);
+              void extra;
+              armLog.push(`${owner.seal} «${owner.name}»: AA armado aplica «${armed.effectName}» ${armed.effectDuration} t.`);
+            }
+            if (armed.endsSelfStatus) {
+              const selfStat = abilitySelfStatSource(owner.name);
+              const sources = new Set([selfStat, abilitySelfDrSource(owner.name), abilityStacksSource(owner.name)]);
+              bonuses = bonuses.filter(bonus => {
+                const source = bonus.source ?? '';
+                return !sources.has(source) && !source.startsWith(`${selfStat}:`);
+              });
+              const current = participant.effects.find(effect => effect.source === `ability:${owner.name}`) ?? null;
+              if (current && onApplySourcedEffect) {
+                await onApplySourcedEffect([participant.id], { source: `ability:${owner.name}`, name: current.name, duration: 1, restore: { [participant.id]: null } });
+              }
+              armLog.push(`${owner.seal} «${owner.name}»: termina «${current?.name ?? owner.ability.mechanics?.selfStatus?.name ?? owner.name}»`);
+            }
+          }
+          bonuses = await applyCcStackGrants(bonuses, armLog, armChips);
+          if (armLog.length) {
+            const original = participant.bonuses ?? [];
+            await onBonusesSave(bonuses);
+            armUndos.unshift(async () => { await onBonusesSave(original); });
+            seed = { bonuses, log: [...(seed?.log ?? []), ...armLog], chips: [...(seed?.chips ?? []), ...armChips], undos: armUndos };
+          }
+        }
+      }
+      if ((kills.length || shotKills.length) && onBonusesSave) {
+        let nextBonuses = seed?.bonuses ?? participant.bonuses ?? [];
+        const takeLog: string[] = [];
+        const takeChips: ResultChip[] = [];
+        const allKills = [...new Set([...kills, ...shotKills])];
+        for (const entry of rows) {
+          const resolved = applyEvolve(activeAbility(entry, phaseOf(entry)), isAbilityEvolved(nextBonuses, entry.name));
+          const rec = resolved.mechanics?.recastOnTakedown;
+          if (!rec || entry.rank < 1) continue;
+          const takeIds = rec.champion ? championKillIds(allKills) : allKills;
+          if (!takeIds.length) continue;
+          nextBonuses = grantAbilityRecast(nextBonuses, entry.name, rec, newBonusId, entry.name);
+          takeLog.push(`${entry.seal} «${entry.name}»: recast por ${rec.champion ? 'derribo de campeón' : 'eliminación/asistencia'} ×${rec.times}${rec.turns ? ` ${rec.turns} t.` : ' hasta usarlo'}${rec.max ? ` (máx. ${rec.max})` : ''}`);
+          takeChips.push({ kind: 'buff', text: `Recast ${entry.name}`, title: rec.champion ? 'Al derribar campeón' : 'Al matar / asistir' });
+        }
+        if (takeLog.length) {
+          const original = participant.bonuses ?? [];
+          await onBonusesSave(nextBonuses);
+          seed = { bonuses: nextBonuses, log: [...(seed?.log ?? []), ...takeLog], chips: [...(seed?.chips ?? []), ...takeChips], undos: [...(seed?.undos ?? []), async () => { await onBonusesSave(original); }] };
+        }
+      }
+      if (target) seed = await detonateMarks([target.id], 'aa', undefined, seed);
+      const passive: PassiveResult = target ? await passivesFor('on-hit', [target.id], [...kills, ...shotKills], false, undefined, seed) : { note: '' };
+      if (target) {
+        let waveBonuses = seed?.bonuses ?? participant.bonuses ?? [];
+        const waveLog: string[] = [];
+        const waveChips: ResultChip[] = [];
+        const waveStats = player
+          ? { ...playerTotalLine(player.sheet, player.equipamiento, level, extra), bonus: playerBonusLine(player.sheet, player.equipamiento, extra) }
+          : champion
+            ? championDamageContext(champion, extra).stats
+            : null;
+        for (const owner of rows) {
+          const before = waveBonuses;
+          waveBonuses = ensurePermanentMaxStacks(owner, waveBonuses);
+          waveBonuses = syncStackMaxStatus(owner, waveBonuses, waveLog, waveChips);
+          const wave = mergedAaWave(owner.ability.mechanics?.levelThresholds, level);
+          if (!wave || owner.rank < 1) continue;
+          const cfg = owner.ability.mechanics?.stacks;
+          const count = hasPermanentMaxStacks(owner.ability.mechanics?.levelThresholds, level) ? (cfg?.max ?? 0) : abilityStacks(waveBonuses, owner.name).count;
+          if (wave.requiresMaxStacks && (!cfg || count < cfg.max)) continue;
+          if (!waveStats) {
+            waveLog.push(`${owner.seal} «${owner.name}»: oleada al AA a mano (sin stats)`);
+            continue;
+          }
+          try {
+            const rolled = rollAbilityDamage({ type: wave.type ?? 'magic', ad: wave.ad, ap: wave.ap, adSource: wave.adSource, apSource: wave.apSource }, waveStats, owner.rank);
+            if (rolled.total > 0 && onTargetDamage) {
+              const typ = wave.type === 'true' ? 'verdadero' : wave.type === 'physical' ? 'físico' : 'mágico';
+              const more = await applyToTargets(owner, { ...owner.ability, damage: { ...(owner.ability.damage ?? {}), type: typ } }, rolled.total, [target.id], [], waveLog, { skipEffects: true, lifeSteal: false });
+              kills = [...new Set([...kills, ...more])];
+              waveLog.push(`${owner.seal} «${owner.name}»: oleada al AA ${fmt(rolled.total)} ${typ} a ${target.name} (la línea / otros enemigos, a mano)`);
+              waveChips.push({ kind: 'buff', text: `Oleada ${fmt(rolled.total)}`, title: owner.name });
+            }
+          } catch (caught) {
+            waveLog.push(`${owner.seal} «${owner.name}»: oleada al AA a mano (${caught instanceof Error ? caught.message : 'no se pudo calcular'})`);
+          }
+        }
+        if (waveLog.length || waveChips.length) {
+          if (onBonusesSave) await onBonusesSave(waveBonuses);
+          if (seed) seed.bonuses = waveBonuses;
+          passive.log = [...(passive.log ?? []), ...waveLog];
+          passive.chips = [...(passive.chips ?? []), ...waveChips];
+        } else if (onBonusesSave) {
+          await onBonusesSave(waveBonuses);
+          if (seed) seed.bonuses = waveBonuses;
+        }
+      }
       const finalUse = withPassives(withTargetDamage(use, damage), passive);
       setLastUse(finalUse);
       logCombat({ title: finalUse.headline, lines: finalUse.log ?? [], actor: participant.name });
@@ -1373,20 +2729,124 @@ export default function CombatAbilityUseSection({
   };
 
   /** Objetivos elegidos (uno o varios): el mismo daño a cada uno y el efecto enemigo a todos. */
-  const applyToTargets = async (row: AbilityRow, ability: Ability, amount: number, targetIds: string[], effectIds: string[] = targetIds, logOut?: string[]): Promise<string[]> => {
+  const detonateMarks = async (targetIds: string[], via: 'aa' | 'ability', used?: AbilityRow, seed?: MechanicsSeed): Promise<MechanicsSeed | undefined> => {
+    if (!targetIds.length || !onApplySourcedEffect) return seed;
+    const stats = player
+      ? { ...playerTotalLine(player.sheet, player.equipamiento, level, extra), bonus: playerBonusLine(player.sheet, player.equipamiento, extra) }
+      : champion
+        ? championDamageContext(champion, extra).stats
+        : null;
+    const next: MechanicsSeed = seed ?? { bonuses: participant.bonuses ?? [], log: [], chips: [], undos: [] };
+    let changed = false;
+    for (const targetId of targetIds) {
+      const who = participants.find(entry => entry.id === targetId);
+      if (!who) continue;
+      for (const owner of rows) {
+        const mark = owner.ability.mechanics?.mark;
+        if (!mark || owner.rank < 1) continue;
+        if (used && sameAbilityName(used.name, owner.name)) continue;
+        const mode = mark.detonateOn ?? 'both';
+        if (mode !== 'both' && mode !== via) continue;
+        const source = `ability:${owner.name}`;
+        const effect = who.effects.find(entry => entry.source === source && (entry.duration ?? 0) > 0);
+        if (!effect) continue;
+        const snapshot: Record<string, CombatEffect | null> = { [who.id]: effect };
+        await onApplySourcedEffect([who.id], { source, name: effect.name, duration: 1, restore: { [who.id]: null } });
+        next.undos.push(async () => {
+          await onApplySourcedEffect([who.id], { source, name: effect.name, duration: 1, restore: snapshot });
+        });
+        changed = true;
+        const viaLabel = via === 'aa' ? 'AA' : (used ? `${used.seal} «${used.name}»` : 'habilidad');
+        next.log.push(`${owner.seal} «${owner.name}»: detona la marca en ${who.name} (${viaLabel})`);
+        if (mark.damageOnDetonate !== false && hasDamageScaling(owner.ability.damage)) {
+          if (!stats) {
+            next.log.push(`${owner.seal} «${owner.name}»: daño de la detonación a mano (sin ficha)`);
+          } else {
+            try {
+              const rolled = rollAbilityDamage(owner.ability.damage!, stats, owner.rank);
+              if (rolled.total > 0 && onTargetDamage) {
+                await applyToTargets(owner, owner.ability, rolled.total, [who.id], [], next.log, { skipEffects: true, lifeSteal: false });
+                next.log.push(`${owner.seal} «${owner.name}»: detonación ${fmt(rolled.total)}${owner.ability.damage?.type ? ` ${owner.ability.damage.type}` : ''} → ${who.name}`);
+                next.chips.push({ kind: 'buff', text: `Marca ${fmt(rolled.total)}`, title: `${owner.name} → ${who.name}` });
+              }
+            } catch (caught) {
+              next.log.push(`${owner.seal} «${owner.name}»: detonación a mano (${caught instanceof Error ? caught.message : 'no se pudo calcular'})`);
+            }
+          }
+        }
+        if (via === 'ability' && mark.refundMana) {
+          const flat = rankValue(mark.refundMana.flat, owner.rank) ?? (mark.refundMana.flat?.[0] ?? 0);
+          const costRefund = mark.refundMana.refundCost && used ? (parseAbilityCost(used.ability.cost, used.rank) ?? 0) : 0;
+          const amount = Math.round((flat + costRefund) * 1000) / 1000;
+          if (amount > 0) {
+            if (onPoolChange) {
+              const undo = await onPoolChange('mana', amount);
+              if (undo) next.undos.push(undo);
+              next.log.push(`${owner.seal} «${owner.name}»: restaura ${amount} de maná${costRefund ? ` (${flat} + coste ${costRefund} de «${used!.name}»)` : ''}${undo ? '' : ' · a mano / ya al máximo'}`);
+            } else {
+              next.log.push(`${owner.seal} «${owner.name}»: restaura ${amount} de maná a mano`);
+            }
+            next.chips.push({ kind: 'buff', text: `+${amount} maná`, title: owner.name });
+          }
+        }
+      }
+    }
+    return changed || seed ? next : seed;
+  };
+
+  const applyToTargets = async (row: AbilityRow, ability: Ability, amount: number, targetIds: string[], effectIds: string[] = targetIds, logOut?: string[], opts?: { skipEffects?: boolean; lifeSteal?: boolean; effectName?: string; effectDuration?: number; critical?: boolean; damageType?: 'physical' | 'magic' | 'true' }): Promise<string[]> => {
     if (targetIds.length === 0 && effectIds.length === 0) return [];
+    let hits = targetIds;
+    let fxIds = effectIds;
+    if (!opts?.skipEffects && (targetIds.length || effectIds.length)) {
+      const blocked = await consumeSpellShields({
+        targetIds: [...new Set([...targetIds, ...effectIds])],
+        participants,
+        effectData,
+        level,
+        applyEffect: (ids, input) => onApplySourcedEffect(ids, input),
+        saveBonuses: async (targetId, nextBonuses) => {
+          if (targetId === participant.id) await onBonusesSave?.(nextBonuses);
+          else await onTargetBonuses?.(targetId, () => nextBonuses);
+        },
+      });
+      if (blocked.lines.length) {
+        logOut?.push(...blocked.lines);
+        setLastUse(current => current ? { ...current, log: [...(current.log ?? []), ...blocked.lines] } : current);
+      }
+      hits = targetIds.filter(id => !blocked.blockedIds.includes(id));
+      fxIds = effectIds.filter(id => !blocked.blockedIds.includes(id));
+      if (hits.length === 0 && fxIds.length === 0) return [];
+    }
     let damaged = false;
     let kills: string[] = [];
-    if (amount && onTargetDamage && targetIds.length > 0) {
+    if (amount && onTargetDamage && hits.length > 0) {
       setBusy(true);
       try {
-        const { damage, error: failed, kills: killed, hits } = await damageTargets(onTargetDamage, targetIds, amount);
-        kills = killed ?? [];
-        if (damage) {
-          damaged = true;
-          setLastUse(current => (current ? withTargetDamage(current, damage) : current));
-          // Omnivampirismo: todo el daño de la habilidad (robo de vida no: solo AA).
-          const vamp = await vampFor(amount * (hits ?? targetIds.length), false, `${row.seal} «${row.name}»`);
+        let totalDealt = 0;
+        const hitCount = hits.length;
+        const damageKind = opts?.damageType ?? abilityDamageKind(ability);
+        const cinderCrit = !opts?.skipEffects && !!crit && (damageKind === 'magic' || damageKind === 'true') && hasCinderbloom(participant, effectData);
+        const isCrit = opts?.critical ?? cinderCrit;
+        for (const id of hits) {
+          const who = participants.find(entry => entry.id === id);
+          const reducedPct = incomingDamageReductionPct(who?.bonuses);
+          const dealt = reducedPct ? Math.max(0, Math.round(amount * (100 - reducedPct) / 100)) : amount;
+          if (reducedPct && who) logOut?.push(`${who.name}: reducción de daño ${reducedPct}% → ${amount} = ${dealt}`);
+          const { damage, error: failed, kills: killed, hits: nHits } = await damageTargets(onTargetDamage, [id], dealt, { damageType: damageKind, critical: isCrit, attackerId: participant.id });
+          if (killed?.length) kills = [...new Set([...kills, ...killed])];
+          if (failed) setError(failed);
+          if (damage) {
+            damaged = true;
+            totalDealt += dealt * (nHits ?? 1);
+            setLastUse(current => (current ? withTargetDamage(current, damage) : current));
+          }
+        }
+        if (damaged) {
+          // Omnivampirismo siempre; robo de vida si la habilidad tiene «Aplica robo de vida» (× eficacia), salvo pulso de daño por cargas.
+          const allowSteal = opts?.lifeSteal !== false;
+          const steal = allowSteal ? row.ability.mechanics?.lifeSteal : undefined;
+          const vamp = await vampFor(totalDealt || amount * hitCount, !!steal, `${row.seal} «${row.name}»`, steal?.efficacy);
           if (vamp) {
             logOut?.push(...vamp.log);
             setLastUse(current => {
@@ -1396,32 +2856,56 @@ export default function CombatAbilityUseSection({
             });
           }
         }
-        if (failed) setError(failed);
       } finally {
         setBusy(false);
       }
     }
     if (!damaged) {
-      const names = targets.filter(target => targetIds.includes(target.id)).map(target => target.name).join(', ');
+      const names = targets.filter(target => hits.includes(target.id)).map(target => target.name).join(', ');
       if (names) setLastUse(current => (current ? { ...current, headline: `${current.headline} → ${names}` } : current));
     }
-    if (typeof ability.effectDuration !== 'number' || ability.effectTarget !== 'enemy' || !(ability.effectDuration > 0) || effectIds.length === 0) return kills;
-    await onApplySourcedEffect(effectIds, {
+    const effectDuration = opts?.effectDuration ?? ability.effectDuration;
+    const effectName = (opts?.effectName ?? ability.effectName ?? '').trim() || row.name;
+    if (opts?.skipEffects || typeof effectDuration !== 'number' || (ability.effectTarget !== 'enemy' && opts?.effectDuration == null) || !(effectDuration > 0) || fxIds.length === 0) return kills;
+    const effectValue = rankValue(ability.effect?.[0]?.values, row.rank);
+    await onApplySourcedEffect(fxIds, {
       source: `ability:${row.name}`,
-      name: (ability.effectName ?? '').trim() || row.name,
-      duration: ability.effectDuration,
+      name: effectName,
+      duration: effectDuration,
       hasStacks: ability.hasStacks,
       maxStacks: ability.maxStacks,
+      ...(effectValue != null ? { value: effectValue } : {}),
     });
+    if (isImmobilizeEffectName(effectName) && activeMandateAmp(participant, effectData)) {
+      await onApplySourcedEffect(fxIds, { source: 'item:control', name: 'Mandato (+7% daño)', duration: 2, value: 7 });
+      logOut?.push(`Mandato: +7% de daño 2 t. a ${fxIds.length} objetivo(s) inmovilizado(s)`);
+    }
+    const champCc = fxIds.filter(id => {
+      const kind = participants.find(entry => entry.id === id)?.kind;
+      return id !== participant.id && (kind === 'champion' || kind === 'player');
+    });
+    if (champCc.length && isCrowdControlEffectName(effectName)) pendingCcGrants.push({ count: champCc.length, effectName });
     return kills;
   };
 
   const picking = pickingKey ? rows.find(row => row.key === pickingKey) ?? null : null;
   /** «Crít.» antes de aplicar (el player ha sacado crítico): solo daño físico base de la acción. */
   const critToggle = (
-    <label className="combat-crit-toggle" title="Si el player ha sacado crítico (20 natural o la segunda tirada): daño físico × DAÑO CRÍT">
+    <label className="combat-crit-toggle" title={hasCinderbloom(participant, effectData) ? 'Crítico: físico × DAÑO CRÍT; Llamasombría aplica el 20% de potencia a daño mágico o verdadero si el objetivo está bajo el 40% de vida' : 'Si el player ha sacado crítico (20 natural o la segunda tirada): daño físico × DAÑO CRÍT'}>
       <input type="checkbox" checked={crit} disabled={saving || busy} onChange={e => setCrit(e.target.checked)} />
       Crít.
+    </label>
+  );
+  const isolatedToggle = (
+    <label className="combat-crit-toggle" title="El objetivo no tiene aliados cerca (a juicio de mesa): daño y/o ralentización extra">
+      <input type="checkbox" checked={isolated} disabled={saving || busy} onChange={e => setIsolated(e.target.checked)} />
+      Objetivo aislado
+    </label>
+  );
+  const selfInAreaToggle = (
+    <label className="combat-crit-toggle" title="El portador está en el área o la explosión (cura/escudo condicional)">
+      <input type="checkbox" checked={selfInArea} disabled={saving || busy} onChange={e => setSelfInArea(e.target.checked)} />
+      Estoy en el área
     </label>
   );
   const targets = participants.filter(entry => entry.id !== participant.id);
@@ -1450,10 +2934,11 @@ export default function CombatAbilityUseSection({
   };
 
   const rowState = (row: AbilityRow, phase?: number) => {
-    const ability = activeAbility(row, phase);
+    const ability = applyEvolve(activeAbility(row, phase), isAbilityEvolved(participant.bonuses, row.name));
     const spend = resolvedSpendKind(ability, row.ownerResource ? { resource: row.ownerResource } : undefined);
-    const recast = row.ability.mechanics?.recast ? abilityRecast(participant.bonuses, row.name) : undefined;
-    const cost = spend.kind === 'none' || recast ? 0 : (parseAbilityCost(ability.cost, row.rank) ?? 0);
+    const recast = abilityRecast(participant.bonuses, row.name);
+    const toggle = row.ability.mechanics?.toggle ? abilityToggle(participant.bonuses, row.name) : undefined;
+    const cost = spend.kind === 'none' || recast || toggle ? 0 : stackedAbilityCost(parseAbilityCost(ability.cost, row.rank) ?? 0, participant.bonuses, row.name, ability.mechanics?.costStacks);
     const spendPool = spend.kind === 'none' ? null : currentFor(spend.kind === 'hp' ? 'hp' : 'pool');
     const cdRemaining = player
       ? readCooldown(player.cooldowns, abilityCooldownKey(row.name))
@@ -1464,30 +2949,58 @@ export default function CombatAbilityUseSection({
     // Mecánicas (de la habilidad base): cargas de uso, cargas por impacto necesarias y buff activo.
     const mechanics = row.ability.mechanics;
     const charges = abilityCharges(row.ability, participant.bonuses, row.name);
-    const stacks = abilityStacks(participant.bonuses, row.name);
-    const required = mechanics?.stacks?.required;
+    const ownStacks = mechanics?.stacks ? abilityStacks(participant.bonuses, row.name) : { count: 0 };
+    const need = stacksRequirement(ability.mechanics, row.name);
+    const needStacks = need ? { count: stacksFor(need.name) } : { count: 0 };
+    const permanentCount = (row.ability.hasStacks || row.ability.mechanics?.permanentStacks) ? stacksFor(row.name) : undefined;
     const buff = mechanics?.buff ? abilityBuff(participant.bonuses, row.name) : undefined;
+    const shots = mechanics?.sectorShots ? sectorShotState(participant.bonuses, row.name, mechanics.sectorShots.count) : undefined;
+    const empowered = mechanics?.empoweredAa ? empoweredAaState(participant.bonuses, row.name) : undefined;
+    const trap = mechanics?.trap ? abilityTrap(participant.bonuses, row.name) : undefined;
     const mechanicsNote = [
       charges ? `Cargas ${charges.left}/${charges.max}${charges.left < charges.max && charges.recharge ? ` · recarga ${charges.recharge} t.` : ''}` : '',
-      mechanics?.stacks ? `Cargas ${stacks.count}/${mechanics.stacks.max}${stacks.turns ? ` · ${stacks.turns} t.` : ''}` : '',
-      buff ? `Activa ${buff.turns ?? '—'} t.` : '',
-      recast ? `Recast gratis ×${recast.amount} · ${recast.turns ?? '—'} t.` : '',
+      mechanics?.stacks ? `Cargas ${ownStacks.count}/${mechanics.stacks.max}${ownStacks.turns ? ` · ${ownStacks.turns} t.` : ''}` : '',
+      permanentCount !== undefined ? `Cargas permanentes ${permanentCount}${row.ability.maxStacks ? `/${row.ability.maxStacks}` : ''}` : '',
+      need && need.name !== row.name ? `Cargas de «${need.name}» ${needStacks.count}/${need.count}` : '',
+      shots ? `Disparos ${shots.ready}/${mechanics!.sectorShots!.count}${shots.nextRecharge ? ` · próximo en ${shots.nextRecharge} t.` : ''}${(mechanics!.sectorShots!.labels ?? []).length ? ` (${mechanics!.sectorShots!.labels!.join(', ')})` : ''}` : '',
+      (participant.bonuses ?? []).some(bonus => bonus.source === sectorGapSource(row.name) && (bonus.turns ?? 0) > 0) ? `Intervalo ${(participant.bonuses ?? []).find(bonus => bonus.source === sectorGapSource(row.name))?.turns} t.` : '',
+      toggle ? `Interruptor ON${toggle.turns ? ` ${toggle.turns} t.` : ' (hasta desactivar)'}${mechanics?.toggle?.fixedAttacks || mechanics?.selfStatus?.fixedAttacks ? ` · ataques fijos ${mechanics.toggle?.fixedAttacks ?? mechanics.selfStatus?.fixedAttacks}` : ''}` : '',
+      buff && !toggle ? `Activa ${buff.turns ?? '—'} t.` : '',
+      recast ? `Recast gratis ×${recast.amount}${typeof recast.turns === 'number' ? ` · ${recast.turns} t.` : ' · hasta usarlo'}` : '',
+      mechanics?.execute ? `Execute ≤ ${mechanics.execute.hpPct}% vida máx.` : '',
       innateNote(row),
       pendingHeal(row) ? `Cura pendiente ${pendingHeal(row)!.amount} · ${pendingHeal(row)!.turns ?? '—'} t.` : '',
+      empowered ? (empowered.ready ? 'AA potenciado listo' : empowered.turns ? `AA potenciado CD ${empowered.turns} t.` : '') : '',
+      trap ? `${trap.label ?? mechanics?.trap?.name ?? 'Efecto retrasado'} ${trap.turns ?? '—'} t.` : '',
+      mechanics?.costHpMaxPct ? `Coste ${mechanics.costHpMaxPct}% vida máx.` : '',
+      isAbilityEvolved(participant.bonuses, row.name) && row.ability.mechanics?.evolve ? `Evolucionado: ${row.ability.mechanics.evolve.name}` : '',
+      abilityArmedAaMarker(participant.bonuses, row.name) ? 'AA armado' : '',
+      ability.mechanics?.costStacks ? `Acum. coste ${abilityCostStackCount(participant.bonuses, row.name)}/${ability.mechanics.costStacks.max} (+${ability.mechanics.costStacks.amount})` : '',
+      abilityDeathBurst(participant.bonuses, row.name) ? `${ability.mechanics?.deathBurst?.name ?? 'Zombi'} ${abilityDeathBurst(participant.bonuses, row.name)!.turns ?? '—'} t.` : '',
+      abilityAaOnHitActive(participant.bonuses, row.name, ability.mechanics?.aaOnHit, row.rank) && ability.mechanics?.aaOnHit ? (ability.mechanics.aaOnHit.always ? 'AA con daño extra' : 'AA con daño de vida') : '',
     ].filter(Boolean).join(' · ');
     let disabledReason: string | undefined;
     if (participant.defeated) disabledReason = 'Está derrotado';
+    else if (toggle || (mechanics?.selfStatus?.cancelable && (participant.effects.some(effect => effect.source === `ability:${row.name}`) || (participant.bonuses ?? []).some(bonus => bonus.source === abilitySelfStatSource(row.name) || bonus.source === abilitySelfDrSource(row.name))))) disabledReason = undefined;
     else if (mechanics?.innateShield) disabledReason = `Automática: ${innateNote(row)}`;
     else if (left.abilities === 0 && !mechanics?.noAction) disabledReason = 'Sin habilidades este turno';
-    else if (hasDamageScaling(ability.damage) && row.rank < 1) disabledReason = 'Habilidad sin aprender (rango 0)';
+    else if (row.rank < 1) disabledReason = 'Habilidad sin aprender (rango 0)';
     else if (charges && charges.left <= 0) disabledReason = `Sin cargas (0/${charges.max}${charges.recharge ? ` · recarga en ${charges.recharge} t.` : ''})`;
-    else if (required && stacks.count < required) disabledReason = `Necesita ${required} cargas (${stacks.count}/${required})`;
+    else if (need && needStacks.count < need.count) disabledReason = `Necesita ${need.count} cargas de «${need.name}» (${needStacks.count}/${need.count})`;
+    else if (shots && (sectorShotTrigger(mechanics!.sectorShots!) === 'cast' || sectorShotTrigger(mechanics!.sectorShots!) === 'both') && shots.ready <= 0) disabledReason = `Ninguna dirección lista (0/${mechanics!.sectorShots!.count})`;
+    else if ((participant.bonuses ?? []).some(bonus => bonus.source === sectorGapSource(row.name) && (bonus.turns ?? 0) > 0)) disabledReason = `Intervalo entre dashes (${(participant.bonuses ?? []).find(bonus => bonus.source === sectorGapSource(row.name))?.turns} t.)`;
     else if (buff) disabledReason = `Ya activa (${buff.turns ?? '—'} t.)`;
-    else if (!recast && activeEffectOf(row)) disabledReason = activeEffectOf(row);
+    else if (activeEffectOf(row) && (!recast || ability.mechanics?.selfStatus?.blocksRecast) && mechanics?.selfStatus?.blocksAbility !== false) disabledReason = activeEffectOf(row);
     else if (spendPool && cost > spendPool.current) {
       disabledReason = `No hay ${spend.label.toLowerCase()} suficiente (${spendPool.current}/${spendPool.max})`;
+    } else if (mechanics?.costHpMinCurrentPct) {
+      const life = currentFor('hp');
+      if (life?.max && (life.current / life.max) * 100 < mechanics.costHpMinCurrentPct) {
+        disabledReason = `No se puede usar por debajo del ${mechanics.costHpMinCurrentPct}% de vida máx. (${life.current}/${life.max})`;
+      }
     }
-    return { spend, cost, spendPool, cdRemaining, effectRemaining, disabledReason, mechanicsNote, useLabel: recast ? 'Recast' : 'Usar' };
+    const ending = !toggle && mechanics?.selfStatus?.cancelable && (participant.effects.some(effect => effect.source === `ability:${row.name}`) || (participant.bonuses ?? []).some(bonus => bonus.source === abilitySelfStatSource(row.name) || bonus.source === abilitySelfDrSource(row.name)));
+    return { spend, cost, spendPool, cdRemaining, effectRemaining, disabledReason, mechanicsNote, useLabel: toggle ? 'Desactivar' : ending ? 'Terminar' : recast ? 'Recast' : 'Usar' };
   };
 
   if (variant === 'sheet') {
@@ -1578,7 +3091,7 @@ export default function CombatAbilityUseSection({
                   ))}
                 </ul>
                 <button type="button" className="combat-btn combat-btn--small" disabled={saving || busy} onClick={() => void basicAttack(attackPick, null)}>Sin objetivo</button>
-                <button type="button" className="combat-btn combat-btn--small" onClick={() => { setAttackPick(null); setCrit(false); }}>Cancelar</button>
+                <button type="button" className="combat-btn combat-btn--small" onClick={() => { setAttackPick(null); setCrit(false); setIsolated(false); setSelfInArea(false); }}>Cancelar</button>
               </div>
             )}
           </section>
@@ -1606,7 +3119,7 @@ export default function CombatAbilityUseSection({
                 const stackKey = abilityStackKey(row.name);
                 const ranks = isAdmin && row.rankAdjustable ? (
                   <div className="sheet-rank">
-                    <button type="button" className="sheet-rank__btn" disabled={locked || row.rank <= 1} aria-label={`Bajar rango de ${row.seal}`} onClick={() => setRank(row.key, row.rank - 1)}>−</button>
+                    <button type="button" className="sheet-rank__btn" disabled={locked || row.rank <= 0} aria-label={`Bajar rango de ${row.seal}`} onClick={() => setRank(row.key, row.rank - 1)}>−</button>
                     {pips(row.rank, slotPipCount(row.seal))}
                     <button type="button" className="sheet-rank__btn" disabled={locked || row.rank >= row.maxRank} aria-label={`Subir rango de ${row.seal}`} onClick={() => setRank(row.key, row.rank + 1)}>+</button>
                   </div>
@@ -1661,6 +3174,36 @@ export default function CombatAbilityUseSection({
                             Romper escudo
                           </button>
                         )}
+                        {abilityTrap(participant.bonuses, row.name) && (
+                          <button type="button" className="combat-btn combat-btn--small" disabled={locked} title={`Detonar ${row.ability.mechanics?.trap?.name ?? row.name}`} onClick={() => setTrapPicking(row)}>
+                            Detonar
+                          </button>
+                        )}
+                        {row.ability.mechanics?.empoweredAa?.reduceOnStruck && empoweredAaState(participant.bonuses, row.name).turns ? (
+                          <button type="button" className="combat-btn combat-btn--small" disabled={locked} title={`Quita ${row.ability.mechanics.empoweredAa.reduceOnStruck} t. al CD del AA potenciado`} onClick={() => { void reduceEmpoweredStruck(row); }}>
+                            Le han lanzado una habilidad
+                          </button>
+                        ) : null}
+                        {row.ability.mechanics?.armedAa ? (
+                          <button type="button" className="combat-btn combat-btn--small" disabled={locked || row.rank < 1 || !!abilityArmedAaMarker(participant.bonuses, row.name)} title={abilityArmedAaMarker(participant.bonuses, row.name) ? 'AA armado: el siguiente ataque a un campeón gasta el armado' : 'Armar el siguiente AA a un campeón (sin visión / invisibilidad)'} onClick={() => { void armArmed(row); }}>
+                            {abilityArmedAaMarker(participant.bonuses, row.name) ? 'Armado' : 'Armar'}
+                          </button>
+                        ) : null}
+                        {row.ability.mechanics?.evolve ? (
+                          <button type="button" className="combat-btn combat-btn--small" disabled={locked || (!isAbilityEvolved(participant.bonuses, row.name) && evolvedAbilityCount(participant.bonuses, rows) >= evolutionSlotCount(rows))} title={isAbilityEvolved(participant.bonuses, row.name) ? `Quitar evolución «${row.ability.mechanics.evolve.name}»` : `Evolucionar a «${row.ability.mechanics.evolve.name}» (${evolvedAbilityCount(participant.bonuses, rows)}/${evolutionSlotCount(rows)})`} onClick={() => { void toggleEvolve(row); }}>
+                            {isAbilityEvolved(participant.bonuses, row.name) ? `Evolucionado: ${row.ability.mechanics.evolve.name}` : `Evolucionar: ${row.ability.mechanics.evolve.name}`}
+                          </button>
+                        ) : null}
+                        {row.ability.mechanics?.deathBurst && !abilityDeathBurst(participant.bonuses, row.name) ? (
+                          <button type="button" className="combat-btn combat-btn--small" disabled={locked || row.rank < 1} title="Activar el estado zombi al recibir daño letal" onClick={() => { void startDeathBurst(row); }}>
+                            Al morir
+                          </button>
+                        ) : null}
+                        {row.ability.mechanics?.deathBurst && abilityDeathBurst(participant.bonuses, row.name) ? (
+                          <button type="button" className="combat-btn combat-btn--small" disabled={locked} title="Explotar: daño del área (si la base plana se omitió, a mano)" onClick={() => { void explodeDeathBurst(row); }}>
+                            Explotar
+                          </button>
+                        ) : null}
                       </div>
                     ) : phased && !choose ? (
                       <PhaseTabs small className="combat-panel__phases" labels={labels} active={phaseOf(row)} disabled={saving || busy} onSelect={index => selectPhase(row, index)} />
@@ -1675,6 +3218,8 @@ export default function CombatAbilityUseSection({
           {lastUse && <UseResultCard use={lastUse} disabled={saving || busy} onUndo={undoLastUse} />}
           {error && <p className="combat-page__error">{error}</p>}
           {picking && abilityIsPhysical(pickingAbility ?? picking.ability) && hasDamageScaling((pickingAbility ?? picking.ability).damage) && critToggle}
+          {picking && (pickingAbility ?? picking.ability).mechanics?.isolated && isolatedToggle}
+          {picking && (pickingAbility ?? picking.ability).mechanics?.castPool?.requiresSelfInArea && selfInAreaToggle}
           {picking && (
             <CombatTargetPicker
               key={picking.key}
@@ -1684,6 +3229,17 @@ export default function CombatAbilityUseSection({
               onConfirm={ids => void runAbility(picking, pickingPhase, ids)}
               onSkip={() => void runAbility(picking, pickingPhase, [])}
               onCancel={cancelPicking}
+            />
+          )}
+          {trapPicking && (
+            <CombatTargetPicker
+              key={`trap-${trapPicking.key}`}
+              title={`Detonar ${trapPicking.ability.mechanics?.trap?.name ?? trapPicking.name}`}
+              targets={targets}
+              disabled={saving || busy}
+              onConfirm={ids => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, ids); }}
+              onSkip={() => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, []); }}
+              onCancel={() => setTrapPicking(null)}
             />
           )}
           {chainPicker}
@@ -1779,7 +3335,7 @@ export default function CombatAbilityUseSection({
                       <button
                         type="button"
                         className="combat-btn combat-btn--small"
-                        disabled={locked || row.rank <= 1}
+                        disabled={locked || row.rank <= 0}
                         aria-label={`Bajar rango de ${row.seal}`}
                         onClick={() => setRank(row.key, row.rank - 1)}
                       >
@@ -1818,6 +3374,36 @@ export default function CombatAbilityUseSection({
                       Romper escudo
                     </button>
                   )}
+                  {isAdmin && abilityTrap(participant.bonuses, row.name) && (
+                    <button type="button" className="combat-btn combat-btn--small combat-panel__activate" disabled={locked} title={`Detonar ${row.ability.mechanics?.trap?.name ?? row.name}`} onClick={() => setTrapPicking(row)}>
+                      Detonar
+                    </button>
+                  )}
+                  {isAdmin && row.ability.mechanics?.empoweredAa?.reduceOnStruck && empoweredAaState(participant.bonuses, row.name).turns ? (
+                    <button type="button" className="combat-btn combat-btn--small combat-panel__activate" disabled={locked} title={`Quita ${row.ability.mechanics.empoweredAa.reduceOnStruck} t. al CD del AA potenciado`} onClick={() => { void reduceEmpoweredStruck(row); }}>
+                      Le han lanzado una habilidad
+                    </button>
+                  ) : null}
+                  {row.ability.mechanics?.armedAa ? (
+                    <button type="button" className="combat-btn combat-btn--small combat-panel__activate" disabled={locked || row.rank < 1 || !!abilityArmedAaMarker(participant.bonuses, row.name)} title={abilityArmedAaMarker(participant.bonuses, row.name) ? 'AA armado: el siguiente ataque a un campeón gasta el armado' : 'Armar el siguiente AA a un campeón (sin visión / invisibilidad)'} onClick={() => { void armArmed(row); }}>
+                      {abilityArmedAaMarker(participant.bonuses, row.name) ? 'Armado' : 'Armar'}
+                    </button>
+                  ) : null}
+                  {row.ability.mechanics?.evolve ? (
+                    <button type="button" className="combat-btn combat-btn--small combat-panel__activate" disabled={locked || (!isAbilityEvolved(participant.bonuses, row.name) && evolvedAbilityCount(participant.bonuses, rows) >= evolutionSlotCount(rows))} title={isAbilityEvolved(participant.bonuses, row.name) ? `Quitar evolución «${row.ability.mechanics.evolve.name}»` : `Evolucionar a «${row.ability.mechanics.evolve.name}» (${evolvedAbilityCount(participant.bonuses, rows)}/${evolutionSlotCount(rows)})`} onClick={() => { void toggleEvolve(row); }}>
+                      {isAbilityEvolved(participant.bonuses, row.name) ? `Evolucionado: ${row.ability.mechanics.evolve.name}` : `Evolucionar: ${row.ability.mechanics.evolve.name}`}
+                    </button>
+                  ) : null}
+                  {row.ability.mechanics?.deathBurst && !abilityDeathBurst(participant.bonuses, row.name) ? (
+                    <button type="button" className="combat-btn combat-btn--small combat-panel__activate" disabled={locked || row.rank < 1} title="Activar el estado zombi al recibir daño letal" onClick={() => { void startDeathBurst(row); }}>
+                      Al morir
+                    </button>
+                  ) : null}
+                  {row.ability.mechanics?.deathBurst && abilityDeathBurst(participant.bonuses, row.name) ? (
+                    <button type="button" className="combat-btn combat-btn--small combat-panel__activate" disabled={locked} title="Explotar: daño del área (si la base plana se omitió, a mano)" onClick={() => { void explodeDeathBurst(row); }}>
+                      Explotar
+                    </button>
+                  ) : null}
                 </span>
                 {choose && (
                   <span className="combat-panel__phase-uses">
@@ -1867,6 +3453,17 @@ export default function CombatAbilityUseSection({
           onConfirm={ids => void runAbility(picking, pickingPhase, ids)}
           onSkip={() => void runAbility(picking, pickingPhase, [])}
           onCancel={cancelPicking}
+        />
+      )}
+      {trapPicking && (
+        <CombatTargetPicker
+          key={`trap-${trapPicking.key}`}
+          title={`Detonar ${trapPicking.ability.mechanics?.trap?.name ?? trapPicking.name}`}
+          targets={targets}
+          disabled={saving || busy}
+          onConfirm={ids => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, ids); }}
+          onSkip={() => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, []); }}
+          onCancel={() => setTrapPicking(null)}
         />
       )}
       {chainPicker}

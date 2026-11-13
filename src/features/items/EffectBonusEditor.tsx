@@ -47,7 +47,7 @@ const NumberField = ({ label, value, onChange, step = 'any', width = 70 }: {
   </label>
 );
 
-const NEEDS_FORMULA = new Set(['stat', 'damage', 'heal', 'shield', 'mana', 'attack-speed', 'move-speed', 'vigor']);
+const NEEDS_FORMULA = new Set(['stat', 'damage', 'heal', 'shield', 'mana', 'attack-speed', 'move-speed', 'vigor', 'damage-reduction']);
 
 const RuleEditor = ({ rule, onChange, onRemove }: { rule: EffectRule; onChange: (rule: EffectRule) => void; onRemove: () => void }) => {
   const set = (patch: Partial<EffectRule>) => onChange({ ...rule, ...patch });
@@ -62,6 +62,7 @@ const RuleEditor = ({ rule, onChange, onRemove }: { rule: EffectRule; onChange: 
           </select>
         </label>
         {rule.trigger === 'hp-below' && <NumberField label="Vida < %" value={rule.hpBelowPct} onChange={hpBelowPct => set({ hpBelowPct })} />}
+        {(rule.kind === 'execute' || rule.kind === 'status' || rule.kind === 'damage') && <NumberField label="Obj. vida < %" value={rule.targetHpBelowPct} onChange={targetHpBelowPct => set({ targetHpBelowPct })} />}
         <label className="bonus-editor__field">
           <span>Qué</span>
           <select value={rule.kind} onChange={e => {
@@ -94,6 +95,67 @@ const RuleEditor = ({ rule, onChange, onRemove }: { rule: EffectRule; onChange: 
             <span><input type="checkbox" checked={!!rule.lifeSteal} onChange={e => set({ lifeSteal: e.target.checked || undefined })} /> aplica</span>
           </label>
         )}
+        {rule.kind === 'damage' && <NumberField label="Cura % del daño" value={rule.healFromDealtPct} onChange={healFromDealtPct => set({ healFromDealtPct })} />}
+        {(rule.kind === 'mana' || rule.kind === 'heal') && <NumberField label="% daño recibido" value={rule.fromDamagePct} onChange={fromDamagePct => set({ fromDamagePct })} />}
+        {rule.kind === 'damage-reduction' && (
+          <label className="bonus-editor__field">
+            <span>Contra</span>
+            <select value={rule.vs ?? 'all'} onChange={e => set({ vs: e.target.value === 'aa' || e.target.value === 'all' ? e.target.value : undefined })}>
+              <option value="all">Todo</option>
+              <option value="aa">Solo AA</option>
+            </select>
+          </label>
+        )}
+        {rule.kind === 'extra-action' && (
+          <label className="bonus-editor__field">
+            <span>Acción</span>
+            <input type="text" maxLength={40} style={{ width: 110 }} value={rule.action ?? ''} onChange={e => set({ action: e.target.value || undefined })} />
+          </label>
+        )}
+        {rule.kind === 'damage' && (
+          <label className="bonus-editor__field">
+            <span>Dados</span>
+            <input type="text" maxLength={40} style={{ width: 90 }} placeholder="4d10+13" value={rule.dice ?? ''} onChange={e => set({ dice: e.target.value || undefined })} />
+          </label>
+        )}
+        {rule.kind === 'damage' && <NumberField label="Hasta +% vida falt." value={rule.missingHpScalePct} onChange={missingHpScalePct => set({ missingHpScalePct })} />}
+        {rule.kind === 'damage' && <NumberField label="Crít. % potencia" value={rule.critPotencyPct} onChange={critPotencyPct => set({ critPotencyPct })} />}
+        <NumberField label="Cada N" step="1" value={rule.everyN} onChange={everyN => set({ everyN })} />
+        <label className="bonus-editor__field bonus-editor__check" title="El contador (cada N / cargas) es por objetivo">
+          <span>Por objetivo</span>
+          <input type="checkbox" checked={!!rule.perTargetCounter} onChange={e => set({ perTargetCounter: e.target.checked || undefined })} />
+        </label>
+        <label className="bonus-editor__field bonus-editor__check" title="Solo se aplica al llegar al máximo de stacks">
+          <span>Al máximo</span>
+          <input type="checkbox" checked={!!rule.triggerAtMax} onChange={e => set({ triggerAtMax: e.target.checked || undefined })} />
+        </label>
+        <label className="bonus-editor__field bonus-editor__check">
+          <span>Requiere stacks máx.</span>
+          <input type="checkbox" checked={!!rule.requiresMaxStacks} onChange={e => set({ requiresMaxStacks: e.target.checked || undefined })} />
+        </label>
+        <NumberField label="Retraso (t.)" step="1" value={rule.delayTurns} onChange={delayTurns => set({ delayTurns })} />
+        {rule.kind === 'shield' && <NumberField label="Mitad tras (t.)" step="1" value={rule.halfAfterTurns} onChange={halfAfterTurns => set({ halfAfterTurns })} />}
+        {(rule.kind === 'heal' || rule.kind === 'mana') && <NumberField label="% maná gastado" value={rule.fromManaSpentPct} onChange={fromManaSpentPct => set({ fromManaSpentPct })} />}
+        {rule.kind === 'damage' && (
+          <label className="bonus-editor__field bonus-editor__check">
+            <span>Pulso cada turno</span>
+            <input type="checkbox" checked={!!rule.pulseEachTurn} onChange={e => set({ pulseEachTurn: e.target.checked || undefined })} />
+          </label>
+        )}
+        {rule.kind === 'status' && (
+          <label className="bonus-editor__field bonus-editor__check">
+            <span>Escudo de hechizos</span>
+            <input type="checkbox" checked={!!rule.spellShield} onChange={e => set({ spellShield: e.target.checked || undefined })} />
+          </label>
+        )}
+        <label className="bonus-editor__field bonus-editor__check" title="El CD del efecto solo empieza cuando esta regla se aplica de verdad">
+          <span>CD al proc</span>
+          <input type="checkbox" checked={!!rule.cooldownOnProc} onChange={e => set({ cooldownOnProc: e.target.checked || undefined })} />
+        </label>
+        <NumberField label="Aura (casillas)" step="1" value={rule.auraRange} onChange={auraRange => set({ auraRange })} />
+        <NumberField label="+% daño (inmov.)" value={rule.damageAmpPct} onChange={damageAmpPct => set({ damageAmpPct })} />
+        <NumberField label="Turnos oculto" step="1" value={rule.unseenTurns} onChange={unseenTurns => set({ unseenTurns })} />
+        <NumberField label="Armado tras visto (t.)" step="1" value={rule.armedTurnsAfterSeen} onChange={armedTurnsAfterSeen => set({ armedTurnsAfterSeen })} />
         {rule.kind === 'stat' && (
           <label className="bonus-editor__field">
             <span>Stat</span>
@@ -298,6 +360,13 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
           value={draft.chainTargets ?? 1}
           onChange={value => update({ ...draft, chainTargets: value && value > 1 ? Math.min(10, Math.floor(value)) : undefined })}
         />
+        <label className="bonus-editor__field bonus-editor__check" title="Tras aplicarse, no vuelve a dispararse en este combate (Medallón, Redención, Sterak, Zhonya…)">
+          <span>Uso</span>
+          <span>
+            <input type="checkbox" checked={!!draft.oncePerCombat} onChange={e => update({ ...draft, oncePerCombat: e.target.checked || undefined })} />
+            {' '}1 vez por combate
+          </span>
+        </label>
       </div>
       {draft.rules.map((rule, index) => (
         <RuleEditor

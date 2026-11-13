@@ -2,10 +2,10 @@ import type { CombatParticipant } from '../../data/combat';
 import { participantChampion, participantNpc } from '../../data/combatSheet';
 import { PLAYERS } from '../../data/players';
 import { championDamageContext } from '../calculos/championDamage';
-import { playerMaxHp } from '../calculos/playerTotals';
+import { playerBonusLine, playerMaxHp } from '../calculos/playerTotals';
 import { numericStat } from './combatAbilityUse';
 
-export type ParticipantHp = { current: number; max: number | undefined };
+export type ParticipantHp = { current: number; max: number | undefined; bonus?: number };
 
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
@@ -16,7 +16,9 @@ export function participantHp(participant: CombatParticipant): ParticipantHp | n
     if (!player) return null;
     const max = finite(player.hp) ? player.hp : playerMaxHp(player.sheet, player.equipamiento);
     const current = finite(player.actualHp) ? player.actualHp : max ?? 0;
-    return { current, max };
+    const bonusRaw = playerBonusLine(player.sheet, player.equipamiento).hp;
+    const bonus = numericStat(bonusRaw);
+    return { current, max, ...(finite(bonus) ? { bonus } : {}) };
   }
   let max = finite(participant.maxHp) ? participant.maxHp : undefined;
   if (max === undefined && participant.kind === 'champion') {
@@ -28,7 +30,15 @@ export function participantHp(participant: CombatParticipant): ParticipantHp | n
     if (finite(hp) && hp > 0) max = hp;
   }
   const current = finite(participant.hp) ? participant.hp : max ?? 0;
-  return { current, max };
+  let bonus: number | undefined;
+  if (participant.kind === 'champion') {
+    const champion = participantChampion(participant);
+    if (champion) {
+      const value = numericStat(championDamageContext(champion).stats.bonus?.hp);
+      if (finite(value)) bonus = value;
+    }
+  }
+  return { current, max, ...(bonus !== undefined ? { bonus } : {}) };
 }
 
 /** ¿Puede este usuario ver / editar la vida de este participante? Admin: todos; User: solo su player. */
@@ -53,7 +63,13 @@ export function participantHpPools(participant: CombatParticipant): { current: n
 export type TargetDamage = { name: string; before: number; after: number; absorbed: number; undo: () => Promise<void> };
 /** amount: daño fijo, o función de la vida actual del objetivo (p. ej. 9% de la vida actual). */
 export type DamageAmount = number | ((currentHp: number) => number);
-export type TargetDamageFn = (targetId: string, amount: DamageAmount) => Promise<TargetDamage | null>;
+export type DamageApplyOpts = {
+  fromAutoAttack?: boolean;
+  damageType?: 'physical' | 'magic' | 'true';
+  critical?: boolean;
+  attackerId?: string;
+};
+export type TargetDamageFn = (targetId: string, amount: DamageAmount, opts?: DamageApplyOpts) => Promise<TargetDamage | null>;
 
 /** " → Objetivo": solo a quién se le hizo el daño (la vida que le queda no se enseña). */
 export function targetHpLine(damage: TargetDamage): string {
@@ -68,6 +84,7 @@ export async function damageTargets(
   apply: TargetDamageFn,
   targetIds: string[],
   amount: DamageAmount,
+  opts?: DamageApplyOpts,
 ): Promise<{ damage: TargetDamage | null; error?: string; kills?: string[]; hits?: number }> {
   const done: TargetDamage[] = [];
   /** Objetivos que pasan de vida > 0 a 0 (para «Al matar / asistir»). */
@@ -75,7 +92,7 @@ export async function damageTargets(
   let error: string | undefined;
   for (const id of targetIds) {
     try {
-      const result = await apply(id, amount);
+      const result = await apply(id, amount, opts);
       if (result) {
         done.push(result);
         if (result.before > 0 && result.after <= 0) kills.push(id);

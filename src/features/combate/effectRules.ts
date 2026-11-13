@@ -1,6 +1,6 @@
 import type { CombatBonus, CombatParticipant, SourcedEffectInput } from '../../data/combat';
 import { participantChampion, participantNpc } from '../../data/combatSheet';
-import { isMeleeRange, rangeConditionShort, rangeTypeLabel, ruleAppliesTo, ruleMatchesRange, scalingLabel, withLevelCooldown, type EffectBonusConfig, type EffectRule, type ScalingStat } from '../../data/effectBonus';
+import { formulaText, isMeleeRange, rangeConditionShort, rangeTypeLabel, ruleAppliesTo, ruleMatchesRange, scalingLabel, withLevelCooldown, type EffectBonusConfig, type EffectRule, type ScalingStat } from '../../data/effectBonus';
 import { damageChipKind, fmt, signed, statShort, type ResultChip } from './combatResult';
 import { effectiveResistLine } from './combatMitigation';
 import type { Item } from '../../data/items';
@@ -27,7 +27,7 @@ import { abilityNamedEffects, participantAbilities } from './abilityRules';
  * Los marcadores no suman a ninguna stat; caducan con el tick normal de bonus al empezar su turno.
  */
 
-export type ActiveNamedEffect = { id: string; base: string; name: string; item: string; config: EffectBonusConfig };
+export type ActiveNamedEffect = { id: string; base: string; name: string; item: string; config: EffectBonusConfig; itemCooldown?: number };
 
 /** Efectos con config de los ítems equipados: uno por efecto base (el primer ítem que lo tenga). */
 export function activeNamedEffects(items: Item[], data: NamedEffectData): ActiveNamedEffect[] {
@@ -39,7 +39,7 @@ export function activeNamedEffects(items: Item[], data: NamedEffectData): Active
       if (seen.has(base)) continue;
       seen.add(base);
       const config = namedEffectBonus(data, id);
-      if (config && config.rules.length) out.push({ id, base, name: namedEffectName(id), item: item.nombre, config });
+      if (config && config.rules.length) out.push({ id, base, name: namedEffectName(id), item: item.nombre, config, itemCooldown: typeof item.cooldown === 'number' && item.cooldown > 0 ? item.cooldown : undefined });
     }
   }
   return out;
@@ -104,6 +104,20 @@ export function ruleBreakdown(rule: EffectRule, ctx: EffectContext, target?: Tar
     value = rule.flat;
     parts.push(fmt(rule.flat));
   }
+  if (rule.dice) {
+    try {
+      const rolled = rollDamageStat(rule.dice);
+      const expected = rolled.flat + rolled.groups.reduce((sum, group) => sum + group.sign * group.count * (group.sides + 1) / 2, 0);
+      const add = roll ? rolled.total : expected;
+      value += add;
+      const diceText = roll
+        ? `${rule.dice} 🎲 [${rolled.groups.flatMap(group => group.rolls.map(n => (group.sign < 0 ? '−' : '') + String(n))).join(', ')}${rolled.flat ? (rolled.flat > 0 ? `+${rolled.flat}` : rolled.flat) : ''}] = ${fmt(add)}`
+        : `${rule.dice} (media ${fmt(expected)})`;
+      parts.push(diceText);
+    } catch {
+      parts.push(`${rule.dice} (tirada no válida)`);
+    }
+  }
   for (const ratio of rule.ratios ?? []) {
     const base = scalingValue(ratio.stat, ctx, target, roll);
     const add = (ratio.pct / 100) * base;
@@ -111,6 +125,12 @@ export function ruleBreakdown(rule: EffectRule, ctx: EffectContext, target?: Tar
     const raw = ctx.stats[SCALING_KEY[ratio.stat] ?? ratio.stat];
     const diced = roll && !NO_DICE.has(ratio.stat) && typeof raw === 'string' && /d/i.test(raw) ? ` 🎲 ${raw}` : '';
     parts.push(`${fmt(ratio.pct)}% ${scalingLabel(ratio.stat)} (${fmt(base)}${diced}) = ${fmt(add)}`);
+  }
+  if (rule.missingHpScalePct && target && target.max > 0) {
+    const frac = Math.max(0, Math.min(1, (target.max - target.current) / target.max));
+    const before = value;
+    value = value * (1 + (rule.missingHpScalePct / 100) * frac);
+    parts.push(`vida faltante ${fmt(frac * 100)}% → × ${fmt(1 + (rule.missingHpScalePct / 100) * frac)} (${fmt(before)} → ${fmt(value)})`);
   }
   const total = Math.round(value * 100) / 100;
   const text = parts.length === 0 ? '0' : parts.length === 1 ? parts[0] : `${parts.join(' + ')} → total ${fmt(total)}`;
@@ -161,7 +181,9 @@ const rangeOk = (rule: EffectRule, ctx: EffectContext): boolean => ruleMatchesRa
 
 function baseParticipantContext(participant: CombatParticipant, level: number, extra: StatLine[]): BearerContext | null {
   const context = itemContext(participant, level, extra);
-  return context ? { ...context, abilityEffects: abilityNamedEffects(participantAbilities(participant, level)) } : null;
+  const owned = participantAbilities(participant, level);
+  const player = participant.kind === 'player' ? PLAYERS.find(entry => entry.name === participant.sourceId) : undefined;
+  return context ? { ...context, abilityEffects: abilityNamedEffects(owned, { playerStacks: player?.stacks, bonuses: participant.bonuses, level }) } : null;
 }
 
 function itemContext(participant: CombatParticipant, level: number, extra: StatLine[]): { ctx: EffectContext; items: Item[] } | null {
@@ -322,6 +344,10 @@ export type EffectCallbacks = {
    * Devuelve antes / después y su Deshacer; null si el portador no tiene ficha (campeón / NPC).
    */
   onPermanentStack?: (base: string, max: number | undefined) => Promise<{ before: number; after: number; undo: () => Promise<void> } | null>;
+  /** Concede una acción extra de habilidad o de AA este turno. */
+  onGrantAction?: (kind: 'abilities' | 'attacks', amount: number) => Promise<void>;
+  /** ¿El jugador ha marcado crítico en esta acción? */
+  critical?: boolean;
 };
 
 /**
@@ -341,7 +367,7 @@ export function itemRulePlan(item: Item, data: NamedEffectData): { authoritative
 /** ¿Es una regla «Tras habilidad» / «Tras usar» (arma el siguiente AA)? */
 const isArmTrigger = (trigger: string): boolean => trigger === 'after-ability' || trigger === 'after-use';
 
-export type EffectTriggerName = 'on-attack' | 'on-hit' | 'on-ability-hit' | 'on-use' | 'on-takedown' | 'energized-max';
+export type EffectTriggerName = 'on-attack' | 'on-hit' | 'on-ability-hit' | 'on-use' | 'on-takedown' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'each-turn' | 'energized-max' | 'on-ultimate-use';
 
 /** Efectos con reglas «Vigor al máximo». */
 export const vigorEffects = (effects: ActiveNamedEffect[]): ActiveNamedEffect[] =>
@@ -411,16 +437,18 @@ const DAMAGE_WORD = { physical: 'físico', magic: 'mágico', true: 'verdadero' }
  * redondeado al más cercano solo aquí. El robo de vida / omnisucción no usa el poder de curación (como en LoL).
  */
 /**
- * Curación por daño hecho: omnivampirismo % (todo el daño) + robo de vida % (solo si lifeSteal: AA o regla con
- * «Aplica robo de vida»). Una cura, sin poder de curación y escudos (como el robo de vida), redondeo al más cercano.
- * null si no tiene ninguno de los dos.
+ * Curación por daño hecho: omnivampirismo % (todo el daño) + robo de vida % (solo si lifeSteal: AA, regla con
+ * «Aplica robo de vida», o habilidad con esa opción × efficacy % de eficacia). Una cura, sin poder de curación
+ * y escudos (como el robo de vida), redondeo al más cercano. null si no tiene ninguno de los dos.
  */
-export async function vampHeal(options: { dealt: number; ctx: EffectContext; lifeSteal: boolean; onSelfPool?: EffectCallbacks['onSelfPool']; origin: string; bearerName: string }): Promise<{ heal: number; word: string; log: string[]; chips: ResultChip[]; undo?: () => Promise<void> } | null> {
+export async function vampHeal(options: { dealt: number; ctx: EffectContext; lifeSteal: boolean; lifeStealEfficacy?: number; onSelfPool?: EffectCallbacks['onSelfPool']; origin: string; bearerName: string }): Promise<{ heal: number; word: string; log: string[]; chips: ResultChip[]; undo?: () => Promise<void> } | null> {
   const { dealt, ctx, onSelfPool, origin, bearerName } = options;
-  const ls = options.lifeSteal ? statNumber(ctx.stats.lifeStealPct) : 0;
+  const efficacy = options.lifeSteal && options.lifeStealEfficacy != null ? options.lifeStealEfficacy : 100;
+  const ls = options.lifeSteal ? statNumber(ctx.stats.lifeStealPct) * (efficacy / 100) : 0;
   const ov = statNumber(ctx.stats.omnivampPct);
   if (!(dealt > 0) || (ls <= 0 && ov <= 0)) return null;
-  const parts = [ls > 0 ? `robo de vida ${fmt(ls)}%` : '', ov > 0 ? `omnivampirismo ${fmt(ov)}%` : ''].filter(Boolean);
+  const lsPart = ls > 0 ? (options.lifeSteal && efficacy !== 100 ? `robo de vida ${fmt(statNumber(ctx.stats.lifeStealPct))}% × ${fmt(efficacy)}% eficacia = ${fmt(ls)}%` : `robo de vida ${fmt(ls)}%`) : '';
+  const parts = [lsPart, ov > 0 ? `omnivampirismo ${fmt(ov)}%` : ''].filter(Boolean);
   const word = ls > 0 && ov > 0 ? 'robo de vida + omnivamp.' : ls > 0 ? 'robo de vida' : 'omnivamp.';
   const final = poolAmount((dealt * (ls + ov)) / 100, ctx, false);
   const heal = final.amount;
@@ -461,8 +489,11 @@ export async function fireEffectRules(options: {
   basicAttack?: boolean;
   /** Habilidad: ¿ha hecho daño a algún enemigo? (false = no gasta cargas de combate). Ausente = sí. */
   damaged?: boolean;
+  /** Daño que acaba de recibir el portador (reglas on-damage-taken con fromDamagePct). */
+  incomingDamage?: number;
 }): Promise<EffectFireResult> {
   const { trigger, effects, ctx, targetIds, participants, level, callbacks, bearer } = options;
+  const incomingDamage = options.incomingDamage ?? 0;
   const basicAttack = trigger === 'on-hit' && options.basicAttack !== false;
   const matches = (ruleTrigger: string) => ruleTrigger === trigger || (basicAttack && ruleTrigger === 'on-attack');
   let bonuses = [...(options.bonuses ?? [])];
@@ -503,6 +534,7 @@ export async function fireEffectRules(options: {
   };
   const isBearer = (id: string) => !!bearer && id === bearer.id;
 
+  let procCooldown = false;
   const applyRules = async (effect: ActiveNamedEffect, rules: { rule: EffectRule; index: number }[], targets: string[] = targetIds): Promise<number> => {
     let extraHits = 0;
     // Una carga permanente por efecto y disparo (aunque tenga varias reglas de cargas).
@@ -524,6 +556,104 @@ export async function fireEffectRules(options: {
         result.log.push(`${origin}: aliados → ${ruleTargets.map(nameOf).join(', ')}`);
       }
       if (to === 'self' && rule.kind === 'status') ruleTargets = bearer ? [bearer.id] : [];
+      if (rule.targetHpBelowPct != null && ruleTargets.length) {
+        const threshold = rule.targetHpBelowPct;
+        ruleTargets = ruleTargets.filter(id => {
+          const info = targetInfo(id, '');
+          if (!info || !(info.max > 0)) return false;
+          return (info.current / info.max) * 100 <= threshold;
+        });
+        if (ruleTargets.length === 0) {
+          result.log.push(`${origin}: ningún objetivo por debajo de ${threshold}% de vida → no se aplica`);
+          continue;
+        }
+      }
+      if (rule.pulseEachTurn && trigger === 'each-turn' && bearer) {
+        const zone = `zone:${effect.base}:${bearer.id}`;
+        ruleTargets = participants.filter(entry => marker(entry.bonuses ?? [], zone)).map(entry => entry.id);
+        if (ruleTargets.length === 0) continue;
+        result.log.push(`${origin}: zona → ${ruleTargets.map(nameOf).join(', ')}`);
+      }
+      if (rule.requiresMaxStacks) {
+        const atMax = effect.config.rules.some((other, otherIndex) => {
+          if (!other.maxStacks || other.triggerAtMax) return false;
+          const entry = bonuses.find(bonus => bonus.source === `fx:${effect.base}:${otherIndex}`);
+          const stacks = entry?.stacks ?? (entry ? 1 : 0);
+          return !!entry && stacks >= other.maxStacks;
+        });
+        if (!atMax) {
+          result.log.push(`${origin}: aún no está al máximo de cargas → no se aplica`);
+          continue;
+        }
+      }
+      if (rule.everyN || rule.triggerAtMax) {
+        const cap = rule.triggerAtMax ? (rule.maxStacks ?? 1) : rule.everyN!;
+        const nextTargets: string[] = [];
+        const bumpFor = (key: string) => {
+          const found = bonuses.find(bonus => bonus.source === key);
+          const next = (found?.amount ?? 0) + 1;
+          if (found) {
+            bonuses = bonuses.map(bonus => bonus.source === key ? { ...bonus, amount: next >= cap ? 0 : next, stacks: next >= cap ? 0 : next } : bonus);
+          } else {
+            bonuses = [...bonuses, { id: `cnt-${effect.base}-${index}-${key.length}`, stat: 'buff', amount: next >= cap ? 0 : next, stacks: next >= cap ? 0 : next, source: key, label: `${label} (${next}/${cap})`.slice(0, 80) }];
+          }
+          result.changed = true;
+          return next >= cap;
+        };
+        if (rule.perTargetCounter && ruleTargets.length) {
+          for (const id of ruleTargets) {
+            if (bumpFor(`cnt:${effect.base}:${index}:${id}`)) nextTargets.push(id);
+          }
+          if (nextTargets.length === 0) {
+            result.log.push(`${origin}: contador por objetivo (${cap}) aún no se completa`);
+            continue;
+          }
+          ruleTargets = nextTargets;
+        } else if (rule.perTargetCounter && ruleTargets.length === 0) {
+          continue;
+        } else {
+          if (!bumpFor(`cnt:${effect.base}:${index}`)) {
+            result.log.push(`${origin}: contador ${cap} aún no se completa`);
+            continue;
+          }
+        }
+        if (rule.cooldownOnProc) procCooldown = true;
+      }
+      if (rule.unseenTurns && trigger === 'each-turn' && bearer) {
+        if (marker(bonuses, `seen:${effect.base}`)) {
+          result.log.push(`${origin}: ha sido visto este turno → no arma la invisibilidad`);
+          continue;
+        }
+        const key = `unseen:${effect.base}`;
+        const found = bonuses.find(bonus => bonus.source === key);
+        const next = (found?.amount ?? 0) + 1;
+        bonuses = found
+          ? bonuses.map(bonus => bonus.source === key ? { ...bonus, amount: next } : bonus)
+          : [...bonuses, { id: `unseen-${effect.base}`, stat: 'buff', amount: next, source: key, label: `${label} oculto ${next}`.slice(0, 80) }];
+        result.changed = true;
+        if (next < rule.unseenTurns) {
+          result.log.push(`${origin}: ${next}/${rule.unseenTurns} turno(s) sin ser visto`);
+          continue;
+        }
+        bonuses = setMarker(bonuses, 'armed', `armed-item:${effect.base}`, 99, `${effect.name} (AA armado)`);
+        result.log.push(`${origin}: invisible y AA armado (${rule.dice || 'daño armado'})`);
+      }
+      if ((trigger === 'on-damage-taken' || trigger === 'on-attacked') && (rule.unseenTurns || rule.armedTurnsAfterSeen || effect.config.rules.some(entry => entry.unseenTurns))) {
+        bonuses = setMarker(bonuses, 'cooldown', `seen:${effect.base}`, 1, `${effect.name} (visto)`);
+        bonuses = bonuses.filter(bonus => bonus.source !== `unseen:${effect.base}`);
+        if (marker(bonuses, `armed-item:${effect.base}`)) {
+          const window = rule.armedTurnsAfterSeen ?? effect.config.rules.find(entry => entry.armedTurnsAfterSeen)?.armedTurnsAfterSeen ?? 2;
+          bonuses = setMarker(bonuses, 'armed', `armed-item:${effect.base}`, window, `${effect.name} (visto)`);
+          result.log.push(`${origin}: ha sido visto · el AA armado dura ${window} t.`);
+        }
+        result.changed = true;
+      }
+      if (rule.kind === 'damage' && effect.config.rules.some(entry => entry.unseenTurns) && trigger === 'on-hit') {
+        if (!marker(bonuses, `armed-item:${effect.base}`)) {
+          result.log.push(`${origin}: AA no armado (hace falta estar o haber estado invisible)`);
+          continue;
+        }
+      }
       if (STAT_KINDS.has(rule.kind)) {
         const stat = ruleStat(rule);
         if (!stat) continue;
@@ -634,7 +764,23 @@ export async function fireEffectRules(options: {
       }
       switch (rule.kind) {
         case 'damage': {
-          if (!callbacks.onTargetDamage || ruleTargets.length === 0) break;
+          const hasFormula = !!rule.dice || (rule.flat != null && rule.flat !== 0) || (rule.ratios && rule.ratios.length > 0) || (rule.perLevel && rule.perLevel.length > 0);
+          if (!hasFormula) { manual(`${label}: ${rule.note || 'tirar el daño a mano'}`); break; }
+          if (!callbacks.onTargetDamage || ruleTargets.length === 0) { manual(`${label}: ${rule.note || 'elegir objetivo del daño'}`); break; }
+          if (rule.delayTurns) {
+            for (const id of ruleTargets) {
+              const info = targetInfo(id, '');
+              const calc = ruleBreakdown(rule, ctx, info, true);
+              const amount = Math.max(0, Math.ceil(calc.value));
+              if (amount <= 0) continue;
+              const pending = `pending-dmg:${effect.base}:${id}`;
+              bonuses = [...bonuses.filter(bonus => bonus.source !== pending), { id: `pdmg-${id}-${effect.base}`, stat: 'buff', amount, turns: rule.delayTurns, source: pending, label: `${label} → ${nameOf(id)}`.slice(0, 80) }];
+              result.changed = true;
+              result.log.push(`${origin}: daño ${rule.damageType ?? 'pendiente'} ${amount} a ${nameOf(id)} en ${rule.delayTurns} t. (${calc.text})`);
+            }
+            if (rule.cooldownOnProc) procCooldown = true;
+            break;
+          }
           const parts: string[] = [];
           let totalDealt = 0;
           const type = rule.damageType ?? 'physical';
@@ -680,6 +826,36 @@ export async function fireEffectRules(options: {
               result.log.push(...vamp.log);
             }
           }
+          if (totalDealt > 0 && rule.healFromDealtPct) {
+            const raw = totalDealt * rule.healFromDealtPct / 100;
+            const final = poolAmount(raw, ctx);
+            const amount = final.amount;
+            if (amount > 0) {
+              if (!callbacks.onSelfPool) { manual(`${label}: cura ${amount} (${rule.healFromDealtPct}% del daño)`); }
+              else {
+                const undo = await callbacks.onSelfPool('heal', amount);
+                if (undo) result.undos.push(undo);
+                result.notes.push(`${label}: cura +${amount} (${rule.healFromDealtPct}% del daño)`);
+                result.chips.push({ kind: 'heal', text: `+${amount} PV`, title: `${label} · ${rule.healFromDealtPct}% del daño` });
+                result.log.push(`${origin}: cura ${rule.healFromDealtPct}% de ${fmt(totalDealt)} = ${final.text} → ${bearerName}${undo ? '' : ' (a mano / vida al máximo)'}`);
+              }
+            }
+          }
+          if (totalDealt > 0 && rule.cooldownOnProc) procCooldown = true;
+          if (rule.pulseEachTurn && bearer && callbacks.onTargetBonuses) {
+            const zone = `zone:${effect.base}:${bearer.id}`;
+            const turns = rule.duration ?? duration ?? 2;
+            for (const id of ruleTargets) {
+              const undo = await callbacks.onTargetBonuses(id, current => setMarker(current, 'cooldown', zone, turns, `${effect.name} (zona)`));
+              if (undo) result.undos.push(undo);
+            }
+            result.log.push(`${origin}: zona marcada ${turns} t. en ${ruleTargets.map(nameOf).join(', ')}`);
+          }
+          if (trigger === 'on-hit' && marker(bonuses, `armed-item:${effect.base}`)) {
+            bonuses = bonuses.filter(bonus => bonus.source !== `armed-item:${effect.base}`);
+            result.changed = true;
+            result.log.push(`${origin}: se gasta el AA armado`);
+          }
           break;
         }
         case 'heal': case 'shield': case 'mana': {
@@ -691,6 +867,20 @@ export async function fireEffectRules(options: {
               const final = poolAmount(calc.raw, ctx);
               const amount = final.amount;
               if (amount <= 0) continue;
+              if (rule.delayTurns) {
+                const pending = `pending:${effect.base}`;
+                if (callbacks.onTargetBonuses) {
+                  const turns = isBearer(id) ? rule.delayTurns : undefined;
+                  const undo = await callbacks.onTargetBonuses(id, current => [
+                    ...current.filter(bonus => bonus.source !== pending),
+                    { id: `pend-${id}-${effect.base}`, stat: 'buff', amount, ...(turns ? { turns } : {}), source: pending, label: `${label}`.slice(0, 80) },
+                  ]);
+                  if (undo) result.undos.push(undo);
+                }
+                result.log.push(`${origin}: ${word} ${amount} a ${nameOf(id)} pendiente ${rule.delayTurns} t.`);
+                if (rule.cooldownOnProc) procCooldown = true;
+                continue;
+              }
               const pool = isBearer(id)
                 ? callbacks.onSelfPool && (() => callbacks.onSelfPool!(kind, amount))
                 : callbacks.onTargetPool && (() => callbacks.onTargetPool!(id, kind, amount));
@@ -701,6 +891,33 @@ export async function fireEffectRules(options: {
               result.notes.push(`${label}: ${word} +${amount} a ${nameOf(id)}`);
               result.chips.push({ kind, text: `+${amount} ${kind === 'heal' ? 'PV' : 'escudo'} ${nameOf(id)}`, title: label });
               result.log.push(`${origin}: ${word} a ${nameOf(id)} = ${calc.text} · al aplicar: ${final.text}${rule.duration ? ` · ${rule.duration} t. (quitar a mano al acabar)` : ''}`);
+              if (kind === 'shield' && rule.halfAfterTurns && callbacks.onTargetBonuses) {
+                const pending = `pending-half:${effect.base}`;
+                const half = Math.max(0, Math.round(amount / 2));
+                const undoHalf = await callbacks.onTargetBonuses(id, current => [
+                  ...current.filter(bonus => bonus.source !== pending),
+                  { id: `phalf-${id}-${effect.base}`, stat: 'buff', amount: half, turns: rule.halfAfterTurns, source: pending, label: `${label} (mitad)`.slice(0, 80) },
+                ]);
+                if (undoHalf) result.undos.push(undoHalf);
+                result.log.push(`${origin}: el escudo de ${nameOf(id)} bajará ${half} en ${rule.halfAfterTurns} t.`);
+              }
+            }
+            if (rule.cooldownOnProc) procCooldown = true;
+            break;
+          }
+          if (rule.fromDamagePct && incomingDamage > 0 && (rule.kind === 'mana' || rule.kind === 'heal')) {
+            const raw = incomingDamage * rule.fromDamagePct / 100;
+            const final = rule.kind === 'heal' ? poolAmount(raw, ctx) : null;
+            const amount = final ? final.amount : Math.floor(raw);
+            const word = rule.kind === 'heal' ? 'cura' : 'maná';
+            if (amount <= 0) break;
+            if (!callbacks.onSelfPool) { manual(`${label}: ${word} ${amount} (${rule.fromDamagePct}% del daño recibido)`); break; }
+            const undo = await callbacks.onSelfPool(rule.kind, amount);
+            if (undo) {
+              result.undos.push(undo);
+              result.notes.push(`${label}: ${word} +${amount}`);
+              result.chips.push({ kind: rule.kind, text: `+${amount} ${rule.kind === 'heal' ? 'PV' : 'maná'}`, title: `${label} · ${rule.fromDamagePct}% del daño` });
+              result.log.push(`${origin}: ${word} ${rule.fromDamagePct}% de ${fmt(incomingDamage)} recibido = ${fmt(raw)} → ${amount} a ${bearerName}`);
             }
             break;
           }
@@ -710,6 +927,14 @@ export async function fireEffectRules(options: {
           const amount = final ? final.amount : Math.floor(calc.value);
           if (amount <= 0) break;
           const word = rule.kind === 'heal' ? 'cura' : rule.kind === 'shield' ? 'escudo' : 'maná';
+          if (rule.delayTurns && rule.kind !== 'mana') {
+            const pending = `pending:${effect.base}`;
+            bonuses = [...bonuses.filter(bonus => bonus.source !== pending), { id: `pend-self-${effect.base}`, stat: 'buff', amount, turns: rule.delayTurns, source: pending, label: `${label}`.slice(0, 80) }];
+            result.changed = true;
+            result.log.push(`${origin}: ${word} ${amount} pendiente ${rule.delayTurns} t.`);
+            if (rule.cooldownOnProc) procCooldown = true;
+            break;
+          }
           if (!callbacks.onSelfPool) { manual(`${label}: ${word} ${amount}`); break; }
           const undo = await callbacks.onSelfPool(rule.kind, amount);
           if (undo) {
@@ -724,11 +949,25 @@ export async function fireEffectRules(options: {
           if (!callbacks.onApplySourcedEffect || ruleTargets.length === 0) break;
           const name = rule.kind === 'slow' ? `Ralentizado ${formatStat(rule.slowPct ?? 0)}%` : rule.statusName || label;
           const turns = rule.duration ?? duration ?? 1;
+          const statusSource = rule.spellShield ? `item-spellshield:${effect.base}` : `item:${effect.item}`.slice(0, 80);
+          if (rule.spellShield) {
+            if (cooldownLeft(bonuses, effect.base) > 0) {
+              result.log.push(`${origin}: escudo de hechizos en CD (${cooldownLeft(bonuses, effect.base)} t.)`);
+              break;
+            }
+            const already = (bearer ? participants.find(entry => entry.id === bearer.id)?.effects : undefined)
+              ?.some(effect => effect.source === statusSource && effect.duration > 0);
+            if (already) {
+              result.log.push(`${origin}: escudo de hechizos ya activo`);
+              break;
+            }
+          }
           await callbacks.onApplySourcedEffect(ruleTargets, {
-            source: `item:${effect.item}`.slice(0, 80),
+            source: statusSource,
             name: `${name} (${label})`.slice(0, 80),
             duration: turns,
           });
+          if (rule.cooldownOnProc) procCooldown = true;
           result.notes.push(`${label}: ${name}`);
           result.chips.push({ kind: 'debuff', text: `${name} ${ruleTargets.map(nameOf).join(', ')}`, title: label });
           result.log.push(`${origin}: ${name} a ${ruleTargets.map(nameOf).join(', ')} · ${turns} t.`);
@@ -745,6 +984,49 @@ export async function fireEffectRules(options: {
             result.vigor += amount;
             result.log.push(`${origin}: Vigor extra = ${calc.text} → +${amount}`);
           }
+          break;
+        }
+        case 'damage-reduction':
+          result.log.push(`${origin}: ${formulaText(rule)}% menos de daño${rule.vs === 'aa' ? ' de AA' : ''} (se aplica al recibir el golpe)`);
+          break;
+        case 'execute': {
+          const threshold = rule.targetHpBelowPct ?? rule.hpBelowPct ?? 5;
+          if (!callbacks.onTargetDamage || ruleTargets.length === 0) { manual(`${label}: ejecutar < ${threshold}%`); break; }
+          for (const id of ruleTargets) {
+            const info = targetInfo(id, '');
+            const max = info?.max ?? 0;
+            const current = info?.current ?? 0;
+            const pct = max > 0 ? (current / max) * 100 : 100;
+            if (pct > threshold) {
+              result.log.push(`${origin}: ${nameOf(id)} está al ${fmt(pct)}% (> ${threshold}%) → no ejecuta`);
+              continue;
+            }
+            try {
+              const damage = await callbacks.onTargetDamage(id, hp => hp);
+              if (damage) {
+                result.undos.push(damage.undo);
+                if (damage.before > 0 && damage.after <= 0) result.kills.push(id);
+                result.notes.push(`${label}: ejecuta a ${damage.name}`);
+                result.chips.push({ kind: damageChipKind('true'), text: `ejecuta ${damage.name}`, title: `${label} · vida < ${threshold}%` });
+                result.log.push(`${origin}: ejecuta a ${damage.name} (vida ${fmt(damage.before)} → ${fmt(damage.after)}, umbral ${threshold}%)`);
+              }
+            } catch (caught) {
+              const message = caught instanceof Error ? caught.message : 'ejecutar';
+              result.notes.push(`error: ${message}`);
+              result.log.push(`${origin}: error al ejecutar a ${nameOf(id)}: ${message}`);
+            }
+          }
+          break;
+        }
+        case 'extra-action': {
+          const kind = rule.action === 'attacks' ? 'attacks' : 'abilities';
+          const amount = rule.count ?? 1;
+          if (!callbacks.onGrantAction) { manual(`${label}: +${amount} acción de ${kind === 'abilities' ? 'habilidad' : 'AA'}`); break; }
+          await callbacks.onGrantAction(kind, amount);
+          result.notes.push(`${label}: +${amount} acción de ${kind === 'abilities' ? 'habilidad' : 'AA'}`);
+          result.chips.push({ kind: 'buff', text: `+${amount} ${kind === 'abilities' ? 'hab.' : 'AA'}`, title: label });
+          result.log.push(`${origin}: +${amount} acción de ${kind === 'abilities' ? 'habilidad básica' : 'ataque'} este turno`);
+          if (rule.cooldownOnProc) procCooldown = true;
           break;
         }
       }
@@ -781,7 +1063,27 @@ export async function fireEffectRules(options: {
     }
     const own = rules.filter(({ rule }) => matches(rule.trigger));
     if (own.length === 0) continue;
+    if (trigger === 'hp-below') {
+      const me = bearer ? participants.find(p => p.id === bearer.id) : undefined;
+      const hp = me ? participantHp(me) : undefined;
+      const max = hp?.max ?? 0;
+      const current = hp?.current ?? 0;
+      const pct = max > 0 ? (current / max) * 100 : 100;
+      const threshold = own.find(entry => entry.rule.hpBelowPct != null)?.rule.hpBelowPct ?? 30;
+      if (pct >= threshold) {
+        result.log.push(`${effect.name} (${effect.item}): vida ${fmt(pct)}% no está por debajo de ${threshold}% → no se aplica`);
+        continue;
+      }
+    }
+    if (config.oncePerCombat && marker(bonuses, `once:${effect.base}`)) {
+      result.notes.push(`${effect.name}: ya usado en este combate`);
+      result.chips.push({ kind: 'cd', text: `${effect.name} ya usado` });
+      result.log.push(`${effect.name} (${effect.item}): ya se usó en este combate → no se aplica`);
+      continue;
+    }
     const hasAfterAbility = rules.some(({ rule }) => isArmTrigger(rule.trigger));
+    const deferCd = own.some(({ rule }) => rule.cooldownOnProc || rule.triggerAtMax || rule.everyN);
+    procCooldown = false;
     // El CD de un efecto con «Tras habilidad» es el del AA potenciado; el resto lo comparte.
     // Enfriamiento por objetivo: solo los objetivos marcados (sin CD de este portador); el CD se pone en cada uno.
     if (config.cooldown && !hasAfterAbility && config.perTargetCooldown && bearer && callbacks.onTargetBonuses) {
@@ -804,9 +1106,13 @@ export async function fireEffectRules(options: {
       }
       result.notes.push(`${effect.name}: marca de ${marked.map(nameOf).join(', ')} (CD ${turns} t. en el objetivo)`);
       extraHits += await applyRules(effect, own, marked);
+      if (config.oncePerCombat) {
+        bonuses = setMarker(bonuses, 'cooldown', `once:${effect.base}`, 99, `${effect.name} (1/combate)`);
+        result.changed = true;
+      }
       continue;
     }
-    if (config.cooldown && !hasAfterAbility) {
+    if (config.cooldown && !hasAfterAbility && !deferCd) {
       if (cooldownLeft(bonuses, effect.base) > 0) {
         const left = cooldownLeft(bonuses, effect.base);
         result.notes.push(`${effect.name} en CD (${left} t.)`);
@@ -821,6 +1127,19 @@ export async function fireEffectRules(options: {
       result.log.push(`${effect.name} (${effect.item}): CD ${turns} t. en ${bearerName}${config.cdStart === 'on-end' ? ` (${config.duration ?? 0} de efecto + ${config.cooldown} de CD)` : ''}${levelCdNote}`);
     }
     extraHits += await applyRules(effect, own);
+    if (deferCd && procCooldown && config.cooldown && cooldownLeft(bonuses, effect.base) <= 0) {
+      const turns = config.cdStart === 'on-end' ? (config.duration ?? 0) + config.cooldown : config.cooldown;
+      bonuses = setMarker(bonuses, 'cooldown', `cd:${effect.base}`, turns, effect.name);
+      result.changed = true;
+      result.chips.push({ kind: 'cd', text: `CD ${effect.name} ${turns} t.` });
+      result.log.push(`${effect.name} (${effect.item}): CD ${turns} t. en ${bearerName} (al proc)`);
+    }
+    if (config.oncePerCombat) {
+      bonuses = setMarker(bonuses, 'cooldown', `once:${effect.base}`, 99, `${effect.name} (1/combate)`);
+      result.changed = true;
+      result.chips.push({ kind: 'cd', text: `${effect.name} 1/combate` });
+      result.log.push(`${effect.name} (${effect.item}): queda usado por este combate`);
+    }
   }
   // Doble efecto de impacto (Amanecer y anochecer): repite las reglas «Al aplicar efecto de impacto» (no las de solo AA).
   for (let i = 0; i < Math.min(extraHits, 3); i += 1) {

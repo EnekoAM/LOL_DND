@@ -3,7 +3,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { innatePlan, tickInnateCooldowns } from './innateShield';
 import { partyLevel, subscribeParty } from '../../data/party';
 import { useAppRole, useMyPlayerName } from '../../data/appRoleContext';
-import { canSeeHp, participantHp, participantHpPools, type DamageAmount, type TargetDamage } from './combatHp';
+import { canSeeHp, participantHp, participantHpPools, type DamageAmount, type DamageApplyOpts, type TargetDamage } from './combatHp';
+import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
+import { critMultiplier } from './combatMitigation';
+import { participantContext } from './effectRules';
+import { afterDamageTaken, cinderbloomCrit, expiredPendingByPrefix, firePendingHalfShields, firePendingItemDamage, fireReactiveItemEffects, grievousCutPct, incomingDamageReductionPct, itemDamageAmpPct } from './itemCombatHooks';
 import { CHAMPIONS } from '../../data/champions';
 import {
   endCombatRemote,
@@ -90,6 +94,8 @@ function expiredAbilityShields(before: CombatParticipant | undefined, after: Com
 export default function Combate() {
   const { role } = useAppRole();
   const isAdmin = role === 'admin';
+  const effectData = useNamedEffectDescriptions();
+  const reactingRef = useRef(false);
   const myPlayer = useMyPlayerName();
   const combatRev = useLiveRevision('combat');
   const playersRev = useLiveRevision('players');
@@ -171,12 +177,43 @@ export default function Combate() {
    * Daño a un objetivo (AA / habilidad / objeto): escudo → vida temporal → vida, como el Daño del HpPanel.
    * Players: su ficha (PATCH op hp); resto: su entrada del combate. Sin armadura/MR (no hay fórmula).
    */
-  const damageTarget = async (targetId: string, amountIn: DamageAmount): Promise<TargetDamage | null> => {
+  const damageTarget = async (targetId: string, amountIn: DamageAmount, opts?: DamageApplyOpts): Promise<TargetDamage | null> => {
     const target = stateRef.current.participants.find(p => p.id === targetId);
     if (!target) return null;
     const prev = participantHpPools(target);
     if (!prev) return null;
-    const amount = typeof amountIn === 'function' ? amountIn(prev.current) : amountIn;
+    let amount = typeof amountIn === 'function' ? amountIn(prev.current) : amountIn;
+    if (!(amount > 0)) return null;
+    if (opts?.fromAutoAttack) {
+      const cut = incomingDamageReductionPct(target, effectData, 'aa');
+      if (cut) {
+        const reduced = Math.max(0, Math.floor(amount * (1 - cut / 100)));
+        if (reduced !== amount) {
+          logCombat({ title: `Placas · ${target.name}`, actor: target.name, lines: [`${cut}% menos de daño de AA: ${amount} → ${reduced}`] });
+          amount = reduced;
+        }
+        if (!(amount > 0)) return null;
+      }
+    }
+    const attacker = opts?.attackerId ? stateRef.current.participants.find(p => p.id === opts.attackerId) : undefined;
+    if (opts?.critical && attacker && (opts.damageType === 'magic' || opts.damageType === 'true')) {
+      const ctx = participantContext(attacker, partyLevel());
+      const base = ctx ? critMultiplier(ctx.ctx.stats as Record<string, unknown>) : 1.5;
+      const bloom = cinderbloomCrit(attacker, target, effectData, opts.damageType, true, base);
+      if (bloom.apply) {
+        const boosted = Math.ceil(amount * bloom.factor);
+        logCombat({ title: `Llamasombría · ${target.name}`, actor: attacker.name, lines: [`Crít. mágico/verdadero al ${bloom.potency}% de potencia (× ${bloom.factor.toFixed(2).replace('.', ',')}): ${amount} → ${boosted}`] });
+        amount = boosted;
+      }
+    }
+    if (attacker) {
+      const amp = itemDamageAmpPct(target, effectData, attacker);
+      if (amp) {
+        const boosted = Math.ceil(amount * (1 + amp / 100));
+        logCombat({ title: `Mandato · ${target.name}`, actor: attacker.name, lines: [`+${amp}% de daño a objetivo inmovilizado: ${amount} → ${boosted}`] });
+        amount = boosted;
+      }
+    }
     if (!(amount > 0)) return null;
     const next = applyDamage(Math.floor(amount), { actualHp: prev.current, escudo: prev.shield, vidaTemporal: prev.tempHp });
     const save = async (current: number, tempHp: number, shield: number) => {
@@ -186,13 +223,42 @@ export default function Combate() {
       setTrackerBump(n => n + 1);
     };
     await save(next.actualHp, next.vidaTemporal, next.escudo);
-    return {
+    const result: TargetDamage = {
       name: target.name,
       before: prev.current,
       after: next.actualHp,
       absorbed: (prev.shield - next.escudo) + (prev.tempHp - next.vidaTemporal),
       undo: () => save(prev.current, prev.tempHp, prev.shield),
     };
+    if (isAdmin && !reactingRef.current) {
+      reactingRef.current = true;
+      try {
+        const fresh = stateRef.current.participants.find(p => p.id === targetId);
+        if (fresh) {
+          const hooks = {
+            level: partyLevel(),
+            effectData,
+            participants: stateRef.current.participants,
+            callbacks: {
+              onTargetDamage: (id: string, value: DamageAmount) => damageTarget(id, value),
+              onTargetBonuses: targetBonuses,
+              onSelfPool: (kind: 'heal' | 'shield' | 'mana', value: number) => poolChange(fresh.id, kind, value),
+              onTargetPool: (id: string, kind: 'heal' | 'shield', value: number) => poolChange(id, kind, value),
+              onApplySourcedEffect: applySourcedToMany,
+            },
+          };
+          const nextBonuses = await afterDamageTaken(fresh, result, amount, hooks, opts);
+          if (nextBonuses) {
+            const saved = await saveCombatBonuses(targetId, nextBonuses);
+            stateRef.current = saved;
+            setState(saved);
+          }
+        }
+      } finally {
+        reactingRef.current = false;
+      }
+    }
+    return result;
   };
 
   /** Debuffs / bonus de otro participante (reglas de efectos con nombre): guarda y devuelve el Deshacer. */
@@ -213,6 +279,17 @@ export default function Combate() {
   const poolChange = async (participantId: string, kind: 'heal' | 'shield' | 'mana', amount: number): Promise<(() => Promise<void>) | null> => {
     const self = stateRef.current.participants.find(p => p.id === participantId);
     if (!self || !(amount > 0)) return null;
+    if (kind === 'heal') {
+      const cut = grievousCutPct(self);
+      if (cut) {
+        const reduced = Math.max(0, Math.round(amount * (1 - cut / 100)));
+        if (reduced !== amount) {
+          logCombat({ title: `Heridas graves · ${self.name}`, actor: self.name, lines: [`Cura reducida un ${cut}%: ${amount} → ${reduced}`] });
+          amount = reduced;
+        }
+        if (!(amount > 0)) return null;
+      }
+    }
     const bump = () => setTrackerBump(n => n + 1);
     if (kind === 'mana') {
       const player = self.kind === 'player' ? PLAYERS.find(entry => entry.name === self.sourceId) : undefined;
@@ -277,6 +354,14 @@ export default function Combate() {
       turnIndex = idx >= 0 ? idx : 0;
     }
     return { ...stateRef.current, participants: sorted, turnIndex };
+  };
+
+  const applySourcedToMany = (targetIds: string[] | string, input: SourcedEffectInput) => {
+    const ids = new Set(Array.isArray(targetIds) ? targetIds : [targetIds]);
+    const base = stateRef.current.participants;
+    if (!base.some(entry => ids.has(entry.id))) return;
+    const participants = base.map(entry => (ids.has(entry.id) ? applySourcedEffect(entry, input) : entry));
+    return persist(syncOrder(participants, stateRef.current.participants[stateRef.current.turnIndex]?.id));
   };
 
   const current = ordered[state.turnIndex];
@@ -442,6 +527,18 @@ export default function Combate() {
       .finally(() => setSaving(false));
   };
 
+  const reduceShieldBy = async (participantId: string, amount: number): Promise<boolean> => {
+    const self = stateRef.current.participants.find(p => p.id === participantId);
+    const pools = self ? participantHpPools(self) : null;
+    if (!self || !pools || !(pools.shield > 0) || !(amount > 0)) return false;
+    const next = Math.max(0, pools.shield - amount);
+    const result = await saveCombatHp(participantId, pools.current, undefined, { tempHp: pools.tempHp, shield: next });
+    stateRef.current = result.combat;
+    setState(result.combat);
+    setTrackerBump(n => n + 1);
+    return true;
+  };
+
   const nextTurn = () => {
     if (ordered.length === 0) return;
     let turnIndex = state.turnIndex + 1;
@@ -455,7 +552,9 @@ export default function Combate() {
     const participants = state.participants.map(p => (p.id === targetId ? tickInnateCooldowns(tickCombatTrackers(tickEffectsFor(p))) : p));
     const beforeTarget = state.participants.find(p => p.id === targetId);
     const afterTarget = participants.find(p => p.id === targetId);
-    const expiredHeals = (beforeTarget?.bonuses ?? []).filter(old => old.stat === 'buff' && (old.source ?? '').startsWith('pending:') && !(afterTarget?.bonuses ?? []).some(bonus => bonus.source === old.source));
+    const expiredHeals = expiredPendingByPrefix(beforeTarget?.bonuses, afterTarget?.bonuses, 'pending:').filter(bonus => !(bonus.source ?? '').startsWith('pending-dmg:') && !(bonus.source ?? '').startsWith('pending-half:'));
+    const expiredDamage = expiredPendingByPrefix(beforeTarget?.bonuses, afterTarget?.bonuses, 'pending-dmg:');
+    const expiredHalf = expiredPendingByPrefix(beforeTarget?.bonuses, afterTarget?.bonuses, 'pending-half:');
     logChargeRecharges(state.participants.find(p => p.id === targetId), participants.find(p => p.id === targetId));
     const expiredShields = expiredAbilityShields(state.participants.find(p => p.id === targetId), participants.find(p => p.id === targetId));
     const sorted = sortByInitiative(participants);
@@ -463,7 +562,33 @@ export default function Combate() {
     if (target) tickPlayerTrackers(target);
     void persist({ ...stateRef.current, active: true, round, turnIndex: idx >= 0 ? idx : 0, participants: sorted })
       .then(() => (targetId && expiredShields.length ? removeExpiredShields(targetId, expiredShields) : undefined))
-      .then(() => (targetId && expiredHeals.length ? firePendingHeals(targetId, expiredHeals) : undefined));
+      .then(() => (targetId && expiredHeals.length ? firePendingHeals(targetId, expiredHeals) : undefined))
+      .then(() => (targetId && expiredDamage.length ? firePendingItemDamage(targetId, expiredDamage, (id, value) => damageTarget(id, value)) : undefined))
+      .then(() => (targetId && expiredHalf.length ? firePendingHalfShields(targetId, expiredHalf, reduceShieldBy, async (id, bonuses) => { const saved = await saveCombatBonuses(id, bonuses); stateRef.current = saved; setState(saved); }, () => stateRef.current.participants.find(p => p.id === targetId)?.bonuses ?? []) : undefined))
+      .then(async () => {
+        if (!targetId || !isAdmin) return;
+        const bearer = stateRef.current.participants.find(p => p.id === targetId);
+        if (!bearer) return;
+        const hooks = {
+          level: partyLevel(),
+          effectData,
+          participants: stateRef.current.participants,
+          callbacks: {
+            onTargetDamage: (id: string, value: DamageAmount) => damageTarget(id, value),
+            onTargetBonuses: targetBonuses,
+            onSelfPool: (kind: 'heal' | 'shield' | 'mana', value: number) => poolChange(bearer.id, kind, value),
+            onTargetPool: (id: string, kind: 'heal' | 'shield', value: number) => poolChange(id, kind, value),
+            onApplySourcedEffect: applySourcedToMany,
+          },
+        };
+        const bonuses = await fireReactiveItemEffects('each-turn', bearer, hooks, []);
+        if (bonuses) {
+          const saved = await saveCombatBonuses(targetId, bonuses);
+          stateRef.current = saved;
+          setState(saved);
+          setTrackerBump(n => n + 1);
+        }
+      });
   };
 
   /** Cura retrasada (Pluma resplandeciente) que vence al empezar el turno del lanzador: cura al lanzador y a los aliados marcados. */
