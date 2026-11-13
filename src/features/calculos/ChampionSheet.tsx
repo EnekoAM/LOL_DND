@@ -144,12 +144,14 @@ const ChampionSheet = ({ champion, onBack, onSelectAbility, onChampionChange }: 
 
   const persist = async (patch: Parameters<typeof saveChampionPatch>[1]) => {
     if (!canEdit || saving) return;
-    // Efectos con nombre exclusivos (Salvavidas…): no dos ítems con el mismo en la build.
-    const clash = (patch.equipamiento ? newNamedEffectClash(champion.equipamiento ?? [], patch.equipamiento) : null)
-      ?? (patch.build ? newNamedEffectClash(champion.build ?? [], patch.build) : null);
-    if (clash) {
-      setError(clash);
-      return;
+    // Efectos con nombre exclusivos (Salvavidas…): no dos ítems con el mismo en el equipamiento.
+    // En la build deseada sí pueden coexistir.
+    if (patch.equipamiento) {
+      const clash = newNamedEffectClash(champion.equipamiento ?? [], patch.equipamiento);
+      if (clash) {
+        setError(clash);
+        return;
+      }
     }
     setSaving(true);
     setError(null);

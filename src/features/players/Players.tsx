@@ -111,18 +111,12 @@ const Players = () => {
     patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'accentColor' | 'shortRestsUsed' | 'sheet' | 'unlocks' | 'quests' | 'aumentos' | 'background' | 'mechanic' | 'stacks' | 'cooldowns' | 'activeEffects'>>,
   ): Promise<void> => {
     if (!player) return Promise.resolve();
-    // Efectos con nombre exclusivos (Salvavidas…): no dos ítems con el mismo en la build.
+    // Efectos con nombre exclusivos (Salvavidas…): no dos ítems con el mismo en el equipamiento.
+    // En la build deseada sí pueden coexistir.
     if (patch.equipamiento) {
       const clash = newNamedEffectClash(player.equipamiento, patch.equipamiento);
       if (clash) {
         setEquipError(clash);
-        return Promise.resolve();
-      }
-    }
-    if (patch.build) {
-      const clash = newNamedEffectClash(player.build, patch.build);
-      if (clash) {
-        setBuildError(clash);
         return Promise.resolve();
       }
     }
