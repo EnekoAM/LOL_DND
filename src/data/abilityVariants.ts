@@ -64,6 +64,12 @@ export function abilityPhase(ability: Ability, index: number): Ability {
   if (variant.effectTarget === 'enemy') resolved.effectTarget = 'enemy';
   else if (variant.effectTarget === 'self') delete resolved.effectTarget;
   if (variant.effectName) resolved.effectName = variant.effectName;
+  if (variant.area) resolved.area = variant.area;
+  if (variant.requiresStacks || variant.stackDamage) {
+    resolved.mechanics = { ...(base.mechanics ?? {}) };
+    if (variant.requiresStacks) resolved.mechanics.requireStacks = variant.requiresStacks;
+    if (variant.stackDamage) resolved.mechanics.stackDamage = variant.stackDamage;
+  }
   return resolved;
 }
 

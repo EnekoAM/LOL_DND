@@ -358,6 +358,34 @@ const AbilityForm = ({
           <span>Multiplicador a objetivo único</span>
           <input value={draft.damageBonus} placeholder="2" onChange={e => onChange({ damageBonus: e.target.value })} />
         </label>
+        <label className="hab-field">
+          <span>Escalado de vida (%)</span>
+          <input value={draft.hp} placeholder="2, 3.5, 5, 6" onChange={e => onChange({ hp: e.target.value })} />
+        </label>
+        <label className="hab-field">
+          <span>Origen del escalado de vida</span>
+          <select className="hab-select" value={draft.hpSource} disabled={saving} onChange={e => {
+            const value = e.target.value;
+            onChange({ hpSource: value === 'max' || value === 'current' || value === 'missing' || value === 'bonus' ? value : '' });
+          }}>
+            <option value="">Vida máxima</option>
+            <option value="max">Vida máxima</option>
+            <option value="current">Vida actual</option>
+            <option value="missing">Vida faltante</option>
+            <option value="bonus">Vida bonus</option>
+          </select>
+        </label>
+        <label className="hab-field">
+          <span>Vida de quién</span>
+          <select className="hab-select" value={draft.hpFrom} disabled={saving} onChange={e => {
+            const value = e.target.value;
+            onChange({ hpFrom: value === 'self' || value === 'target' ? value : '' });
+          }}>
+            <option value="">Objetivo</option>
+            <option value="target">Objetivo</option>
+            <option value="self">Portador</option>
+          </select>
+        </label>
       </div>
 
       <div className="hab-modal__block">
@@ -494,6 +522,34 @@ const VariantFields = ({ base, variant, index, championResource, saving, onChang
           <span>Multiplicador a objetivo único</span>
           <input value={variant.damageBonus} placeholder={inherit(base.damageBonus)} onChange={e => onChange({ damageBonus: e.target.value })} />
         </label>
+        <label className="hab-field">
+          <span>Escalado de vida (%)</span>
+          <input value={variant.hp} placeholder={inherit(base.hp)} onChange={e => onChange({ hp: e.target.value })} />
+        </label>
+        <label className="hab-field">
+          <span>Origen del escalado de vida</span>
+          <select className="hab-select" value={variant.hpSource} disabled={saving} onChange={e => {
+            const value = e.target.value;
+            onChange({ hpSource: value === 'max' || value === 'current' || value === 'missing' || value === 'bonus' ? value : '' });
+          }}>
+            <option value="">Igual que la Fase 1</option>
+            <option value="max">Vida máxima</option>
+            <option value="current">Vida actual</option>
+            <option value="missing">Vida faltante</option>
+            <option value="bonus">Vida bonus</option>
+          </select>
+        </label>
+        <label className="hab-field">
+          <span>Vida de quién</span>
+          <select className="hab-select" value={variant.hpFrom} disabled={saving} onChange={e => {
+            const value = e.target.value;
+            onChange({ hpFrom: value === 'self' || value === 'target' ? value : '' });
+          }}>
+            <option value="">Objetivo</option>
+            <option value="target">Objetivo</option>
+            <option value="self">Portador</option>
+          </select>
+        </label>
       </div>
 
       <div className="hab-modal__block">
@@ -525,6 +581,60 @@ const VariantFields = ({ base, variant, index, championResource, saving, onChang
         <button type="button" className="hab-modal__btn hab-modal__btn--ghost" onClick={() => onChange({ effects: [...variant.effects, blankEffect()] })}>
           Añadir efecto
         </button>
+      </div>
+
+      <div className="hab-modal__block">
+        <span className="hab-modal__tag">Umbral de cargas / área</span>
+        <button type="button" className={'hab-learned' + (variant.requiresStacks ? ' hab-learned--on' : '')} aria-pressed={variant.requiresStacks} disabled={saving} title="Solo se puede elegir esta fase con N cargas (permanentes o de combate) de otra habilidad. Por defecto no las gasta." onClick={() => onChange({ requiresStacks: !variant.requiresStacks })}>
+          <span>Requiere cargas (umbral)</span>
+          <span className="hab-learned__switch" aria-hidden="true" />
+        </button>
+        {variant.requiresStacks && (
+          <>
+            <label className="hab-field">
+              <span>Nombre de la habilidad que tiene las cargas</span>
+              <input value={variant.requiresStacksFrom} placeholder="Dragon Practice" onChange={e => onChange({ requiresStacksFrom: e.target.value })} />
+            </label>
+            <label className="hab-field">
+              <span>Cargas necesarias</span>
+              <input value={variant.requiresStacksCount} placeholder="25" onChange={e => onChange({ requiresStacksCount: e.target.value })} />
+            </label>
+            <button type="button" className={'hab-learned' + (variant.requiresStacksConsume ? ' hab-learned--on' : '')} aria-pressed={variant.requiresStacksConsume} disabled={saving} onClick={() => onChange({ requiresStacksConsume: !variant.requiresStacksConsume })}>
+              <span>Las gasta al usarla</span>
+              <span className="hab-learned__switch" aria-hidden="true" />
+            </button>
+          </>
+        )}
+        <button type="button" className={'hab-learned' + (variant.stackDamage ? ' hab-learned--on' : '')} aria-pressed={variant.stackDamage} disabled={saving} title="Si lo activas, sustituye el daño por cargas de la Fase 1 en esta fase." onClick={() => onChange({ stackDamage: !variant.stackDamage })}>
+          <span>Daño extra según cargas permanentes</span>
+          <span className="hab-learned__switch" aria-hidden="true" />
+        </button>
+        {variant.stackDamage && (
+          <>
+            <label className="hab-field">
+              <span>Nombre de la habilidad que tiene el contador</span>
+              <input value={variant.stackDamageFrom} placeholder="Dragon Practice" onChange={e => onChange({ stackDamageFrom: e.target.value })} />
+            </label>
+            <label className="hab-field">
+              <span>% de las cargas (por rango o tramo)</span>
+              <input value={variant.stackDamagePct} placeholder="55" onChange={e => onChange({ stackDamagePct: e.target.value })} />
+            </label>
+            <label className="hab-field">
+              <span>Tipo de ese daño</span>
+              <select value={variant.stackDamageType} onChange={e => onChange({ stackDamageType: e.target.value as 'physical' | 'magic' | 'true' })}>
+                <option value="magic">Mágico</option>
+                <option value="physical">Físico</option>
+                <option value="true">Verdadero</option>
+              </select>
+            </label>
+            <button type="button" className={'hab-learned' + (variant.stackDamageByLevel ? ' hab-learned--on' : '')} aria-pressed={variant.stackDamageByLevel} disabled={saving} onClick={() => onChange({ stackDamageByLevel: !variant.stackDamageByLevel })}>
+              <span>Escala por tramo de nivel (1/6/11/16)</span>
+              <span className="hab-learned__switch" aria-hidden="true" />
+            </button>
+          </>
+        )}
+        <span className="hab-modal__tag">Área de esta fase (vacío = la de la Fase 1)</span>
+        <AreaGridEditor value={variant.area} disabled={saving} onChange={area => onChange({ area })} />
       </div>
     </>
   );

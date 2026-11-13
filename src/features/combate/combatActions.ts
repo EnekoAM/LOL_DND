@@ -1,5 +1,5 @@
 import type { Champion } from '../../data/champions';
-import type { CombatParticipant } from '../../data/combat';
+import type { CombatBonus, CombatParticipant } from '../../data/combat';
 import type { Player } from '../../data/players';
 import { milestoneRank } from '../../data/abilityRanks';
 import { championDamageContext } from '../calculos/championDamage';
@@ -52,4 +52,39 @@ export function basicAttackPct(type: 'AD' | 'AP', level: number, stored?: readon
   return typeof value === 'number' && Number.isFinite(value) && value > 0
     ? value
     : AP_BASIC_ATTACK_SCALING[Math.min(tier, AP_BASIC_ATTACK_SCALING.length - 1)];
+}
+
+/** Stat marcador: no es una columna de la ficha; sustituye el máximo de ataques del turno. */
+export const FIXED_ATTACKS_STAT = 'fixedAttacks';
+
+/** El mayor «número de ataques fijo» activo en los bonus. */
+export function fixedAttacksOverride(bonuses: CombatBonus[] | undefined): number | undefined {
+  let best: number | undefined;
+  for (const bonus of bonuses ?? []) {
+    if (bonus.stat !== FIXED_ATTACKS_STAT) continue;
+    const value = Math.floor(bonus.amount);
+    if (value > 0 && (best === undefined || value > best)) best = value;
+  }
+  return best;
+}
+
+/** Sustituye Attacks de la ficha mientras hay un override activo (no lo suma). */
+export function withFixedAttacks(limits: ActionLimits, bonuses: CombatBonus[] | undefined): ActionLimits {
+  const override = fixedAttacksOverride(bonuses);
+  if (!override) return limits;
+  return { ...limits, attacks: override };
+}
+
+/**
+ * Conserva los ataques ya gastados este turno al cambiar el máximo
+ * (p. ej. al encender o apagar un interruptor a mitad de turno).
+ */
+export function leftoverAfterAttackLimitChange(
+  prevMax: number | undefined,
+  prevLeft: number | undefined,
+  nextMax: number | undefined,
+): number | undefined {
+  if (nextMax === undefined) return prevLeft;
+  const spent = prevMax !== undefined && prevLeft !== undefined ? Math.max(0, prevMax - prevLeft) : 0;
+  return Math.max(0, nextMax - spent);
 }

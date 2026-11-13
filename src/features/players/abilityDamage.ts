@@ -50,7 +50,7 @@ export function rollDamageStat(source: StatValue, random = Math.random): StatRol
 }
 
 export const hasDamageScaling = (damage: AbilityDamage | undefined): boolean =>
-  [damage?.ad, damage?.ap].some(values => values?.some(value => Number.isFinite(value) && value !== 0));
+  [damage?.ad, damage?.ap, damage?.hp].some(values => values?.some(value => Number.isFinite(value) && value !== 0));
 
 /** A single coefficient remains constant; shorter lists stop at their last rank. */
 export const scalingAtRank = (values: number[] | undefined, rank: number): number => {
@@ -59,6 +59,27 @@ export const scalingAtRank = (values: number[] | undefined, rank: number): numbe
   if (!Number.isFinite(value)) throw new Error('El escalado de daño no es válido');
   return value;
 };
+
+export type HpScalingSource = 'max' | 'current' | 'missing' | 'bonus';
+
+/** Daño = ratio de vida del rango × la vida (máx. / actual / faltante / bonus). 0 si no hay. */
+export function hpDamageAmount(
+  damage: AbilityDamage | undefined,
+  rank: number,
+  hp: { current: number; max?: number; bonus?: number },
+): number {
+  const ratio = scalingAtRank(damage?.hp, rank);
+  if (!ratio) return 0;
+  const source = damage?.hpSource ?? 'max';
+  const max = hp.max ?? 0;
+  const current = hp.current;
+  const base = source === 'current' ? current
+    : source === 'missing' ? Math.max(0, max - current)
+    : source === 'bonus' ? (hp.bonus ?? 0)
+    : max;
+  if (!base) return 0;
+  return Math.round(ratio * base);
+}
 
 export function rollAbilityDamage(
   damage: AbilityDamage,

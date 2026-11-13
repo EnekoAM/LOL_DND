@@ -1,7 +1,7 @@
 import { BASIC_MAX_RANK, ULT_MAX_RANK, milestoneRank, normalizeRanks, type RankedSlot } from '../../data/abilityRanks';
-import { abilityRuleBase, rankValue } from '../../data/abilityMechanics';
+import { abilityRuleBase, abilityStacks, hasPermanentMaxStacks, rankValue, readPermanentAbilityStacks, shouldGainAbilityStack, stacksRequirement, totalRangeBonus } from '../../data/abilityMechanics';
 import { ABILITY_KEYS, findAbilityRef, type Ability } from '../../data/champions';
-import type { CombatParticipant } from '../../data/combat';
+import type { CombatBonus, CombatParticipant } from '../../data/combat';
 import { participantChampion } from '../../data/combatSheet';
 import type { EffectRule } from '../../data/effectBonus';
 import { PLAYERS, PLAYER_ABILITY_SLOTS } from '../../data/players';
@@ -38,7 +38,7 @@ export function participantAbilities(participant: CombatParticipant, level: numb
     const stored = saved[slot];
     const rank = slot === 'P'
       ? Math.max(1, milestoneRank(championLevel))
-      : typeof stored === 'number' ? Math.min(max, Math.max(1, Math.floor(stored))) : 1;
+      : typeof stored === 'number' ? Math.min(max, Math.max(0, Math.floor(stored))) : 1;
     out.push({ seal: slot, name: ability.name, ability, rank });
   }
   return out;
@@ -50,7 +50,10 @@ export function participantAbilities(participant: CombatParticipant, level: numb
  * - learnedStats: reglas «Siempre» con el valor de su rango (Estandarte demaciano: vel. ataque por tenerla).
  * Solo las aprendidas (rango ≥ 1).
  */
-export function abilityNamedEffects(owned: OwnedAbility[]): ActiveNamedEffect[] {
+export function abilityNamedEffects(
+  owned: OwnedAbility[],
+  stackOptions?: { playerStacks?: Record<string, number>; bonuses?: CombatBonus[]; level?: number },
+): ActiveNamedEffect[] {
   const out: ActiveNamedEffect[] = [];
   for (const entry of owned) {
     const mechanics = entry.ability.mechanics;
@@ -65,7 +68,42 @@ export function abilityNamedEffects(owned: OwnedAbility[]): ActiveNamedEffect[] 
       const value = rankValue(stat.values, entry.rank);
       if (value) learned.push({ trigger: 'always', kind: 'stat', stat: stat.stat, flat: value });
     }
+    const level = stackOptions?.level ?? 1;
+    const rangeBonus = totalRangeBonus(mechanics.levelThresholds, level);
+    if (rangeBonus) learned.push({ trigger: 'always', kind: 'stat', stat: 'range', flat: rangeBonus });
+    const temp = mechanics.stacks;
+    if (temp?.stat && temp.perStack?.length) {
+      const stacks = hasPermanentMaxStacks(mechanics.levelThresholds, level) ? temp.max : abilityStacks(stackOptions?.bonuses, entry.name).count;
+      const per = rankValue(temp.perStack, entry.rank) ?? 0;
+      const value = Math.round(stacks * per * 10) / 10;
+      if (value) learned.push({ trigger: 'always', kind: 'stat', stat: temp.stat, flat: value });
+    }
+    if (temp?.onMaxStatus?.stat) {
+      const atMax = hasPermanentMaxStacks(mechanics.levelThresholds, level) || abilityStacks(stackOptions?.bonuses, entry.name).count >= temp.max;
+      if (atMax && temp.onMaxStatus.amount) learned.push({ trigger: 'always', kind: 'stat', stat: temp.onMaxStatus.stat, flat: temp.onMaxStatus.amount });
+    }
+    const perm = mechanics.permanentStacks;
+    if (perm?.stat && perm.perStack?.length) {
+      const stacks = readPermanentAbilityStacks({ name: entry.name, playerStacks: stackOptions?.playerStacks, bonuses: stackOptions?.bonuses });
+      const per = rankValue(perm.perStack, entry.rank) ?? 0;
+      const value = Math.round(stacks * per * 10) / 10;
+      if (value) learned.push({ trigger: 'always', kind: 'stat', stat: perm.stat, flat: value });
+    }
     if (learned.length) out.push({ id: `${base}-learned`.slice(0, 60), base: `${base}-learned`.slice(0, 60), name: `${entry.name} (aprendida)`, item, config: { rules: learned } });
   }
   return out;
 }
+
+/** Habilidades del portador cuyo contador de cargas debe sumar 1 con este impacto. */
+export function stackGainOwners(
+  owned: OwnedAbility[],
+  options: { trigger: 'on-hit' | 'on-ability'; abilityOnHit: boolean; damaged: boolean; usedName?: string; usedRequires?: { name: string } },
+): OwnedAbility[] {
+  return owned.filter(entry => {
+    const config = entry.ability.mechanics?.stacks;
+    if (!config || entry.rank < 1) return false;
+    return shouldGainAbilityStack({ config, ownerName: entry.name, ...options });
+  });
+}
+
+export { stacksRequirement };

@@ -38,11 +38,19 @@ export function formatBonus(bonus: CombatBonus): string {
   // Habilidades: cargas por impacto «Concentración 3/4 · 2 t.» y buff activo «Concentración activa · 3 t.».
   if (bonus.stat === 'stacks') return `${bonus.label ?? 'Cargas'} ${bonus.amount}${bonus.maxStacks ? `/${bonus.maxStacks}` : ''}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'buff' && bonus.source?.startsWith('shield:')) return `Escudo ${bonus.label ?? ''} ${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
-  if (bonus.stat === 'buff' && bonus.source?.startsWith('recast:')) return `Recast ${bonus.label ?? ''} ×${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('recast:')) return `Recast ${bonus.label ?? ''} ×${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ' · hasta usarlo'}`;
+  if (bonus.source?.startsWith('evolve:')) return `Evolución «${bonus.label ?? ''}» (permanente)`;
+  if (bonus.source?.startsWith('armedAa:')) return `${bonus.label ?? 'AA armado'} armado`;
+  if (bonus.source?.startsWith('costStacks:')) return `Acumulaciones de coste «${bonus.label ?? ''}» ×${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.source?.startsWith('deathBurst:')) return `${bonus.label ?? 'Explosión'} (zombi)${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.source?.startsWith('shred:')) return `Resistencias reducidas (${bonus.label ?? ''})${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'buff' && bonus.source?.startsWith('chargeturn:')) return `${bonus.label ?? 'Cargas'}: ya gastada este turno`;
   if (bonus.stat === 'buff' && bonus.source?.startsWith('innate:')) return `Escudo automático ${bonus.label ?? ''} ${bonus.amount}`;
   if (bonus.stat === 'buff' && bonus.source?.startsWith('innatecd:')) return `CD escudo ${bonus.label ?? ''} ${Math.round(bonus.amount * 100) / 100} t.`;
   if (bonus.stat === 'buff' && bonus.source?.startsWith('pending:')) return `Cura pendiente ${bonus.label ?? ''} ${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'fixedAttacks') return `Número de ataques fijo ${bonus.amount}${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ' · hasta desactivar'}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('emp:')) return `AA potenciado: CD ${bonus.turns ?? '—'} t.`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('trap:')) return `${bonus.label ?? 'Trampa'} ${typeof bonus.turns === 'number' ? `· ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'buff') return `${bonus.label ?? 'Habilidad'} activa${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'cooldown') {
     const turns = typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : '';

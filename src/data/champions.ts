@@ -18,6 +18,12 @@ export type AbilityDamage = {
   apSource?: DamageScalingSource;
   /** Multiplicador opcional que el DM puede activar (p. ej. objetivo único). */
   damageBonus?: number;
+  /** Escalado de vida por rango (0.06 = 6 %). */
+  hp?: number[];
+  /** Ausente = vida máxima. */
+  hpSource?: 'max' | 'current' | 'missing' | 'bonus';
+  /** Ausente = vida del objetivo. self = vida del portador (p. ej. % de vida bonus propia). */
+  hpFrom?: 'target' | 'self';
 };
 
 export type AbilityEffect = {
@@ -72,6 +78,12 @@ export type AbilityVariant = {
   effectDuration?: number;
   effectTarget?: 'self' | 'enemy';
   effectName?: string;
+  /** Área de esta fase (si falta, hereda la de la base). */
+  area?: AreaPattern;
+  /** Umbral de cargas (de otra habilidad) para poder elegir esta fase. consume false = no las gasta. */
+  requiresStacks?: { from: string; count: number; consume?: boolean };
+  /** Daño extra por cargas permanentes en esta fase (sustituye el de la base si está). */
+  stackDamage?: { from: string; pct: number[]; type?: 'physical' | 'magic' | 'true'; byLevel?: boolean };
 };
 
 export type Champion = {
