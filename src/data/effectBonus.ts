@@ -172,7 +172,7 @@ export type EffectRule = {
    * (valor × cargas) solo suma con el ítem equipado. Ignora «Dura». Campeones / NPCs: bonus sin turnos en ese combate.
    */
   permanent?: boolean;
-  /** Solo si el portador es cuerpo a cuerpo (rango total 1) o a distancia (cualquier otro rango); vacío = siempre. */
+  /** Solo si el portador es cuerpo a cuerpo (rango total ≤ 1, el 0 cuenta) o a distancia (rango > 1); vacío = siempre. */
   onlyIf?: RuleRangeCondition;
   /** Solo contra campeones, una vez por turno… (texto libre). */
   note?: string;
@@ -203,14 +203,14 @@ export function appliesToOptions(kind: string): { id: RuleAppliesTo; label: stri
 export const ruleAppliesTo = (rule: Pick<EffectRule, 'appliesTo' | 'kind'>): RuleAppliesTo =>
   rule.appliesTo ?? (TARGET_DEFAULT_KINDS.includes(rule.kind) ? 'target' : 'self');
 
-/** Condición «Solo si» de una regla: cuerpo a cuerpo = rango de ataque total 1; a distancia = cualquier otro (también 0). */
+/** Condición «Solo si» de una regla: cuerpo a cuerpo = rango de ataque total ≤ 1 (el 0 cuenta); a distancia = rango > 1. */
 export type RuleRangeCondition = 'melee' | 'ranged';
 export const RULE_RANGE_CONDITIONS = [
   { id: 'melee', label: 'Solo cuerpo a cuerpo', short: 'cuerpo a cuerpo' },
   { id: 'ranged', label: 'Solo a distancia', short: 'a distancia' },
 ] as const;
-/** Rango de ataque total 1 = cuerpo a cuerpo; cualquier otro valor (0 incluido) = a distancia. */
-export const isMeleeRange = (range: number): boolean => range === 1;
+/** Rango de ataque total ≤ 1 (0 o 1) = cuerpo a cuerpo; rango > 1 = a distancia. */
+export const isMeleeRange = (range: number): boolean => range <= 1;
 export const rangeTypeLabel = (melee: boolean): string => (melee ? 'Cuerpo a cuerpo' : 'A distancia');
 /** ¿La regla vale para un portador cuerpo a cuerpo / a distancia? */
 export const ruleMatchesRange = (rule: Pick<EffectRule, 'onlyIf'>, melee: boolean): boolean =>

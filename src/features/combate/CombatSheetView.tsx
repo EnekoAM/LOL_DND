@@ -109,9 +109,9 @@ const utilityOf = (stats: Partial<Record<'healShieldPct' | 'tenacityPct' | 'slow
   { label: 'ROBO V.', title: 'Robo de vida %', value: stats.lifeStealPct, pct: true },
   { label: 'OMNIS.', title: 'Omnisucción %', value: stats.omnivampPct, pct: true },
   (() => {
-    // Rango total 1 = cuerpo a cuerpo; cualquier otro (0 incluido) = a distancia (condición «Solo si» de los efectos).
+    // Rango total ≤ 1 (0 o 1) = cuerpo a cuerpo; rango > 1 = a distancia (condición «Solo si» de los efectos).
     const { melee } = rangeInfo({ range: stats.range });
-    return { label: 'RANGO', title: `Rango de ataque · ${melee ? 'Cuerpo a cuerpo (rango 1)' : 'A distancia (rango distinto de 1)'}`, value: stats.range, badge: { text: melee ? 'Cuerpo a cuerpo' : 'A distancia', melee } };
+    return { label: 'RANGO', title: `Rango de ataque · ${melee ? 'Cuerpo a cuerpo (rango ≤ 1)' : 'A distancia (rango > 1)'}`, value: stats.range, badge: { text: melee ? 'Cuerpo a cuerpo' : 'A distancia', melee } };
   })(),
   { label: 'REG. VIDA', title: 'Regeneración de vida', value: stats.healthRegen },
   { label: 'REG. MANÁ', title: 'Regeneración de maná', value: stats.manaRegen },

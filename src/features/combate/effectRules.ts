@@ -48,7 +48,7 @@ export function activeNamedEffects(items: Item[], data: NamedEffectData): Active
 type Stats = Record<string, unknown> & { bonus?: Record<string, unknown> };
 /**
  * missingHp: vida faltante del portador (máx. − actual) en combate; fuera de combate no hay.
- * melee: cuerpo a cuerpo (rango de ataque total 1); si no, a distancia (condición «Solo si» de las reglas).
+ * melee: cuerpo a cuerpo (rango de ataque total ≤ 1, el 0 cuenta); si no, a distancia (condición «Solo si» de las reglas).
  */
 export type EffectContext = { stats: Stats; level: number; missingHp?: number; melee?: boolean };
 type TargetInfo = { current: number; max: number; armor: number; mr: number; spe?: number; level?: number };
@@ -165,13 +165,13 @@ export function participantContext(participant: CombatParticipant, level: number
   return context;
 }
 
-/** Rango de ataque total de unas stats y si cuenta como cuerpo a cuerpo (rango 1) o a distancia (cualquier otro, 0 incluido). */
+/** Rango de ataque total de unas stats y si cuenta como cuerpo a cuerpo (rango ≤ 1) o a distancia (rango > 1). */
 export function rangeInfo(stats: Record<string, unknown>): { range: number; melee: boolean } {
   const range = statNumber(stats.range);
   return { range, melee: isMeleeRange(range) };
 }
 
-/** ¿Cuerpo a cuerpo? Rango de ataque total (base + ítems + bonus del combate) === 1. */
+/** ¿Cuerpo a cuerpo? Rango de ataque total (base + ítems + bonus del combate) ≤ 1 (el 0 cuenta). */
 export function isMelee(participant: CombatParticipant, level: number, extra?: StatLine[]): boolean {
   return participantContext(participant, level, extra)?.ctx.melee === true;
 }
@@ -1035,7 +1035,7 @@ export async function fireEffectRules(options: {
   };
 
   let extraHits = 0;
-  const rangeText = `${bearerName} es ${rangeTypeLabel(ctx.melee === true).toLowerCase()} (rango ${fmt(statNumber(ctx.stats.range))}; cuerpo a cuerpo = rango 1)`;
+  const rangeText = `${bearerName} es ${rangeTypeLabel(ctx.melee === true).toLowerCase()} (rango ${fmt(statNumber(ctx.stats.range))}; cuerpo a cuerpo = rango ≤ 1)`;
   for (const effect of effects) {
     // CD por tramo de nivel del portador (Cadencia marcial: 3/3/2/2): se resuelve aquí.
     const config = withLevelCooldown(effect.config, ctx.level);

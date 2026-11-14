@@ -112,7 +112,7 @@ export const NAMED_EFFECTS: NamedEffect[] = [
   { id: "going-sledding", name: "Going Sledding", en: "Going Sledding", exclusive: false, shared: false, kind: "passive" },
   { id: "goliath", name: "Goliath", en: "Goliath", exclusive: false, shared: false, kind: "passive" },
   { id: "hackshorn", name: "Hackshorn", en: "Hackshorn", exclusive: false, shared: false, kind: "passive" },
-  { id: "hatefog", name: "Hatefog", en: "Hatefog", exclusive: false, shared: false, kind: "passive" },
+  { id: "hatefog", name: "Hatefog", en: "Hatefog", exclusive: false, shared: false, kind: "passive", description: "Al infligir daño con la R, crea un área durante 2 turnos que inflige 4d4+2 + 7% de AP por turno y reduce la MR en 1 (un área por objetivo)." },
   { id: "haunt", name: "Haunt", en: "Haunt", exclusive: false, shared: false, kind: "passive" },
   { id: "heretical-cleave", name: "Heretical Cleave", en: "Heretical Cleave", exclusive: false, shared: false, kind: "active" },
   { id: "hexcharged", name: "Hexcharged", en: "Hexcharged", exclusive: false, shared: false, kind: "passive" },

@@ -127,6 +127,16 @@ export type AbilityMechanics = {
   recast?: { times: number; turns: number };
   /** Al usarla, estado en sí mismo (bloquea la habilidad mientras dura). Puede modificar una stat mientras dura. */
   selfStatus?: AbilitySelfStatus;
+  /** Varios estados propios (p. ej. invisibilidad 1 t. y velocidad 2 t.). */
+  selfStatuses?: AbilitySelfStatus[];
+  /** Muestra el interruptor «Estoy en el área / rastro». */
+  selfInArea?: boolean;
+  /** Texto del interruptor (por defecto «Estoy en el área»). */
+  selfInAreaLabel?: string;
+  /** Al usarla, deja un rastro/área durante estos turnos (botón para aplicar los estados de requiresSelfInArea). */
+  trailTurns?: number;
+  /** Segundo efecto aplicado solo a un subconjunto (p. ej. silencio en el centro; se elige a mano). */
+  centerEffect?: { name: string; duration: number; values?: number[] };
   /** No gasta la acción de habilidad del turno (escudo de la pasiva). */
   noAction?: boolean;
   /** Escudo automático: al empezar el combate; al romperse, CD (turnos por rango/tramo, decimales) y vuelve solo. Plumas feéricas. */
@@ -209,6 +219,12 @@ export type AbilityStacks = {
   onChampionCc?: boolean;
   /** Al llegar al máximo, gasta las cargas (p. ej. tras la cura). Por defecto false. */
   consumeAtMax?: boolean;
+  /** Un contador de cargas por objetivo (no uno global). */
+  countersPerTarget?: boolean;
+  /** Al llegar al máximo, aplica el daño de esta habilidad al objetivo que completó las cargas. Ausente = sí si hay daño y consumeAtMax. */
+  onMaxDamage?: boolean;
+  /** Bonus de stat propio al llegar al máximo. */
+  onMaxSelfStats?: { stat: string; values: number[]; turns: number }[];
   /** Turnos de intervalo tras la cura al máximo; durante ellos aún se pueden ganar cargas. */
   onMaxCooldown?: number;
   /** Cura al llegar al máximo (p. ej. % de vida máx. propia y de aliados). */
@@ -361,6 +377,10 @@ export type AbilityMark = {
   damageOnDetonate?: boolean;
   /** Si la detona una habilidad, restaura maná (plano por rango y/o el coste de esa habilidad). */
   refundMana?: { flat?: number[]; refundCost?: boolean };
+  /** Las habilidades de daño distintas de esta aplican la marca a los alcanzados. */
+  applyOnAbilityHit?: boolean;
+  /** Nombre del estado de la marca. Ausente = el de la habilidad. */
+  name?: string;
 };
 
 /** Buff temporal al usar cualquier habilidad (p. ej. +vel. ataque). */
@@ -379,8 +399,14 @@ export type AbilityToggle = {
 /** El siguiente AA cura y entra en CD. */
 export type AbilityEmpoweredAa = {
   /** % de vida que cura, por tramo 1/6/11/16 o por rango. */
-  healHpPct: number[];
+  healHpPct?: number[];
   hpSource?: 'max' | 'current' | 'missing' | 'bonus';
+  /** Cura plana / ratios (además o en lugar de healHpPct). */
+  heal?: AbilityStackHeal;
+  /** Si es true, la cura se aplica por cada enemigo alcanzado (el principal es automático; el resto, a mano o al elegir zona). */
+  healPerTarget?: boolean;
+  /** Al dispararse, aplica el daño de esta habilidad al objetivo del AA. */
+  applyAbilityDamage?: boolean;
   /** Turnos de CD tras dispararse, por tramo o rango. */
   cooldown: number[];
   byLevel?: boolean;
@@ -388,6 +414,8 @@ export type AbilityEmpoweredAa = {
   reduceOnAbility?: number;
   /** Turnos que quita al CD al recibir una habilidad (botón o automático si se puede). */
   reduceOnStruck?: number;
+  /** Turnos que quita al CD al acertar un AA (mientras no esté listo). */
+  reduceOnAuto?: number;
   /** No se dispara si la vida actual supera este % de la máxima. */
   skipAboveHpPct?: number;
 };
@@ -402,6 +430,8 @@ export type AbilityTrap = {
   eruptEffect?: { name: string; values?: number[]; duration?: number[] }[];
   eruptEffectName?: string;
   eruptEffectDuration?: number;
+  /** Si es false, «Detonar» no vuelve a tirar el daño de la habilidad (solo efectos). Por defecto true. */
+  damageOnDetonate?: boolean;
 };
 
 /** Si la vida actual del objetivo es ≤ hpPct % de su máxima, este uso lo ejecuta (daño = lo que le queda). */
@@ -453,6 +483,8 @@ export type AbilitySelfStatus = {
   cancelable?: boolean;
   /** Si es false, no bloquea volver a usar la habilidad mientras dura el estado. Por defecto true. */
   blocksAbility?: boolean;
+  /** Solo se aplica si el interruptor «Estoy en el área / rastro» está marcado. */
+  requiresSelfInArea?: boolean;
   /** Sustituye turns según las acumulaciones permanentes de `from` (0 = hasta que acabe / muerte). */
   durationByStacks?: { from: string; thresholds: { stacks: number; turns: number }[] };
 };
@@ -561,6 +593,12 @@ export type AbilityArmedAa = {
   explodeFromLevel?: number;
   /** Duración del AA armado al armarlo al usarla (turnos). Ausente = no caduca solo. */
   turns?: number;
+  /** Número de AA armados. Ausente = 1. */
+  charges?: number;
+  /** Si es false, el estado/efecto se aplica en cada carga. Por defecto, solo en la última si hay más de una. */
+  effectOnLastCharge?: boolean;
+  /** Si es true, al usarla también aplica el daño de la habilidad (además de armar). Por defecto no. */
+  applyDamageOnUse?: boolean;
 };
 /** % de reducción de CA y RM del objetivo al acertar. */
 export type AbilityResistShred = {
@@ -621,7 +659,11 @@ export function rankValue(list: number[] | undefined, rank: number): number | un
 
 const cut = (text: string) => text.slice(0, 80);
 export const abilityChargesSource = (name: string): string => cut(`charges:${abilityStackKey(name)}`);
-export const abilityStacksSource = (name: string): string => cut(`stacks:${abilityStackKey(name)}`);
+export const abilityStacksSource = (name: string, targetId?: string): string =>
+  cut(targetId ? `stacks:${abilityStackKey(name)}@${targetId}` : `stacks:${abilityStackKey(name)}`);
+export const abilityTrailSource = (name: string): string => cut(`trail:${abilityStackKey(name)}`);
+export const abilityTrail = (bonuses: CombatBonus[] | undefined, name: string): CombatBonus | undefined =>
+  (bonuses ?? []).find(bonus => bonus.source === abilityTrailSource(name) && (bonus.turns == null || bonus.turns > 0));
 export const abilityBuffSource = (name: string): string => cut(`buff:${abilityStackKey(name)}`);
 /** Bonus de stats del buff (velocidad de ataque): una stat normal, para que sume al total. */
 export const abilityBuffStatSource = (name: string): string => cut(`buffstat:${abilityStackKey(name)}`);
@@ -700,11 +742,13 @@ export function armAbilityArmedAa(
   newId: () => string,
   label?: string,
   turns?: number,
+  charges?: number,
 ): CombatBonus[] {
   const source = abilityArmedAaSource(name);
+  const amount = Math.max(1, Math.floor(charges ?? 1));
   return [
     ...bonuses.filter(bonus => bonus.source !== source),
-    { id: newId(), stat: 'armed', amount: 1, ...(turns && turns > 0 ? { turns } : {}), source, label: (label ?? name).slice(0, 80) },
+    { id: newId(), stat: 'armed', amount, ...(turns && turns > 0 ? { turns } : {}), source, label: (label ?? name).slice(0, 80) },
   ];
 }
 
@@ -849,8 +893,8 @@ export function abilityCharges(ability: Ability, bonuses: CombatBonus[] | undefi
   return { left: marker ? marker.amount : charges.start, max: charges.max, recharge: marker?.recharge, marker };
 }
 
-export function abilityStacks(bonuses: CombatBonus[] | undefined, name: string): { count: number; turns?: number; marker?: CombatBonus } {
-  const marker = (bonuses ?? []).find(bonus => bonus.source === abilityStacksSource(name));
+export function abilityStacks(bonuses: CombatBonus[] | undefined, name: string, targetId?: string): { count: number; turns?: number; marker?: CombatBonus } {
+  const marker = (bonuses ?? []).find(bonus => bonus.source === abilityStacksSource(name, targetId));
   return { count: marker ? marker.amount : 0, turns: marker?.turns, marker };
 }
 
@@ -1105,12 +1149,13 @@ export function spendAbilityCharge(bonuses: CombatBonus[], ability: Ability, nam
 }
 
 /** +1 carga (refresca la duración). null si no gana (buff activo o sin configurar). */
-export function gainAbilityStack(bonuses: CombatBonus[], ability: Ability, name: string, newId: () => string): { bonuses: CombatBonus[]; before: number; after: number; max: number; turns: number } | null {
+export function gainAbilityStack(bonuses: CombatBonus[], ability: Ability, name: string, newId: () => string, targetId?: string): { bonuses: CombatBonus[]; before: number; after: number; max: number; turns: number } | null {
   const config = ability.mechanics?.stacks;
   if (!config) return null;
   // Mientras el buff de la propia habilidad está activo no se acumulan cargas.
   if (abilityBuff(bonuses, name)) return null;
-  const current = abilityStacks(bonuses, name);
+  const key = config.countersPerTarget ? targetId : undefined;
+  const current = abilityStacks(bonuses, name, key);
   const after = Math.min(config.max, current.count + 1);
   const marker: CombatBonus = {
     id: current.marker?.id ?? newId(),
@@ -1118,8 +1163,8 @@ export function gainAbilityStack(bonuses: CombatBonus[], ability: Ability, name:
     amount: after,
     maxStacks: config.max,
     turns: config.turns,
-    source: abilityStacksSource(name),
-    label: cut(name),
+    source: abilityStacksSource(name, key),
+    label: cut(key ? `${name}` : name),
   };
   return { bonuses: [...bonuses.filter(bonus => bonus.source !== marker.source), marker], before: current.count, after, max: config.max, turns: config.turns };
 }
@@ -1280,10 +1325,14 @@ export function mechanicsSummary(mechanics: AbilityMechanics | undefined): strin
   if (mechanics.empoweredAa) {
     const emp = mechanics.empoweredAa;
     const bits = [
-      `cura ${list(emp.healHpPct)}% de vida ${emp.hpSource && emp.hpSource !== 'max' ? emp.hpSource : 'máx.'}`,
+      emp.healHpPct?.length ? `cura ${list(emp.healHpPct)}% de vida ${emp.hpSource && emp.hpSource !== 'max' ? emp.hpSource : 'máx.'}` : '',
+      emp.heal ? 'cura (plana / ratios)' : '',
+      emp.healPerTarget ? 'cura por enemigo alcanzado' : '',
+      emp.applyAbilityDamage ? 'aplica el daño de la habilidad al AA' : '',
       `CD ${list(emp.cooldown) || '—'} t.${emp.byLevel ? ' (tramos 1/6/11/16)' : ''}`,
       emp.reduceOnAbility ? `usar una habilidad: −${emp.reduceOnAbility} t.` : '',
       emp.reduceOnStruck ? `recibir una habilidad: −${emp.reduceOnStruck} t.` : '',
+      emp.reduceOnAuto ? `AA: −${emp.reduceOnAuto} t.` : '',
       emp.skipAboveHpPct ? `no si va por encima del ${emp.skipAboveHpPct}%` : '',
     ].filter(Boolean);
     out.push(`AA potenciado: ${bits.join('; ')}`);
@@ -1291,7 +1340,7 @@ export function mechanicsSummary(mechanics: AbilityMechanics | undefined): strin
   if (mechanics.trap) {
     const trap = mechanics.trap;
     const erupt = trap.eruptEffectName ?? trap.eruptEffect?.[0]?.name;
-    out.push(`Efecto retrasado «${trap.name ?? 'Trampa'}»: ${trap.turns} t.${trap.applyOnPlace ? ' (primer golpe al colocar' : ' (se detona después'}${erupt ? `; Detonar: ${erupt}` : ''})`);
+    out.push(`Efecto retrasado «${trap.name ?? 'Trampa'}»: ${trap.turns} t.${trap.applyOnPlace ? ' (primer golpe al colocar' : ' (se detona después'}${erupt ? `; Detonar: ${erupt}` : ''}${trap.damageOnDetonate === false ? '; Detonar sin daño' : ''})`);
   }
   if (mechanics.reduceEmpoweredAaOnHit) out.push(`Al acertar a un campeón, quita ${mechanics.reduceEmpoweredAaOnHit} t. al CD del AA potenciado`);
   if (mechanics.costHpMaxPct) out.push(`También cuesta ${mechanics.costHpMaxPct}% de la vida máx.${mechanics.costHpMinCurrentPct ? ` (no se puede usar por debajo del ${mechanics.costHpMinCurrentPct}%)` : ''}`);
@@ -1310,8 +1359,20 @@ export function mechanicsSummary(mechanics: AbilityMechanics | undefined): strin
     const mark = mechanics.mark;
     const when = mark.detonateOn === 'aa' ? 'el siguiente AA' : mark.detonateOn === 'ability' ? 'la siguiente habilidad' : 'el siguiente AA o habilidad';
     const refund = mark.refundMana ? `; si la detona una habilidad, restaura maná${mark.refundMana.flat?.length ? ` ${list(mark.refundMana.flat)}` : ''}${mark.refundMana.refundCost ? ' + el coste de esa habilidad' : ''}` : '';
-    out.push(`Marca ${mark.turns} t.: ${when} contra el marcado la detona${mark.damageOnDetonate !== false ? ' (el daño va al detonar)' : ''}${refund}`);
+    out.push(`Marca ${mark.turns} t.: ${when} contra el marcado la detona${mark.damageOnDetonate !== false ? ' (el daño va al detonar)' : ''}${mark.applyOnAbilityHit ? '; las habilidades de daño la aplican' : ''}${refund}`);
   }
+  if (mechanics.selfStatuses?.length) {
+    for (const status of mechanics.selfStatuses) {
+      out.push(`Al usarla: «${status.name}» en sí mismo ${status.turns} t.${status.requiresSelfInArea ? ' (si está en el área / rastro)' : ''}`);
+    }
+  }
+  if (mechanics.selfInArea || mechanics.selfStatuses?.some(status => status.requiresSelfInArea) || mechanics.selfStatus?.requiresSelfInArea) {
+    out.push(mechanics.selfInAreaLabel ?? 'Estoy en el área');
+  }
+  if (mechanics.trailTurns) out.push(`Deja un rastro ${mechanics.trailTurns} t. (botón para aplicar los estados del rastro)`);
+  if (mechanics.centerEffect) out.push(`En el centro (a mano): «${mechanics.centerEffect.name}» ${mechanics.centerEffect.duration} t.`);
+  if (mechanics.armedAa?.charges && mechanics.armedAa.charges > 1) out.push(`Arma ${mechanics.armedAa.charges} AA${mechanics.armedAa.turns ? ` ${mechanics.armedAa.turns} t.` : ''}${mechanics.armedAa.effectOnLastCharge !== false && mechanics.armedAa.effectName ? `; «${mechanics.armedAa.effectName}» en el último` : ''}`);
+  if (mechanics.stacks?.countersPerTarget) out.push('Cargas por objetivo');
   if (mechanics.strikes) out.push(`Golpes: ${list(mechanics.strikes.count)}${mechanics.strikes.perBonusAtkSpe ? ` +1 por cada ${mechanics.strikes.perBonusAtkSpe}% vel. ataque bonus` : ''}`);
   if (mechanics.stacks?.onChampionTakedown) out.push('Gana 1 carga al derribar a un campeón');
   if (mechanics.cleanse) out.push('Al usarla, limpia los controles de masas del portador');

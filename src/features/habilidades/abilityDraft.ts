@@ -1,5 +1,5 @@
 import { isAreaEmpty, normalizeArea, type AreaPattern } from '../../data/areaPattern';
-import type { Ability, AbilityDamage, AbilityEffect, AbilityVariant, DamageScalingSource } from '../../data/champions';
+import type { Ability, AbilityDamage, AbilityEffect, AbilityVariant, DamageScalingSource, HpAdScalingSource } from '../../data/champions';
 import { type AbilityCastPool, type AbilityLevelThreshold, type AbilityMechanics, type CastPoolStat } from '../../data/abilityMechanics';
 import type { EffectBonusConfig } from '../../data/effectBonus';
 import { isResourceId } from '../../data/resources';
@@ -24,6 +24,9 @@ export type AbilityDraft = {
   hp: string;
   hpSource: 'max' | 'current' | 'missing' | 'bonus' | '';
   hpFrom: 'target' | 'self' | '';
+  hpAdPer100: string;
+  hpAdPer: string;
+  hpAdSource: HpAdScalingSource | '';
   effects: EffectDraft[];
   hasStacks: boolean;
   /** Aplica efectos de impacto (reglas «Al aplicar efecto de impacto»). */
@@ -522,7 +525,7 @@ export function mechanicsToDraft(mechanics: AbilityMechanics | undefined): Mecha
     takedownHealAp: list(mechanics?.takedownHeal?.ratios?.find(ratio => ratio.stat === 'ap')?.values),
     takedownHealChampion: mechanics?.takedownHeal?.champion === true,
     armedAa: !!mechanics?.armedAa,
-    armedAaType: mechanics?.armedAa?.type ?? 'magic',
+    armedAaType: mechanics?.armedAa?.type ?? '',
     armedAaAd: list(mechanics?.armedAa?.ad),
     armedAaAp: list(mechanics?.armedAa?.ap),
     armedAaAdSource: mechanics?.armedAa?.adSource === 'total' ? 'total' : (mechanics?.armedAa?.adSource === 'bonus' ? 'bonus' : 'bonus'),
@@ -937,11 +940,14 @@ export function draftToMechanics(draft: MechanicsDraft): AbilityMechanics | unde
     }
   }
   if (draft.empoweredAa) {
-    const healHpPct = mechList(draft.empoweredHeal, 'AA potenciado: % de cura', false);
+    const healHpPct = draft.empoweredHeal.trim() ? mechList(draft.empoweredHeal, 'AA potenciado: % de cura', false) : undefined;
     const cooldown = mechList(draft.empoweredCd, 'AA potenciado: CD (turnos)', true);
-    if (!healHpPct) throw new Error('AA potenciado: pon el % de cura por tramo o rango');
     if (!cooldown) throw new Error('AA potenciado: pon el CD por tramo o rango');
-    out.empoweredAa = { healHpPct, cooldown };
+    if (!healHpPct && !draft.sourceMechanics?.empoweredAa?.heal && !draft.sourceMechanics?.empoweredAa?.applyAbilityDamage) {
+      throw new Error('AA potenciado: pon el % de cura por tramo o rango');
+    }
+    out.empoweredAa = { cooldown };
+    if (healHpPct) out.empoweredAa.healHpPct = healHpPct;
     if (draft.empoweredByLevel) out.empoweredAa.byLevel = true;
     if (draft.empoweredReduceAbility.trim()) out.empoweredAa.reduceOnAbility = mechInt(draft.empoweredReduceAbility, 'AA potenciado: menos CD al usar una habilidad', 1, 99);
     if (draft.empoweredReduceStruck.trim()) out.empoweredAa.reduceOnStruck = mechInt(draft.empoweredReduceStruck, 'AA potenciado: menos CD al recibir una habilidad', 1, 99);
@@ -957,7 +963,8 @@ export function draftToMechanics(draft: MechanicsDraft): AbilityMechanics | unde
       out.trap.eruptEffectName = eruptName;
       const eruptDuration = draft.trapEruptDuration.trim() ? mechInt(draft.trapEruptDuration, 'Efecto al detonar: duración', 1, 99) : 1;
       out.trap.eruptEffectDuration = eruptDuration;
-      out.trap.eruptEffect = [{ name: eruptName, duration: [eruptDuration] }];
+      const srcErupt = draft.sourceMechanics?.trap?.eruptEffect;
+      out.trap.eruptEffect = srcErupt?.length ? srcErupt : [{ name: eruptName, duration: [eruptDuration] }];
     } else if (draft.trapEruptDuration.trim()) {
       out.trap.eruptEffectDuration = mechInt(draft.trapEruptDuration, 'Efecto al detonar: duración', 1, 99);
     }
@@ -1034,7 +1041,8 @@ export function draftToMechanics(draft: MechanicsDraft): AbilityMechanics | unde
     out.takedownHeal = heal;
   }
   if (draft.armedAa) {
-    const aa: NonNullable<AbilityMechanics['armedAa']> = { type: draft.armedAaType.trim() || 'magic' };
+    const aa: NonNullable<AbilityMechanics['armedAa']> = {};
+    if (draft.armedAaType.trim()) aa.type = draft.armedAaType.trim();
     if (draft.armedAaAd.trim()) {
       const ad = parseRatioList(draft.armedAaAd);
       if (ad) aa.ad = ad;
@@ -1063,7 +1071,11 @@ export function draftToMechanics(draft: MechanicsDraft): AbilityMechanics | unde
     if (draft.armedAaEffectName.trim()) {
       aa.effectName = draft.armedAaEffectName.trim();
       if (draft.armedAaEffectDuration.trim()) aa.effectDuration = mechInt(draft.armedAaEffectDuration, 'AA armado: duración', 1, 99);
-      aa.effect = [{ name: aa.effectName, ...(draft.armedAaEffectValues.trim() ? { values: draft.armedAaEffectValues.split(/[,\s]+/).filter(Boolean).map(item => Number(String(item).replace(',', '.'))) } : {}), ...(aa.effectDuration ? { duration: [aa.effectDuration] } : {}) }];
+      const srcEffect = draft.sourceMechanics?.armedAa?.effect;
+      if (srcEffect?.length) aa.effect = srcEffect;
+      else if (draft.armedAaEffectValues.trim()) {
+        aa.effect = [{ name: aa.effectName, values: draft.armedAaEffectValues.split(/[,\s]+/).filter(Boolean).map(item => Number(String(item).replace(',', '.'))), ...(aa.effectDuration ? { duration: [aa.effectDuration] } : {}) }];
+      }
     }
     out.armedAa = aa;
   }
@@ -1227,7 +1239,11 @@ export function draftToMechanics(draft: MechanicsDraft): AbilityMechanics | unde
       preserveUnknownKeys(out.recastOnTakedown, src.recastOnTakedown, ['times', 'turns', 'max', 'champion']);
     }
     if (out.returnStrike && src.returnStrike) preserveUnknownKeys(out.returnStrike, src.returnStrike, ['type']);
-    if (out.resistShred && src.resistShred) preserveUnknownKeys(out.resistShred, src.resistShred, ['pct', 'turns', 'armor', 'mr']);
+    if (out.resistShred && src.resistShred) {
+      preserveUnknownKeys(out.resistShred, src.resistShred, ['pct', 'turns', 'armor', 'mr']);
+      if (src.resistShred.armor === false) out.resistShred.armor = false;
+      if (src.resistShred.mr === false) out.resistShred.mr = false;
+    }
     if (out.castPool && src.castPool) {
       preserveUnknownKeys(out.castPool, src.castPool, [
         'kind', 'stat', 'values', 'turns', 'hitStat', 'hitPct', 'target', 'requiresHit', 'alliesToo',
@@ -1274,6 +1290,9 @@ export type VariantDraft = {
   hp: string;
   hpSource: 'max' | 'current' | 'missing' | 'bonus' | '';
   hpFrom: 'target' | 'self' | '';
+  hpAdPer100: string;
+  hpAdPer: string;
+  hpAdSource: HpAdScalingSource | '';
   effects: EffectDraft[];
   cooldown: string;
   effectDuration: string;
@@ -1324,6 +1343,9 @@ export function abilityToDraft(ability: Ability | null): AbilityDraft {
     hp: formatRatioList(ability?.damage?.hp),
     hpSource: ability?.damage?.hpSource ?? '',
     hpFrom: ability?.damage?.hpFrom ?? '',
+    hpAdPer100: typeof ability?.damage?.hpAdPer100 === 'number' ? String(ability.damage.hpAdPer100) : '',
+    hpAdPer: typeof ability?.damage?.hpAdPer === 'number' ? String(ability.damage.hpAdPer) : '',
+    hpAdSource: ability?.damage?.hpAdSource ?? '',
     hasStacks: ability?.hasStacks === true,
     appliesOnHit: ability?.appliesOnHit === true,
     maxStacks: typeof ability?.maxStacks === 'number' ? String(ability.maxStacks) : '',
@@ -1364,6 +1386,9 @@ export function variantToDraft(variant: AbilityVariant): VariantDraft {
     hp: formatRatioList(variant.damage?.hp),
     hpSource: variant.damage?.hpSource ?? '',
     hpFrom: variant.damage?.hpFrom ?? '',
+    hpAdPer100: typeof variant.damage?.hpAdPer100 === 'number' ? String(variant.damage.hpAdPer100) : '',
+    hpAdPer: typeof variant.damage?.hpAdPer === 'number' ? String(variant.damage.hpAdPer) : '',
+    hpAdSource: variant.damage?.hpAdSource ?? '',
     effects: effectsToDraft(variant.effect),
     cooldown: typeof variant.cooldown === 'number' ? String(variant.cooldown) : '',
     effectDuration: typeof variant.effectDuration === 'number' ? String(variant.effectDuration) : '',
@@ -1395,7 +1420,10 @@ export const blankVariant = (): VariantDraft => ({
   damageBonus: '',
   hp: '',
   hpSource: '',
-    hpFrom: '',
+  hpFrom: '',
+  hpAdPer100: '',
+  hpAdPer: '',
+  hpAdSource: '',
   effects: [],
   cooldown: '',
   effectDuration: '',
@@ -1419,6 +1447,42 @@ function parseTurns(text: string, field: string): number | undefined {
   const n = Number(trimmed);
   if (!Number.isInteger(n) || n < 1 || n > 999) throw new Error(`${field} tiene que ser un entero entre 1 y 999`);
   return n;
+}
+
+
+function parsePositiveNumber(text: string, field: string, minExclusiveZero: boolean, max: number): number | undefined {
+  const trimmed = text.trim().replace(',', '.');
+  if (!trimmed) return undefined;
+  const value = Number(trimmed);
+  if (!Number.isFinite(value) || value < 0 || (minExclusiveZero && value <= 0) || value > max) {
+    throw new Error(field);
+  }
+  return value;
+}
+
+function applyHpAdFromDraft(
+  damage: AbilityDamage,
+  draft: { hpAdPer100: string; hpAdPer: string; hpAdSource: HpAdScalingSource | '' },
+  label?: string,
+): void {
+  const prefix = label ? `${label}: ` : '';
+  const per100 = parsePositiveNumber(
+    draft.hpAdPer100,
+    `${prefix}el % de vida por tramo de AD tiene que ser un número entre 0 y 100`,
+    false,
+    100,
+  );
+  if (per100 !== undefined) damage.hpAdPer100 = per100;
+  const per = parsePositiveNumber(
+    draft.hpAdPer,
+    `${prefix}el AD por tramo tiene que ser un número mayor que 0 y como máximo 1000`,
+    true,
+    1000,
+  );
+  if (per !== undefined) damage.hpAdPer = per;
+  if (draft.hpAdSource === 'total' || draft.hpAdSource === 'bonus' || draft.hpAdSource === 'itemDiceAvg') {
+    damage.hpAdSource = draft.hpAdSource;
+  }
 }
 
 function draftToVariant(draft: VariantDraft, index: number): AbilityVariant {
@@ -1453,6 +1517,7 @@ function draftToVariant(draft: VariantDraft, index: number): AbilityVariant {
     damage.hpSource = draft.hpSource;
   }
   if (draft.hpFrom === 'self' || draft.hpFrom === 'target') damage.hpFrom = draft.hpFrom;
+  applyHpAdFromDraft(damage, draft, label);
   if (Object.keys(damage).length) variant.damage = damage;
   const effect = parseEffects(draft.effects);
   if (effect) variant.effect = effect;
@@ -1561,6 +1626,7 @@ export function draftToAbility(draft: AbilityDraft): Ability {
     damage.hpSource = draft.hpSource;
   }
   if (draft.hpFrom === 'self' || draft.hpFrom === 'target') damage.hpFrom = draft.hpFrom;
+  applyHpAdFromDraft(damage, draft);
   if (Object.keys(damage).length) ability.damage = damage;
 
   const effect = parseEffects(draft.effects);

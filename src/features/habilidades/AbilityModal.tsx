@@ -6,7 +6,7 @@ import MechanicsFields from './MechanicsFields';
 import { mechanicsSummary } from '../../data/abilityMechanics';
 import PhaseTabs from './PhaseTabs';
 import { MAX_ABILITY_VARIANTS, abilityPhase, hasVariants, isChoosePhases, phaseLabels } from '../../data/abilityVariants';
-import { saveChampionAbility, type Ability, type AbilityKey, type Champion } from '../../data/champions';
+import { saveChampionAbility, type Ability, type AbilityKey, type Champion, type HpAdScalingSource } from '../../data/champions';
 import { RESOURCE_IDS, RESOURCE_LABELS, resolveAbilityResource, type ResourceId } from '../../data/resources';
 import ResourceChip from '../../components/ResourceChip';
 import { AreaGridEditor, AreaGridView } from '../../components/AreaGrid';
@@ -386,6 +386,27 @@ const AbilityForm = ({
             <option value="self">Portador</option>
           </select>
         </label>
+        <label className="hab-field">
+          <span>% de esa vida por tramo de AD</span>
+          <input value={draft.hpAdPer100} placeholder="3,5" disabled={saving} onChange={e => onChange({ hpAdPer100: e.target.value })} />
+        </label>
+        <label className="hab-field">
+          <span>AD por tramo</span>
+          <input value={draft.hpAdPer} placeholder="100" disabled={saving} onChange={e => onChange({ hpAdPer: e.target.value })} />
+        </label>
+        <label className="hab-field">
+          <span>Origen del AD del tramo</span>
+          <select className="hab-select" value={draft.hpAdSource} disabled={saving} onChange={e => {
+            const value = e.target.value;
+            const next: HpAdScalingSource | '' = value === 'total' || value === 'bonus' || value === 'itemDiceAvg' ? value : '';
+            onChange({ hpAdSource: next });
+          }}>
+            <option value="">AD bonus (equipo + extras)</option>
+            <option value="bonus">AD bonus (equipo + extras)</option>
+            <option value="total">AD total (base + equipo + extras)</option>
+            <option value="itemDiceAvg">Media de dados de AD de ítems</option>
+          </select>
+        </label>
       </div>
 
       <div className="hab-modal__block">
@@ -548,6 +569,27 @@ const VariantFields = ({ base, variant, index, championResource, saving, onChang
             <option value="">Objetivo</option>
             <option value="target">Objetivo</option>
             <option value="self">Portador</option>
+          </select>
+        </label>
+        <label className="hab-field">
+          <span>% de esa vida por tramo de AD</span>
+          <input value={variant.hpAdPer100} placeholder={inherit(base.hpAdPer100)} disabled={saving} onChange={e => onChange({ hpAdPer100: e.target.value })} />
+        </label>
+        <label className="hab-field">
+          <span>AD por tramo</span>
+          <input value={variant.hpAdPer} placeholder={inherit(base.hpAdPer) || '100'} disabled={saving} onChange={e => onChange({ hpAdPer: e.target.value })} />
+        </label>
+        <label className="hab-field">
+          <span>Origen del AD del tramo</span>
+          <select className="hab-select" value={variant.hpAdSource} disabled={saving} onChange={e => {
+            const value = e.target.value;
+            const next: HpAdScalingSource | '' = value === 'total' || value === 'bonus' || value === 'itemDiceAvg' ? value : '';
+            onChange({ hpAdSource: next });
+          }}>
+            <option value="">Igual que la Fase 1</option>
+            <option value="bonus">AD bonus (equipo + extras)</option>
+            <option value="total">AD total (base + equipo + extras)</option>
+            <option value="itemDiceAvg">Media de dados de AD de ítems</option>
           </select>
         </label>
       </div>

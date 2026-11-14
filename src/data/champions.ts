@@ -8,6 +8,9 @@ export type AbilityKey = 'P' | 'Q' | 'W' | 'E' | 'R';
 
 export type DamageScalingSource = 'total' | 'bonus';
 
+/** Origen del AD que escala el % de vida extra. itemDiceAvg = suma de la media de dados de AD de ítems. */
+export type HpAdScalingSource = 'total' | 'bonus' | 'itemDiceAvg';
+
 export type AbilityDamage = {
   type?: string;
   /** Escalado de AP por nivel de habilidad (0.3 = 30%). */
@@ -24,6 +27,12 @@ export type AbilityDamage = {
   hpSource?: 'max' | 'current' | 'missing' | 'bonus';
   /** Ausente = vida del objetivo. self = vida del portador (p. ej. % de vida bonus propia). */
   hpFrom?: 'target' | 'self';
+  /** % adicional de esa vida por cada hpAdPer de AD (3.5 = 3,5 %). */
+  hpAdPer100?: number;
+  /** AD por el que se reparte hpAdPer100. Ausente = 100. */
+  hpAdPer?: number;
+  /** Ausente = AD bonus. itemDiceAvg = media de dados de AD del equipo. */
+  hpAdSource?: HpAdScalingSource;
 };
 
 export type AbilityEffect = {

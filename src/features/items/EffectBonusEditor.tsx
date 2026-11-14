@@ -181,7 +181,7 @@ const RuleEditor = ({ rule, onChange, onRemove }: { rule: EffectRule; onChange: 
           </label>
         )}
         {rule.kind === 'extra-on-hit' && <NumberField label="Veces" step="1" value={rule.count} onChange={count => set({ count })} />}
-        <label className="bonus-editor__field" title="Cuerpo a cuerpo = rango de ataque total 1; a distancia = cualquier otro rango (también 0)">
+        <label className="bonus-editor__field" title="Cuerpo a cuerpo = rango de ataque total ≤ 1 (el 0 cuenta); a distancia = rango > 1">
           <span>Solo si</span>
           <select value={rule.onlyIf ?? 'always'} onChange={e => set({ onlyIf: e.target.value === 'melee' || e.target.value === 'ranged' ? e.target.value : undefined })}>
             <option value="always">Siempre</option>
