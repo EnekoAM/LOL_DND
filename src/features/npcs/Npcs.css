@@ -16,15 +16,54 @@
 }
 
 .npc-ability__preview {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 13px;
-  line-height: 1.35;
-  color: rgba(212, 196, 154, 0.75);
+  line-height: 1.45;
+  color: rgba(212, 196, 154, 0.88);
+  white-space: pre-wrap;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 10;
+  line-clamp: 10;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Cartas de habilidad de la ficha: más anchas, estilo oro, pasivas a plena visibilidad. */
+.npc-sheet__abilities {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+.npc-sheet__abilities .calc-card--ability {
+  border-left-color: rgba(201, 168, 76, 0.45);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.npc-sheet__abilities .calc-card--ability:hover {
+  border-left-color: var(--gold, #c9a84c);
+}
+
+.npc-sheet__abilities .calc-card__key {
+  color: rgba(201, 168, 76, 0.85);
+}
+
+.npc-sheet__abilities .calc-card__damage {
+  color: rgba(232, 201, 106, 0.92);
+  font-style: normal;
+  margin-bottom: 8px;
+}
+
+.npc-sheet__abilities .calc-card__extra {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.npc-sheet__abilities .npc-ability-add {
+  min-height: 220px;
 }
 
 .npc-ability__desc,

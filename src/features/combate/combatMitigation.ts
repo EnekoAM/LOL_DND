@@ -47,13 +47,14 @@ export function critNeeded(faces: number): number | 'auto' | null {
  * Líneas de consola de la tirada (los dados los tiran los players; la app solo guía):
  * «Impacto: d20 ≥ N contra CA efectiva X», «20 natural = crítico automático», «Crítico: segundo d20 ≥ M (prob. crít. V caras)».
  */
-export function hitRollLines(kind: 'physical' | 'magic', targetName: string, targetResist: number, attacker: Record<string, unknown>): string[] {
+export function hitRollLines(kind: 'physical' | 'magic', targetName: string, targetResist: number, attacker: Record<string, unknown>, hitBonus = 0): string[] {
   const physical = kind === 'physical';
   const pct = num(physical ? attacker.armorPenPct : attacker.magicPenPct);
   const flat = num(physical ? attacker.lethality : attacker.magicPen);
   const effective = effectiveResist(targetResist, pct, flat);
-  const needed = hitNeeded(effective);
-  const lines = [`Impacto (${targetName}): d20 ≥ ${needed} contra ${physical ? 'CA' : 'RM'} efectiva ${fmt(round(effective))}${needed > 20 ? (physical ? ' (solo con un 20 natural)' : ' (no llega con un d20)') : ''}`];
+  const needed = hitNeeded(Math.max(0, effective - (hitBonus || 0)));
+  const bonusText = hitBonus ? ` (${hitBonus > 0 ? '+' : ''}${fmt(round(hitBonus))} al impacto)` : '';
+  const lines = [`Impacto (${targetName}): d20 ≥ ${needed} contra ${physical ? 'CA' : 'RM'} efectiva ${fmt(round(effective))}${bonusText}${needed > 20 ? (physical ? ' (solo con un 20 natural)' : ' (no llega con un d20)') : ''}`];
   if (physical) {
     lines.push('20 natural = crítico automático');
     const critFaces = num(attacker.critChance);

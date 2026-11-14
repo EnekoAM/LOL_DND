@@ -1,6 +1,7 @@
 import { isAreaEmpty, normalizeArea, type AreaPattern } from '../../data/areaPattern';
 import type { Ability, AbilityDamage, AbilityEffect, AbilityVariant, DamageScalingSource, HpAdScalingSource } from '../../data/champions';
 import { type AbilityCastPool, type AbilityLevelThreshold, type AbilityMechanics, type CastPoolStat } from '../../data/abilityMechanics';
+import type { CombatTraits } from '../../data/combatTraits';
 import type { EffectBonusConfig } from '../../data/effectBonus';
 import { isResourceId } from '../../data/resources';
 
@@ -144,6 +145,8 @@ export type MechanicsDraft = {
   critDoublesPassive: boolean;
   /** Reglas de efecto (el mismo configurador que los ítems); null = ninguna. */
   effectRules: EffectBonusConfig | null;
+  /** Rasgos genéricos de combate (captura, auras, Duro…). */
+  combatTraits: CombatTraits | null;
   learned: boolean;
   learnedStat: string;
   /** Valor por rango: «20, 22, 25, 27, 30». */
@@ -416,6 +419,7 @@ export function mechanicsToDraft(mechanics: AbilityMechanics | undefined): Mecha
     critNoDamage: mechanics?.critNoDamage === true,
     critDoublesPassive: mechanics?.critDoublesPassive === true,
     effectRules: mechanics?.effectRules ?? null,
+  combatTraits: mechanics?.combatTraits ?? null,
     learned: !!mechanics?.learnedStats?.length,
     learnedStat: mechanics?.learnedStats?.[0]?.stat ?? 'atkSpePct',
     learnedValues: list(mechanics?.learnedStats?.[0]?.values),
@@ -665,7 +669,7 @@ const KNOWN_MECHANICS_KEYS = [
   'reduceEmpoweredAaOnHit', 'costHpMaxPct', 'costHpMinCurrentPct', 'isolated', 'evolutions',
   'evolve', 'recastOnTakedown', 'armedAa', 'armArmedAa', 'resistShred', 'aaOnHit', 'costStacks',
   'deathBurst', 'damageLowHp', 'onAbilityUse', 'resetSectorShots', 'strikes', 'mark', 'cleanse',
-  'returnStrike', 'takedownHeal', 'levelThresholds', 'protect',
+  'returnStrike', 'takedownHeal', 'levelThresholds', 'protect', 'combatTraits',
 ] as const;
 
 function preserveUnknownKeys<T extends object>(next: T, prev: object | undefined, known: readonly string[]): T {
@@ -822,6 +826,7 @@ export function draftToMechanics(draft: MechanicsDraft): AbilityMechanics | unde
   if (draft.critNoDamage) out.critNoDamage = true;
   if (draft.critDoublesPassive) out.critDoublesPassive = true;
   if (draft.effectRules?.rules.length) out.effectRules = draft.effectRules;
+  if (draft.combatTraits && Object.keys(draft.combatTraits).length) out.combatTraits = draft.combatTraits;
   if (draft.learned) {
     const values = mechList(draft.learnedValues, 'Por tenerla aprendida: valor por rango', false);
     if (!values) throw new Error('Por tenerla aprendida: pon el valor por rango');

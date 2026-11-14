@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSyncExternalStore } from 'react';
 import { BASIC_MAX_RANK, MILESTONE_RANKS, ULT_MAX_RANK, milestoneRank, normalizeRanks, type RankedSlot } from '../../data/abilityRanks';
 import { ABILITY_KEYS, findAbilityRef, type Ability, type Champion } from '../../data/champions';
-import { participantChampion } from '../../data/combatSheet';
+import { participantChampion, participantNpc, type CombatNpcSheet } from '../../data/combatSheet';
+import { applyAaMark, applyEnemyUltimateTraits, auraToggleBonus, cannotAct, cannotUseAbilities, captureEffect, captureSource, extraManaFromAuras, formidableAaBonus, forcedTargetId, guardEffect, isCaptured, isEnemyOf, isInAura, isPackTacticsOn, packTacticsHitBonus, packTacticsToggleBonus, tauntEffect } from '../../data/combatTraits';
 import type { CombatBonus, CombatEffect, CombatParticipant, SourcedEffectInput } from '../../data/combat';
 import { firePassives, newBonusId, type PassiveResult } from './combatBonuses';
-import { abilityBreakSource, abilityBuff, abilityBuffSource, abilityBuffStatSource, abilityCharges, abilityRecast, abilityRecastSource, abilitySelfStatSource, abilityShieldSource, abilityStacks, abilityStacksSource, abilityFixedAttacks, abilityFixedAttacksSource, abilityToggle, abilityToggleSource, abilityTrap, abilityTrapSource, empoweredAaState, startEmpoweredAaCooldown, reduceEmpoweredAaCooldown, gainAbilityStack, isCrowdControlEffectName, abilityStackHealCdSource, isBelowExecuteThreshold, passiveStatus, rankValue, reduceChargeRecharge, sectorShotState, selfStatusStatBonus, spendAbilityCharge, spendSectorShot, stacksRequirement, type AbilityExecute, readPermanentAbilityStacks, stackDamageAmount, permanentAbilityStackSource, sameAbilityName, applyEvolve, isAbilityEvolved, abilityEvolveSource, abilityArmedAaMarker, abilityArmedAaSource, armAbilityArmedAa, abilityTrail, abilityTrailSource, grantAbilityRecast, evolutionSlotCount, evolvedAbilityCount, stackedAbilityCost, gainAbilityCostStack, abilityCostStackCount, abilityDeathBurst, abilityDeathBurstSource, abilityResistShredSource, abilityAaOnHitActive, aaOnHitDamage, damageLowHpMultiplier, abilityStrikeCount, resolveSelfStatusTurns, sectorShotTrigger, sectorGapSource, resetSectorShots, incomingDamageReductionPct, abilitySelfDrSource, abilityAaOnHitStackSource, abilityStackMaxStatusSource, hasPermanentMaxStacks, mergedAaWave } from '../../data/abilityMechanics';
+import { abilityBreakSource, abilityBuff, abilityBuffSource, abilityBuffStatSource, abilityCharges, abilityRecast, abilityRecastSource, abilitySelfStatSource, abilityShieldSource, abilityStacks, abilityStacksSource, abilityFixedAttacks, abilityFixedAttacksSource, abilityToggle, abilityToggleSource, abilityTrap, abilityTrapSource, empoweredAaState, startEmpoweredAaCooldown, reduceEmpoweredAaCooldown, gainAbilityStack, isCrowdControlEffectName, abilityStackHealCdSource, isBelowExecuteThreshold, passiveStatus, rankValue, reduceChargeRecharge, sectorShotState, selfStatusStatBonus, spendAbilityCharge, grantAbilityCharge, spendSectorShot, stacksRequirement, type AbilityExecute, readPermanentAbilityStacks, stackDamageAmount, permanentAbilityStackSource, sameAbilityName, applyEvolve, isAbilityEvolved, abilityEvolveSource, abilityArmedAaMarker, abilityArmedAaSource, armAbilityArmedAa, abilityTrail, abilityTrailSource, grantAbilityRecast, evolutionSlotCount, evolvedAbilityCount, stackedAbilityCost, gainAbilityCostStack, abilityCostStackCount, abilityDeathBurst, abilityDeathBurstSource, abilityResistShredSource, abilityAaOnHitActive, aaOnHitDamage, damageLowHpMultiplier, abilityStrikeCount, resolveSelfStatusTurns, sectorShotTrigger, sectorGapSource, resetSectorShots, incomingDamageReductionPct, abilitySelfDrSource, abilityAaOnHitStackSource, abilityStackMaxStatusSource, hasPermanentMaxStacks, mergedAaWave } from '../../data/abilityMechanics';
 import { participantHp, participantHpPools } from './combatHp';
 import { innateCdSource, innateShieldSource, pendingHealSource, reduceInnateCooldowns } from './innateShield';
 import { CHIP_ICON, fmt, rollText, type ResultChip } from './combatResult';
@@ -30,7 +31,7 @@ import SpellCard, { SPELL_TYPE_LABEL, type SpellTone } from '../players/SpellCar
 import StackCounter from '../players/StackCounter';
 import CooldownControl from '../players/CooldownControl';
 import { BarInputs } from './CombatBar';
-import { actionLimits, actionsLeft, basicAttackPct, leftoverAfterAttackLimitChange, withFixedAttacks } from './combatActions';
+import { actionLimitsFor, actionsLeft, basicAttackPct, leftoverAfterAttackLimitChange, withFixedAttacks } from './combatActions';
 import { consumeSpellShields, hasCinderbloom, healFromManaSpent, participantItems } from './itemCombatHooks';
 import { damageTargets, targetHpLine, type TargetDamageFn } from './combatHp';
 import CombatTargetPicker from './CombatTargetPicker';
@@ -195,6 +196,36 @@ function championRows(champion: Champion, rankOverride: Record<string, number>):
   return rows;
 }
 
+function npcRows(npc: CombatNpcSheet): AbilityRow[] {
+  const rows: AbilityRow[] = [];
+  for (const ability of npc.abilities ?? []) {
+    if (!ability?.name) continue;
+    const label = (ability.label ?? '').trim().toLowerCase();
+    const folded = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (folded.includes('ataque basico') || folded === 'aa' || folded === 'ataque') continue;
+    const isPassive = folded === 'pasiva' || folded === 'p' || ability.mechanics?.noAction === true;
+    const seal = isPassive ? 'P' : (folded === 'q' || folded === 'w' || folded === 'e' || folded === 'r' ? folded.toUpperCase() : 'N');
+    rows.push({
+      key: ability.id || ability.name,
+      seal,
+      name: ability.name,
+      ability: {
+        name: ability.name,
+        description: ability.description,
+        cost: ability.cost,
+        damage: ability.damage,
+        effect: ability.effect,
+        mechanics: ability.mechanics,
+      } as Ability,
+      image: npc.image,
+      rank: 1,
+      maxRank: 1,
+      rankAdjustable: false,
+    });
+  }
+  return rows;
+}
+
 /** Rombos fijos por hueco, como en la ficha de Players: Q/W/E 5, R 3, pasiva por hitos de nivel (4). */
 function slotPipCount(seal: string): number {
   if (seal === 'R') return ULT_MAX_RANK;
@@ -311,13 +342,15 @@ export default function CombatAbilityUseSection({
     : null;
   // Su propia copia de la ficha (o la base si el combate es anterior a las copias).
   const champion = participantChampion(participant);
+  const npc = participantNpc(participant);
   const savedRanks = participant.sheet?.abilityRanks;
 
   const rows = useMemo(() => {
     if (player) return playerRows(player, level);
     if (champion) return championRows(champion, { ...savedRanks, ...rankOverride });
+    if (npc) return npcRows(npc);
     return [];
-  }, [player, champion, level, rankOverride, savedRanks]);
+  }, [player, champion, npc, level, rankOverride, savedRanks]);
 
   /** Rango de la copia: el admin lo guarda en el combate; el resto solo lo ve en pantalla. */
   const setRank = (key: string, rank: number) => {
@@ -329,7 +362,6 @@ export default function CombatAbilityUseSection({
   };
 
   const [actionsBusy, setActionsBusy] = useState(false);
-  if (participant.kind !== 'player' && participant.kind !== 'champion') return null;
 
   const ownerResource = player
     ? rows.find(row => row.ownerResource)?.ownerResource
@@ -337,14 +369,14 @@ export default function CombatAbilityUseSection({
   // Economía de acciones del turno (Attacks / Abilities de la ficha).
   const extras = { attacks: participant.actionsExtra?.attacks ?? 0, abilities: participant.actionsExtra?.abilities ?? 0 };
   const limitsFrom = (bonuses: typeof participant.bonuses) => {
-    const base = withFixedAttacks(actionLimits(player, champion, level, extra), bonuses);
+    const base = withFixedAttacks(actionLimitsFor(player, champion, npc, level, extra, { bonuses }), bonuses);
     return {
       attacks: base.attacks === undefined ? undefined : base.attacks + extras.attacks,
       abilities: base.abilities === undefined ? undefined : base.abilities + extras.abilities,
     };
   };
   // Máximo del turno = el de la ficha (o el número de ataques fijo del estado/interruptor) + los extra concedidos.
-  const baseLimits = withFixedAttacks(actionLimits(player, champion, level, extra), participant.bonuses);
+  const baseLimits = withFixedAttacks(actionLimitsFor(player, champion, npc, level, extra, { bonuses: participant.bonuses }), participant.bonuses);
   const limits = limitsFrom(participant.bonuses);
   const left = actionsLeft(participant, limits);
   const hpForDamage = (damage: Ability['damage'] | undefined, target?: CombatParticipant | null) => {
@@ -359,7 +391,9 @@ export default function CombatAbilityUseSection({
     ? { ...playerTotalLine(player.sheet, player.equipamiento, level, extra), bonus: playerBonusLine(player.sheet, player.equipamiento, extra) }
     : champion
       ? championDamageContext(champion, extra).stats
-      : null;
+      : npc
+        ? { ad: 0, ap: 0, ...(npc.stats ?? {}) }
+        : null;
   const adForHpDamage = (damage: Ability['damage'] | undefined, stats: { ad?: unknown; bonus?: { ad?: unknown } } | null | undefined) => {
     if (!damage?.hpAdPer100) return 0;
     if (damage.hpAdSource === 'itemDiceAvg') return expectedItemAdFromDice(participantItems(participant));
@@ -502,12 +536,13 @@ export default function CombatAbilityUseSection({
     // «A todos los enemigos» sin daño: no hay que elegir objetivos.
     if (enemy && ability.mechanics?.allEnemies && !damaging) return runAbility(row, chosenPhase, []);
     const allyCast = ability.mechanics?.castPool?.target === 'ally';
+    const traitPick = !!(ability.mechanics?.combatTraits?.capture || ability.mechanics?.combatTraits?.challenge || ability.mechanics?.combatTraits?.guardAlly);
     // Efecto retrasado sin golpe inicial: se coloca sin elegir objetivos; el daño va en Detonar.
     if (ability.mechanics?.trap && !ability.mechanics.trap.applyOnPlace) return runAbility(row, chosenPhase, []);
     if (ability.mechanics?.armedAa && ability.mechanics.armedAa.applyDamageOnUse !== true && !allyCast && !(typeof ability.effectDuration === 'number' && ability.effectDuration > 0 && ability.effectTarget === 'enemy')) {
       return runAbility(row, chosenPhase, []);
     }
-    if (enemy || damaging || allyCast) {
+    if (enemy || damaging || allyCast || traitPick) {
       setAttackPick(null);
       setPickingKey(row.key);
       setPickingAbility(ability);
@@ -633,7 +668,10 @@ export default function CombatAbilityUseSection({
     const selfOn = !!(participant.effects.find(effect => effect.source === `ability:${row.name}`) || (participant.bonuses ?? []).some(bonus => bonus.source === abilitySelfStatSource(row.name) || (bonus.source ?? '').startsWith(`${abilitySelfStatSource(row.name)}:`) || bonus.source === abilitySelfDrSource(row.name)));
     const recastOn = !!abilityRecast(participant.bonuses, row.name);
     const noAction = row.ability.mechanics?.noAction === true;
-    const cost = spend.kind === 'none' || recastOn || toggleOn ? 0 : stackedAbilityCost(parseAbilityCost(ability.cost, row.rank) ?? 0, participant.bonuses, row.name, ability.mechanics?.costStacks);
+    const skipCost = spend.kind === 'none' || recastOn || toggleOn;
+    const baseCost = skipCost ? 0 : stackedAbilityCost(parseAbilityCost(ability.cost, row.rank) ?? 0, participant.bonuses, row.name, ability.mechanics?.costStacks);
+    const auraMana = skipCost ? 0 : extraManaFromAuras(participant, participants, baseCost);
+    const cost = skipCost ? 0 : baseCost + auraMana;
     const spendPool = spend.kind === 'none' ? null : currentFor(spend.kind === 'hp' ? 'hp' : 'pool');
     if (toggleOn || (mechanics?.selfStatus?.cancelable && selfOn)) {
       await endAbilityToggle(row);
@@ -816,7 +854,7 @@ export default function CombatAbilityUseSection({
           }
         : undefined;
 
-      if (cost > 0 && spendPool) abilityLog.push(`Coste: ${cost} ${spend.label} (${spendPool.current} → ${Math.max(0, spendPool.current - cost)})`);
+      if (cost > 0 && spendPool) abilityLog.push(`Coste: ${cost} ${spend.label} (${spendPool.current} → ${Math.max(0, spendPool.current - cost)})${auraMana ? ` · +${auraMana} de aura de petricita` : ''}`);
       if (hpCost > 0 && hpPool) {
         const nextHp = Math.max(1, hpPool.current - hpCost);
         abilityLog.push(`Coste de vida: ${hpCost} PV (${hpPct}% vida máx.; ${hpPool.current} → ${nextHp}; no baja de 1)`);
@@ -828,6 +866,22 @@ export default function CombatAbilityUseSection({
         const slow = usedAbility.mechanics.isolated.slowPct;
         usedAbility = { ...usedAbility, effect: usedAbility.effect.map((entry, index) => index === 0 ? { ...entry, values: [slow] } : entry) };
         abilityLog.push(`Objetivo aislado: ralentización ${slow}%`);
+      }
+      const traitFx = usedAbility.mechanics?.combatTraits;
+      if (traitFx?.capture && targetIds.length && onApplySourcedEffect) {
+        const cap = captureEffect(participant.id, traitFx.capture.name ?? 'Detenido');
+        await onApplySourcedEffect(targetIds, { source: captureSource(participant.id), name: cap.name, duration: cap.duration });
+        abilityLog.push(`«${cap.name}»: ${targetIds.map(id => participants.find(entry => entry.id === id)?.name ?? id).join(', ')} sale del combate hasta que muera ${participant.name}`);
+      }
+      if (traitFx?.challenge && targetIds.length && onApplySourcedEffect) {
+        const fx = tauntEffect(participant.id, traitFx.challenge.statusName ?? 'Desafío', traitFx.challenge.turns ?? 99);
+        await onApplySourcedEffect(targetIds, { source: fx.source ?? captureSource(participant.id), name: fx.name, duration: fx.duration });
+        abilityLog.push(`«${fx.name}» a ${targetIds.map(id => participants.find(entry => entry.id === id)?.name ?? id).join(', ')}: debe apuntar a ${participant.name}`);
+      }
+      if (traitFx?.guardAlly && targetIds.length && onApplySourcedEffect) {
+        const fx = guardEffect(participant.id, traitFx.guardAlly.name ?? 'Custodia', traitFx.guardAlly.turns);
+        await onApplySourcedEffect(targetIds, { source: fx.source ?? `guard:${participant.id}`, name: fx.name, duration: fx.duration });
+        abilityLog.push(`«${fx.name}»: el daño a ${targetIds.map(id => participants.find(entry => entry.id === id)?.name ?? id).join(', ')} se redirige a ${participant.name} ${fx.duration} t.`);
       }
       const allEnemies = enemyEffect && usedAbility.mechanics?.allEnemies === true;
       const effectIds = allEnemies ? enemiesOf().map(entry => entry.id) : targetIds;
@@ -1399,7 +1453,40 @@ export default function CombatAbilityUseSection({
         undos.push(...result.undos);
         return result;
       };
-      if (opts?.ultimate) await fire('on-ultimate-use', targetIds, false);
+      if (opts?.ultimate) {
+        await fire('on-ultimate-use', targetIds, false);
+        const foes = participants.filter(entry => !entry.defeated && isEnemyOf(entry, participant) && !isCaptured(entry));
+        for (const foe of foes) {
+          const owned = participantAbilities(foe, level);
+          const reaction = applyEnemyUltimateTraits({
+            reactorId: foe.id,
+            reactorName: foe.name,
+            bonuses: foe.bonuses,
+            abilities: owned.map(entry => ({ name: entry.name, mechanics: entry.ability.mechanics })),
+            casterId: participant.id,
+            newId: newBonusId,
+          });
+          let nextBonuses = reaction.bonuses;
+          for (const grant of reaction.grantedCharges) {
+            const row = owned.find(entry => entry.name === grant.abilityName);
+            if (!row) continue;
+            const granted = grantAbilityCharge(nextBonuses, row.ability, grant.abilityName, grant.amount, newBonusId);
+            if (granted) nextBonuses = granted.bonuses;
+          }
+          if (onTargetBonuses && nextBonuses !== (foe.bonuses ?? [])) {
+            const undo = await onTargetBonuses(foe.id, () => nextBonuses);
+            if (undo) undos.push(undo);
+          }
+          for (const effect of reaction.newEffects) {
+            if (!onApplySourcedEffect || !effect.source) continue;
+            await onApplySourcedEffect([participant.id], { source: effect.source, name: effect.name, duration: effect.duration, ...(effect.value ? { value: effect.value } : {}) });
+          }
+          notes.push(...reaction.log);
+          log.push(...reaction.log);
+        }
+        const enemyRules = await fire('on-enemy-ultimate-use', [participant.id], false);
+        void enemyRules;
+      }
       if (trigger === 'on-ability') {
         const armed = armAfterAbility(effects, bonuses, base.ctx);
         if (armed.names.length) {
@@ -1570,7 +1657,7 @@ export default function CombatAbilityUseSection({
     // Sus stats con los bonus del combate (debuffs como Carve incluidos): las reducciones van antes que la penetración.
     const ctx = participantContext(target, level);
     const resist = statNum(kind === 'physical' ? ctx?.ctx.stats.ac : ctx?.ctx.stats.mr);
-    return [effectiveResistLine(kind, target.name, resist, stats), ...hitRollLines(kind, target.name, resist, stats)];
+    return [effectiveResistLine(kind, target.name, resist, stats), ...hitRollLines(kind, target.name, resist, stats, packTacticsHitBonus(participant.bonuses))];
   }).flat().filter(Boolean);
   const hpLine = (damage: { name: string; before: number; after: number; absorbed: number } | null): string[] =>
     damage && damage.name && !damage.name.includes(', ')
@@ -2482,11 +2569,13 @@ export default function CombatAbilityUseSection({
     const pct = basicAttackPct(type, attackLevel, stored);
     setAttackPick(null);
     if (!isAdmin || saving || busy) return;
+    const actBlock = cannotAct(participant);
+    if (actBlock) { setError(actBlock); return; }
     const stats = player
       ? playerTotalLine(player.sheet, player.equipamiento, level, extra)
-      : champion ? championDamageContext(champion, extra).stats : null;
+      : champion ? championDamageContext(champion, extra).stats : npc ? { ad: 0, ap: 0, ...(npc.stats ?? {}) } : null;
     if (!stats) return;
-    const source = type === 'AP' ? stats.ap : stats.ad;
+    const source = (type === 'AP' ? stats.ap : stats.ad) ?? 0;
     const critOn = crit;
     setCrit(false);
     const critChips: ResultChip[] = [];
@@ -2501,6 +2590,12 @@ export default function CombatAbilityUseSection({
       total = pct === 1 ? roll.total : Math.ceil(roll.total * pct);
       const aaMods = basicAttackMods(type, total, stats as Record<string, unknown>);
       total = aaMods.total;
+      const form = formidableAaBonus(rows.map(row => row.ability), participantHp(participant)?.max ?? 0);
+      if (form) {
+        total += form.amount;
+        mainLog.push(`Formidable: +${form.amount} (${String(form.hpPct).replace('.', ',')}% vida máx.)`);
+        critChips.push({ kind: 'buff', text: `Formidable +${form.amount}`, title: `${String(form.hpPct).replace('.', ',')}% de la vida máxima` });
+      }
       // Crítico (solo AA físico): daño × DAÑO CRÍT, hacia arriba. Las reglas de impacto no critean.
       const critical = critOn && type === 'AD';
       aaCritical = critical;
@@ -2537,7 +2632,27 @@ export default function CombatAbilityUseSection({
       if (actions) await combatPatchRef.current({ actionsLeft: actions });
       const aaType = type === 'AP' ? 'magic' as const : 'physical' as const;
       const aaCrit = (type === 'AD' && critOn) || (type === 'AP' && critOn && hasCinderbloom(participant, effectData));
-      const damage = target && onTargetDamage ? await onTargetDamage(target.id, total, { fromAutoAttack: true, damageType: aaType, critical: aaCrit, attackerId: participant.id }) : null;
+      let aaMarkBonus = 0;
+      let aaMarkType: 'physical' | 'magic' | 'true' | undefined;
+      if (target && onTargetBonuses) {
+        for (const row of rows) {
+          const mark = row.ability.mechanics?.combatTraits?.aaMark;
+          if (!mark || row.rank < 1) continue;
+          const marked = applyAaMark({ targetBonuses: target.bonuses, attackerId: participant.id, attackerName: participant.name, abilityName: row.name, mark, newId: newBonusId });
+          const undoMarks = await onTargetBonuses(target.id, () => marked.bonuses);
+          if (undoMarks) { /* kept by later undos if present */ }
+          mainLog.push(...marked.log);
+          if (marked.status && onApplySourcedEffect) {
+            await onApplySourcedEffect([target.id], { source: marked.status.source ?? `aamark:${participant.id}`, name: marked.status.name, duration: marked.status.duration });
+          }
+          if (marked.consumed && marked.bonusDamage) {
+            aaMarkBonus += marked.bonusDamage;
+            aaMarkType = marked.damageType;
+          }
+        }
+      }
+      const damage = target && onTargetDamage ? await onTargetDamage(target.id, total + aaMarkBonus, { fromAutoAttack: true, damageType: aaMarkType ?? aaType, critical: aaCrit, attackerId: participant.id }) : null;
+      if (aaMarkBonus) mainLog.push(`Marca consumida: +${aaMarkBonus} de daño`);
       if (target && !damage) headline = `${headline} → ${target.name}`;
       if (target) mainLog.push(...hpLine(damage), ...defenseLines([target.id], stats as Record<string, unknown>, type === 'AP' ? 'magic' : 'physical'));
       // Robo de vida (el AA) + omnivampirismo: cura el % del daño del AA.
@@ -2992,7 +3107,7 @@ export default function CombatAbilityUseSection({
     return changed || seed ? next : seed;
   };
 
-  const applyToTargets = async (row: AbilityRow, ability: Ability, amount: number, targetIds: string[], effectIds: string[] = targetIds, logOut?: string[], opts?: { skipEffects?: boolean; lifeSteal?: boolean; effectName?: string; effectDuration?: number; critical?: boolean; damageType?: 'physical' | 'magic' | 'true' }): Promise<string[]> => {
+  const applyToTargets = async (row: AbilityRow, ability: Ability, amount: number, targetIds: string[], effectIds: string[] = targetIds, logOut?: string[], opts?: { skipEffects?: boolean; lifeSteal?: boolean; effectName?: string; effectDuration?: number; critical?: boolean; damageType?: 'physical' | 'magic' | 'true'; fromAbility?: boolean }): Promise<string[]> => {
     if (targetIds.length === 0 && effectIds.length === 0) return [];
     let hits = targetIds;
     let fxIds = effectIds;
@@ -3031,7 +3146,7 @@ export default function CombatAbilityUseSection({
           const reducedPct = incomingDamageReductionPct(who?.bonuses);
           const dealt = reducedPct ? Math.max(0, Math.round(amount * (100 - reducedPct) / 100)) : amount;
           if (reducedPct && who) logOut?.push(`${who.name}: reducción de daño ${reducedPct}% → ${amount} = ${dealt}`);
-          const { damage, error: failed, kills: killed, hits: nHits } = await damageTargets(onTargetDamage, [id], dealt, { damageType: damageKind, critical: isCrit, attackerId: participant.id });
+          const { damage, error: failed, kills: killed, hits: nHits } = await damageTargets(onTargetDamage, [id], dealt, { damageType: damageKind, critical: isCrit, attackerId: participant.id, fromAbility: opts?.fromAbility !== false && !opts?.skipEffects });
           if (killed?.length) kills = [...new Set([...kills, ...killed])];
           if (failed) setError(failed);
           if (damage) {
@@ -3096,6 +3211,48 @@ export default function CombatAbilityUseSection({
   );
   const showsSelfInArea = (ability: Ability) => !!(ability.mechanics?.selfInArea || ability.mechanics?.castPool?.requiresSelfInArea || ability.mechanics?.selfStatus?.requiresSelfInArea || ability.mechanics?.selfStatuses?.some(status => status.requiresSelfInArea));
   const selfInAreaLabelFor = (ability?: Ability) => ability?.mechanics?.selfInAreaLabel ?? 'Estoy en el área';
+  const packToggles = rows.flatMap(owned => {
+    const pack = owned.ability.mechanics?.combatTraits?.packTactics;
+    if (!pack || owned.rank < 1) return [];
+    const on = isPackTacticsOn(participant.bonuses, participant.id, owned.name);
+    const label = pack.label ?? 'Aliado adyacente';
+    return [
+      <label key={`pack:${owned.name}`} className="combat-crit-toggle">
+        <input type="checkbox" checked={on} disabled={!isAdmin || saving || busy || !onBonusesSave} onChange={async () => {
+          if (!onBonusesSave) return;
+          const source = `pack:${participant.id}:${owned.name}`;
+          const prev = participant.bonuses ?? [];
+          const next = on
+            ? prev.filter(bonus => bonus.source !== source.slice(0, 80))
+            : [...prev.filter(bonus => bonus.source !== source.slice(0, 80)), packTacticsToggleBonus({ bearerId: participant.id, abilityName: owned.name, hitBonus: pack.hitBonus, label, newId: newBonusId() })];
+          await onBonusesSave(next);
+        }} />
+        {label} (+{pack.hitBonus} al impacto)
+      </label>,
+    ];
+  });
+  const auraToggles = participants.flatMap(bearer => {
+    if (bearer.defeated || bearer.id === participant.id) return [];
+    return participantAbilities(bearer, level).flatMap(owned => {
+      const aura = owned.ability.mechanics?.combatTraits?.aura;
+      if (!aura) return [];
+      const label = aura.label ?? `En el aura de ${bearer.name}`;
+      const on = isInAura(participant, bearer.id, owned.name);
+      return [(
+        <label key={`aura-${bearer.id}-${owned.name}`} className="combat-crit-toggle" title={`Radio ${aura.range} (distancia a mano). ${aura.abSpe ?? 0} habilidades/turno (mín. ${aura.minAbSpe ?? 1}).`}>
+          <input type="checkbox" checked={on} disabled={locked || !onBonusesSave} onChange={() => {
+            if (!onBonusesSave) return;
+            const current = participant.bonuses ?? [];
+            const bonus = auraToggleBonus({ bearerId: bearer.id, abilityName: owned.name, aura, newId: newBonusId() });
+            const next = on ? current.filter(entry => entry.source !== bonus.source) : [...current.filter(entry => entry.source !== bonus.source), bonus];
+            void onBonusesSave(next);
+            logCombat({ title: `${label} · ${participant.name}`, actor: participant.name, lines: [on ? `Sale del aura de ${bearer.name}` : `Entra en el aura de ${bearer.name} (radio ${aura.range})`] });
+          }} />
+          {label}
+        </label>
+      )];
+    });
+  });
   const isolatedToggle = (
     <label className="combat-crit-toggle" title="El objetivo no tiene aliados cerca (a juicio de mesa): daño y/o ralentización extra">
       <input type="checkbox" checked={isolated} disabled={saving || busy} onChange={e => setIsolated(e.target.checked)} />
@@ -3196,14 +3353,19 @@ export default function CombatAbilityUseSection({
   const trapTitle = (row: AbilityRow) => row.ability.mechanics?.trap?.damageOnDetonate === false
     ? `¿Sigue a alcance? Detonar aplica «${row.ability.mechanics.trap.eruptEffectName ?? row.ability.mechanics.trap.eruptEffect?.[0]?.name ?? 'el efecto'}»`
     : `Detonar ${row.ability.mechanics?.trap?.name ?? row.name}`;
-  const targets = participants.filter(entry => entry.id !== participant.id);
+  const targets = participants.filter(entry => entry.id !== participant.id && !isCaptured(entry));
+  const forcedAttackId = forcedTargetId(participant, participants);
+  const forcedNotice = forcedAttackId ? `Desafío / Provocación: debe apuntar a ${participants.find(entry => entry.id === forcedAttackId)?.name ?? 'el retador'}` : undefined;
+  const forcedIds = forcedAttackId ? [forcedAttackId] : undefined;
   const centerPicker = centerPicking && (
     <CombatTargetPicker
       key={`center-${centerPicking.row.key}`}
       title={`¿Quién está en el centro? «${centerPicking.row.ability.mechanics?.centerEffect?.name}» ${centerPicking.row.ability.mechanics?.centerEffect?.duration} t.`}
       targets={targets.filter(entry => centerPicking.candidates.includes(entry.id))}
       disabled={saving || busy}
-      onConfirm={ids => { const current = centerPicking; setCenterPicking(null); void applyCenterEffect(current.row, ids); }}
+      notice={forcedNotice}
+        forcedIds={forcedIds}
+        onConfirm={ids => { const current = centerPicking; setCenterPicking(null); void applyCenterEffect(current.row, ids); }}
       onSkip={() => setCenterPicking(null)}
       onCancel={() => setCenterPicking(null)}
     />
@@ -3216,11 +3378,13 @@ export default function CombatAbilityUseSection({
       initial={chainAsk.primary ? [chainAsk.primary] : []}
       maxTargets={chainAsk.max}
       confirmLabel={chainAsk.confirmLabel ?? 'Descargar'}
-      onConfirm={ids => chainAsk.resolve(ids)}
+      notice={forcedNotice}
+        forcedIds={forcedIds}
+        onConfirm={ids => chainAsk.resolve(ids)}
       onSkip={() => chainAsk.resolve(chainAsk.primary ? [chainAsk.primary] : [])}
     />
   );
-  const missing = participant.kind === 'player' ? !player : !champion;
+  const missing = participant.kind === 'player' ? !player : participant.kind === 'champion' ? !champion : participant.kind === 'npc' ? !npc : true;
 
   /** Estado del escudo automático: puesto (cuánto dio) o CD que queda. */
   const innateNote = (row: AbilityRow): string => {
@@ -3279,7 +3443,9 @@ export default function CombatAbilityUseSection({
       abilityAaOnHitActive(participant.bonuses, row.name, ability.mechanics?.aaOnHit, row.rank) && ability.mechanics?.aaOnHit ? (ability.mechanics.aaOnHit.always ? 'AA con daño extra' : 'AA con daño de vida') : '',
     ].filter(Boolean).join(' · ');
     let disabledReason: string | undefined;
+    const traitBlock = cannotUseAbilities(participant);
     if (participant.defeated) disabledReason = 'Está derrotado';
+    else if (traitBlock) disabledReason = traitBlock;
     else if (toggle || (mechanics?.selfStatus?.cancelable && (participant.effects.some(effect => effect.source === `ability:${row.name}`) || (participant.bonuses ?? []).some(bonus => bonus.source === abilitySelfStatSource(row.name) || bonus.source === abilitySelfDrSource(row.name))))) disabledReason = undefined;
     else if (mechanics?.innateShield) disabledReason = `Automática: ${innateNote(row)}`;
     else if (mechanics?.noAction && !mechanics.toggle && !mechanics.spellShield) disabledReason = 'Pasiva (se aplica sola)';
@@ -3318,7 +3484,9 @@ export default function CombatAbilityUseSection({
       ? basicAttackEntries(player.basicAttack).map(entry => ({ type: entry.type === 'AP' ? 'AP' as const : 'AD' as const, scaling: entry.scaling }))
       : champion
         ? [{ type: /mago|ap\b|-ap/i.test(`${champion.roleId ?? ''} ${champion.role ?? ''}`) ? 'AP' as const : 'AD' as const }]
-        : [];
+        : npc
+          ? [{ type: 'AD' as const }]
+          : [];
     const canEditActions = (isAdmin || canSeeHp) && !!onActionsSave;
     const counter = (kind: 'attacks' | 'abilities') => {
       const max = baseLimits[kind];
@@ -3354,10 +3522,11 @@ export default function CombatAbilityUseSection({
         </span>
       );
     };
-    const attackBlocked = participant.defeated ? 'Está derrotado' : left.attacks === 0 ? 'Sin ataques este turno' : undefined;
+    const attackBlocked = cannotAct(participant) ?? (left.attacks === 0 ? 'Sin ataques este turno' : undefined);
     return (
       <>
-        {(player || champion) && (
+        {(packToggles.length > 0 || auraToggles.length > 0) && <div className="combat-crit-toggles">{packToggles}{auraToggles}</div>}
+        {(player || champion || npc) && (
           <section className="sheet-panel">
             <div className="sheet-panel__title sheet-abilities__title">
               <span>Auto-ataques</span>
@@ -3528,7 +3697,9 @@ export default function CombatAbilityUseSection({
               title={`Objetivos de ${(pickingAbility ?? picking.ability).effectName || picking.name}`}
               targets={targets}
               disabled={saving || busy}
-              onConfirm={ids => void runAbility(picking, pickingPhase, ids)}
+              notice={forcedNotice}
+        forcedIds={forcedIds}
+        onConfirm={ids => void runAbility(picking, pickingPhase, ids)}
               onSkip={() => void runAbility(picking, pickingPhase, [])}
               onCancel={cancelPicking}
             />
@@ -3539,7 +3710,9 @@ export default function CombatAbilityUseSection({
               title={trapTitle(trapPicking)}
               targets={targets}
               disabled={saving || busy}
-              onConfirm={ids => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, ids); }}
+              notice={forcedNotice}
+        forcedIds={forcedIds}
+        onConfirm={ids => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, ids); }}
               onSkip={() => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, []); }}
               onCancel={() => setTrapPicking(null)}
             />
@@ -3757,7 +3930,9 @@ export default function CombatAbilityUseSection({
           title={`Objetivos de ${(pickingAbility ?? picking.ability).effectName || picking.name}`}
           targets={targets}
           disabled={saving || busy}
-          onConfirm={ids => void runAbility(picking, pickingPhase, ids)}
+          notice={forcedNotice}
+        forcedIds={forcedIds}
+        onConfirm={ids => void runAbility(picking, pickingPhase, ids)}
           onSkip={() => void runAbility(picking, pickingPhase, [])}
           onCancel={cancelPicking}
         />
@@ -3768,7 +3943,9 @@ export default function CombatAbilityUseSection({
           title={trapTitle(trapPicking)}
           targets={targets}
           disabled={saving || busy}
-          onConfirm={ids => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, ids); }}
+          notice={forcedNotice}
+        forcedIds={forcedIds}
+        onConfirm={ids => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, ids); }}
           onSkip={() => { const current = trapPicking; setTrapPicking(null); void detonateTrap(current, []); }}
           onCancel={() => setTrapPicking(null)}
         />

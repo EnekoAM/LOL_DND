@@ -18,14 +18,14 @@ const show = (value: unknown): string => {
   return '—';
 };
 
-/** Ficha compacta de la copia de este participante (campeón: todos; NPC: solo admin). */
+/** Ficha compacta: stats solo para el admin (los players no ven las de enemigos). */
 export default function CombatSheetSection({ participant, isAdmin }: Props) {
   const own = !!participant.sheet;
   const note = own
     ? 'Copia propia de este participante: lo que cambie aquí no toca la ficha base.'
     : 'Sin copia todavía: se lee la ficha base.';
 
-  if (participant.kind === 'champion') {
+  if (participant.kind === 'champion' && isAdmin) {
     const champion = participantChampion(participant);
     if (!champion) return null;
     const { stats, level } = championDamageContext(champion);

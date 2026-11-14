@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { readAppRole } from './appRole';
 import type { AbilityDamage, AbilityEffect } from './champions';
+import type { AbilityMechanics } from './abilityMechanics';
 
 /**
  * NPCs y monstruos (colección npcs en Mongo). Admin: alta/edición/borrado y todo a la vista.
@@ -17,7 +18,7 @@ export const NPC_KINDS: { value: NpcKind; label: string; icon: string }[] = [
 export const npcKindLabel = (kind: NpcKind) => NPC_KINDS.find(k => k.value === kind)?.label ?? 'NPC';
 export const npcKindIcon = (kind: NpcKind) => NPC_KINDS.find(k => k.value === kind)?.icon ?? '🧙';
 
-export type NpcStatKey = 'hp' | 'mana' | 'ac' | 'mr' | 'spe' | 'ad' | 'ap';
+export type NpcStatKey = 'hp' | 'mana' | 'ac' | 'mr' | 'spe' | 'ad' | 'ap' | 'atkSpe' | 'abSpe';
 
 export const NPC_STATS: { key: NpcStatKey; label: string; title: string }[] = [
   { key: 'hp', label: 'Vida', title: 'Puntos de vida' },
@@ -25,11 +26,15 @@ export const NPC_STATS: { key: NpcStatKey; label: string; title: string }[] = [
   { key: 'ac', label: 'CA', title: 'Clase de armadura' },
   { key: 'mr', label: 'MR', title: 'Resistencia mágica' },
   { key: 'spe', label: 'Velocidad', title: 'Velocidad' },
-  { key: 'ad', label: 'AD', title: 'Daño de ataque' },
-  { key: 'ap', label: 'AP', title: 'Poder de habilidad' },
+  { key: 'ad', label: 'AD', title: 'Daño de ataque (número o dados, p. ej. 3d4)' },
+  { key: 'ap', label: 'AP', title: 'Poder de habilidad (número o dados)' },
+  { key: 'atkSpe', label: 'Ataques', title: 'Ataques por turno' },
+  { key: 'abSpe', label: 'Habilidades', title: 'Habilidades por turno' },
 ];
 
-export type NpcStats = Partial<Record<NpcStatKey, number>>;
+export const NPC_DICE_STAT_KEYS: readonly NpcStatKey[] = ['ad', 'ap'];
+
+export type NpcStats = Partial<Record<NpcStatKey, number | string>>;
 
 /** Habilidad libre: como las de campeón (nombre, descripción, coste, daño, efectos) pero sin slot fijo. */
 export type NpcAbility = {
@@ -41,6 +46,7 @@ export type NpcAbility = {
   cost?: string;
   damage?: AbilityDamage;
   effect?: AbilityEffect[];
+  mechanics?: AbilityMechanics;
 };
 
 /** Encuadre de la foto: punto focal en % (0-100) y zoom (1 = sin zoom). */

@@ -1,5 +1,7 @@
 import type { Ability } from './champions';
 import type { CombatBonus } from './combat';
+import type { CombatTraits } from './combatTraits';
+import { describeCombatTraits } from './combatTraits';
 import type { EffectBonusConfig } from './effectBonus';
 import { abilityStackKey } from './stacks';
 
@@ -191,6 +193,8 @@ export type AbilityMechanics = {
   levelThresholds?: AbilityLevelThreshold[];
   /** Al usarla, reducción de daño al portador y/o a un aliado. */
   protect?: AbilityProtect;
+  /** Rasgos genéricos de combate (captura, auras, Duro, R enemiga…). */
+  combatTraits?: CombatTraits;
 };
 
 /** Contador de cargas que posee esta habilidad. */
@@ -1055,7 +1059,7 @@ const CROWD_CONTROL_KEYS = new Set([
   'enraizamiento', 'silencio', 'ralentizacion', 'encantado', 'encanto',
   'miedo', 'ceguera', 'provocacion', 'supresion', 'empuje', 'empujado', 'derribo',
   'knockback', 'knock up', 'knockup', 'stun', 'root', 'silence', 'slow', 'charm',
-  'fear', 'taunt', 'suppression', 'blind', 'airborne',
+  'fear', 'taunt', 'suppression', 'blind', 'airborne', 'desafio',
 ]);
 
 const normalizeEffectKey = (name: string): string =>
@@ -1146,6 +1150,26 @@ export function spendAbilityCharge(bonuses: CombatBonus[], ability: Ability, nam
     label: cut(name),
   };
   return { bonuses: [...bonuses.filter(bonus => bonus.source !== marker.source), marker], before: state.left, after: state.left - 1, max: config.max, recharge };
+}
+
+/** Suma cargas (hasta el máximo). Crea el marcador si aún no había. */
+export function grantAbilityCharge(bonuses: CombatBonus[], ability: Ability, name: string, amount: number, newId: () => string): { bonuses: CombatBonus[]; before: number; after: number; max: number } | null {
+  const state = abilityCharges(ability, bonuses, name);
+  const config = ability.mechanics?.charges;
+  if (!state || !config || !(amount > 0)) return null;
+  const after = Math.min(config.max, state.left + Math.floor(amount));
+  if (after === state.left) return { bonuses, before: state.left, after, max: config.max };
+  const marker: CombatBonus = {
+    id: state.marker?.id ?? newId(),
+    stat: 'charges',
+    amount: after,
+    maxStacks: config.max,
+    ...(state.recharge ? { recharge: state.recharge } : {}),
+    ...(state.marker?.rechargeEvery ? { rechargeEvery: state.marker.rechargeEvery } : {}),
+    source: abilityChargesSource(name),
+    label: cut(name),
+  };
+  return { bonuses: [...bonuses.filter(bonus => bonus.source !== marker.source), marker], before: state.left, after, max: config.max };
 }
 
 /** +1 carga (refresca la duración). null si no gana (buff activo o sin configurar). */
@@ -1377,5 +1401,6 @@ export function mechanicsSummary(mechanics: AbilityMechanics | undefined): strin
   if (mechanics.stacks?.onChampionTakedown) out.push('Gana 1 carga al derribar a un campeón');
   if (mechanics.cleanse) out.push('Al usarla, limpia los controles de masas del portador');
   if (mechanics.armedAa?.endsSelfStatus) out.push('El AA armado termina el estado propio de esta habilidad');
+  out.push(...describeCombatTraits(mechanics.combatTraits));
   return out;
 }

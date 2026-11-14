@@ -10,7 +10,7 @@ type Props = {
   onSave: (current: number, max?: number) => Promise<void>;
 };
 
-/** Vida en el panel lateral: el admin la de todos, cada player solo la suya. */
+/** Vida en el panel lateral: el admin la de todos; los players, la de los personajes jugador. */
 export default function CombatHpSection({ participant, hp, canSee, saving, onSave }: Props) {
   const [draft, setDraft] = useState('');
   const [maxDraft, setMaxDraft] = useState('');
@@ -27,7 +27,7 @@ export default function CombatHpSection({ participant, hp, canSee, saving, onSav
     return (
       <div className="combat-panel__section">
         <h3 className="combat-panel__label">Vida</h3>
-        <p className="combat-page__hint">Oculta: solo la ve su player y el admin.</p>
+        <p className="combat-page__hint">Vida ?</p>
       </div>
     );
   }

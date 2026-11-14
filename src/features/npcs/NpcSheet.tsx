@@ -16,6 +16,7 @@ import {
 } from '../../data/npcs';
 import { cx } from '../../lib/cx';
 import AbilityCard from '../calculos/AbilityCard';
+import { formatNpcAbilityDamage } from './npcAbilityDamage';
 import RelationsPanel from '../relaciones/RelationsPanel';
 import PrivateNotesPanel from '../notas/PrivateNotesPanel';
 import BackgroundViewer from '../../components/BackgroundViewer';
@@ -247,7 +248,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
               {npc.abilities.length === 0 && !canEdit && (
                 <p className="calc-build-empty">Este NPC no tiene habilidades.</p>
               )}
-              <div className="calc-grid">
+              <div className="calc-grid npc-sheet__abilities">
                 {npc.abilities.map((ability, index) => (
                   <AbilityCard
                     key={ability.id}
@@ -255,6 +256,8 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
                     name={ability.name}
                     ability={ability}
                     onSelect={onSelectAbility}
+                    alwaysVisible
+                    damageText={formatNpcAbilityDamage(ability, npc.stats)}
                   >
                     {ability.description && <p className="npc-ability__preview">{ability.description}</p>}
                     <div className="calc-ability-actions">

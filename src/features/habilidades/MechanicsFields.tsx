@@ -1,6 +1,7 @@
 import { cx } from '../../lib/cx';
 import { blankLevelThreshold, type LevelThresholdDraft, type MechanicsDraft } from './abilityDraft';
 import { CAST_POOL_STATS, type CastPoolStat } from '../../data/abilityMechanics';
+import type { CombatTraits } from '../../data/combatTraits';
 import { STAT_COLUMNS } from '../calculos/statLine';
 import EffectBonusEditor from '../items/EffectBonusEditor';
 
@@ -594,6 +595,17 @@ export default function MechanicsFields({ draft, slot, disabled, onChange }: Pro
           </div>
         )}
 
+
+      <div className="hab-modal__block">
+        <span className="hab-modal__tag">Rasgos de combate (genéricos)</span>
+        <p className="hab-modal__hint">Captura, auras, Duro, R enemiga, marcas de AA, estados al entrar… Valen para NPCs, campeones y jugadores.</p>
+        <CombatTraitsFields
+          value={draft.combatTraits}
+          disabled={disabled}
+          onChange={combatTraits => onChange({ combatTraits })}
+        />
+      </div>
+
       {slot === 'P' && (
         <>
           <Toggle on={draft.critBonus} label="AA: daño extra por prob. de crítico" disabled={disabled} title="Daño extra = daño del AA × (% por cara × caras de prob. de crítico)" onClick={() => onChange({ critBonus: !draft.critBonus })} />
@@ -605,6 +617,192 @@ export default function MechanicsFields({ draft, slot, disabled, onChange }: Pro
           <p className="hab-modal__hint">El estado que aplican otras habilidades es el primer efecto de esta pasiva (nombre, valor y duración).</p>
         </>
       )}
+    </div>
+  );
+}
+
+
+function CombatTraitsFields({ value, disabled, onChange }: { value: CombatTraits | null; disabled?: boolean; onChange: (value: CombatTraits | null) => void }) {
+  const traits = value ?? {};
+  const set = (patch: Partial<CombatTraits> | null) => {
+    if (patch === null) { onChange(null); return; }
+    const next = { ...traits, ...patch };
+    const keys = Object.keys(next).filter(key => {
+      const entry = next[key as keyof CombatTraits];
+      return entry != null && (typeof entry !== 'object' || Object.keys(entry as object).length > 0);
+    });
+    onChange(keys.length ? next : null);
+  };
+  const num = (raw: string, fallback?: number): number | undefined => {
+    const text = raw.trim();
+    if (!text) return fallback;
+    const value = Number(text.replace(',', '.'));
+    return Number.isFinite(value) ? value : fallback;
+  };
+  return (
+    <div className="hab-modal__block">
+      <label className="hab-field"><span>Captura: nombre del estado</span>
+        <input disabled={disabled} value={traits.capture?.name ?? ''} placeholder="Detenido" onChange={e => set({ capture: e.target.value.trim() ? { name: e.target.value.trim() } : undefined })} />
+      </label>
+      <label className="hab-field"><span>Al empezar el combate: estado</span>
+        <input disabled={disabled} value={traits.combatStart?.statusName ?? ''} placeholder="Silenciado" onChange={e => {
+          const name = e.target.value.trim();
+          set({ combatStart: name ? { statusName: name, turns: traits.combatStart?.turns ?? 2, pick: 'enemy', count: traits.combatStart?.count ?? 1 } : undefined });
+        }} />
+      </label>
+      {traits.combatStart && (
+        <label className="hab-field"><span>Turnos del estado inicial</span>
+          <input disabled={disabled} value={String(traits.combatStart.turns ?? '')} onChange={e => set({ combatStart: { ...traits.combatStart!, turns: num(e.target.value, 2) ?? 2 } })} />
+        </label>
+      )}
+      <label className="hab-field"><span>Al entrar: estado (aliados / uno / enemigos)</span>
+        <input disabled={disabled} value={traits.combatEntry?.statusName ?? ''} placeholder="Fantasmal" onChange={e => {
+          const name = e.target.value.trim();
+          set({ combatEntry: name ? { statusName: name, appliesTo: traits.combatEntry?.appliesTo ?? 'allies', turns: traits.combatEntry?.turns } : undefined });
+        }} />
+      </label>
+      {traits.combatEntry && (
+        <label className="hab-field"><span>A quién (allies / self / enemies)</span>
+          <input disabled={disabled} value={traits.combatEntry.appliesTo} onChange={e => {
+            const appliesTo = e.target.value.trim() === 'self' || e.target.value.trim() === 'enemies' ? e.target.value.trim() as 'self' | 'enemies' : 'allies';
+            set({ combatEntry: { ...traits.combatEntry!, appliesTo } });
+          }} />
+        </label>
+      )}
+      <label className="hab-field"><span>Duro: reducción plana por golpe</span>
+        <input disabled={disabled} value={traits.tough?.flat != null ? String(traits.tough.flat) : ''} placeholder="1" onChange={e => {
+          const flat = num(e.target.value);
+          set({ tough: flat ? { ...(traits.tough ?? { flat }), flat, name: traits.tough?.name ?? 'Duro' } : undefined });
+        }} />
+      </label>
+      {traits.tough && (
+        <>
+          <label className="combat-crit-toggle">
+            <input type="checkbox" disabled={disabled} checked={!!traits.tough.auraAllies} onChange={e => set({ tough: { ...traits.tough!, auraAllies: e.target.checked || undefined } })} />
+            Los aliados también son Duros
+          </label>
+          <label className="hab-field"><span>Aliado que sobrevive: +ataques / +CA / +MR</span>
+            <input disabled={disabled} value={traits.tough.onAllySurvive ? `${traits.tough.onAllySurvive.atkSpe ?? 0}/${traits.tough.onAllySurvive.ac ?? 0}/${traits.tough.onAllySurvive.mr ?? 0}` : ''} placeholder="1/1/0,25" onChange={e => {
+              const raw = e.target.value.trim();
+              if (!raw) { const { onAllySurvive: _drop, ...rest } = traits.tough!; set({ tough: rest }); return; }
+              const [atk, ac, mr] = raw.split(/[/ ,]+/).map(part => Number(part.replace(',', '.')));
+              set({ tough: { ...traits.tough!, onAllySurvive: { atkSpe: Number.isFinite(atk) ? atk : 1, ac: Number.isFinite(ac) ? ac : 1, ...(Number.isFinite(mr) && mr !== 0 ? { mr } : {}) } } });
+            }} />
+          </label>
+        </>
+      )}
+      <label className="hab-field"><span>Aura: radio / etiqueta / habilidades (p. ej. 3 / Aura del Junior / -1)</span>
+        <input disabled={disabled} value={traits.aura ? `${traits.aura.range}|${traits.aura.label ?? ''}|${traits.aura.abSpe ?? ''}` : ''} placeholder="3|En el aura del Junior|-1" onChange={e => {
+          const raw = e.target.value.trim();
+          if (!raw) { set({ aura: undefined }); return; }
+          const [range, label, ab] = raw.split('|');
+          const prev = traits.aura;
+          set({ aura: { range: num(range, 3) ?? 3, label: (label ?? '').trim() || undefined, abSpe: num(ab ?? ''), minAbSpe: prev?.minAbSpe ?? 1, manaCost: prev?.manaCost, manaCostPct: prev?.manaCostPct } });
+        }} />
+      </label>
+      <label className="hab-field"><span>Aura: % extra de coste de maná (p. ej. 50 = un 50 % más, ambos bandos)</span>
+        <input disabled={disabled} value={traits.aura?.manaCostPct != null ? String(traits.aura.manaCostPct) : ''} placeholder="50" onChange={e => {
+          const prev = traits.aura ?? { range: 3 };
+          const pct = num(e.target.value);
+          set({ aura: { ...prev, range: prev.range || 3, manaCostPct: pct } });
+        }} />
+      </label>
+      <label className="hab-field"><span>Aviso al morir</span>
+        <input disabled={disabled} value={traits.deathNotice?.text ?? ''} placeholder="Suelta el objeto (a mano)" onChange={e => set({ deathNotice: e.target.value.trim() ? { text: e.target.value.trim() } : undefined })} />
+      </label>
+      <label className="hab-field"><span>Desafío: nombre del estado</span>
+        <input disabled={disabled} value={traits.challenge?.statusName ?? ''} placeholder="Desafío" onChange={e => set({ challenge: e.target.value.trim() ? { statusName: e.target.value.trim(), turns: traits.challenge?.turns ?? 99 } : undefined })} />
+      </label>
+      <label className="hab-field"><span>Marca de AA: nombre/máx/daño/estado (Pesadilla|3|4|Asustado)</span>
+        <input disabled={disabled} value={traits.aaMark ? `${traits.aaMark.name}|${traits.aaMark.max}|${traits.aaMark.damage ?? ''}|${traits.aaMark.status ?? ''}` : ''} placeholder="Pesadilla|3|4|Asustado" onChange={e => {
+          const raw = e.target.value.trim();
+          if (!raw) { set({ aaMark: undefined }); return; }
+          const [name, max, dmg, status] = raw.split('|');
+          set({ aaMark: { name: (name ?? 'Marca').trim() || 'Marca', max: num(max, 3) ?? 3, consume: true, damage: num(dmg), status: (status ?? '').trim() || undefined, statusTurns: 1 } });
+        }} />
+      </label>
+      <label className="hab-field"><span>R enemiga: +ataques/+CA/+MR / desafío / cargas (1/1/0,25/sí/1)</span>
+        <input disabled={disabled} value={traits.onEnemyUltimate ? `${traits.onEnemyUltimate.atkSpe ?? 0}/${traits.onEnemyUltimate.ac ?? 0}/${traits.onEnemyUltimate.mr ?? 0}/${traits.onEnemyUltimate.taunt ? 'sí' : 'no'}/${traits.onEnemyUltimate.grantCharges ?? ''}` : ''} placeholder="1/1/0,25/sí/1" onChange={e => {
+          const raw = e.target.value.trim();
+          if (!raw) { set({ onEnemyUltimate: undefined }); return; }
+          const parts = raw.split('/');
+          const [atk, ac, mr, taunt, charges] = parts.length >= 5 ? parts : [parts[0], parts[1], '', parts[2], parts[3]];
+          const prev = traits.onEnemyUltimate;
+          set({ onEnemyUltimate: {
+            oncePerCombat: prev?.oncePerCombat ?? true,
+            atkSpe: num(atk),
+            ac: num(ac),
+            mr: num(mr),
+            taunt: (taunt ?? '').trim().toLowerCase().startsWith('s') || (taunt ?? '').trim() === '1' || (taunt ?? '').trim().toLowerCase() === 'si',
+            tauntName: prev?.tauntName,
+            tauntTurns: prev?.tauntTurns,
+            grantCharges: num(charges),
+            grantChargeTo: prev?.grantChargeTo,
+          } });
+        }} />
+      </label>
+      <label className="hab-field"><span>MR según vida: máx / mín (p. ej. 12/6)</span>
+        <input disabled={disabled} value={traits.mrScalesWithHp ? `${traits.mrScalesWithHp.max}/${traits.mrScalesWithHp.min}` : ''} placeholder="12/6" onChange={e => {
+          const raw = e.target.value.trim();
+          if (!raw) { set({ mrScalesWithHp: undefined }); return; }
+          const [max, min] = raw.split(/[/ ,]+/).map(part => Number((part ?? '').replace(',', '.')));
+          if (!Number.isFinite(max) || !Number.isFinite(min)) return;
+          set({ mrScalesWithHp: { max, min } });
+        }} />
+      </label>
+      <label className="hab-field"><span>Formidable: % de vida máx. al AA</span>
+        <input disabled={disabled} value={traits.formidable?.hpPct != null ? String(traits.formidable.hpPct) : ''} placeholder="10" onChange={e => {
+          const hpPct = num(e.target.value);
+          set({ formidable: hpPct ? { hpPct } : undefined });
+        }} />
+      </label>
+      <label className="hab-field"><span>Daño de habilidades recibido % (0 = inmune)</span>
+        <input disabled={disabled} value={traits.abilityDamageTaken?.pct != null ? String(traits.abilityDamageTaken.pct) : ''} placeholder="0" onChange={e => {
+          const raw = e.target.value.trim();
+          if (raw === '') { set({ abilityDamageTaken: undefined }); return; }
+          const pct = num(raw);
+          if (pct == null) return;
+          set({ abilityDamageTaken: { pct } });
+        }} />
+      </label>
+      <label className="hab-field"><span>Custodia: nombre / turnos (p. ej. Custodia/1)</span>
+        <input disabled={disabled} value={traits.guardAlly ? `${traits.guardAlly.name ?? 'Custodia'}/${traits.guardAlly.turns}` : ''} placeholder="Custodia/1" onChange={e => {
+          const raw = e.target.value.trim();
+          if (!raw) { set({ guardAlly: undefined }); return; }
+          const [name, turns] = raw.split('/');
+          set({ guardAlly: { name: (name ?? 'Custodia').trim() || 'Custodia', turns: num(turns, 1) ?? 1 } });
+        }} />
+      </label>
+      <label className="hab-field"><span>Táctica de manada: etiqueta / +impacto (Aliado adyacente/2)</span>
+        <input disabled={disabled} value={traits.packTactics ? `${traits.packTactics.label ?? ''}/${traits.packTactics.hitBonus}` : ''} placeholder="Aliado adyacente/2" onChange={e => {
+          const raw = e.target.value.trim();
+          if (!raw) { set({ packTactics: undefined }); return; }
+          const parts = raw.split('/');
+          const hit = num(parts[parts.length - 1], 2) ?? 2;
+          const label = parts.slice(0, -1).join('/').trim() || 'Aliado adyacente';
+          set({ packTactics: { label, hitBonus: hit } });
+        }} />
+      </label>
+      <label className="hab-field"><span>Olfato / vista verdadera: alcance / etiqueta</span>
+        <input disabled={disabled} value={traits.trueSight ? `${traits.trueSight.range}/${traits.trueSight.label ?? ''}` : ''} placeholder="3/Olfato agudo" onChange={e => {
+          const raw = e.target.value.trim();
+          if (!raw) { set({ trueSight: undefined }); return; }
+          const [range, ...rest] = raw.split('/');
+          set({ trueSight: { range: num(range, 3) ?? 3, label: rest.join('/').trim() || undefined } });
+        }} />
+      </label>
+      <label className="hab-field"><span>Absorción de daño mágico aliado: % máx. / nombre (50/Absorción arcana)</span>
+        <input disabled={disabled} value={traits.absorbAllyMagic ? `${traits.absorbAllyMagic.chancePct ?? 50}/${traits.absorbAllyMagic.name ?? 'Absorción arcana'}` : ''} placeholder="50/Absorción arcana" onChange={e => {
+          const raw = e.target.value.trim();
+          if (!raw) { set({ absorbAllyMagic: undefined }); return; }
+          const [pct, ...rest] = raw.split('/');
+          set({ absorbAllyMagic: { chancePct: num(pct, 50) ?? 50, name: rest.join('/').trim() || 'Absorción arcana' } });
+        }} />
+      </label>
+      <label className="combat-crit-toggle">
+        <input type="checkbox" disabled={disabled} checked={!!traits.unstoppableVsLowerHp} onChange={e => set({ unstoppableVsLowerHp: e.target.checked ? { name: 'Inexpugnable' } : undefined })} />
+        Inexpugnable (inmune a CC de quien tenga menos vida)
+      </label>
     </div>
   );
 }

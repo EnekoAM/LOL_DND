@@ -29,6 +29,7 @@ import { resolvedSpendKind } from './combatAbilityUse';
 import { kindTag } from './combatHelpers';
 import { itemActiveDamage, itemIsUsable, itemUseHeadline, rollItemDamage, type ItemDamageRoll } from './combatItemUse';
 import { canSeeHp, damageTargets, participantHp, targetHpLine, type TargetDamageFn } from './combatHp';
+import { applyScaledMr } from '../../data/combatTraits';
 import CombatTargetPicker from './CombatTargetPicker';
 import { logCombat } from './combatConsole';
 import '../calculos/Calculos.css';
@@ -634,50 +635,62 @@ export default function CombatSheetView({
         </div>
       </>
     ) : (
-      <p className="combat-page__hint">Vida y maná ocultos: solo los ve su player y el admin.</p>
+      <p className="combat-page__hint">Vida y maná ?</p>
     );
   } else if (champion) {
-    const { stats, level: champLevel } = championDamageContext(champion, extra);
-    meta = `NVL ${champLevel} · ${champion.role || 'Campeón'}`;
-    defense = [
-      { label: 'CA', value: stats.ac },
-      { label: 'Velocidad', value: stats.spe },
-      { label: 'MR', value: stats.mr },
-    ];
-    penetration = penetrationOf(stats);
-    utility = utilityOf(stats);
-    equipment = champion.equipamiento ?? [];
-    const hp = championPool(champion, participant, 'hp');
-    const spend = resolvedSpendKind(undefined, champion.resource ? { resource: champion.resource } : undefined);
-    const pool = spend.kind === 'pool' ? championPool(champion, participant, 'pool') : null;
-    bars = (
-      <>
-        <div className="sheet-panel sheet-side__hp">
-          {canSee ? participantHpPanel(hp.current, hp.max) : (
-            <p className="combat-page__hint">Vida oculta: solo la ve el admin.</p>
-          )}
-        </div>
-        {pool && (
-          <div className="sheet-panel sheet-side__mana">
-            <ManaPanel
-              player={{ mana: pool.max, actualMana: pool.current }}
-              suggestedMax={pool.max}
-              label={pool.label}
-              resourceId={pool.resourceId ?? 'mana'}
-              readOnly={!isAdmin}
-              saving={saving}
-              error={hpError}
-              onChange={patch => {
-                setHpError(null);
-                const nextMax = typeof patch.mana === 'number' && patch.mana !== pool.max ? patch.mana : undefined;
-                return onResourceSave(patch.actualMana ?? pool.current, nextMax)
-                  .catch(err => { setHpError(err instanceof Error ? err.message : 'No se pudo guardar'); throw err; });
-              }}
-            />
+    meta = champion.role || 'Campeón';
+    if (canSee) {
+      const { stats, level: champLevel } = championDamageContext(champion, extra);
+      meta = `NVL ${champLevel} · ${champion.role || 'Campeón'}`;
+      defense = [
+        { label: 'CA', value: stats.ac },
+        { label: 'Velocidad', value: stats.spe },
+        { label: 'MR', value: stats.mr },
+      ];
+      penetration = penetrationOf(stats);
+      utility = utilityOf(stats);
+      equipment = champion.equipamiento ?? [];
+      const hp = championPool(champion, participant, 'hp');
+      const spend = resolvedSpendKind(undefined, champion.resource ? { resource: champion.resource } : undefined);
+      const pool = spend.kind === 'pool' ? championPool(champion, participant, 'pool') : null;
+      bars = (
+        <>
+          <div className="sheet-panel sheet-side__hp">
+            {participantHpPanel(hp.current, hp.max)}
           </div>
-        )}
-      </>
-    );
+          {pool && (
+            <div className="sheet-panel sheet-side__mana">
+              <ManaPanel
+                player={{ mana: pool.max, actualMana: pool.current }}
+                suggestedMax={pool.max}
+                label={pool.label}
+                resourceId={pool.resourceId ?? 'mana'}
+                readOnly={!isAdmin}
+                saving={saving}
+                error={hpError}
+                onChange={patch => {
+                  setHpError(null);
+                  const nextMax = typeof patch.mana === 'number' && patch.mana !== pool.max ? patch.mana : undefined;
+                  return onResourceSave(patch.actualMana ?? pool.current, nextMax)
+                    .catch(err => { setHpError(err instanceof Error ? err.message : 'No se pudo guardar'); throw err; });
+                }}
+              />
+            </div>
+          )}
+        </>
+      );
+    } else {
+      bars = (
+        <>
+          <div className="sheet-panel sheet-side__hp">
+            <p className="combat-page__hint">Vida ?</p>
+          </div>
+          <div className="sheet-panel sheet-side__mana">
+            <p className="combat-page__hint">Maná ?</p>
+          </div>
+        </>
+      );
+    }
   } else if (participant.kind === 'npc' || participant.kind === 'custom') {
     if (npc && isAdmin) {
       meta = `NVL ${npc.level ?? 0} · ${npc.type || 'NPC'}`;
@@ -685,15 +698,22 @@ export default function CombatSheetView({
         .map(stat => {
           // Debuffs / bonus del combate (p. ej. Cuchilla negra −armadura) sobre la stat del NPC.
           const delta = (participant.bonuses ?? []).filter(bonus => bonus.stat === stat.key).reduce((sum, bonus) => sum + bonusValue(bonus), 0);
-          const value = npc.stats?.[stat.key];
-          return { label: stat.key === 'ac' ? 'CA' : stat.label, value: typeof value === 'number' && delta ? Math.round((value + delta) * 100) / 100 : value };
+          let value = npc.stats?.[stat.key];
+          if (stat.key === 'mr' && typeof value === 'number') {
+            const hp = participantHp(participant);
+            if (hp?.max) value = applyScaledMr(value + delta, npc.abilities, hp.current, hp.max);
+            else if (delta) value = Math.round((value + delta) * 100) / 100;
+          } else if (typeof value === 'number' && delta) {
+            value = Math.round((value + delta) * 100) / 100;
+          }
+          return { label: stat.key === 'ac' ? 'CA' : stat.label, value };
         });
     }
-    const hp = participantHp(participant);
+    const hp = canSee ? participantHp(participant) : null;
     bars = (
       <div className="sheet-panel sheet-side__hp">
         {!canSee ? (
-          <p className="combat-page__hint">Vida oculta: solo la ve el admin.</p>
+          <p className="combat-page__hint">Vida ?</p>
         ) : hp && hp.max !== undefined ? participantHpPanel(hp.current, hp.max) : (
           <p className="combat-page__hint">Sin vida definida.</p>
         )}
@@ -913,6 +933,7 @@ export default function CombatSheetView({
               )}
             </section>
           )}
+          {canSee && (
           <section className="sheet-panel combat-sheet__move">
             <div className="combat-sheet__move-row">
               <span className="combat-sheet__move-label" title="Velocidad = casillas por turno. Se recupera al empezar su turno.">
@@ -970,6 +991,7 @@ export default function CombatSheetView({
               </div>
             )}
           </section>
+          )}
           {(itemUse || itemError || itemTarget || vigorPick || allyAsk) && (
             <section className="sheet-panel">
               {itemUse && (

@@ -29,6 +29,7 @@ export function participantHp(participant: CombatParticipant): ParticipantHp | n
     const hp = participantNpc(participant)?.stats?.hp;
     if (finite(hp) && hp > 0) max = hp;
   }
+  if (!finite(participant.hp) && max === undefined) return null;
   const current = finite(participant.hp) ? participant.hp : max ?? 0;
   let bonus: number | undefined;
   if (participant.kind === 'champion') {
@@ -41,11 +42,17 @@ export function participantHp(participant: CombatParticipant): ParticipantHp | n
   return { current, max, ...(bonus !== undefined ? { bonus } : {}) };
 }
 
-/** ¿Puede este usuario ver / editar la vida de este participante? Admin: todos; User: solo su player. */
-export function canSeeHp(participant: CombatParticipant, isAdmin: boolean, myPlayer: string | null): boolean {
-  if (isAdmin) return true;
-  if (participant.kind !== 'player' || !myPlayer) return false;
-  return (participant.sourceId ?? participant.name).toLocaleLowerCase('es') === myPlayer.toLocaleLowerCase('es');
+/**
+ * Vida, maná y stats de ficha: el admin las ve todas; los players, las de cualquier
+ * personaje jugador (el suyo y los aliados). Enemigos (NPC, monstruo, campeón, custom): no.
+ */
+export function canSeeCombatVitals(participant: CombatParticipant, isAdmin: boolean): boolean {
+  return isAdmin || participant.kind === 'player';
+}
+
+/** Igual que canSeeCombatVitals. myPlayer se conserva por compatibilidad con las llamadas. */
+export function canSeeHp(participant: CombatParticipant, isAdmin: boolean, _myPlayer?: string | null): boolean {
+  return canSeeCombatVitals(participant, isAdmin);
 }
 
 /** Vida + vida temporal + escudo de un objetivo (players: su ficha; resto: el combate). */
@@ -65,6 +72,10 @@ export type TargetDamage = { name: string; before: number; after: number; absorb
 export type DamageAmount = number | ((currentHp: number) => number);
 export type DamageApplyOpts = {
   fromAutoAttack?: boolean;
+  /** Daño de una habilidad (no AA ni objeto). */
+  fromAbility?: boolean;
+  /** Ya se redirigió por Custodia: no volver a saltar. */
+  redirected?: boolean;
   damageType?: 'physical' | 'magic' | 'true';
   critical?: boolean;
   attackerId?: string;

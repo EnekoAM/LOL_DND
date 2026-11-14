@@ -6,6 +6,8 @@ import { championDamageContext } from '../calculos/championDamage';
 import { playerTotalLine } from '../calculos/playerTotals';
 import { numericStat } from './combatAbilityUse';
 import type { StatLine } from '../calculos/statLine';
+import { actionLimitsFromNpcStats, minAuraAbSpeFor, type AbilityLike } from '../../data/combatTraits';
+import type { Npc } from '../../data/npcs';
 
 export type ActionLimits = { attacks?: number; abilities?: number };
 
@@ -26,6 +28,16 @@ export function actionLimits(player: Player | null, champion: Champion | null, l
   if (champion) {
     const { stats } = championDamageContext(champion, extra);
     return { attacks: positive(stats.atkSpe), abilities: positive(stats.abSpe) };
+  }
+  return {};
+}
+
+/** Límites de un participante, incluyendo NPCs (atkSpe/abSpe de su ficha + bonus). */
+export function actionLimitsFor(player: Player | null, champion: Champion | null, npc: (Pick<Npc, 'stats' | 'abilities'> & { abilities?: AbilityLike[] }) | null, level: number, extra: StatLine[] = [], auraBonuses?: { bonuses?: CombatBonus[] }): ActionLimits {
+  if (player || champion) return actionLimits(player, champion, level, extra);
+  if (npc) {
+    const minAb = auraBonuses ? minAuraAbSpeFor({ bonuses: auraBonuses.bonuses }, npc.abilities ?? []) : undefined;
+    return actionLimitsFromNpcStats(npc.stats, extra, minAb);
   }
   return {};
 }

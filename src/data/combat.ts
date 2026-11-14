@@ -17,6 +17,14 @@ export const COMBAT_EFFECT_PRESETS = [
   'Heridas graves',
   'MR reducido',
   'AC reducido',
+  'Suprimido',
+  'Desafío',
+  'Provocación',
+  'Detenido',
+  'Fantasmal',
+  'Duro',
+  'Pesadilla',
+  'Asustado',
 ] as const;
 
 export type CombatParticipantKind = 'player' | 'npc' | 'champion' | 'custom';

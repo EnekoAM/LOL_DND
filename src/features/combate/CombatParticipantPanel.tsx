@@ -268,7 +268,7 @@ export default function CombatParticipantPanel({
         )
   );
   const abilitiesFor = (variant: 'panel' | 'sheet') => (
-    (participant.kind === 'player' || participant.kind === 'champion') && (
+    (participant.kind === 'player' || (isAdmin && (participant.kind === 'champion' || participant.kind === 'npc'))) && (
           <CombatAbilityUseSection
             participant={participant}
             isAdmin={isAdmin}

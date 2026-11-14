@@ -13,17 +13,34 @@ type Props = {
   hideScaling?: boolean;
   /** Contenido extra dentro de la tarjeta (p. ej. rangos en la ficha). */
   children?: ReactNode;
+  /**
+   * Ficha de NPC: no atenúa las pasivas (el estilo inactivo es de habilidades
+   * de campeón sin daño / no aprendidas) ni muestra «Sin cálculo».
+   */
+  alwaysVisible?: boolean;
+  /** Sustituye las líneas AD/AP (p. ej. «Daño: 4d4+2 físico»). */
+  damageText?: string;
 };
 
-const AbilityCard = ({ label, name, ability, onSelect, hideScaling = false, children }: Props) => {
+const AbilityCard = ({
+  label,
+  name,
+  ability,
+  onSelect,
+  hideScaling = false,
+  children,
+  alwaysVisible = false,
+  damageText,
+}: Props) => {
   const damage = ability?.damage;
+  const inactive = !alwaysVisible && !damage;
 
   const handleClick = () => {
     if (ability?.damage) onSelect(ability);
   };
 
   return (
-        <div className={cx('calc-card calc-card--ability', !damage && 'calc-card--ability--inactive')}
+    <div className={cx('calc-card calc-card--ability', inactive && 'calc-card--ability--inactive')}
       onClick={handleClick}
       role={damage ? 'button' : undefined}
       tabIndex={damage ? 0 : undefined}
@@ -36,10 +53,11 @@ const AbilityCard = ({ label, name, ability, onSelect, hideScaling = false, chil
       }}>
       <div className="calc-card__key">[{label}]</div>
       <div className="calc-card__name">{name}</div>
-      {!hideScaling && damage?.ad && <div className="calc-card__damage">AD: {formatPercentList(damage.ad)} ({damage.adSource ?? 'total'})</div>}
-      {!hideScaling && damage?.ap && <div className="calc-card__damage">AP: {formatPercentList(damage.ap)}</div>}
-      {!ability && <div className="calc-card__undefined">No implementada</div>}
-      {ability && !damage && <div className="calc-card__no-calc">Sin cálculo</div>}
+      {!hideScaling && damageText && <div className="calc-card__damage">{damageText}</div>}
+      {!hideScaling && !damageText && damage?.ad && <div className="calc-card__damage">AD: {formatPercentList(damage.ad)} ({damage.adSource ?? 'total'})</div>}
+      {!hideScaling && !damageText && damage?.ap && <div className="calc-card__damage">AP: {formatPercentList(damage.ap)}</div>}
+      {!alwaysVisible && !ability && <div className="calc-card__undefined">No implementada</div>}
+      {!alwaysVisible && ability && !damage && <div className="calc-card__no-calc">Sin cálculo</div>}
       {children && <div className="calc-card__extra" onClick={event => event.stopPropagation()}>{children}</div>}
     </div>
   );

@@ -15,6 +15,7 @@ import { emptyStatLine, formatStat, type StatKey, type StatLine } from '../calcu
 import { rollDamageStat } from '../players/abilityDamage';
 import { bonusLines, chargesText, equippedItems, isStatKey, newBonusId, statTitle } from './combatBonuses';
 import { participantHp, type TargetDamageFn } from './combatHp';
+import { applyScaledMr, ownedCombatTraits, type AbilityLike } from '../../data/combatTraits';
 import { abilityNamedEffects, participantAbilities } from './abilityRules';
 
 /**
@@ -201,8 +202,35 @@ function itemContext(participant: CombatParticipant, level: number, extra: StatL
     return { ctx: { stats: context.stats as unknown as Stats, level: context.level }, items: equippedItems(champion.equipamiento) };
   }
   const npc = participantNpc(participant);
-  if (npc) return { ctx: { stats: { ...(npc.stats ?? {}) } as Stats, level: typeof npc.level === 'number' ? npc.level : 1 }, items: [] };
+  if (npc) {
+    const stats = withNumericBonuses({ ...(npc.stats ?? {}) }, extra);
+    const hp = participantHp(participant);
+    const abilities = (npc.abilities ?? []) as AbilityLike[];
+    if (typeof stats.mr === 'number' && hp?.max) {
+      stats.mr = applyScaledMr(stats.mr, abilities, hp.current, hp.max);
+    }
+    return { ctx: { stats: stats as Stats, level: typeof npc.level === 'number' ? npc.level : 1 }, items: [] };
+  }
   return null;
+}
+
+/** Suma bonus numéricos del combate (CA, MR con decimales, etc.) a las stats del NPC, sin tocar dados. */
+function withNumericBonuses(base: Record<string, unknown>, extra: StatLine[]): Record<string, unknown> {
+  if (!extra.length) return base;
+  const stats = { ...base };
+  for (const line of extra) {
+    for (const [key, raw] of Object.entries(line)) {
+      const add = typeof raw === 'number' ? raw : Number(String(raw).replace(',', '.'));
+      if (!Number.isFinite(add) || add === 0) continue;
+      const current = stats[key];
+      if (typeof current === 'string' && /d/i.test(current)) continue;
+      const parsed = typeof current === 'number' ? current : Number(current);
+      const start = Number.isFinite(parsed) ? parsed : (current == null || current === '' ? 0 : null);
+      if (start == null) continue;
+      stats[key] = Math.round((start + add) * 1000) / 1000;
+    }
+  }
+  return stats;
 }
 
 /** Líneas de stats de las reglas «Siempre» (al portador): se suman a los bonus del combate. */
@@ -367,7 +395,7 @@ export function itemRulePlan(item: Item, data: NamedEffectData): { authoritative
 /** ¿Es una regla «Tras habilidad» / «Tras usar» (arma el siguiente AA)? */
 const isArmTrigger = (trigger: string): boolean => trigger === 'after-ability' || trigger === 'after-use';
 
-export type EffectTriggerName = 'on-attack' | 'on-hit' | 'on-ability-hit' | 'on-use' | 'on-takedown' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'each-turn' | 'energized-max' | 'on-ultimate-use';
+export type EffectTriggerName = 'on-attack' | 'on-hit' | 'on-ability-hit' | 'on-use' | 'on-takedown' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'each-turn' | 'energized-max' | 'on-ultimate-use' | 'on-enemy-ultimate-use' | 'combat-start' | 'combat-entry' | 'on-survived-hit' | 'on-death';
 
 /** Efectos con reglas «Vigor al máximo». */
 export const vigorEffects = (effects: ActiveNamedEffect[]): ActiveNamedEffect[] =>

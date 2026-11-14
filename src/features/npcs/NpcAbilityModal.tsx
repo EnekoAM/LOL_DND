@@ -4,9 +4,10 @@ import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '../../components/Modal';
 import ScalingSourceFields from '../habilidades/ScalingSourceFields';
+import MechanicsFields from '../habilidades/MechanicsFields';
 import type { Npc, NpcAbility } from '../../data/npcs';
 import { newAbilityId, npcImageStyle } from '../../data/npcs';
-import { formatPercentList } from '../../lib/format';
+import { formatNpcAbilityDamage, withInterpretedNpcDamage } from './npcAbilityDamage';
 import {
   abilityToDraft,
   blankEffect,
@@ -30,7 +31,7 @@ type Props = {
 
 type Draft = AbilityDraft & { label: string };
 
-const toDraft = (ability: NpcAbility | null): Draft => ({ ...abilityToDraft(ability), label: ability?.label ?? '' });
+const toDraft = (ability: NpcAbility | null): Draft => ({ ...abilityToDraft(ability ? withInterpretedNpcDamage(ability) : null), label: ability?.label ?? '' });
 
 const listText = (values: number[] | undefined): string => (values ?? []).join(' / ');
 
@@ -100,6 +101,7 @@ const NpcAbilityModal = ({ npc, ability, canEdit, startEditing = false, onClose,
   const damage = ability?.damage;
   const bonus = damageBonusOf(damage);
   const effects = ability?.effect ?? [];
+  const damageSummary = ability ? formatNpcAbilityDamage(ability, npc.stats) : undefined;
 
   return createPortal(
     <Modal onClose={requestClose} backdropClassName="hab-modal-backdrop" className="hab-modal">
@@ -128,6 +130,12 @@ const NpcAbilityModal = ({ npc, ability, canEdit, startEditing = false, onClose,
               <span>Coste</span>
               <input value={draft.cost} maxLength={200} placeholder="30 maná, 1/día, recarga 5-6…" onChange={e => change({ cost: e.target.value })} />
             </label>
+            <MechanicsFields
+              draft={draft.mechanics}
+              slot={(draft.label || 'P').trim() || 'P'}
+              disabled={saving}
+              onChange={patch => change({ mechanics: { ...draft.mechanics, ...patch } })}
+            />
 
             <div className="hab-modal__block">
               <span className="hab-modal__tag">Daño (opcional)</span>
@@ -222,12 +230,13 @@ const NpcAbilityModal = ({ npc, ability, canEdit, startEditing = false, onClose,
             {damage && (
               <div className="hab-modal__block">
                 <span className="hab-modal__tag">Daño</span>
-                <ul className="hab-modal__stats">
-                  {damage.type && <li><span>Tipo</span><span>{damage.type}</span></li>}
-                  {damage.ap && <li><span>AP {damage.apSource === 'bonus' ? 'bonus' : 'total'}</span><span>{formatPercentList(damage.ap)}</span></li>}
-                  {damage.ad && <li><span>AD {damage.adSource === 'bonus' ? 'bonus' : 'total'}</span><span>{formatPercentList(damage.ad)}</span></li>}
-                  {bonus !== undefined && <li><span>Objetivo único</span><span>×{bonus}</span></li>}
-                </ul>
+                {damageSummary && <p>{damageSummary}</p>}
+                {(damage.type || bonus !== undefined) && (
+                  <ul className="hab-modal__stats">
+                    {damage.type && <li><span>Tipo</span><span>{damage.type}</span></li>}
+                    {bonus !== undefined && <li><span>Objetivo único</span><span>×{bonus}</span></li>}
+                  </ul>
+                )}
               </div>
             )}
 

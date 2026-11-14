@@ -25,6 +25,11 @@ export const EFFECT_TRIGGERS = [
   { id: 'each-turn', label: 'Cada turno' },
   { id: 'energized-max', label: 'Vigor al máximo (100 cargas)' },
   { id: 'on-ultimate-use', label: 'Al usar la R' },
+  { id: 'on-enemy-ultimate-use', label: 'Cuando un enemigo usa su R' },
+  { id: 'combat-start', label: 'Al empezar el combate' },
+  { id: 'combat-entry', label: 'Al entrar en combate' },
+  { id: 'on-survived-hit', label: 'Al sobrevivir un golpe' },
+  { id: 'on-death', label: 'Al morir' },
 ] as const;
 export type EffectTrigger = (typeof EFFECT_TRIGGERS)[number]['id'];
 
@@ -286,6 +291,11 @@ const TRIGGER_SHORT: Record<EffectTrigger, string> = {
   'each-turn': 'Cada turno',
   'energized-max': 'Vigor al máximo',
   'on-ultimate-use': 'Al usar la R',
+  'on-enemy-ultimate-use': 'Cuando un enemigo usa su R',
+  'combat-start': 'Al empezar el combate',
+  'combat-entry': 'Al entrar en combate',
+  'on-survived-hit': 'Al sobrevivir un golpe',
+  'on-death': 'Al morir',
 };
 
 /** Resumen legible de una regla: «Tras habilidad (siguiente AA): +100% AD base físico». */
@@ -457,4 +467,4 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
 }
 
 /** Estado de una regla que el combate aplica solo (el resto se apunta a mano). */
-export const AUTOMATED_TRIGGERS: readonly EffectTrigger[] = ['always', 'on-attack', 'on-hit', 'after-ability', 'after-use', 'on-ability-hit', 'on-use', 'on-takedown', 'hp-below', 'on-damage-taken', 'on-attacked', 'each-turn', 'energized-max', 'on-ultimate-use'];
+export const AUTOMATED_TRIGGERS: readonly EffectTrigger[] = ['always', 'on-attack', 'on-hit', 'after-ability', 'after-use', 'on-ability-hit', 'on-use', 'on-takedown', 'hp-below', 'on-damage-taken', 'on-attacked', 'each-turn', 'energized-max', 'on-ultimate-use', 'on-enemy-ultimate-use', 'combat-start', 'combat-entry', 'on-survived-hit', 'on-death'];

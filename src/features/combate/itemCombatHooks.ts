@@ -139,14 +139,16 @@ export type ReactiveHooks = {
 
 /** Dispara reglas reactivas (al recibir daño, vida baja, cada turno, al recibir un AA) del portador. */
 export async function fireReactiveItemEffects(
-  trigger: Extract<EffectTriggerName, 'each-turn' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'on-ultimate-use'>,
+  trigger: Extract<EffectTriggerName, 'each-turn' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'on-ultimate-use' | 'on-enemy-ultimate-use' | 'combat-start' | 'combat-entry' | 'on-survived-hit' | 'on-death'>,
   bearer: CombatParticipant,
   hooks: ReactiveHooks,
   targetIds: string[] = [],
   incomingDamage = 0,
 ): Promise<CombatBonus[] | undefined> {
   const items = participantItems(bearer);
-  const effects = activeNamedEffects(items, hooks.effectData).filter(effect => effect.config.rules.some(rule => rule.trigger === trigger));
+  const baseCtx = participantContext(bearer, hooks.level);
+  const itemEffects = activeNamedEffects(items, hooks.effectData);
+  const effects = [...itemEffects, ...(baseCtx?.abilityEffects ?? [])].filter(effect => effect.config.rules.some(rule => rule.trigger === trigger));
   if (!effects.length) return undefined;
   const base = participantContext(bearer, hooks.level);
   if (!base) return undefined;

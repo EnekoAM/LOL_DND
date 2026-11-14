@@ -2,7 +2,7 @@ import { BASIC_MAX_RANK, ULT_MAX_RANK, milestoneRank, normalizeRanks, type Ranke
 import { abilityRuleBase, abilityStacks, hasPermanentMaxStacks, rankValue, readPermanentAbilityStacks, shouldGainAbilityStack, stacksRequirement, totalRangeBonus } from '../../data/abilityMechanics';
 import { ABILITY_KEYS, findAbilityRef, type Ability } from '../../data/champions';
 import type { CombatBonus, CombatParticipant } from '../../data/combat';
-import { participantChampion } from '../../data/combatSheet';
+import { participantChampion, participantNpc } from '../../data/combatSheet';
 import type { EffectRule } from '../../data/effectBonus';
 import { PLAYERS, PLAYER_ABILITY_SLOTS } from '../../data/players';
 import type { ActiveNamedEffect } from './effectRules';
@@ -12,6 +12,24 @@ export type OwnedAbility = { seal: string; name: string; ability: Ability; rank:
 
 /** Habilidades de un participante y su rango (como las filas de la sección de habilidades del combate). */
 export function participantAbilities(participant: CombatParticipant, level: number): OwnedAbility[] {
+  const npc = participantNpc(participant);
+  if (npc?.abilities?.length) {
+    return npc.abilities.filter(ability => ability?.name).map((ability, index) => {
+      const label = (ability.label ?? '').trim().toLowerCase();
+      const isPassive = label === 'pasiva' || label === 'p' || ability.mechanics?.noAction === true;
+      const mapped = {
+        name: ability.name,
+        description: ability.description,
+        cost: ability.cost,
+        damage: ability.damage,
+        effect: ability.effect,
+        mechanics: ability.mechanics,
+      } as Ability;
+      const seal = isPassive ? 'P' : (label === 'q' || label === 'w' || label === 'e' || label === 'r' ? label.toUpperCase() : 'N');
+      void index;
+      return { seal, name: ability.name, ability: mapped, rank: 1 };
+    });
+  }
   if (participant.kind === 'player') {
     const player = PLAYERS.find(entry => entry.name === participant.sourceId);
     if (!player) return [];

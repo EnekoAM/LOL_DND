@@ -9,6 +9,7 @@ import {
   NPC_LEVEL_MIN,
   NPC_NAME_MAX,
   NPC_STATS,
+  NPC_DICE_STAT_KEYS,
   NPC_TAG_MAX,
   NPC_ZOOM_MAX,
   NPC_ZOOM_MIN,
@@ -264,9 +265,14 @@ const NpcEditorModal = ({ title, initial, types, regions, submitLabel, onClose, 
     for (const { key, label } of NPC_STATS) {
       const raw = stats[key].trim().replace(',', '.');
       if (!raw) continue;
+      const compact = raw.replace(/\s+/g, '');
+      if ((NPC_DICE_STAT_KEYS as readonly string[]).includes(key) && /^(?:[+-]?\d+d\d+|[+-]?\d+)(?:[+-]\d+d\d+|[+-]\d+)*$/i.test(compact) && !/^-?\d+(?:\.\d+)?$/.test(compact)) {
+        nextStats[key] = compact;
+        continue;
+      }
       const value = Number(raw);
       if (!Number.isFinite(value)) {
-        setError(`${label} tiene que ser un número`);
+        setError((NPC_DICE_STAT_KEYS as readonly string[]).includes(key) ? `${label} tiene que ser un número o dados (p. ej. 3d4)` : `${label} tiene que ser un número`);
         return;
       }
       nextStats[key] = value;

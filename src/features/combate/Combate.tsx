@@ -8,6 +8,29 @@ import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
 import { critMultiplier } from './combatMitigation';
 import { participantContext } from './effectRules';
 import { afterDamageTaken, cinderbloomCrit, expiredPendingByPrefix, firePendingHalfShields, firePendingItemDamage, fireReactiveItemEffects, grievousCutPct, incomingDamageReductionPct, itemDamageAmpPct } from './itemCombatHooks';
+import { participantAbilities } from './abilityRules';
+import CombatTargetPicker from './CombatTargetPicker';
+import {
+  abilityDamageTakenPct,
+  applyAbilityDamageTaken,
+  applyFlatDamageReduction,
+  blocksControlFrom,
+  combatEntryEffects,
+  combatStartSource,
+  incomingFlatDamageReduction,
+  isCaptured,
+  isControlEffectName,
+  isAllyOf,
+  ownedCombatTraits,
+  redirectDamageTargetId,
+  rollAbsorbAllyMagic,
+  releaseCaptives,
+  sourceBearerId,
+  surviveHitBonuses,
+  tauntSource,
+  toughAuraEffect,
+} from '../../data/combatTraits';
+import { newBonusId } from './combatBonuses';
 import { CHAMPIONS } from '../../data/champions';
 import {
   endCombatRemote,
@@ -124,6 +147,8 @@ export default function Combate() {
   const [effectValue, setEffectValue] = useState<Record<string, string>>({});
   const [customEffect, setCustomEffect] = useState<Record<string, string>>({});
   const [trackerBump, setTrackerBump] = useState(0);
+  type CombatStartPick = { bearerId: string; bearerName: string; abilityName: string; statusName: string; turns: number; count: number; source?: string; title?: string };
+  const [startPicks, setStartPicks] = useState<CombatStartPick[]>([]);
 
   const reload = useCallback(async () => {
     try {
@@ -184,6 +209,45 @@ export default function Combate() {
     if (!prev) return null;
     let amount = typeof amountIn === 'function' ? amountIn(prev.current) : amountIn;
     if (!(amount > 0)) return null;
+    const redirectId = redirectDamageTargetId(target, stateRef.current.participants, opts?.redirected === true);
+    if (redirectId !== targetId) {
+      const guard = stateRef.current.participants.find(entry => entry.id === redirectId);
+      logCombat({ title: `Custodia · ${target.name}`, actor: guard?.name ?? 'Guardián', lines: [`El daño a ${target.name} se redirige a ${guard?.name ?? redirectId}`] });
+      return damageTarget(redirectId, amount, { ...opts, redirected: true });
+    }
+    const absorbRolls = rollAbsorbAllyMagic({
+      target,
+      damageType: opts?.damageType,
+      alreadyRedirected: opts?.redirected === true,
+      participants: stateRef.current.participants.map(entry => {
+        const hp = participantHp(entry);
+        return { ...entry, abilities: abilitiesOf(entry), hp: hp ? { current: hp.current, max: hp.max ?? 0 } : { current: 0, max: 0 } };
+      }),
+    });
+    if (absorbRolls.length) {
+      const lines = absorbRolls.map(roll => `${roll.absorberName}: 1d100 = ${roll.roll} vs ${roll.chance} % → ${roll.success ? 'absorbe' : 'falla'}`);
+      const success = absorbRolls.find(roll => roll.success);
+      if (success) {
+        const absorber = stateRef.current.participants.find(entry => entry.id === success.absorberId);
+        const ctx = absorber ? participantContext(absorber, partyLevel()) : null;
+        const mr = ctx?.ctx.stats.mr;
+        const mrNum = typeof mr === 'number' && Number.isFinite(mr) ? mr : Number(mr);
+        const mrText = Number.isFinite(mrNum) ? ` (RM actual ${String(mrNum).replace('.', ',')})` : '';
+        logCombat({ title: `${success.traitName} · ${target.name}`, actor: success.absorberName, lines: [...lines, `El daño mágico a ${target.name} se redirige a ${success.absorberName}${mrText}`] });
+        return damageTarget(success.absorberId, amount, { ...opts, redirected: true });
+      }
+      logCombat({ title: `Absorción arcana · ${target.name}`, actor: target.name, lines });
+    }
+    if (opts?.fromAbility) {
+      const abilities = abilitiesOf(target);
+      const pct = abilityDamageTakenPct(abilities);
+      const reduced = applyAbilityDamageTaken(amount, pct);
+      if (reduced !== amount) {
+        logCombat({ title: `Petricita · ${target.name}`, actor: target.name, lines: [pct <= 0 ? `Inmune al daño de habilidades: ${amount} → 0` : `Daño de habilidad al ${pct}%: ${amount} → ${reduced}`] });
+        amount = reduced;
+      }
+      if (!(amount > 0)) return null;
+    }
     if (opts?.fromAutoAttack) {
       const cut = incomingDamageReductionPct(target, effectData, 'aa');
       if (cut) {
@@ -194,6 +258,18 @@ export default function Combate() {
         }
         if (!(amount > 0)) return null;
       }
+    }
+    const flat = incomingFlatDamageReduction(
+      target,
+      stateRef.current.participants.map(entry => ({ ...entry, abilities: abilitiesOf(entry) })),
+    );
+    if (flat.amount > 0) {
+      const reduced = applyFlatDamageReduction(amount, flat.amount);
+      if (reduced !== amount) {
+        logCombat({ title: `Duro · ${target.name}`, actor: target.name, lines: [`−${flat.amount} de daño por golpe (${flat.labels.join(', ')}): ${amount} → ${reduced}`] });
+        amount = reduced;
+      }
+      if (!(amount > 0)) return null;
     }
     const attacker = opts?.attackerId ? stateRef.current.participants.find(p => p.id === opts.attackerId) : undefined;
     if (opts?.critical && attacker && (opts.damageType === 'magic' || opts.damageType === 'true')) {
@@ -257,6 +333,27 @@ export default function Combate() {
       } finally {
         reactingRef.current = false;
       }
+    }
+    if (result.after > 0 && result.before > result.after) {
+      const survived = surviveHitBonuses({
+        targetId,
+        targetName: target.name,
+        participants: stateRef.current.participants.map(entry => ({ ...entry, abilities: abilitiesOf(entry) })),
+        existing: stateRef.current.participants.find(entry => entry.id === targetId)?.bonuses,
+        newId: newBonusId,
+      });
+      if (survived) {
+        const saved = await saveCombatBonuses(targetId, survived.bonuses);
+        stateRef.current = saved;
+        setState(saved);
+        logCombat({ title: `Resiste · ${target.name}`, actor: target.name, lines: survived.log });
+      }
+    }
+    if (result.before > 0 && result.after <= 0) {
+      const nextList = applyDeathConsequences(stateRef.current.participants, targetId).map(entry => (
+        entry.id === targetId ? { ...entry, defeated: true } : entry
+      ));
+      await persist(syncOrder(nextList, stateRef.current.participants[stateRef.current.turnIndex]?.id));
     }
     return result;
   };
@@ -360,6 +457,28 @@ export default function Combate() {
     const ids = new Set(Array.isArray(targetIds) ? targetIds : [targetIds]);
     const base = stateRef.current.participants;
     if (!base.some(entry => ids.has(entry.id))) return;
+    const applierId = sourceBearerId(input.source);
+    const applier = applierId ? base.find(entry => entry.id === applierId) : undefined;
+    const blocked: string[] = [];
+    if (isControlEffectName(input.name) && applier) {
+      for (const id of ids) {
+        const who = base.find(entry => entry.id === id);
+        if (!who) continue;
+        const targetHp = participantHp(who);
+        const applierHp = participantHp(applier);
+        if (blocksControlFrom(
+          { id: who.id, abilities: abilitiesOf(who), hp: targetHp ? { current: targetHp.current } : undefined },
+          { id: applier.id, hp: applierHp ? { current: applierHp.current } : undefined },
+        )) {
+          ids.delete(id);
+          blocked.push(who.name);
+        }
+      }
+    }
+    if (blocked.length) {
+      logCombat({ title: 'Inexpugnable', lines: [`${blocked.join(', ')} ignora «${input.name}» de ${applier?.name ?? 'un enemigo más débil'}`] });
+    }
+    if (!base.some(entry => ids.has(entry.id))) return;
     const participants = base.map(entry => (ids.has(entry.id) ? applySourcedEffect(entry, input) : entry));
     return persist(syncOrder(participants, stateRef.current.participants[stateRef.current.turnIndex]?.id));
   };
@@ -452,6 +571,49 @@ export default function Combate() {
       }
     }
 
+    const wasActive = stateRef.current.active;
+    const previousIds = new Set(state.participants.map(entry => entry.id));
+    const newcomers = nextList.filter(entry => !previousIds.has(entry.id));
+    if (wasActive && newcomers.length) {
+      const joinPicks: CombatStartPick[] = [];
+      const entryLogs: string[] = [];
+      for (const newbie of newcomers) {
+        for (const { name, traits } of ownedCombatTraits(abilitiesOf(newbie))) {
+          if (!traits.combatEntry) continue;
+          const applied = combatEntryEffects({ bearerId: newbie.id, bearerName: newbie.name, traitsName: name, entry: traits.combatEntry, participants: nextList });
+          for (const id of applied.targetIds) {
+            const idx = nextList.findIndex(entry => entry.id === id);
+            if (idx < 0) continue;
+            nextList[idx] = { ...nextList[idx], effects: [...(nextList[idx].effects ?? []), { ...applied.effect, id: newId() }] };
+          }
+          entryLogs.push(applied.log);
+        }
+      }
+      for (const bearer of state.participants) {
+        if (bearer.defeated) continue;
+        for (const { name, traits } of ownedCombatTraits(abilitiesOf(bearer))) {
+          const join = traits.onAllyJoin;
+          if (!join) continue;
+          const allied = newcomers.some(entry => isAllyOf(entry, bearer) || entry.id === bearer.id);
+          if (!allied) continue;
+          const statusName = join.challenge ? (join.statusName ?? 'Desafío') : (join.statusName ?? name);
+          const turns = join.turns ?? 99;
+          joinPicks.push({
+            bearerId: bearer.id,
+            bearerName: bearer.name,
+            abilityName: name,
+            statusName,
+            turns,
+            count: 1,
+            source: join.challenge ? tauntSource(bearer.id) : undefined,
+            title: `Aliado entra · ${bearer.name}`,
+          });
+        }
+      }
+      if (entryLogs.length) logCombat({ title: 'Entra en combate', lines: entryLogs });
+      void persist(syncOrder(nextList)).then(() => { if (joinPicks.length) setStartPicks(current => [...current, ...joinPicks]); });
+      return;
+    }
     void persist(syncOrder(nextList));
   };
 
@@ -496,14 +658,72 @@ export default function Combate() {
     setTrackerBump(n => n + 1);
   };
 
+
+  const abilitiesOf = (entry: CombatParticipant) => participantAbilities(entry, partyLevel()).map(owned => ({ name: owned.name, mechanics: owned.ability.mechanics }));
+
+  const applyDeathConsequences = (list: CombatParticipant[], deadId: string): CombatParticipant[] => {
+    const dead = list.find(entry => entry.id === deadId);
+    if (!dead) return list;
+    const notices: string[] = [];
+    for (const { name, traits } of ownedCombatTraits(abilitiesOf(dead))) {
+      if (traits.deathNotice?.text) notices.push(`${dead.name} («${name}»): ${traits.deathNotice.text}`);
+    }
+    const released = releaseCaptives(deadId, list);
+    if (released.releasedIds.length) {
+      const names = released.releasedIds.map(id => list.find(entry => entry.id === id)?.name ?? id);
+      notices.push(`${dead.name} cae: se liberan ${names.join(', ')}`);
+    }
+    if (notices.length) logCombat({ title: `Muerte · ${dead.name}`, actor: dead.name, lines: notices });
+    return released.participants;
+  };
+
   const startCombat = () => {
     // Cargas de combate (Flujo de maná…): cada combate empieza con las de inicio (sin marcador).
     const sorted = sortByInitiative(state.participants).map(p => withSheet(withoutCharges(p), npcs));
     if (sorted.length === 0) return;
     const first = tickCombatTrackers(tickEffectsFor(sorted[0]));
-    const participants = sorted.map((p, i) => (i === 0 ? first : p));
+    let participants = sorted.map((p, i) => (i === 0 ? first : p));
+    const picks: CombatStartPick[] = [];
+    const entryLogs: string[] = [];
+    for (const bearer of participants) {
+      for (const { name, traits } of ownedCombatTraits(abilitiesOf(bearer))) {
+        if (traits.combatEntry) {
+          const applied = combatEntryEffects({ bearerId: bearer.id, bearerName: bearer.name, traitsName: name, entry: traits.combatEntry, participants });
+          participants = participants.map(entry => applied.targetIds.includes(entry.id)
+            ? applySourcedEffect(entry, { source: applied.effect.source ?? `entry:${bearer.id}`, name: applied.effect.name, duration: applied.effect.duration })
+            : entry);
+          entryLogs.push(applied.log);
+        }
+        if (traits.tough) {
+          const fx = toughAuraEffect(traits.tough.name ?? 'Duro', traits.tough.flat, bearer.id, name);
+          const ids = traits.tough.auraAllies
+            ? participants.filter(entry => !entry.defeated && (entry.id === bearer.id || entry.kind === bearer.kind || (entry.kind !== 'player' && bearer.kind !== 'player') || (entry.kind === 'player' && bearer.kind === 'player'))).map(entry => entry.id)
+            : [bearer.id];
+          // allies: same combat side (players vs dm)
+          const allyIds = traits.tough.auraAllies
+            ? participants.filter(entry => !entry.defeated && ((entry.kind === 'player') === (bearer.kind === 'player'))).map(entry => entry.id)
+            : [bearer.id];
+          void ids;
+          participants = participants.map(entry => allyIds.includes(entry.id)
+            ? applySourcedEffect(entry, { source: fx.source ?? `tough:${bearer.id}:${name}`, name: fx.name, duration: fx.duration, ...(fx.value ? { value: fx.value } : {}) })
+            : entry);
+          entryLogs.push(`${bearer.name}: «${fx.name}» −${traits.tough.flat} de daño por golpe${traits.tough.auraAllies ? ' (él y sus aliados)' : ''}`);
+        }
+        if (traits.combatStart) {
+          picks.push({
+            bearerId: bearer.id,
+            bearerName: bearer.name,
+            abilityName: name,
+            statusName: traits.combatStart.statusName,
+            turns: traits.combatStart.turns,
+            count: traits.combatStart.count ?? 1,
+          });
+        }
+      }
+    }
+    if (entryLogs.length) logCombat({ title: 'Inicio de combate', lines: entryLogs });
     tickPlayerTrackers(sorted[0]);
-    void persist({ active: true, round: 1, turnIndex: 0, participants });
+    void persist({ active: true, round: 1, turnIndex: 0, participants }).then(() => setStartPicks(picks));
   };
 
   const endCombat = () => {
@@ -743,7 +963,17 @@ export default function Combate() {
           onClose={() => setSelectedId(null)}
           onInitiative={value => updateOne(p.id, { initiative: value })}
           onRollInitiative={() => updateOne(p.id, { initiative: rollInitiative(p.initiativeBonus ?? 0) })}
-          onToggleDefeated={() => updateOne(p.id, { defeated: !p.defeated })}
+          onToggleDefeated={() => {
+            const nextDefeated = !p.defeated;
+            if (nextDefeated) {
+              const nextList = applyDeathConsequences(stateRef.current.participants, p.id).map(entry => (
+                entry.id === p.id ? { ...entry, defeated: true } : entry
+              ));
+              void persist(syncOrder(nextList, current?.id));
+            } else {
+              void updateOne(p.id, { defeated: false });
+            }
+          }}
           onRemove={() => removeOne(p.id)}
           onAddEffect={() => addEffect(p.id)}
           onRemoveEffect={effectId => {
@@ -807,6 +1037,31 @@ export default function Combate() {
 
       {error && <p className="combat-page__error">{error}</p>}
       {loading && <p className="combat-page__hint">Cargando…</p>}
+      {isAdmin && startPicks.length > 0 && (() => {
+        const pick = startPicks[0];
+        const bearer = state.participants.find(entry => entry.id === pick.bearerId);
+        const candidates = state.participants.filter(entry => entry.id !== pick.bearerId && !entry.defeated && !isCaptured(entry) && ((entry.kind === 'player') !== (bearer?.kind === 'player')));
+        return (
+          <CombatTargetPicker
+            title={`${pick.bearerName}: «${pick.abilityName}» al empezar — ${pick.statusName} ${pick.turns} t.`}
+            targets={candidates}
+            maxTargets={pick.count}
+            confirmLabel="Aplicar"
+            onConfirm={ids => {
+              const currentPick = startPicks[0];
+              if (!currentPick) return;
+              const idsSet = new Set(ids);
+              const participants = stateRef.current.participants.map(entry => idsSet.has(entry.id)
+                ? applySourcedEffect(entry, { source: currentPick.source ?? combatStartSource(currentPick.bearerId, currentPick.abilityName), name: currentPick.statusName, duration: currentPick.turns })
+                : entry);
+              logCombat({ title: `Inicio · ${currentPick.bearerName}`, actor: currentPick.bearerName, lines: [`${currentPick.statusName} ${currentPick.turns} t. a ${ids.map(id => stateRef.current.participants.find(entry => entry.id === id)?.name ?? id).join(', ')}`] });
+              void persist(syncOrder(participants, current?.id));
+              setStartPicks(current => current.slice(1));
+            }}
+            onSkip={() => setStartPicks(current => current.slice(1))}
+          />
+        );
+      })()}
 
       {state.active ? (
         <div className="combat-stage">
