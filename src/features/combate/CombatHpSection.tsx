@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { CombatParticipant } from '../../data/combat';
 import type { ParticipantHp } from './combatHp';
+import CombatManualDamage from './CombatManualDamage';
 
 type Props = {
   participant: CombatParticipant;
@@ -8,10 +9,12 @@ type Props = {
   canSee: boolean;
   saving: boolean;
   onSave: (current: number, max?: number) => Promise<void>;
+  /** Quien no ve la vida (players con enemigos): apuntar el daño hecho. */
+  onManualDamage?: (amount: number) => Promise<unknown>;
 };
 
 /** Vida en el panel lateral: el admin la de todos; los players, la de los personajes jugador. */
-export default function CombatHpSection({ participant, hp, canSee, saving, onSave }: Props) {
+export default function CombatHpSection({ participant, hp, canSee, saving, onSave, onManualDamage }: Props) {
   const [draft, setDraft] = useState('');
   const [maxDraft, setMaxDraft] = useState('');
   const [busy, setBusy] = useState(false);
@@ -27,7 +30,7 @@ export default function CombatHpSection({ participant, hp, canSee, saving, onSav
     return (
       <div className="combat-panel__section">
         <h3 className="combat-panel__label">Vida</h3>
-        <p className="combat-page__hint">Vida ?</p>
+        {onManualDamage ? <CombatManualDamage participant={participant} onDamage={onManualDamage} /> : <p className="combat-page__hint">Vida ?</p>}
       </div>
     );
   }

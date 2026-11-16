@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react';
+import { useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from 'react';
 import { findItem } from '../../data/items';
 import { partyLevel, subscribeParty } from '../../data/party';
 import { cx } from '../../lib/cx';
@@ -36,7 +36,15 @@ type Props = {
   roleTableOpen?: boolean;
   /** Si true (fichas de players sin la quest de top), los niveles 19 y 20 salen oscurecidos con candado. */
   lockFutureLevels?: boolean;
+  /** Si false, la tabla de rol sale fija en la clase del personaje (sin selector). */
+  canPickRole?: boolean;
+  /** Si true, la fila de estadísticas adicionales sale siempre, con un lápiz para editarla. */
+  canEditExtra?: boolean;
+  /** Editor de estadísticas adicionales; se muestra debajo de la tabla al pulsar el lápiz. */
+  renderExtraEditor?: (close: () => void) => ReactNode;
 };
+
+const EXTRA_LABEL = 'Estad\u00edsticas adicionales';
 
 type SheetRow = {
   key: string;
@@ -48,6 +56,8 @@ type SheetRow = {
   active?: string;
   /** Nivel aún no alcanzado: fila oscurecida bajo el candado. */
   locked?: boolean;
+  /** Botón a la derecha de la etiqueta (p. ej. editar). */
+  action?: ReactNode;
 };
 
 /** Niveles bloqueados por quests en fichas de players (19 y 20). */
@@ -181,6 +191,7 @@ const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: bo
                     {row.label}
                   </button>
                 ) : row.label}
+                {row.action}
               </th>
               <StatCells line={row.line} roundDefenses={row.tone === 'total'} />
               {effects && (
@@ -220,8 +231,11 @@ const RoleTablePanel = ({
   level,
   defaultOpen = false,
   lockLevel,
+  canPick = true,
 }: {
   roleId: string;
+  /** Si false, sin selector: sale la tabla de la clase del personaje. */
+  canPick?: boolean;
   level?: number;
   defaultOpen?: boolean;
   /** Niveles por encima de este salen bloqueados (candado). */
@@ -243,16 +257,20 @@ const RoleTablePanel = ({
           <span className="calc-role__chevron" aria-hidden="true">{open ? '▾' : '▸'}</span>
           Tabla de rol
         </button>
-        <select
-          className="calc-select-dmg"
-          aria-label="Rol"
-          value={role.id}
-          onChange={event => setSelectedId(event.target.value)}
-        >
-          {ROLE_TABLES.map(option => (
-            <option key={option.id} value={option.id}>{option.name}</option>
-          ))}
-        </select>
+        {canPick ? (
+          <select
+            className="calc-select-dmg"
+            aria-label="Rol"
+            value={role.id}
+            onChange={event => setSelectedId(event.target.value)}
+          >
+            {ROLE_TABLES.map(option => (
+              <option key={option.id} value={option.id}>{option.name}</option>
+            ))}
+          </select>
+        ) : (
+          <span className="sheet-panel__meta">{role.name}</span>
+        )}
       </div>
       {open && (
         <SheetGrid
@@ -281,8 +299,13 @@ const StatsTable = ({
   level: levelOverride,
   roleTableOpen = false,
   lockFutureLevels = false,
+  canPickRole = true,
+  canEditExtra = false,
+  renderExtraEditor,
 }: Props) => {
   const [open, setOpen] = useState(defaultOpen);
+  const [editingExtra, setEditingExtra] = useState(false);
+  const extraEditable = canEditExtra && Boolean(renderExtraEditor);
   const partyLevelNow = useSyncExternalStore(subscribeParty, partyLevel);
   const level = sheet ? (levelOverride ?? partyLevelNow) : undefined;
   const base = sheet ? sheetBase(sheet, level) : undefined;
@@ -314,8 +337,26 @@ const StatsTable = ({
     { key: 'total', label: 'Total', line: total, tone: 'total' },
     ...(base ? [{ key: 'base', label: `Base nv. ${level}`, line: base, tone: 'base' as const }] : []),
     ...itemRows,
-    ...(extra
-      ? [{ key: 'extra', label: 'Extra', line: extra, tone: 'extra' as const, passive: '-', active: '-' }]
+    ...(extra || extraEditable
+      ? [{
+          key: 'extra',
+          label: EXTRA_LABEL,
+          line: extra ?? null,
+          tone: 'extra' as const,
+          passive: '-',
+          active: '-',
+          action: extraEditable && !editingExtra ? (
+            <button
+              type="button"
+              className="sheet-hp__icon-btn calc-sheet__row-edit"
+              onClick={() => setEditingExtra(true)}
+              aria-label={'Editar ' + EXTRA_LABEL.toLowerCase()}
+              title={'Editar ' + EXTRA_LABEL.toLowerCase()}
+            >
+              {'\u270E'}
+            </button>
+          ) : undefined,
+        }]
       : []),
   ];
 
@@ -339,6 +380,7 @@ const StatsTable = ({
               <p className="calc-build-empty calc-role__note">Sin ficha de base. El total solo suma el equipamiento.</p>
             )}
             <SheetGrid rows={rows} effects />
+            {editingExtra && renderExtraEditor?.(() => setEditingExtra(false))}
             {sheet?.scores && (
               <div className="calc-scores calc-scores--sheet">
                 {ABILITY_SCORES.map(({ key, label }) => {
@@ -356,6 +398,7 @@ const StatsTable = ({
         roleId={sheet?.roleId ?? ROLE_TABLES[0].id}
         level={level}
         defaultOpen={roleTableOpen}
+        canPick={canPickRole}
         lockLevel={lockFutureLevels ? QUEST_LOCK_FROM - 1 : undefined}
       />
     </>

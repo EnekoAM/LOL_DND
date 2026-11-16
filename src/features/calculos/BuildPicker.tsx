@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import Modal from '../../components/Modal';
 import ThumbImg from '../../components/ThumbImg';
-import { ITEMS } from '../../data/items';
+import { ITEMS, type Item } from '../../data/items';
 import { itemAvailability } from '../items/stock';
 import { matchesSearch, normalizeName } from '../../lib/text';
 import ItemCompareModal from './ItemCompareModal';
@@ -22,6 +22,8 @@ type Props = {
   allowSelection?: boolean;
   /** Ítem actualmente equipado en el hueco (activa la lupa de comparación). */
   compareWith?: string;
+  /** Solo los ítems que cumplan esto (p. ej. solo botas en su hueco). */
+  filter?: (item: Item) => boolean;
 };
 
 const BuildPicker = ({
@@ -36,12 +38,13 @@ const BuildPicker = ({
   description,
   allowSelection = true,
   compareWith,
+  filter,
 }: Props) => {
   const [search, setSearch] = useState('');
   const [compareName, setCompareName] = useState<string | null>(null);
   const takenKeys = useMemo(() => new Set((taken ?? []).map(normalizeName)), [taken]);
   const results = ITEMS
-    .filter(item => (!onlyAvailable || itemAvailability(item).available > 0) && matchesSearch(item.nombre, search))
+    .filter(item => (!filter || filter(item)) && (!onlyAvailable || itemAvailability(item).available > 0) && matchesSearch(item.nombre, search))
     .slice()
     .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 

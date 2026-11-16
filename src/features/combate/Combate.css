@@ -1655,3 +1655,16 @@
 }
 .combat-crit-toggle input { accent-color: #ef4444; }
 .use-chip--error { border-color: #ef4444; background: rgba(239, 68, 68, 0.15); color: #fecaca; }
+
+/* Nombre de la habilidad en la lista compacta: clic = ver descripción. */
+.combat-panel__tracker-name--info {
+  cursor: pointer;
+  text-decoration: underline dotted rgba(201, 162, 39, 0.5);
+  text-underline-offset: 2px;
+}
+
+.combat-panel__tracker-name--info:hover,
+.combat-panel__tracker-name--info:focus-visible {
+  color: #f0e6d2;
+  text-decoration-color: #c9a227;
+}

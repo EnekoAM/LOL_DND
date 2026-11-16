@@ -161,23 +161,21 @@ export const RUINA_EFFECTS: RuinaControlEffect[] = [
   },
 ];
 
-export type RuinaControlResult =
-  | { kind: 'control'; d20: number; contador: number }
-  | { kind: 'lose'; d20: number; contador: number; effectRoll: number; effect: RuinaControlEffect };
+export type RuinaControlResult = { kind: 'control' | 'lose'; d20: number; contador: number };
 
 export function rollDie(sides: number, rng: () => number = Math.random): number {
   return 1 + Math.floor(rng() * sides);
 }
 
-/** Tirada de control de la Ruina: 1d20; si ≤ contador, pierde el control y se tira 1d4 de efecto. */
+/** Tirada de control de la Ruina: 1d20; si es ≤ contador, pierde el control (el efecto se tira aparte). */
 export function resolveRuinaControl(contador: number, rng: () => number = Math.random): RuinaControlResult {
   const level = clampIntSoft(contador, RUINA_MIN, RUINA_MAX);
   const d20 = rollDie(20, rng);
-  if (d20 > level) return { kind: 'control', d20, contador: level };
-  const effectRoll = rollDie(4, rng) as 1 | 2 | 3 | 4;
-  const effect = RUINA_EFFECTS.find(entry => entry.roll === effectRoll) ?? RUINA_EFFECTS[0];
-  return { kind: 'lose', d20, contador: level, effectRoll, effect };
+  return { kind: d20 > level ? 'control' : 'lose', d20, contador: level };
 }
+
+/** Efecto de pérdida de control (1d4), tirado aparte con la ruleta: devuelve el índice en RUINA_EFFECTS. */
+export const rollRuinaEffect = (rng: () => number = Math.random): number => rollDie(RUINA_EFFECTS.length, rng) - 1;
 
 export const mechanicLabels: Record<PlayerMechanic['type'], string> = {
   ruina: 'Marca de la Ruina',

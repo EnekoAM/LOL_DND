@@ -10,6 +10,8 @@ import { participantContext } from './effectRules';
 import { afterDamageTaken, cinderbloomCrit, expiredPendingByPrefix, firePendingHalfShields, firePendingItemDamage, fireReactiveItemEffects, grievousCutPct, incomingDamageReductionPct, itemDamageAmpPct } from './itemCombatHooks';
 import { participantAbilities } from './abilityRules';
 import CombatTargetPicker from './CombatTargetPicker';
+import CombatHitCheck from './CombatHitCheck';
+import CombatNotes from './CombatNotes';
 import {
   abilityDamageTakenPct,
   applyAbilityDamageTaken,
@@ -131,6 +133,11 @@ export default function Combate() {
   const stateRef = useRef<CombatState>(state);
   stateRef.current = state;
   const savingRef = useRef(false);
+  // Player (no admin) que está en el combate: usa sus habilidades / objetos sobre los demás (el server limita qué puede cambiar).
+  const myParticipantId = !isAdmin && myPlayer
+    ? state.participants.find(p => p.kind === 'player' && (p.sourceId ?? p.name).trim().toLocaleLowerCase('es') === myPlayer.trim().toLocaleLowerCase('es'))?.id ?? null
+    : null;
+  const canAct = isAdmin || !!myParticipantId;
   const [error, setError] = useState<string | null>(null);
   const [npcs, setNpcs] = useState<Npc[]>([]);
 
@@ -149,6 +156,9 @@ export default function Combate() {
   const [trackerBump, setTrackerBump] = useState(0);
   type CombatStartPick = { bearerId: string; bearerName: string; abilityName: string; statusName: string; turns: number; count: number; source?: string; title?: string };
   const [startPicks, setStartPicks] = useState<CombatStartPick[]>([]);
+  /** Calculadora de tiradas del GM (¿entra o no?). */
+  const [showHitCheck, setShowHitCheck] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
   const reload = useCallback(async () => {
     try {
@@ -181,7 +191,7 @@ export default function Combate() {
   );
 
   const persist = async (next: CombatState) => {
-    if (!isAdmin || savingRef.current) return;
+    if (!canAct || savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
     setError(null);
@@ -306,7 +316,7 @@ export default function Combate() {
       absorbed: (prev.shield - next.escudo) + (prev.tempHp - next.vidaTemporal),
       undo: () => save(prev.current, prev.tempHp, prev.shield),
     };
-    if (isAdmin && !reactingRef.current) {
+    if (canAct && !reactingRef.current) {
       reactingRef.current = true;
       try {
         const fresh = stateRef.current.participants.find(p => p.id === targetId);
@@ -927,10 +937,16 @@ export default function Combate() {
             setState(result.combat);
             setTrackerBump(n => n + 1);
           }}
-          onTargetDamage={isAdmin ? damageTarget : undefined}
-          onTargetBonuses={isAdmin ? targetBonuses : undefined}
-          onPoolChange={isAdmin ? (kind, amount) => poolChange(p.id, kind, amount) : undefined}
-          onTargetPool={isAdmin ? (targetId, kind, amount) => poolChange(targetId, kind, amount) : undefined}
+          onTargetDamage={isAdmin || p.id === myParticipantId ? damageTarget : undefined}
+          onTargetBonuses={isAdmin || p.id === myParticipantId ? targetBonuses : undefined}
+          onPoolChange={isAdmin || p.id === myParticipantId ? (kind, amount) => poolChange(p.id, kind, amount) : undefined}
+          onTargetPool={isAdmin || p.id === myParticipantId ? (targetId, kind, amount) => poolChange(targetId, kind, amount) : undefined}
+          onManualDamage={canAct ? async amount => {
+            // Daño apuntado a mano (players: enemigos con «Vida ?»): mismo camino que las habilidades.
+            const result = await damageTarget(p.id, amount);
+            logCombat({ title: `Daño a mano · ${p.name}`, actor: isAdmin ? 'Admin' : (myPlayer ?? 'Player'), lines: [`${amount} de daño a ${p.name}${result ? '' : ' (sin efecto)'}`] });
+            return result;
+          } : undefined}
           vigorPerMove={state.vigorPerMove}
           onVigorPerMoveChange={isAdmin ? rate => persist({ ...stateRef.current, vigorPerMove: rate }) : undefined}
           onBonusesSave={async bonuses => {
@@ -1020,6 +1036,14 @@ export default function Combate() {
             {state.active ? `Ronda ${state.round}` : 'Preparación'}
             {state.active && current ? ` · ${current.name}` : ''}
           </span>
+          {isAdmin && (
+            <button type="button" className={cx('combat-btn', showHitCheck && 'combat-btn--gold')} title="Calcular si entra un ataque o habilidad" onClick={() => setShowHitCheck(on => !on)}>
+              🎯 Tiradas
+            </button>
+          )}
+          <button type="button" className={cx('combat-btn', showNotes && 'combat-btn--gold')} title="Notas públicas del combate (toda la party)" onClick={() => setShowNotes(on => !on)}>
+            📝 Notas
+          </button>
           {isAdmin && !state.active && (
             <button type="button" className="combat-btn combat-btn--gold" disabled={saving || ordered.length === 0} onClick={startCombat}>
               Empezar
@@ -1037,6 +1061,10 @@ export default function Combate() {
 
       {error && <p className="combat-page__error">{error}</p>}
       {loading && <p className="combat-page__hint">Cargando…</p>}
+      {isAdmin && showHitCheck && (
+        <CombatHitCheck participants={state.participants} level={level} effectData={effectData} onClose={() => setShowHitCheck(false)} />
+      )}
+      {showNotes && <CombatNotes onClose={() => setShowNotes(false)} />}
       {isAdmin && startPicks.length > 0 && (() => {
         const pick = startPicks[0];
         const bearer = state.participants.find(entry => entry.id === pick.bearerId);

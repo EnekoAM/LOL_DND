@@ -24,6 +24,8 @@ type SpellCardProps = {
   note?: string;
   badge?: ReactNode;
   onOpen?: () => void;
+  /** Tooltip al pasar por encima cuando se puede abrir. */
+  openTitle?: string;
   ranks?: ReactNode;
   stacks?: ReactNode;
   cooldown?: ReactNode;
@@ -53,6 +55,7 @@ const SpellCard = ({
   note,
   badge,
   onOpen,
+  openTitle,
   ranks,
   stacks,
   cooldown,
@@ -74,7 +77,7 @@ const SpellCard = ({
       footerAction && 'spell--footer-action',
     )}
     onClick={onOpen}
-    title={onOpen ? 'Abrir habilidad / tirar daño' : undefined}
+    title={onOpen ? openTitle ?? 'Abrir habilidad / tirar daño' : undefined}
     role={onOpen ? 'button' : undefined}
     tabIndex={onOpen ? 0 : undefined}
     onKeyDown={event => {

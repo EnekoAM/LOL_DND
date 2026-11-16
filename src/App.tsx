@@ -49,7 +49,7 @@ type Screen = NavItem<ScreenId> & {
 };
 
 const SCREENS: Screen[] = [
-  { id: 'items',       label: 'Items',       icon: '⚔',  Component: Items, live: ['items', 'players'] },
+  { id: 'items',       label: 'Items',       icon: '📦', Component: Items, live: ['items', 'players'] },
   { id: 'tienda',      label: 'Tienda',      icon: '⚖',  Component: Tienda, live: ['items', 'players'] },
   { id: 'players',     label: 'Players',     icon: '👤', Component: Players, live: ['players', 'items', 'champions', 'roles', 'augments', 'relations', 'npcs'] },
   { id: 'champions',   label: 'Campeones',   icon: '✦',  Component: Calculos, live: ['champions', 'items', 'players', 'roles', 'relations', 'npcs'] },

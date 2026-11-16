@@ -34,7 +34,7 @@ type Props = {
 
 const listText = (values: number[] | undefined): string => (values ?? []).join(' / ');
 
-const AbilityView = ({ ability: fullAbility, championResource, onEdit, canEdit }: { ability: Ability | null; championResource?: ResourceId; onEdit: () => void; canEdit: boolean }) => {
+export const AbilityView = ({ ability: fullAbility, championResource, onEdit, canEdit }: { ability: Ability | null; championResource?: ResourceId; onEdit: () => void; canEdit: boolean }) => {
   const [phase, setPhase] = useState(0);
   const phased = hasVariants(fullAbility);
   const ability = fullAbility ? abilityPhase(fullAbility, phase) : null;

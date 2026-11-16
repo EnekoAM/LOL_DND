@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import SpellCard, { SPELL_TYPE_LABEL, type SpellTone } from './SpellCard';
 import ResourceChip from '../../components/ResourceChip';
+import AbilityCost from '../../components/AbilityCost';
+import { parseAbilityCost } from '../combate/combatAbilityUse';
 import { resolveAbilityResource } from '../../data/resources';
 import StackCounter from './StackCounter';
 import CooldownControl from './CooldownControl';
@@ -211,7 +213,17 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                 note={note}
                 badge={(() => {
                   const resolved = resolveAbilityResource(ability ?? undefined, ref?.championResource ? { resource: ref.championResource } : undefined);
-                  return resolved ? <ResourceChip resource={resolved.id} inherited={resolved.inherited} /> : undefined;
+                  // Coste al lado del recurso (como en Combate): el del rango actual si es una lista 10/20/30.
+                  const rawCost = ability?.cost?.trim();
+                  const rankCost = rawCost ? parseAbilityCost(rawCost, rank) : null;
+                  const costText = rankCost !== null && rankCost > 0 ? `Coste ${rankCost}` : rawCost ? `Coste ${rawCost}` : '';
+                  if (!resolved && !costText) return undefined;
+                  return (
+                    <span className="spell__badge-row">
+                      {resolved && <ResourceChip resource={resolved.id} inherited={resolved.inherited} />}
+                      {costText && <AbilityCost text={costText} resource={resolved?.id} />}
+                    </span>
+                  );
                 })()}
                 onOpen={ability && (ability.damage || hasVariants(ability)) ? () => openAbility(ability, rank) : undefined}
                 phases={ability && hasVariants(ability) ? phaseLabels(ability) : undefined}

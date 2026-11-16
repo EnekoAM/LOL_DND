@@ -134,6 +134,16 @@ export const VIGOR_PER_MOVE_DEFAULT = 1;
 const OFFLINE = 'No se pudo contactar con la API. Arranca npm run dev:api';
 const ADMIN_JSON = { 'Content-Type': 'application/json', 'X-App-Role': 'admin' };
 
+/** Admin: rol admin. Resto: su rol + X-App-Player (el server da el combate completo y deja actuar a los players que están en él). */
+function combatHeaders(json: boolean): Record<string, string> {
+  if (readAppRole() === 'admin') return json ? { ...ADMIN_JSON } : { 'X-App-Role': 'admin' };
+  const out: Record<string, string> = { 'X-App-Role': readAppRole() ?? 'user' };
+  if (json) out['Content-Type'] = 'application/json';
+  const identity = readAppIdentity();
+  if (identity?.kind === 'player') out['X-App-Player'] = encodeURIComponent(identity.name);
+  return out;
+}
+
 function readError(body: unknown, fallback: string): string {
   if (body && typeof body === 'object' && 'error' in body && typeof (body as { error: unknown }).error === 'string') {
     return (body as { error: string }).error;
@@ -159,7 +169,7 @@ function normalize(raw: unknown): CombatState {
 export async function loadCombat(): Promise<CombatState> {
   let response: Response;
   try {
-    response = await fetch('/api/combat', { headers: readAppRole() === 'admin' ? { 'X-App-Role': 'admin' } : {} });
+    response = await fetch('/api/combat', { headers: combatHeaders(false) });
   } catch {
     throw new Error(OFFLINE);
   }
@@ -173,7 +183,7 @@ export async function saveCombat(state: CombatState): Promise<CombatState> {
   try {
     response = await fetch('/api/combat', {
       method: 'PUT',
-      headers: ADMIN_JSON,
+      headers: combatHeaders(true),
       body: JSON.stringify({
         active: state.active,
         round: state.round,

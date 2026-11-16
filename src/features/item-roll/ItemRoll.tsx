@@ -150,7 +150,7 @@ const ItemRoll = () => {
           </div>
           {!canEdit && (
             <p className="irs-readonly">
-              Spawn gasta token de spawn; si sale sí, ganas un token de roll. El roll gasta ese token. El admin tira siempre.
+              Spawn gasta token de spawn; si sale sí, ganas un token de roll. El roll gasta ese token.
             </p>
           )}
           {canEdit && (

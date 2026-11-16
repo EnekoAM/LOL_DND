@@ -133,7 +133,7 @@
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 2px;
-  color: rgba(212,196,154,0.55);
+  color: rgba(212,196,154,0.72);
   text-decoration: none;
   font-family: 'Cinzel', serif;
   font-size: 12px;
@@ -242,7 +242,7 @@
   height: 44px;
   padding: 0 22px;
   cursor: pointer;
-  color: var(--ink-dim);
+  color: var(--gold-bright);
   background: transparent;
   border: none;
   text-align: left;
@@ -256,14 +256,36 @@
   background: rgba(201,168,76,0.06);
 }
 
+/* Nombre del personaje / Invitado / Admin: igual de legible que el «LoL · D&D» de arriba. */
+.side-nav__role .side-nav__label {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--gold-bright);
+  text-shadow: 0 0 10px rgba(201,168,76,0.3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .side-nav__role-hint {
   display: block;
   margin-top: 1px;
   font-family: 'Crimson Text', Georgia, serif;
   font-size: 11px;
+  font-weight: 400;
   letter-spacing: 0.4px;
-  color: var(--ink-ghost);
+  color: var(--ink);
+  text-shadow: none;
+  text-decoration: underline dotted rgba(212,196,154,0.6);
+  text-underline-offset: 2px;
   text-transform: lowercase;
+  transition: color 0.15s ease;
+}
+
+.side-nav__role:hover .side-nav__role-hint {
+  color: var(--gold-bright);
+  text-decoration: underline solid var(--gold-bright);
 }
 
 .side-nav:not(.side-nav--expanded):not(.side-nav--open) .side-nav__role .side-nav__label,

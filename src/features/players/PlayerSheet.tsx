@@ -41,13 +41,13 @@ import RestPanel from './RestPanel';
 import PlayerSwitcher from './PlayerSwitcher';
 import SheetAbilities from './SheetAbilities';
 import ReorderableItem from './ReorderableItem';
-import StackCounter from './StackCounter';
 import { itemStackKey, readStack } from '../../data/stacks';
 import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
 import { itemHasPermanentStacks, permanentStackEntries } from '../../data/permanentStacks';
 import { equippedItems } from '../combate/combatBonuses';
 import PermanentStacks from './PermanentStacks';
-import { equipmentAccess } from './equipmentAccess';
+import { MAIN_EQUIPMENT_SLOTS, botQuestDone, equipmentLayout, isBootsItem, isBootsName } from './equipmentSlots';
+import { EQUIPMENT_SLOTS } from '../../data/players';
 import { canReplaceEquipment, isCurrentEquipmentTarget, replaceEquipment, type EquipmentSwapTarget } from './equipmentSwap';
 import { moveItem, type ItemDragState } from './itemOrder';
 import SheetEditor from './SheetEditor';
@@ -360,7 +360,28 @@ const PlayerSheet = ({
   const columnsByKey = Object.fromEntries(STAT_COLUMNS.map(column => [column.key, column]));
 
   const removeAt = (items: string[], index: number) => items.filter((_, itemIndex) => itemIndex !== index);
-  const { unlocked: botUnlocked, limit: equipmentLimit, slotsLeft, grandfathered } = equipmentAccess(player);
+  const botUnlocked = botQuestDone(player.quests);
+  const equipLayout = equipmentLayout(player.equipamiento, botUnlocked ? MAIN_EQUIPMENT_SLOTS : MAIN_EQUIPMENT_SLOTS - 1);
+  const equipmentLimit = EQUIPMENT_SLOTS;
+  /** No se puede cambiar un principal que está por encima del límite (6º sin misión de bot). */
+  const canSwapAt = (index: number) => canReplaceEquipment(player.equipamiento, index, equipmentLimit)
+    && equipLayout.main.indexOf(index) < equipLayout.mainCap;
+  const slotsLeft = equipLayout.mainLeft + (equipLayout.bootsFree ? 1 : 0);
+  const [addSlot, setAddSlot] = useState<'main' | 'boots'>('main');
+  const mainNames = equipLayout.main.map(slot => player.equipamiento[slot]);
+  /** Reordena solo los 6 principales (las botas siguen en su posición de la lista). */
+  const moveMain = (from: number, to: number) => {
+    if (!canEditSheet || saving) return;
+    const order = moveItem(equipLayout.main, from, to);
+    if (order === equipLayout.main) return;
+    const next = [...player.equipamiento];
+    equipLayout.main.forEach((slot, position) => { next[slot] = player.equipamiento[order[position]]; });
+    onEquipamientoChange(next);
+  };
+  const openAdd = (slot: 'main' | 'boots') => {
+    setAddSlot(slot);
+    setPicker('equipamiento');
+  };
   useEffect(() => {
     if (slotsLeft === 0) setPicker(current => current === 'equipamiento' ? null : current);
   }, [slotsLeft]);
@@ -376,6 +397,8 @@ const PlayerSheet = ({
     if (!canEditSheet || saving || !swapTarget || !isCurrentEquipmentTarget(swapTarget, player.name, player.equipamiento)) return;
     const item = findItem(itemName);
     if (!item || itemAvailability(item).available <= 0) return;
+    if (isBootsItem(item) !== isBootsName(player.equipamiento[swapTarget.index])) return;
+    if (!canSwapAt(swapTarget.index)) return;
     const next = replaceEquipment(player.equipamiento, swapTarget.index, itemName, equipmentLimit);
     if (next !== player.equipamiento) onEquipamientoChange(next);
     setSwapTarget(null);
@@ -387,11 +410,34 @@ const PlayerSheet = ({
   };
 
   const addToEquipamiento = (itemName: string) => {
-    if (slotsLeft <= 0) return;
     const item = findItem(itemName);
     if (!item || itemAvailability(item).available <= 0) return;
+    const boots = isBootsItem(item);
+    if (boots ? !equipLayout.bootsFree : equipLayout.mainLeft <= 0) return;
     onEquipamientoChange([...player.equipamiento, itemName]);
-    if (slotsLeft === 1) setPicker(null);
+    if (boots || equipLayout.mainLeft === 1) setPicker(null);
+  };
+
+  const renderEquipped = (slot: number, position: number, list: string[], kind: 'main' | 'boots') => {
+    const itemName = player.equipamiento[slot];
+    const trackItem = findItem(itemName);
+    return (
+      <ReorderableItem
+        key={`${kind}-${itemName}-${slot}`}
+        name={itemName} index={position} items={list}
+        group={`${player.name}:equipamiento:${kind}`}
+        dragged={draggedItem} disabled={saving || !canEditSheet || kind === 'boots'}
+        onMove={moveMain}
+      >
+        <ItemTile
+          name={itemName}
+          item={trackItem}
+          onInspect={() => inspectItem(itemName)}
+          onChange={() => openEquipmentSwap(slot)}
+          removeDisabled={saving}
+        />
+      </ReorderableItem>
+    );
   };
 
   const addToBuild = (itemName: string) => {
@@ -609,74 +655,64 @@ const PlayerSheet = ({
           )}
 
           {tab === 'equipo' && (
-            <section className="sheet-panel">
-              <div className="sheet-panel__title">
+            <section className="sheet-panel sheet-equipment">
+              <div className="sheet-equipment__title">
                 Equipamiento
-                <span className="sheet-panel__meta">{player.equipamiento.length}/{equipmentLimit}</span>
               </div>
-              {player.equipamiento.length === 0 && (
-                <p className="calc-build-empty">Todavía no lleva ítems equipados.</p>
-              )}
-              <div className="calc-equip-grid">
-                {player.equipamiento.map((itemName, index) => (
-                  <ReorderableItem
-                    key={`${itemName}-${index}`}
-                    name={itemName} index={index} items={player.equipamiento}
-                    group={`${player.name}:equipamiento`}
-                    dragged={draggedItem} disabled={saving || !canEditSheet}
-                    onMove={(from, to) => reorder('equipamiento', from, to)}
-                  >
-                    <ItemTile
-                      name={itemName}
-                      item={findItem(itemName)}
-                      onInspect={() => inspectItem(itemName)}
-                      onChange={() => openEquipmentSwap(index)}
-                      removeDisabled={saving}
-                    />
-                    {(() => {
-                      const trackItem = findItem(itemName);
-                      if (!trackItem) return null;
-                      return (
-                        <>
-                          {trackItem.hasStacks && !itemHasPermanentStacks(trackItem, effectData) && (
-                            <StackCounter
-                              value={readStack(player.stacks, itemStackKey(itemName))}
-                              max={typeof trackItem.maxStacks === 'number' ? trackItem.maxStacks : undefined}
-                              disabled={saving || !canEditSheet}
-                              label={`Stacks · ${itemName}`}
-                              onChange={next => { void onStacksChange({ [itemStackKey(itemName)]: next }); }}
-                            />
-                          )}
-                        </>
-                      );
-                    })()}
-                    {index >= equipmentLimit && (
-                      <span className="sheet-equipment-legacy">7º conservado · misión de bot pendiente</span>
+              <div className="sheet-equipment__slots">
+                <div className="sheet-equipment__box">
+                  <div className="sheet-equipment__label">Objetos</div>
+                  <div className="calc-equip-grid sheet-equipment__main">
+                    {equipLayout.main.map((slot, position) => renderEquipped(slot, position, mainNames, 'main'))}
+                    {Array.from({ length: equipLayout.mainLeft }, (_, k) => (k === 0 ? (
+                      <button
+                        key="add-main"
+                        type="button"
+                        className="calc-item-card calc-item-card--add"
+                        onClick={() => openAdd('main')}
+                        disabled={saving}
+                      >
+                        <div className="calc-item-card__no-img">+</div>
+                        <div className="calc-item-card__name">{saving ? 'Guardando' : 'A\u00f1adir'}</div>
+                      </button>
+                    ) : (
+                      <div key={`empty-${k}`} className="calc-item-card sheet-equipment__empty" aria-hidden="true" />
+                    )))}
+                    {!botUnlocked && equipLayout.main.length < MAIN_EQUIPMENT_SLOTS && (
+                      <div className="calc-item-card sheet-equipment-lock" aria-disabled="true" title="Completar la misión de bot para desbloquear el 6º hueco">
+                        <TabLock className="calc-sheet__lock-icon" />
+                        <span className="calc-sheet__lock-title">6º bloqueado</span>
+                        <span className="calc-sheet__lock-sub">Completar la misión de bot</span>
+                      </div>
                     )}
-                  </ReorderableItem>
-                ))}
-                {slotsLeft > 0 && (
-                  <button
-                    type="button"
-                    className="calc-item-card calc-item-card--add"
-                    onClick={() => setPicker('equipamiento')}
-                    disabled={saving}
-                  >
-                    <div className="calc-item-card__no-img">+</div>
-                    <div className="calc-item-card__name">{saving ? 'Guardando' : 'Añadir'}</div>
-                  </button>
-                )}
-                {!botUnlocked && !grandfathered && (
-                  <div className="calc-item-card sheet-equipment-lock" aria-disabled="true" title="Completar la misión de bot para desbloquear el 7º hueco">
-                    <TabLock className="calc-sheet__lock-icon" />
-                    <span className="calc-sheet__lock-title">7º bloqueado</span>
-                    <span className="calc-sheet__lock-sub">Completar la misión de bot</span>
                   </div>
-                )}
+                </div>
+                <div className="sheet-equipment__box sheet-equipment__box--boots">
+                  <div className="sheet-equipment__label">Botas</div>
+                  <div className="calc-equip-grid sheet-equipment__boots">
+                    {equipLayout.boots.map((slot, position) => renderEquipped(slot, position, equipLayout.boots.map(index => player.equipamiento[index]), 'boots'))}
+                    {equipLayout.bootsFree && (
+                      <button
+                        type="button"
+                        className="calc-item-card calc-item-card--add"
+                        onClick={() => openAdd('boots')}
+                        disabled={saving}
+                      >
+                        <div className="calc-item-card__no-img">+</div>
+                        <div className="calc-item-card__name">{saving ? 'Guardando' : 'A\u00f1adir botas'}</div>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-              {grandfathered && (
+              {equipLayout.mainOver && !equipLayout.overflow && (
                 <p className="sheet-equipment-warning" role="status">
-                  Ya había 7 objetos: se conservan y siguen contando en las estadísticas. Puedes consultar, ordenar y quitar; para volver a añadir el 7º debes completar la misión de bot.
+                  {'El 6º objeto se conserva y sigue contando, pero para cambiarlo o volver a añadirlo hace falta completar la misión de bot.'}
+                </p>
+              )}
+              {equipLayout.overflow && (
+                <p className="sheet-equipment-warning" role="status">
+                  {'Hay m\u00e1s objetos de los que caben (6 principales + 1 botas). Se conservan y siguen contando; qu\u00edtalos para dejarlo dentro del l\u00edmite.'}
                 </p>
               )}
               <PermanentStacks
@@ -735,13 +771,17 @@ const PlayerSheet = ({
                 equipment={player.equipamiento}
                 defaultOpen
                 lockFutureLevels={!topUnlocked}
-              />
-              <ExtraStatsPanel
-                sheet={player.sheet}
-                saving={saving}
-                canEdit={isAdmin}
-                error={sheetError}
-                onSave={onSheetChange}
+                canPickRole={isAdmin}
+                canEditExtra={isAdmin}
+                renderExtraEditor={close => (
+                  <ExtraStatsPanel
+                    sheet={player.sheet}
+                    saving={saving}
+                    error={sheetError}
+                    onSave={onSheetChange}
+                    onClose={close}
+                  />
+                )}
               />
             </section>
           )}
@@ -816,11 +856,12 @@ const PlayerSheet = ({
           title={`Cambiar ítem · Hueco ${swapTarget.index + 1} · ${player.equipamiento[swapTarget.index]}`}
           busy={saving || !canEditSheet}
           onlyAvailable
+          filter={item => isBootsItem(item) === isBootsName(player.equipamiento[swapTarget.index])}
           compareWith={player.equipamiento[swapTarget.index]}
-          allowSelection={canReplaceEquipment(player.equipamiento, swapTarget.index, equipmentLimit)}
-          description={canReplaceEquipment(player.equipamiento, swapTarget.index, equipmentLimit)
+          allowSelection={canSwapAt(swapTarget.index)}
+          description={canSwapAt(swapTarget.index)
             ? 'Elige un objeto disponible para sustituirlo en la misma posición, o pulsa Quitar para dejar de equiparlo. Usa la lupa para comparar.'
-            : '7º hueco bloqueado: completa la misión de bot para cambiar el objeto. Puedes quitar el objeto conservado.'}
+            : 'Este hueco está bloqueado hasta completar la misión de bot. Puedes quitar el objeto, pero no cambiarlo.'}
           onAdd={swapEquipment}
           onRemove={removeSwappedEquipment}
           onClose={() => setSwapTarget(null)}
@@ -830,9 +871,10 @@ const PlayerSheet = ({
 
       {picker === 'equipamiento' && (
         <BuildPicker
-          title="Añadir al equipamiento"
+          title={addSlot === 'boots' ? 'A\u00f1adir botas' : 'A\u00f1adir al equipamiento'}
           busy={saving}
           onlyAvailable
+          filter={item => isBootsItem(item) === (addSlot === 'boots')}
           onAdd={addToEquipamiento}
           onClose={() => setPicker(null)}
         />

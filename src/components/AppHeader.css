@@ -194,7 +194,7 @@
   box-shadow: inset 0 0 0 1px rgba(232,201,106,0.06);
 }
 
-.gold-grant__input::placeholder { color: rgba(212,196,154,0.28); }
+.gold-grant__input::placeholder { color: rgba(212,196,154,0.5); }
 
 .gold-grant__input:focus {
   outline: none;

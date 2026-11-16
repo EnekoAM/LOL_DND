@@ -1,0 +1,29 @@
+.combat-hit__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.combat-hit__head .combat-card__title { margin-bottom: 0.35rem; }
+.combat-hit__muted { margin: 0 0 0.6rem; font-size: 0.82rem; color: #9a9384; }
+.combat-hit__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; margin-bottom: 0.6rem; }
+.combat-hit__grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.combat-hit__field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: #cfc8b8; }
+.combat-hit select, .combat-hit input:not([type='checkbox']) { background: rgba(10, 9, 8, 0.85); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 8px; color: #e8e4d9; padding: 0.35rem 0.5rem; font: inherit; font-size: 0.88rem; min-width: 0; }
+.combat-hit__row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem; }
+.combat-hit__label { min-width: 4.2rem; font-size: 0.8rem; color: #9a9384; }
+.combat-hit__ability { flex: 1 1 14rem; }
+.combat-hit__verdict { margin: 0.4rem 0 0.75rem; padding: 0.6rem 0.8rem; border: 1px solid rgba(201, 162, 39, 0.35); border-radius: 10px; font-size: 1rem; font-weight: 600; color: #f0e6d2; background: rgba(201, 162, 39, 0.08); }
+.combat-hit__verdict--hit { border-color: #4f8a4b; background: rgba(79, 138, 75, 0.18); color: #c8f0c0; }
+.combat-hit__verdict--miss { border-color: #8b3a3a; background: rgba(139, 58, 58, 0.18); color: #f0b4b4; }
+.combat-hit__crit { color: #f3c969; }
+.combat-hit__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
+.combat-hit__box { padding: 0.6rem 0.75rem; border: 1px solid rgba(201, 162, 39, 0.2); border-radius: 10px; background: rgba(10, 9, 8, 0.45); }
+.combat-hit__box h3 { margin: 0 0 0.4rem; font-size: 0.9rem; color: #c9a227; }
+.combat-hit__sources { list-style: none; margin: 0 0 0.4rem; padding: 0; font-size: 0.8rem; }
+.combat-hit__sources li { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.1rem 0; color: #cfc8b8; border-bottom: 1px dashed rgba(201, 162, 39, 0.12); }
+.combat-hit__sources b { color: #f0e6d2; }
+.combat-hit__sub, .combat-hit__sum { margin: 0.3rem 0 0.2rem; font-size: 0.84rem; color: #e8e4d9; }
+.combat-hit__check { display: flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #cfc8b8; }
+.combat-hit__steps { margin: 0.75rem 0 0; padding-left: 1.2rem; font-size: 0.84rem; color: #cfc8b8; }
+.combat-hit__steps li { margin: 0.15rem 0; }
+.combat-hit__notes { margin: 0.6rem 0 0; padding-left: 1.1rem; font-size: 0.82rem; color: #b8b1a2; }
+.combat-hit__warn { color: #f3c969; }
+@media (max-width: 720px) {
+  .combat-hit__grid, .combat-hit__grid--3, .combat-hit__cols { grid-template-columns: 1fr; }
+}

@@ -39,6 +39,8 @@ type Props = {
   onActionsSave?: (kind: 'attacks' | 'abilities' | 'items', left: number, extra: number) => Promise<void>;
   /** Daño a un objetivo (solo admin). */
   onTargetDamage?: TargetDamageFn;
+  /** Daño apuntado a mano a este participante (admin o player en el combate). */
+  onManualDamage?: (amount: number) => Promise<unknown>;
   /** Bonus temporales (PATCH op bonuses: admin o su propio player). */
   onBonusesSave?: (bonuses: CombatBonus[]) => Promise<void>;
   /** Debuffs a otro participante (reglas de efectos con nombre). */
@@ -123,6 +125,7 @@ export default function CombatParticipantPanel({
   onResourceSave,
   onActionsSave,
   onTargetDamage,
+  onManualDamage,
   onBonusesSave,
   onTargetBonuses,
   onPoolChange,
@@ -267,11 +270,14 @@ export default function CombatParticipantPanel({
           </div>
         )
   );
+  // Su propio player: usa sus habilidades como el admin (sobre enemigos incluidos); el resto, solo el admin.
+  const ownsPlayer = participant.kind === 'player' && !!myPlayer
+    && (participant.sourceId ?? participant.name).trim().toLocaleLowerCase('es') === myPlayer.trim().toLocaleLowerCase('es');
   const abilitiesFor = (variant: 'panel' | 'sheet') => (
     (participant.kind === 'player' || (isAdmin && (participant.kind === 'champion' || participant.kind === 'npc'))) && (
           <CombatAbilityUseSection
             participant={participant}
-            isAdmin={isAdmin}
+            isAdmin={isAdmin || ownsPlayer}
             canSeeHp={canSeeHp(participant, isAdmin, myPlayer)}
             onBarSave={(kind, current, max) => (kind === 'hp' ? onHpSave(current, max) : onResourceSave(current, max))}
             saving={saving}
@@ -486,6 +492,7 @@ export default function CombatParticipantPanel({
         onPlayerTrackersChange={onPlayerTrackersChange}
         onCombatPatch={onCombatPatch}
         onTargetDamage={onTargetDamage}
+        onManualDamage={onManualDamage}
         onBonusesSave={onBonusesSave}
             onTargetBonuses={onTargetBonuses}
             onPoolChange={onPoolChange}
@@ -526,6 +533,7 @@ export default function CombatParticipantPanel({
           canSee={canSeeHp(participant, isAdmin, myPlayer)}
           saving={saving}
           onSave={onHpSave}
+          onManualDamage={onManualDamage}
         />
 
         <CombatSheetSection participant={participant} isAdmin={isAdmin} />

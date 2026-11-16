@@ -25,6 +25,8 @@ import { cx } from '../../lib/cx';
 import { abilityPhase, abilityPhaseCount, abilityPhaseKey, clampPhase, hasVariants, isChoosePhases, phaseLabels } from '../../data/abilityVariants';
 import PhaseTabs from '../habilidades/PhaseTabs';
 import ResourceChip from '../../components/ResourceChip';
+import AbilityCost from '../../components/AbilityCost';
+import AbilityInfoModal from '../habilidades/AbilityInfoModal';
 import { resolveAbilityResource } from '../../data/resources';
 import { basicAttackEntries } from '../../data/players';
 import SpellCard, { SPELL_TYPE_LABEL, type SpellTone } from '../players/SpellCard';
@@ -34,6 +36,7 @@ import { BarInputs } from './CombatBar';
 import { actionLimitsFor, actionsLeft, basicAttackPct, leftoverAfterAttackLimitChange, withFixedAttacks } from './combatActions';
 import { consumeSpellShields, hasCinderbloom, healFromManaSpent, participantItems } from './itemCombatHooks';
 import { damageTargets, targetHpLine, type TargetDamageFn } from './combatHp';
+import { useAppRole } from '../../data/appRoleContext';
 import CombatTargetPicker from './CombatTargetPicker';
 import { expectedDamageStat, expectedItemAdFromDice, formatHpAdBonus, hpDamageAmount, rollDamageStat } from '../players/abilityDamage';
 import { formatDamageAmount, formatDamageType } from './combatAbilityUse';
@@ -311,6 +314,8 @@ export default function CombatAbilityUseSection({
   /** Ataque básico esperando objetivo. */
   const [attackPick, setAttackPick] = useState<'AD' | 'AP' | null>(null);
   const [trapPicking, setTrapPicking] = useState<AbilityRow | null>(null);
+  /** Habilidad cuya ficha (descripción) está abierta. */
+  const [infoRow, setInfoRow] = useState<AbilityRow | null>(null);
   const [centerPicking, setCenterPicking] = useState<{ row: AbilityRow; candidates: string[] } | null>(null);
   /** «Crít.»: el player ha sacado crítico en su tirada; el daño físico base de la acción × DAÑO CRÍT. Se apaga tras usarlo. */
   const [crit, setCrit] = useState(false);
@@ -362,6 +367,8 @@ export default function CombatAbilityUseSection({
   };
 
   const [actionsBusy, setActionsBusy] = useState(false);
+  // Vida del objetivo tras el daño: solo el admin (un player usa sus habilidades sin ver la vida enemiga).
+  const showTargetHp = useAppRole().role === 'admin';
 
   const ownerResource = player
     ? rows.find(row => row.ownerResource)?.ownerResource
@@ -1627,7 +1634,7 @@ export default function CombatAbilityUseSection({
     const previous = use.undo;
     return {
       ...use,
-      headline: `${use.headline}${targetHpLine(damage)}`,
+      headline: `${use.headline}${showTargetHp ? targetHpLine(damage) : ''}`,
       undo: () => {
         setBusy(true);
         void damage.undo()
@@ -3469,6 +3476,22 @@ export default function CombatAbilityUseSection({
     return { spend, cost, spendPool, cdRemaining, effectRemaining, disabledReason, mechanicsNote, useLabel: toggle ? 'Desactivar' : ending ? 'Terminar' : recast ? 'Recast' : 'Usar' };
   };
 
+  // Ficha de la habilidad (descripción, coste, mecánicas…): clic en la carta / en el nombre. No gasta nada.
+  const infoModal = infoRow ? (() => {
+    const infoState = rowState(infoRow);
+    return (
+      <AbilityInfoModal
+        ability={infoRow.ability}
+        kicker={`${infoRow.seal} · ${participant.name}`}
+        image={infoRow.image}
+        rank={infoRow.rank}
+        costNow={infoState.cost > 0 ? `${infoState.cost} ${infoState.spend.label}` : undefined}
+        championResource={infoRow.ownerResource}
+        onClose={() => setInfoRow(null)}
+      />
+    );
+  })() : null;
+
   if (variant === 'sheet') {
     const canTrack = canSeeHp && !saving && !busy;
     const toneOf = (seal: string): Exclude<SpellTone, 'auto'> => (seal === 'P' ? 'pasiva' : seal === 'R' ? 'definitiva' : 'basica');
@@ -3583,7 +3606,8 @@ export default function CombatAbilityUseSection({
                 const tone = toneOf(row.seal);
                 const resolved = resolveAbilityResource(active, row.ownerResource ? { resource: row.ownerResource } : undefined);
                 const costLabel = state.cost > 0 ? `Coste ${state.cost}` : active.cost?.trim() ? `Coste ${active.cost.trim()}` : '';
-                const note = [costLabel, state.effectRemaining > 0 ? `Efecto ${state.effectRemaining}` : '', state.mechanicsNote].filter(Boolean).join(' · ') || undefined;
+                // El coste va al lado del chip de recurso (badge), con su color; aquí solo efecto y mecánicas.
+                const note = [state.effectRemaining > 0 ? `Efecto ${state.effectRemaining}` : '', state.mechanicsNote].filter(Boolean).join(' · ') || undefined;
                 const cdKey = abilityCooldownKey(row.name);
                 const stackKey = abilityStackKey(row.name);
                 const ranks = isAdmin && row.rankAdjustable ? (
@@ -3604,7 +3628,14 @@ export default function CombatAbilityUseSection({
                     note={note}
                     area={row.ability.area}
                     onHit={row.ability.appliesOnHit === true}
-                    badge={resolved ? <ResourceChip resource={resolved.id} inherited={resolved.inherited} /> : undefined}
+                    badge={resolved || costLabel ? (
+                      <span className="spell__badge-row">
+                        {resolved && <ResourceChip resource={resolved.id} inherited={resolved.inherited} />}
+                        {costLabel && <AbilityCost text={costLabel} resource={resolved?.id} />}
+                      </span>
+                    ) : undefined}
+                    onOpen={() => setInfoRow(row)}
+                    openTitle="Ver descripción de la habilidad"
                     ranks={ranks}
                     stacks={player && row.ability.hasStacks ? (
                       <StackCounter
@@ -3719,6 +3750,7 @@ export default function CombatAbilityUseSection({
           )}
           {centerPicker}
           {chainPicker}
+          {infoModal}
         </section>
       </>
     );
@@ -3790,12 +3822,22 @@ export default function CombatAbilityUseSection({
             const costLabel = state.cost > 0
               ? `${state.cost} ${state.spend.label}`
               : active.cost?.trim() || undefined;
+            const costResource = resolveAbilityResource(active, row.ownerResource ? { resource: row.ownerResource } : undefined)?.id;
             return (
               <li key={row.key} className="combat-panel__ability">
                 <span className="combat-panel__ability-seal" aria-hidden>{row.seal}</span>
-                <span className="combat-panel__tracker-name" title={row.name}>{row.name}</span>
+                <span
+                  className="combat-panel__tracker-name combat-panel__tracker-name--info"
+                  title={`${row.name} · clic: ver descripción`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setInfoRow(row)}
+                  onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setInfoRow(row); } }}
+                >
+                  {row.name}
+                </span>
                 <span className="combat-panel__tracker-badges">
-                  {costLabel && <span className="combat-panel__badge" title="Coste">{costLabel}</span>}
+                  {costLabel && <span className={cx('combat-panel__badge', 'ability-cost', costResource && `ability-cost--${costResource}`)} title="Coste">{costLabel}</span>}
                   {state.effectRemaining > 0 && (
                     <span className="combat-panel__badge combat-panel__badge--effect" title="Efecto">
                       Efecto {state.effectRemaining}
@@ -3952,6 +3994,7 @@ export default function CombatAbilityUseSection({
       )}
       {centerPicker}
       {chainPicker}
+      {infoModal}
     </div>
   );
 }

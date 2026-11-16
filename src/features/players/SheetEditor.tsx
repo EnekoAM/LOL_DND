@@ -252,10 +252,6 @@ const SheetEditor = ({ sheet, saving, error, onSave }: Props) => {
             ))}
           </div>
 
-          <p className="calc-build-empty" style={{ marginTop: 8 }}>
-            Los stats extra se editan en la pestaña Desglose.
-          </p>
-
           <div className="sheet-sheet__actions">
             <button type="button" className="sheet-hp__done" onClick={() => setEditing(false)} disabled={saving}>
               Cancelar

@@ -11,19 +11,6 @@ type RollResult = {
   value: number;
 };
 
-const QUICK: { label: string; notation: string }[] = [
-  { label: 'Moneda', notation: '1d2' },
-  { label: 'd4', notation: '1d4' },
-  { label: 'd6', notation: '1d6' },
-  { label: 'd8', notation: '1d8' },
-  { label: 'd10', notation: '1d10' },
-  { label: 'd12', notation: '1d12' },
-  { label: 'd20', notation: '1d20' },
-  { label: '2d6', notation: '2d6' },
-  { label: '4d6', notation: '4d6' },
-  { label: '2d20', notation: '2d20' },
-];
-
 /** Caras con stepper ± para armar la combinación sin escribir a mano. */
 const DIE_STEPS: { label: string; sides: number }[] = [
   { label: 'Moneda', sides: 2 },
@@ -446,6 +433,20 @@ const Dados = () => {
     });
   };
 
+  /** Cantidad escrita a mano: se ajusta a 0..(50 − resto de dados). */
+  const setDieQty = (sides: number, raw: string) => {
+    const parsed = Number.parseInt(raw.replace(/\D/g, ''), 10);
+    setDieCounts(prev => {
+      const others = Object.entries(prev).reduce((sum, [key, n]) => (Number(key) === sides ? sum : sum + n), 0);
+      const qty = Math.max(0, Math.min(MAX_DICE - others, Number.isFinite(parsed) ? parsed : 0));
+      const next = { ...prev };
+      if (qty === 0) delete next[sides];
+      else next[sides] = qty;
+      setNotation(countsToNotation(next));
+      return next;
+    });
+  };
+
   const total = useMemo(() => {
     if (!results?.length) return null;
     return results.reduce((sum, entry) => sum + entry.value, 0) + modifier;
@@ -477,16 +478,27 @@ const Dados = () => {
                 >
                   −
                 </button>
-                <button
-                  type="button"
-                  className={`dados-die-step__face${qty > 0 ? ' is-on' : ''}`}
-                  disabled={!ready || rolling || themeBusy}
-                  title={`Tirar 1${die.sides === 2 ? 'd2' : die.label}`}
-                  onClick={() => { void roll(die.sides === 2 ? '1d2' : `1d${die.sides}`); }}
-                >
-                  <span className="dados-die-step__label">{die.label}</span>
-                  <span className="dados-die-step__qty" aria-live="polite">{qty}</span>
-                </button>
+                <div className={`dados-die-step__face${qty > 0 ? ' is-on' : ''}`}>
+                  <button
+                    type="button"
+                    className="dados-die-step__label"
+                    disabled={!ready || rolling || themeBusy}
+                    title={`Tirar 1${die.sides === 2 ? 'd2' : die.label}`}
+                    onClick={() => { void roll(die.sides === 2 ? '1d2' : `1d${die.sides}`); }}
+                  >
+                    {die.label}
+                  </button>
+                  <input
+                    className="dados-die-step__qty"
+                    type="text"
+                    inputMode="numeric"
+                    value={String(qty)}
+                    aria-label={`Cantidad de ${die.label}`}
+                    disabled={!ready || rolling || themeBusy}
+                    onFocus={event => event.target.select()}
+                    onChange={event => setDieQty(die.sides, event.target.value)}
+                  />
+                </div>
                 <button
                   type="button"
                   className="dados-die-step__btn"
@@ -499,19 +511,6 @@ const Dados = () => {
               </div>
             );
           })}
-        </div>
-        <div className="dados-quick" aria-label="Atajos">
-          {QUICK.filter(item => ['2d6', '4d6', '2d20'].includes(item.notation)).map(item => (
-            <button
-              key={item.notation}
-              type="button"
-              className="dados-chip"
-              disabled={!ready || rolling || themeBusy}
-              onClick={() => { void roll(item.notation); }}
-            >
-              {item.label}
-            </button>
-          ))}
         </div>
         <form
           className="dados-custom"

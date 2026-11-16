@@ -77,7 +77,7 @@
   box-shadow: 0 0 0 2px rgba(201,168,76,0.08);
 }
 
-.filter-input::placeholder { color: rgba(212,196,154,0.25); }
+.filter-input::placeholder { color: rgba(212,196,154,0.5); }
 
 .items-count {
   margin-left: auto;
@@ -101,7 +101,7 @@
   font-family: 'Crimson Text', serif;
   font-style: italic;
   font-size: 10px;
-  color: rgba(212,196,154,0.35);
+  color: rgba(212,196,154,0.6);
   letter-spacing: 2px;
 }
 
@@ -428,7 +428,7 @@
   font-family: 'Crimson Text', serif;
   font-style: italic;
   font-size: 13px;
-  color: rgba(212,196,154,0.25);
+  color: rgba(212,196,154,0.55);
   letter-spacing: 2px;
 }
 
@@ -530,7 +530,7 @@
 
 .item-field input::placeholder,
 .item-field textarea::placeholder {
-  color: rgba(212,196,154,0.28);
+  color: rgba(212,196,154,0.5);
 }
 
 .item-edit__actions {
@@ -637,11 +637,11 @@
 .effects-table__edit { display: flex; flex-direction: column; gap: 2px; }
 .effects-table__textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 40px; background: rgba(10,8,4,0.7); color: inherit; border: 1px solid rgba(201,168,76,0.25); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; }
 .effects-table__textarea:focus { outline: none; border-color: rgba(201,168,76,0.6); }
-.effects-table__textarea::placeholder { color: rgba(212,196,154,0.25); }
+.effects-table__textarea::placeholder { color: rgba(212,196,154,0.5); }
 .effects-table__status { font-size: 12px; min-height: 14px; color: rgba(212,196,154,0.45); }
 .effects-table__status--error { color: #f87171; }
 .effects-table__text { margin: 0; white-space: pre-wrap; }
-.effects-table__empty { color: rgba(212,196,154,0.3); }
+.effects-table__empty { color: rgba(212,196,154,0.55); }
 .effects-table__toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: rgba(212,196,154,0.7); align-self: flex-end; padding-bottom: 8px; }
 
 /* ── Efectos con nombre en la ficha del ítem ── */

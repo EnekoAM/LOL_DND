@@ -112,14 +112,14 @@
 .calc-card__no-calc {
   font-family: 'Crimson Text', serif;
   font-size: 11px;
-  color: rgba(212,196,154,0.2);
+  color: rgba(212,196,154,0.55);
   font-style: italic;
 }
 
 .calc-card__undefined {
   font-family: 'Crimson Text', serif;
   font-size: 11px;
-  color: rgba(212,196,154,0.3);
+  color: rgba(212,196,154,0.55);
   font-style: italic;
 }
 
@@ -1851,3 +1851,11 @@
   border-color: var(--gold-bright, #f0d27a);
 }
 
+/* Lapiz de editar dentro de una fila de la tabla de estadisticas */
+.calc-sheet__row-edit {
+  margin-left: 6px;
+  padding: 0 4px;
+  font-size: 0.85em;
+  line-height: 1.2;
+  vertical-align: middle;
+}

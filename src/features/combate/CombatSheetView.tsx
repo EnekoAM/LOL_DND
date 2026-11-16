@@ -27,10 +27,12 @@ import { itemHasPermanentStacks, permanentStackEntries, permanentStackSaver } fr
 import { championPool } from './CombatAbilityUseSection';
 import { resolvedSpendKind } from './combatAbilityUse';
 import { kindTag } from './combatHelpers';
-import { itemActiveDamage, itemIsUsable, itemUseHeadline, rollItemDamage, type ItemDamageRoll } from './combatItemUse';
+import { adjustMarker, bumpCounter, heldTargetMarks, isPerTargetMarker, markOptions } from './targetMarks';
+import { itemActiveDamage, itemHasActiveText, itemIsUsable, itemUseHeadline, rollItemDamage, type ItemDamageRoll } from './combatItemUse';
 import { canSeeHp, damageTargets, participantHp, targetHpLine, type TargetDamageFn } from './combatHp';
 import { applyScaledMr } from '../../data/combatTraits';
 import CombatTargetPicker from './CombatTargetPicker';
+import CombatManualDamage from './CombatManualDamage';
 import { logCombat } from './combatConsole';
 import '../calculos/Calculos.css';
 import '../players/Players.css';
@@ -63,6 +65,8 @@ type Props = {
   onVigorPerMoveChange?: (rate: number) => void | Promise<void>;
   /** Daño a un objetivo (solo admin). */
   onTargetDamage?: TargetDamageFn;
+  /** Daño apuntado a mano a este participante (players: cuando la vida sale «?»). */
+  onManualDamage?: (amount: number) => Promise<unknown>;
   /** Bonus temporales: PATCH op bonuses (admin o su propio player). */
   onBonusesSave?: (bonuses: CombatBonus[]) => Promise<void>;
   onTargetBonuses?: EffectCallbacks['onTargetBonuses'];
@@ -149,6 +153,7 @@ export default function CombatSheetView({
   vigorPerMove,
   onVigorPerMoveChange,
   onTargetDamage,
+  onManualDamage,
   onBonusesSave,
   onTargetBonuses,
   onPoolChange,
@@ -179,6 +184,8 @@ export default function CombatSheetView({
   const [itemError, setItemError] = useState<string | null>(null);
   const [bonusForm, setBonusForm] = useState<{ stat: string; amount: string; turns: string; stacks: string } | null>(null);
   const [bonusBusy, setBonusBusy] = useState(false);
+  const [markPick, setMarkPick] = useState('');
+  const [markBusy, setMarkBusy] = useState(false);
   const [bonusError, setBonusError] = useState<string | null>(null);
   useEffect(() => {
     setPortraitFailed(false);
@@ -251,6 +258,32 @@ export default function CombatSheetView({
   const bonuses = participant.bonuses ?? [];
   // Marcas de los efectos «Enfriamiento por objetivo» de los demás (sin CD de ese portador).
   const marks = targetMarks(participant, participants, effectData);
+  // Marcas / cargas por objetivo que le han puesto los demás (las guarda el portador, se ven y gestionan aquí).
+  const heldMarks = heldTargetMarks(participant, participants);
+  const canManageMarks = isAdmin && !!onTargetBonuses;
+  const markChoices = canManageMarks ? markOptions(participant, participants, level) : [];
+  const changeMark = (bearerId: string, update: (current: CombatBonus[]) => CombatBonus[]) => {
+    if (!onTargetBonuses || markBusy) return;
+    setMarkBusy(true);
+    setBonusError(null);
+    void onTargetBonuses(bearerId, update)
+      .catch(caught => setBonusError(caught instanceof Error ? caught.message : 'No se pudo cambiar la marca'))
+      .finally(() => setMarkBusy(false));
+  };
+  const addMark = () => {
+    const option = markChoices.find(entry => entry.key === markPick);
+    if (!option || markBusy) return;
+    setMarkPick('');
+    if (option.kind === 'counter') {
+      changeMark(option.bearerId, current => bumpCounter(current, option.abilityName, participant.id, 1, option.max ?? 99, option.turns, newBonusId));
+      return;
+    }
+    setMarkBusy(true);
+    setBonusError(null);
+    void Promise.resolve(onApplySourcedEffect([participant.id], { source: `ability:${option.abilityName}`, name: option.statusName ?? option.abilityName, duration: Math.max(1, option.turns ?? 1) }))
+      .catch(caught => setBonusError(caught instanceof Error ? caught.message : 'No se pudo poner la marca'))
+      .finally(() => setMarkBusy(false));
+  };
   // Cargas de combate (Flujo de maná): solo de los efectos de sus ítems equipados.
   const chargeBase = participantContext(participant, level, extra);
   const chargeChips = chargeBase ? chargeStatus(activeNamedEffects(chargeBase.items, effectData), bonuses) : [];
@@ -376,7 +409,7 @@ export default function CombatSheetView({
 
   /** Clic: si hace daño o pone un efecto enemigo, primero los objetivos (nada se gasta hasta Atacar). */
   const useItem = (name: string, item: Item | undefined) => {
-    if (!item || !canUseItems || saving || itemBusy || itemCd(name) > 0 || !itemUsable(item) || itemsLeft <= 0) return;
+    if (!item || !canUseItems || saving || itemBusy || itemCd(name) > 0 || !itemUsable(item) || (itemsLeft <= 0 && itemHasActiveText(item))) return;
     const enemy = typeof item.effectDuration === 'number' && item.effectDuration > 0 && item.effectTarget === 'enemy';
     // Con reglas «Al usar» / «Tras usar» en el configurador, mandan ellas (no el daño leído del texto del ítem).
     const plan = itemRulePlan(item, effectData);
@@ -390,7 +423,7 @@ export default function CombatSheetView({
   };
   const runItem = async (name: string, item: Item, targetIds: string[]) => {
     setItemTarget(null);
-    if (!canUseItems || saving || itemBusy || itemCd(name) > 0 || !itemUsable(item) || itemsLeft <= 0) return;
+    if (!canUseItems || saving || itemBusy || itemCd(name) > 0 || !itemUsable(item) || (itemsLeft <= 0 && itemHasActiveText(item))) return;
     setItemError(null);
     let roll: ItemDamageRoll | null = null;
     const damage = itemRulePlan(item, effectData).authoritative ? null : itemActiveDamage(item);
@@ -415,9 +448,10 @@ export default function CombatSheetView({
     const enemy = duration > 0 && item.effectTarget === 'enemy';
     const self = duration > 0 && !enemy;
     setItemBusy(true);
-    // Gasta 1 uso de objeto del turno (Deshacer lo devuelve).
+    // Gasta 1 uso de objeto del turno (Deshacer lo devuelve). Activar a mano una pasiva (ítem sin activa) no gasta.
+    const spendsUse = itemHasActiveText(item);
     const prevActions = participant.actionsLeft;
-    const actionsAfter = { ...participant.actionsLeft, items: Math.max(0, itemsLeft - 1) };
+    const actionsAfter = { ...participant.actionsLeft, items: spendsUse ? Math.max(0, itemsLeft - 1) : itemsLeft };
     try {
       let undo: (() => void) | undefined;
       // Players: por el endpoint de acciones (vale también para el propio player sin ser admin).
@@ -425,7 +459,7 @@ export default function CombatSheetView({
         ? onActionsSave('items', value, itemExtra)
         : Promise.resolve(onCombatPatch({ actionsLeft: { ...participant.actionsLeft, items: value } })));
       if (player) {
-        await setItemsLeft(actionsAfter.items);
+        if (spendsUse) await setItemsLeft(actionsAfter.items);
         const prevCd = readCooldown(player.cooldowns, cdKey);
         const prevEffect = readActiveEffect(player.activeEffects, effectKey);
         const patch: { cooldowns?: Record<string, number>; activeEffects?: Record<string, number> } = {};
@@ -545,7 +579,7 @@ export default function CombatSheetView({
             const previous = current.undo;
             return {
               ...current,
-              headline: `${current.headline}${targetHpLine(damage)}`,
+              headline: `${current.headline}${isAdmin ? targetHpLine(damage) : ''}`,
               undo: () => {
                 setItemBusy(true);
                 void damage.undo()
@@ -683,7 +717,7 @@ export default function CombatSheetView({
       bars = (
         <>
           <div className="sheet-panel sheet-side__hp">
-            <p className="combat-page__hint">Vida ?</p>
+            {onManualDamage ? <CombatManualDamage participant={participant} onDamage={onManualDamage} /> : <p className="combat-page__hint">Vida ?</p>}
           </div>
           <div className="sheet-panel sheet-side__mana">
             <p className="combat-page__hint">Maná ?</p>
@@ -713,7 +747,7 @@ export default function CombatSheetView({
     bars = (
       <div className="sheet-panel sheet-side__hp">
         {!canSee ? (
-          <p className="combat-page__hint">Vida ?</p>
+          onManualDamage ? <CombatManualDamage participant={participant} onDamage={onManualDamage} /> : <p className="combat-page__hint">Vida ?</p>
         ) : hp && hp.max !== undefined ? participantHpPanel(hp.current, hp.max) : (
           <p className="combat-page__hint">Sin vida definida.</p>
         )}
@@ -758,7 +792,7 @@ export default function CombatSheetView({
           {defense && <DefenseCards stats={defense} />}
           {penetration && <PenetrationCards stats={penetration} />}
           {utility && <PenetrationCards stats={utility} className="combat-sheet__pen combat-sheet__utility" />}
-          {(bonuses.length > 0 || marks.length > 0 || chargeChips.length > 0 || canEditBonuses) && (
+          {(bonuses.length > 0 || marks.length > 0 || heldMarks.length > 0 || markChoices.length > 0 || chargeChips.length > 0 || canEditBonuses) && (
             <div className="combat-bonuses">
               <div className="combat-bonuses__chips">
                 {chargeChips.map(chip => (
@@ -771,7 +805,30 @@ export default function CombatSheetView({
                     <span>◈ {mark.text}</span>
                   </span>
                 ))}
-                {bonuses.filter(bonus => bonus.stat !== 'charges' || bonus.source?.startsWith('charges:ability:')).map(bonus => (
+                {heldMarks.map(mark => (
+                  <span key={mark.key} className="combat-bonus combat-bonus--mark" title={`Marca puesta por ${mark.bearerName}: está en este objetivo (no son cargas del portador)`}>
+                    <span>◈ {mark.label} ×{mark.count}{mark.max && mark.max < 999 ? `/${mark.max}` : ''}{typeof mark.turns === 'number' ? ` · ${mark.turns} t.` : ''} (de {mark.bearerName})</span>
+                    {canManageMarks && (
+                      <>
+                        <button type="button" className="combat-bonus__btn" disabled={markBusy || mark.count <= 1} aria-label="Quitar una marca" onClick={() => changeMark(mark.bearerId, current => adjustMarker(current, mark.bonusId, -1))}>−</button>
+                        <button type="button" className="combat-bonus__btn" disabled={markBusy || (typeof mark.max === 'number' && mark.count >= mark.max)} aria-label="Añadir una marca" onClick={() => changeMark(mark.bearerId, current => adjustMarker(current, mark.bonusId, 1))}>+</button>
+                        <button type="button" className="combat-bonus__btn" disabled={markBusy} aria-label="Quitar las marcas" onClick={() => changeMark(mark.bearerId, current => current.filter(entry => entry.id !== mark.bonusId))}>✕</button>
+                      </>
+                    )}
+                  </span>
+                ))}
+                {markChoices.length > 0 && (
+                  <span className="combat-bonus combat-bonus--mark" title="Poner a mano una marca de una habilidad de otro participante en este objetivo">
+                    <select value={markPick} disabled={markBusy} onChange={e => setMarkPick(e.target.value)} aria-label="Añadir marca">
+                      <option value="">+ Marca…</option>
+                      {markChoices.map(option => (
+                        <option key={option.key} value={option.key}>{option.abilityName} (de {option.bearerName}){option.kind === 'counter' ? ` · +1 (máx. ${option.max ?? '?'})` : ` · ${option.turns ?? 1} t.`}</option>
+                      ))}
+                    </select>
+                    <button type="button" className="combat-bonus__btn" disabled={markBusy || !markPick} aria-label="Poner marca" onClick={addMark}>✓</button>
+                  </span>
+                )}
+                {bonuses.filter(bonus => (bonus.stat !== 'charges' || bonus.source?.startsWith('charges:ability:')) && !isPerTargetMarker(bonus)).map(bonus => (
                   <span key={bonus.id} className="combat-bonus" title={bonus.source?.startsWith('item:') ? `Pasiva de ${bonus.source.slice(5)}` : /^(charges|stacks|buff|buffstat):ability:/.test(bonus.source ?? '') ? `Habilidad ${bonus.label ?? ''}`.trim() : 'Bonus manual'}>
                     {bonus.label && <span className="combat-bonus__src">{bonus.label}</span>}
                     <span>{formatBonus(bonus)}</span>
@@ -866,7 +923,7 @@ export default function CombatSheetView({
                   // Resaltado de activa: solo por sus efectos con nombre de tipo activa (no por CD / duración del ítem).
                   const active = itemHasActive(item);
                   const cdLeft = usable ? itemCd(itemName) : 0;
-                  const noUses = usable && itemsLeft <= 0;
+                  const noUses = usable && itemsLeft <= 0 && !!item && itemHasActiveText(item);
                   const ready = usable && canUseItems && cdLeft === 0 && !noUses && !saving && !itemBusy;
                   const hint = !usable
                     ? active ? 'Activa sin configurar (sin CD, duración ni reglas «Al usar») · Clic derecho: info' : 'Sin activa ni daño · Clic derecho: info'

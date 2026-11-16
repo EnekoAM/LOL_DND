@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import MedievalWheel from '../item-roll/MedievalWheel';
 import {
   FAMA_REGIONS,
   famaRankTitle,
@@ -9,6 +10,8 @@ import {
   mechanicLabels,
   resolveMechanic,
   resolveRuinaControl,
+  rollRuinaEffect,
+  RUINA_EFFECTS,
   RUINA_MAX,
   RUINA_MIN,
   type FamaRegion,
@@ -479,6 +482,19 @@ const HumanidadPanel = ({
   );
 };
 
+const RUINA_SEGMENT_COLORS: [string, string, string][] = [
+  ['#2a0a0a', '#e8836a', '#7a2a20'],
+  ['#1e0a24', '#c48ae0', '#5a2a6b'],
+  ['#0a1424', '#7aa8e0', '#2a4a6b'],
+  ['#0e1f0e', '#8fd07a', '#2f5a28'],
+];
+
+/** Segmentos de la ruleta de efectos de pérdida de control (1d4). */
+const RUINA_SEGMENTS = RUINA_EFFECTS.map((effect, index) => {
+  const [color, textColor, borderColor] = RUINA_SEGMENT_COLORS[index % RUINA_SEGMENT_COLORS.length];
+  return { label: `${effect.roll}. ${effect.title}`, color, textColor, borderColor };
+});
+
 const RuinaPanel = ({
   value,
   canEdit,
@@ -496,6 +512,14 @@ const RuinaPanel = ({
 }) => {
   const danger = value / RUINA_MAX;
   const atMax = value >= RUINA_MAX;
+  const [spinTo, setSpinTo] = useState<number | null>(null);
+  const [effectIndex, setEffectIndex] = useState<number | null>(null);
+  const spinEffect = () => {
+    if (spinTo !== null) return;
+    setEffectIndex(null);
+    setSpinTo(rollRuinaEffect());
+  };
+  const effect = effectIndex !== null ? RUINA_EFFECTS[effectIndex] : null;
 
   return (
     <div className={`sheet-mech__ruina ${atMax ? 'is-max' : danger >= 0.7 ? 'is-high' : ''}`}>
@@ -570,24 +594,54 @@ const RuinaPanel = ({
             <span className="sheet-mech__result-vs">
               {result.kind === 'lose' ? '≤' : '>'} {result.contador}
             </span>
-            {result.kind === 'lose' && (
-              <span className="sheet-mech__result-die sheet-mech__result-die--d4">
-                <em>d4</em>
-                <strong>{result.effectRoll}</strong>
-              </span>
-            )}
           </div>
           {result.kind === 'control' ? (
             <div className="sheet-mech__result-title">Mantiene el control</div>
           ) : (
             <>
               <div className="sheet-mech__result-title">Pierde el control parcialmente</div>
-              <div className="sheet-mech__result-sub">{result.effect.title}</div>
-              <p className="sheet-mech__result-text">{result.effect.text}</p>
+              <div className="sheet-mech__result-sub">Tira el efecto en la ruleta de abajo.</div>
             </>
           )}
         </div>
       )}
+
+      <div className="sheet-mech__ruina-effect">
+        <div
+          className={`sheet-mech__ruina-wheel${spinTo !== null ? ' is-spinning' : ''}`}
+          role="button"
+          tabIndex={0}
+          title="Girar la ruleta de efecto"
+          onClick={spinEffect}
+          onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); spinEffect(); } }}
+        >
+          <MedievalWheel
+            segments={RUINA_SEGMENTS}
+            spinTo={spinTo}
+            onResult={segment => { setEffectIndex(RUINA_SEGMENTS.indexOf(segment)); setSpinTo(null); }}
+          />
+        </div>
+        <div className="sheet-mech__ruina-effect-side">
+        <div className="sheet-mech__ruina-effect-title">Efecto de pérdida de control {'\u00b7'} 1d4</div>
+        <button type="button" className="sheet-mech__ruina-btn" onClick={spinEffect} disabled={spinTo !== null}>
+          <span className="sheet-mech__ruina-btn-glow" aria-hidden="true" />
+          <span className="sheet-mech__ruina-btn-label">{spinTo !== null ? 'Girando\u2026' : 'Tirar efecto'}</span>
+          <span className="sheet-mech__ruina-btn-sub">Ruleta 1d4</span>
+        </button>
+        {effect && (
+          <div className="sheet-mech__result sheet-mech__result--bad" role="status">
+            <div className="sheet-mech__result-dice">
+              <span className="sheet-mech__result-die sheet-mech__result-die--d4">
+                <em>d4</em>
+                <strong>{effect.roll}</strong>
+              </span>
+            </div>
+            <div className="sheet-mech__result-title">{effect.title}</div>
+            <p className="sheet-mech__result-text">{effect.text}</p>
+          </div>
+        )}
+        </div>
+      </div>
     </div>
   );
 };
@@ -615,6 +669,7 @@ const MechanicPanel = ({ playerName, mechanic, canEdit, saving, error, onChange 
 
       {resolved.type === 'ruina' && (
         <RuinaPanel
+          key={playerName}
           value={resolved.value}
           canEdit={canEdit}
           busy={busy}
@@ -642,7 +697,6 @@ const MechanicPanel = ({ playerName, mechanic, canEdit, saving, error, onChange 
         />
       )}
 
-      {!canEdit && <p className="sheet-mech__hint">Solo el GM puede editar estos valores.</p>}
       {error && <p className="calc-build-error">{error}</p>}
     </div>
   );

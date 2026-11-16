@@ -4,11 +4,14 @@ import { useCanEdit, useMyPlayerName } from '../../data/appRoleContext';
 import { useLiveRevision } from '../../data/live';
 import {
   TICKET_AUTHOR_MAX,
+  TICKET_COMMENT_MAX,
   TICKET_TEXT_MAX,
   TICKET_TITLE_MAX,
+  addTicketComment,
   createTicket,
   deleteTicket,
   loadTickets,
+  setTicketArchived,
   setTicketStatus,
   type Ticket,
   type TicketStatus,
@@ -49,6 +52,13 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 const PAGE_SIZE = 50;
 
+/**
+ * Borrador de la sugerencia en memoria (no en localStorage): se mantiene al cambiar de pestaña
+ * dentro de la app y se pierde al recargar la página o al cambiar/cerrar sesión con el personaje.
+ */
+const draftMemo = { owner: '', title: '', text: '' };
+const draftOwner = (name: string | null | undefined): string => name || '';
+
 const sortNewest = (list: Ticket[]): Ticket[] =>
   [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
@@ -57,9 +67,9 @@ const Sugerencias = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [text, setText] = useState('');
   const myName = useMyPlayerName();
+  const [title, setTitle] = useState(() => (draftMemo.owner === draftOwner(myName) ? draftMemo.title : ''));
+  const [text, setText] = useState(() => (draftMemo.owner === draftOwner(myName) ? draftMemo.text : ''));
   // Si entró como player y nunca escribió un nombre, se propone el suyo.
   const [author, setAuthor] = useState(() => localStorage.getItem(AUTHOR_KEY) || myName || '');
   const [saving, setSaving] = useState(false);
@@ -70,8 +80,34 @@ const Sugerencias = () => {
   const [rowError, setRowError] = useState<{ id: string; text: string } | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
   const [page, setPage] = useState(1);
+  /** Ver las archivadas (solo admin) en vez de las normales. */
+  const [showArchived, setShowArchived] = useState(false);
+  const [busyArchive, setBusyArchive] = useState(false);
+  /** Borrador del comentario por sugerencia y la que se está enviando. */
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [commentBusy, setCommentBusy] = useState<string | null>(null);
+  /** Caja de comentario abierta por sugerencia (cerrada por defecto). */
+  const [commentOpen, setCommentOpen] = useState<Record<string, boolean>>({});
+  const setOpen = (id: string, open: boolean) => setCommentOpen(current => ({ ...current, [id]: open }));
   // Sugerencias creadas o borradas en otra pestaña: se vuelve a pedir la lista.
   const ticketsRevision = useLiveRevision('tickets');
+
+  // Al cambiar de personaje (o cerrar sesión) se descarta el borrador del anterior.
+  useEffect(() => {
+    const owner = draftOwner(myName);
+    if (draftMemo.owner === owner) return;
+    draftMemo.owner = owner;
+    draftMemo.title = '';
+    draftMemo.text = '';
+    setTitle('');
+    setText('');
+  }, [myName]);
+
+  useEffect(() => {
+    if (draftMemo.owner !== draftOwner(myName)) return;
+    draftMemo.title = title;
+    draftMemo.text = text;
+  }, [title, text, myName]);
 
   useEffect(() => {
     let active = true;
@@ -93,16 +129,20 @@ const Sugerencias = () => {
     };
   }, [ticketsRevision]);
 
+  // Archivadas: fuera de las listas normales; el admin las ve con el botón «Archivadas».
+  const archivedCount = useMemo(() => tickets.filter(item => item.archived).length, [tickets]);
+  const viewing = showArchived && canEdit;
+  const base = useMemo(() => tickets.filter(item => !!item.archived === viewing), [tickets, viewing]);
   const counts = useMemo<Record<Filter, number>>(() => ({
-    all: tickets.length,
-    pending: tickets.filter(item => item.status === 'pending').length,
-    accepted: tickets.filter(item => item.status === 'accepted').length,
-    rejected: tickets.filter(item => item.status === 'rejected').length,
-    completed: tickets.filter(item => item.status === 'completed').length,
-  }), [tickets]);
+    all: base.length,
+    pending: base.filter(item => item.status === 'pending').length,
+    accepted: base.filter(item => item.status === 'accepted').length,
+    rejected: base.filter(item => item.status === 'rejected').length,
+    completed: base.filter(item => item.status === 'completed').length,
+  }), [base]);
   const filtered = useMemo(
-    () => (filter === 'all' ? tickets : tickets.filter(item => item.status === filter)),
-    [tickets, filter],
+    () => (filter === 'all' ? base : base.filter(item => item.status === filter)),
+    [base, filter],
   );
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   // Si al borrar/cambiar estado la página se queda vacía, se baja a la última que exista.
@@ -143,6 +183,43 @@ const Sugerencias = () => {
     } finally {
       setBusyId(null);
       setBusyStatus(null);
+    }
+  };
+
+  const sendComment = async (ticket: Ticket) => {
+    const draft = (commentDrafts[ticket.id] ?? '').trim();
+    if (!draft || commentBusy || ticket.status !== 'pending') return;
+    setCommentBusy(ticket.id);
+    setRowError(null);
+    try {
+      const saved = await addTicketComment(ticket.id, draft, author.trim() || myName || '');
+      setTickets(current => current.map(item => (item.id === saved.id ? saved : item)));
+      setCommentDrafts(current => {
+        const next = { ...current };
+        delete next[ticket.id];
+        return next;
+      });
+      setOpen(ticket.id, false);
+    } catch (error) {
+      setRowError({ id: ticket.id, text: error instanceof Error ? error.message : 'No se pudo guardar el comentario' });
+    } finally {
+      setCommentBusy(null);
+    }
+  };
+
+  const toggleArchive = async (ticket: Ticket) => {
+    if (busyId || !canEdit) return;
+    setBusyId(ticket.id);
+    setBusyArchive(true);
+    setRowError(null);
+    try {
+      const saved = await setTicketArchived(ticket.id, !ticket.archived);
+      setTickets(current => current.map(item => (item.id === saved.id ? { ...saved, archived: saved.archived === true } : item)));
+    } catch (error) {
+      setRowError({ id: ticket.id, text: error instanceof Error ? error.message : 'No se pudo archivar' });
+    } finally {
+      setBusyId(null);
+      setBusyArchive(false);
     }
   };
 
@@ -227,6 +304,18 @@ const Sugerencias = () => {
             </button>
           ))}
         </div>
+        {canEdit && (archivedCount > 0 || viewing) && (
+          <button
+            type="button"
+            className={`sug-filter${viewing ? ' sug-filter--active' : ''}`}
+            aria-pressed={viewing}
+            title={viewing ? 'Volver a las sugerencias normales' : 'Ver las sugerencias archivadas'}
+            onClick={() => { setShowArchived(on => !on); setPage(1); }}
+          >
+            Archivadas
+            <span className="sug-filter__count">{archivedCount}</span>
+          </button>
+        )}
         <span className="sug-count">{filtered.length}</span>
       </div>
 
@@ -260,6 +349,57 @@ const Sugerencias = () => {
                   {ticket.title || 'Sin título'}
                 </h3>
                 <p className="sug-row__text">{ticket.text}</p>
+                {(ticket.comments?.length ?? 0) > 0 && (
+                  <ul className="sug-comments">
+                    {ticket.comments!.map(comment => (
+                      <li key={comment.id || comment.createdAt} className="sug-comment">
+                        <div className="sug-comment__head">
+                          <span className="sug-comment__author">{comment.author || 'Anónimo'}</span>
+                          <time className="sug-comment__time" dateTime={comment.createdAt}>{formatDate(comment.createdAt)}</time>
+                        </div>
+                        <p className="sug-comment__text">{comment.text}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {ticket.status === 'pending' && !ticket.archived && !commentOpen[ticket.id] && (
+                  <button type="button" className="sug-cancel sug-comment-open" onClick={() => setOpen(ticket.id, true)}>
+                    Añadir comentario
+                  </button>
+                )}
+                {ticket.status === 'pending' && !ticket.archived && commentOpen[ticket.id] && (
+                  <div className="sug-comment-form">
+                    <textarea
+                      className="sug-comment-form__text"
+                      rows={2}
+                      autoFocus
+                      maxLength={TICKET_COMMENT_MAX}
+                      placeholder="Añadir o corregir algo (no se puede editar ni borrar)"
+                      value={commentDrafts[ticket.id] ?? ''}
+                      disabled={commentBusy === ticket.id}
+                      onChange={event => {
+                        const value = event.target.value;
+                        setCommentDrafts(current => ({ ...current, [ticket.id]: value }));
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="sug-btn"
+                      disabled={!(commentDrafts[ticket.id] ?? '').trim() || commentBusy === ticket.id}
+                      onClick={() => { void sendComment(ticket); }}
+                    >
+                      {commentBusy === ticket.id ? 'Enviando' : 'Comentar'}
+                    </button>
+                    <button
+                      type="button"
+                      className="sug-cancel"
+                      disabled={commentBusy === ticket.id}
+                      onClick={() => setOpen(ticket.id, false)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                )}
                 {error && <p className="sug-error">{error}</p>}
               </div>
               {canEdit && (
@@ -296,6 +436,17 @@ const Sugerencias = () => {
                       {busy && busyStatus === 'pending' ? STATUS_BUSY.pending : 'Volver a pendiente'}
                     </button>
                   )}
+                  {(ticket.status === 'completed' || ticket.status === 'rejected' || ticket.archived) && (
+                    <button
+                      type="button"
+                      className="sug-cancel"
+                      disabled={busy}
+                      title={ticket.archived ? 'Vuelve a salir en la lista' : 'Deja de salir en la lista (no se borra)'}
+                      onClick={() => { void toggleArchive(ticket); }}
+                    >
+                      {busy && busyArchive ? (ticket.archived ? 'Desarchivando' : 'Archivando') : (ticket.archived ? 'Desarchivar' : 'Archivar')}
+                    </button>
+                  )}
                   {ticket.status === 'accepted' ? (
                     <button
                       type="button"
@@ -312,7 +463,7 @@ const Sugerencias = () => {
                       disabled={busy}
                       onClick={() => setPending(ticket)}
                     >
-                      {busy && !busyStatus ? 'Borrando' : 'Borrar'}
+                      {busy && !busyStatus && !busyArchive ? 'Borrando' : 'Borrar'}
                     </button>
                   )}
                 </div>

@@ -1,0 +1,9 @@
+.combat-manual-dmg { display: flex; flex-direction: column; gap: 0.4rem; }
+.combat-manual-dmg__head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+.combat-manual-dmg__hidden { font-size: 0.82rem; color: #bdb5a4; }
+.combat-manual-dmg__taken { font-size: 0.82rem; color: #e8e4d9; }
+.combat-manual-dmg__taken b { color: #f0b4b4; font-weight: 700; }
+.combat-manual-dmg__row { display: flex; gap: 0.4rem; align-items: center; }
+.combat-manual-dmg__row input { flex: 1; min-width: 0; width: 6rem; background: rgba(10, 9, 8, 0.85); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 8px; color: #e8e4d9; padding: 0.3rem 0.5rem; font: inherit; font-size: 0.88rem; }
+.combat-manual-dmg__row input::placeholder { color: rgba(232, 228, 217, 0.55); }
+.combat-manual-dmg__note { margin: 0; font-size: 0.78rem; color: #c8f0c0; }

@@ -44,6 +44,12 @@ export function itemActiveDamage(item: Item | undefined): ItemActiveDamage | nul
 }
 
 /** Ítem con algo que usar: daño, cooldown o efecto con duración. */
+/** Tiene texto de activa (no vacío ni «-»). Sin él, usarlo es activar a mano su pasiva y no gasta uso de objeto. */
+export const itemHasActiveText = (item: Item): boolean => {
+  const text = (item.efecto?.activa ?? '').trim();
+  return text !== '' && text !== '-';
+};
+
 export function itemIsUsable(item: Item | undefined): boolean {
   if (!item) return false;
   return !!itemActiveDamage(item)

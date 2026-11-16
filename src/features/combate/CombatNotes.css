@@ -1,0 +1,45 @@
+/* Panel lateral derecho de notas del combate: fijo bajo la cabecera de la app (z 9999), por encima del contenido
+   y al nivel del menú lateral (9998, al otro lado); los modales (9999+) siguen encima. */
+.combat-notes {
+  position: fixed;
+  top: var(--header-height, 64px);
+  right: 0;
+  z-index: 9998;
+  width: 380px;
+  max-width: 90vw;
+  height: calc(100vh - var(--header-height, 64px));
+  height: calc(100dvh - var(--header-height, 64px));
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(22, 19, 15, 0.98), rgba(12, 11, 9, 0.98));
+  border-left: 1px solid rgba(201, 162, 39, 0.4);
+  box-shadow: -10px 0 32px rgba(0, 0, 0, 0.55);
+  color: #e8e4d9;
+  animation: combat-notes-in 0.22s ease-out;
+}
+@keyframes combat-notes-in {
+  from { transform: translateX(100%); opacity: 0.6; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .combat-notes { animation: none; }
+}
+.combat-notes__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; padding: 1rem 1rem 0.7rem; border-bottom: 1px solid rgba(201, 162, 39, 0.22); }
+.combat-notes__title { margin: 0; font-family: 'Cinzel', Georgia, serif; font-size: 1.05rem; letter-spacing: 0.04em; color: #c9a227; }
+.combat-notes__hint { margin: 0.25rem 0 0; font-size: 0.8rem; color: #bdb5a4; }
+.combat-notes__close { flex: none; width: 2rem; height: 2rem; border-radius: 8px; border: 1px solid rgba(201, 162, 39, 0.35); background: rgba(10, 9, 8, 0.6); color: #e8e4d9; font-size: 0.95rem; cursor: pointer; }
+.combat-notes__close:hover { border-color: #c9a227; color: #f3c969; }
+.combat-notes__form { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.8rem 1rem; border-bottom: 1px solid rgba(201, 162, 39, 0.15); }
+.combat-notes__form textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 4.2rem; background: rgba(10, 9, 8, 0.85); border: 1px solid rgba(201, 162, 39, 0.3); border-radius: 8px; color: #e8e4d9; padding: 0.45rem 0.6rem; font: inherit; font-size: 0.9rem; }
+.combat-notes__form textarea:focus { outline: none; border-color: rgba(201, 162, 39, 0.7); }
+.combat-notes__form textarea::placeholder { color: rgba(232, 228, 217, 0.62); }
+.combat-notes__form-row { display: flex; justify-content: flex-end; gap: 0.5rem; }
+.combat-notes__body { flex: 1; min-height: 0; overflow-y: auto; padding: 0.8rem 1rem 1rem; }
+.combat-notes__empty { margin: 0; font-size: 0.86rem; color: #bdb5a4; font-style: italic; }
+.combat-notes__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.combat-notes__item { padding: 0.5rem 0.7rem; border: 1px solid rgba(201, 162, 39, 0.2); border-radius: 10px; background: rgba(10, 9, 8, 0.5); }
+.combat-notes__meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.76rem; color: #bdb5a4; }
+.combat-notes__meta b { color: #c9a227; font-weight: 600; }
+.combat-notes__del { margin-left: auto; background: none; border: none; color: #bdb5a4; cursor: pointer; font-size: 0.8rem; padding: 0 0.2rem; }
+.combat-notes__del:hover:not(:disabled) { color: #f0b4b4; }
+.combat-notes__text { margin: 0.25rem 0 0; font-size: 0.9rem; color: #e8e4d9; white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -38,7 +38,7 @@
 }
 
 .pnotes__text::placeholder {
-  color: rgba(212, 196, 154, 0.28);
+  color: rgba(212, 196, 154, 0.5);
 }
 
 .pnotes__actions {
@@ -56,5 +56,5 @@
 }
 
 .pnotes__count {
-  color: rgba(212, 196, 154, 0.35);
+  color: rgba(212, 196, 154, 0.6);
 }

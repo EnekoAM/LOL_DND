@@ -95,7 +95,7 @@ export default function SideNav<T extends string>({
       >
         <div className="side-nav__crest" aria-hidden="true">
           <img className="side-nav__crest-mark" src="/logo.png" alt="" width="20" height="23" decoding="async" />
-          <span className="side-nav__crest-text">LOL &middot; D&amp;D</span>
+          <span className="side-nav__crest-text">LoL &middot; D&amp;D</span>
         </div>
         <div className="side-nav__rule" aria-hidden="true" />
 
@@ -149,7 +149,7 @@ export default function SideNav<T extends string>({
           >
             <span className="side-nav__icon" aria-hidden="true">{role === 'admin' ? '⚔' : '👤'}</span>
             <span className="side-nav__label">
-              {role === 'admin' ? 'Admin' : identityName ? `User · ${identityName}` : 'User'}
+              {role === 'admin' ? 'Admin' : identityName || 'Invitado'}
               <span className="side-nav__role-hint">cambiar</span>
             </span>
           </button>

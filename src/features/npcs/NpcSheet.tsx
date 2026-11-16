@@ -39,9 +39,10 @@ const TABS: { id: SheetTab; label: string }[] = [
   { id: 'habilidades', label: 'Habilidades' },
   { id: 'descripcion', label: 'Descripción' },
   { id: 'relaciones', label: 'Relaciones' },
+  { id: 'notas', label: 'Notas' },
 ];
-/** Players: sin Habilidades y con sus notas privadas (la descripción sigue siendo compartida). */
-const PLAYER_TABS: { id: SheetTab; label: string }[] = [...TABS.filter(entry => entry.id !== 'habilidades'), { id: 'notas', label: 'Notas privadas' }];
+/** Players: sin Habilidades (la descripción y las notas públicas son compartidas). */
+const PLAYER_TABS: { id: SheetTab; label: string }[] = TABS.filter(entry => entry.id !== 'habilidades');
 
 /** Abierto: habilidad existente (id), nueva ('new') o ninguna. */
 type AbilityOpen = { id: string | 'new'; edit: boolean } | null;
@@ -75,10 +76,7 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
 
   // Players: sin pestaña de habilidades (ni modales abiertos si el admin cambia de rol en vivo).
   useEffect(() => {
-    if (canEdit) {
-      setTab(current => (current === 'notas' ? 'habilidades' : current));
-      return;
-    }
+    if (canEdit) return;
     setTab(current => (current === 'habilidades' ? 'descripcion' : current));
     setAbilityOpen(null);
     setEditing(false);
@@ -295,32 +293,37 @@ const NpcSheet = ({ npc, types, regions, onBack, onChange, onDelete, onSelectAbi
             <RelationsPanel self={{ kind: 'npc', id: npc.id }} selfName={npc.name} />
           )}
 
-          {tab === 'notas' && !canEdit && (
-            <PrivateNotesPanel kind="npc" id={npc.id} name={npc.name} />
+          {tab === 'notas' && (
+            <>
+              <section className="sheet-panel">
+                <div className="sheet-panel__title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <span>
+                    {'Notas p\u00fablicas'}
+                    <span className="sheet-panel__meta">Las ve toda la party</span>
+                  </span>
+                  <button
+                    type="button"
+                    className="sheet-hp__icon-btn"
+                    disabled={saving}
+                    aria-label={'Editar notas p\u00fablicas'}
+                    title={'Editar notas p\u00fablicas'}
+                    onClick={() => (canEdit ? setEditing(true) : setPlayerEditing(true))}
+                  >
+                    {'\u270E'}
+                  </button>
+                </div>
+                <p className={npc.publicNotes?.trim() ? 'npc-public-notes' : 'npc-public-notes npc-public-notes__empty'}>
+                  {npc.publicNotes?.trim() || 'Sin notas p\u00fablicas.'}
+                </p>
+              </section>
+              <PrivateNotesPanel kind="npc" id={npc.id} name={npc.name} />
+            </>
           )}
 
           {tab === 'descripcion' && (
             <section className="sheet-panel">
               <div className="sheet-panel__title">Descripción</div>
               <p className="npc-sheet__description">{npc.description || 'Sin descripción.'}</p>
-              <div className="sheet-panel__title" style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <span>Notas públicas</span>
-                {!canEdit && (
-                  <button
-                    type="button"
-                    className="sheet-hp__icon-btn"
-                    disabled={saving}
-                    aria-label="Editar notas públicas"
-                    title="Editar notas públicas"
-                    onClick={() => setPlayerEditing(true)}
-                  >
-                    ✎
-                  </button>
-                )}
-              </div>
-              <p className={npc.publicNotes?.trim() ? 'npc-public-notes' : 'npc-public-notes npc-public-notes__empty'}>
-                {npc.publicNotes?.trim() || 'Sin notas públicas.'}
-              </p>
             </section>
           )}
         </div>
