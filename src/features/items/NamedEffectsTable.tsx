@@ -7,9 +7,11 @@ import { useAppRole } from '../../data/appRoleContext';
 import { ITEMS } from '../../data/items';
 import { useLiveRevision } from '../../data/live';
 import {
-  NAMED_EFFECTS,
+  ALL_NAMED_EFFECTS,
   NAMED_EFFECT_KIND_LABEL,
   baseNamedEffectId,
+  findNamedEffect,
+  namedEffectName,
   type NamedEffect,
   type NamedEffectKind,
 } from '../../data/namedEffects';
@@ -21,6 +23,10 @@ import {
   saveNamedEffectData,
   saveNamedEffectDescription,
   useNamedEffectDescriptions,
+  assignNamedEffect,
+  createNamedEffect,
+  deleteNamedEffect,
+  updateNamedEffect,
   type NamedEffectData,
 } from '../../data/namedEffectDescriptions';
 import { matchesSearch } from '../../lib/text';
@@ -34,12 +40,17 @@ type Row = {
   exclusive: boolean;
   shared: boolean;
   variant: boolean;
+  /** Variante: etiqueta corta. */
+  short?: string;
+  /** Efecto base con variantes: el base tambien se puede elegir. */
+  baseSelectable?: boolean;
+  hasVariants: boolean;
   /** Resumen de la wiki (solo de ayuda; no se guarda). */
   hint?: string;
 };
 
 const rowsOf = (effect: NamedEffect): Row[] => [
-  { id: effect.id, name: effect.name, en: effect.en, kind: effect.kind, exclusive: effect.exclusive, shared: effect.shared, variant: false, hint: effect.description },
+  { id: effect.id, name: effect.name, en: effect.en, kind: effect.kind, exclusive: effect.exclusive, shared: effect.shared, variant: false, baseSelectable: effect.baseSelectable === true, hasVariants: (effect.variants?.length ?? 0) > 0, hint: effect.description },
   ...(effect.variants ?? []).map(variant => ({
     id: `${effect.id}:${variant.key}`,
     name: variant.name,
@@ -48,11 +59,325 @@ const rowsOf = (effect: NamedEffect): Row[] => [
     exclusive: effect.exclusive,
     shared: effect.shared,
     variant: true,
+    short: variant.short,
+    hasVariants: false,
     hint: variant.description,
   })),
 ];
 
-const ALL_ROWS: Row[] = NAMED_EFFECTS.flatMap(rowsOf);
+/** Id a partir de un nombre: minusculas sin tildes, numeros y guiones. */
+const slugify = (text: string, max: number): string =>
+  text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, max).replace(/-+$/, '');
+
+const errorText = (caught: unknown): string => caught instanceof Error ? caught.message : 'No se pudo guardar';
+
+/** Formulario (admin) para crear un efecto con nombre nuevo. */
+const NewEffectForm = () => {
+  const [show, setShow] = useState(false);
+  const [name, setName] = useState('');
+  const [id, setId] = useState('');
+  const [idTouched, setIdTouched] = useState(false);
+  const [kind, setKind] = useState<NamedEffectKind>('passive');
+  const [exclusive, setExclusive] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
+  const finalId = idTouched ? id : slugify(name, 60);
+
+  const submit = async () => {
+    setError(null);
+    setDone(null);
+    const cleanName = name.trim();
+    if (!cleanName) { setError('Pon un nombre'); return; }
+    if (!/^[a-z0-9-]{1,60}$/.test(finalId)) { setError('Id no v\u00e1lido: solo min\u00fasculas, n\u00fameros y guiones'); return; }
+    if (findNamedEffect(finalId)) { setError('Ya existe un efecto con ese id'); return; }
+    setSaving(true);
+    try {
+      await createNamedEffect({ id: finalId, name: cleanName, kind, exclusive, shared });
+      setDone(`Creado \u00ab${cleanName}\u00bb`);
+      setName('');
+      setId('');
+      setIdTouched(false);
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!show) {
+    return (
+      <div className="effects-new">
+        <button type="button" className="effects-manage__btn effects-manage__btn--add" onClick={() => setShow(true)}>+ Nuevo efecto</button>
+        {done && <span className="effects-new__ok">{done}</span>}
+      </div>
+    );
+  }
+  return (
+    <div className="effects-new effects-new--open">
+      <label className="effects-new__field">
+        <span>Nombre</span>
+        <input className="filter-input" type="text" value={name} maxLength={80} placeholder={'Ej.: Furia arcana'} onChange={e => setName(e.target.value)} />
+      </label>
+      <label className="effects-new__field">
+        <span>{'Id (autom\u00e1tico)'}</span>
+        <input className="filter-input" type="text" value={finalId} maxLength={60} onChange={e => { setId(e.target.value); setIdTouched(true); }} />
+      </label>
+      <label className="effects-new__field">
+        <span>Tipo</span>
+        <select className="filter-select" value={kind} onChange={e => setKind(e.target.value as NamedEffectKind)}>
+          <option value="passive">{NAMED_EFFECT_KIND_LABEL.passive}</option>
+          <option value="active">{NAMED_EFFECT_KIND_LABEL.active}</option>
+        </select>
+      </label>
+      <label className="effects-new__check">
+        <input type="checkbox" checked={exclusive} onChange={e => setExclusive(e.target.checked)} />
+        {'\u00danico (1 por build)'}
+      </label>
+      <label className="effects-new__check">
+        <input type="checkbox" checked={shared} onChange={e => setShared(e.target.checked)} />
+        {'Compartido (varios \u00edtems)'}
+      </label>
+      <button type="button" className="effects-manage__btn effects-manage__btn--add" disabled={saving} onClick={() => void submit()}>{saving ? 'Creando\u2026' : 'Crear'}</button>
+      <button type="button" className="effects-manage__btn" disabled={saving} onClick={() => setShow(false)}>Cerrar</button>
+      {error && <span className="effects-table__status effects-table__status--error">{error}</span>}
+      {done && <span className="effects-new__ok">{done}</span>}
+    </div>
+  );
+};
+
+/** Formulario (admin) para crear una variante de un efecto (id `base:clave`). */
+const NewVariantForm = ({ base, onDone }: { base: Row; onDone: () => void }) => {
+  const [short, setShort] = useState('');
+  const [name, setName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const key = slugify(short || name, 30);
+  const fullName = name.trim() || (short.trim() ? `${base.name} (${short.trim()})` : '');
+
+  const submit = async () => {
+    setError(null);
+    if (!key || !fullName) { setError('Pon al menos la etiqueta corta'); return; }
+    if (findNamedEffect(base.id)?.variants?.some(variant => variant.key === key)) { setError('Ya hay una variante con esa clave'); return; }
+    setSaving(true);
+    try {
+      await createNamedEffect({ id: `${base.id}:${key}`, name: fullName, short: short.trim() || fullName });
+      onDone();
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="effects-new effects-new--open">
+      <strong className="effects-assign__title">{`Nueva variante de \u00ab${base.name}\u00bb`}</strong>
+      <label className="effects-new__field">
+        <span>Etiqueta corta</span>
+        <input className="filter-input" type="text" value={short} maxLength={40} placeholder={'Ej.: MR'} onChange={e => setShort(e.target.value)} />
+      </label>
+      <label className="effects-new__field">
+        <span>Nombre completo</span>
+        <input className="filter-input" type="text" value={name} maxLength={80} placeholder={fullName || `${base.name} (\u2026)`} onChange={e => setName(e.target.value)} />
+      </label>
+      <span className="effects-assign__hint">{key ? `Id: ${base.id}:${key}` : ''}</span>
+      <button type="button" className="effects-manage__btn effects-manage__btn--add" disabled={saving} onClick={() => void submit()}>{saving ? 'Creando\u2026' : 'Crear variante'}</button>
+      <button type="button" className="effects-manage__btn" disabled={saving} onClick={onDone}>Cancelar</button>
+      {error && <span className="effects-table__status effects-table__status--error">{error}</span>}
+    </div>
+  );
+};
+
+/** Formulario (admin) para editar un efecto (nombre, ingles, tipo, unico, compartido, base elegible) o una variante (nombre, etiqueta). */
+const EditEffectForm = ({ row, onDone }: { row: Row; onDone: () => void }) => {
+  const [name, setName] = useState(row.name);
+  const [en, setEn] = useState(row.en);
+  const [short, setShort] = useState(row.short ?? '');
+  const [kind, setKind] = useState<NamedEffectKind>(row.kind);
+  const [exclusive, setExclusive] = useState(row.exclusive);
+  const [shared, setShared] = useState(row.shared);
+  const [baseSelectable, setBaseSelectable] = useState(row.baseSelectable === true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    setError(null);
+    const cleanName = name.trim();
+    if (!cleanName) { setError('Pon un nombre'); return; }
+    setSaving(true);
+    try {
+      await updateNamedEffect(row.id, row.variant
+        ? { name: cleanName, short: short.trim() || cleanName }
+        : { name: cleanName, en: en.trim() || cleanName, kind, exclusive, shared, ...(row.hasVariants ? { baseSelectable } : {}) });
+      onDone();
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="effects-new effects-new--open">
+      <strong className="effects-assign__title">{`Editar \u00ab${row.name}\u00bb (${row.id})`}</strong>
+      <label className="effects-new__field">
+        <span>Nombre</span>
+        <input className="filter-input" type="text" value={name} maxLength={80} onChange={e => setName(e.target.value)} />
+      </label>
+      {row.variant ? (
+        <label className="effects-new__field">
+          <span>Etiqueta corta</span>
+          <input className="filter-input" type="text" value={short} maxLength={40} onChange={e => setShort(e.target.value)} />
+        </label>
+      ) : (
+        <>
+          <label className="effects-new__field">
+            <span>{'Ingl\u00e9s'}</span>
+            <input className="filter-input" type="text" value={en} maxLength={80} onChange={e => setEn(e.target.value)} />
+          </label>
+          <label className="effects-new__field">
+            <span>Tipo</span>
+            <select className="filter-select" value={kind} onChange={e => setKind(e.target.value as NamedEffectKind)}>
+              <option value="passive">{NAMED_EFFECT_KIND_LABEL.passive}</option>
+              <option value="active">{NAMED_EFFECT_KIND_LABEL.active}</option>
+            </select>
+          </label>
+          <label className="effects-new__check">
+            <input type="checkbox" checked={exclusive} onChange={e => setExclusive(e.target.checked)} />
+            {'\u00danico (1 por build)'}
+          </label>
+          <label className="effects-new__check">
+            <input type="checkbox" checked={shared} onChange={e => setShared(e.target.checked)} />
+            {'Compartido (varios \u00edtems)'}
+          </label>
+          {row.hasVariants && (
+            <label className="effects-new__check">
+              <input type="checkbox" checked={baseSelectable} onChange={e => setBaseSelectable(e.target.checked)} />
+              {'El base tambi\u00e9n se puede elegir'}
+            </label>
+          )}
+        </>
+      )}
+      <button type="button" className="effects-manage__btn effects-manage__btn--add" disabled={saving} onClick={() => void submit()}>{saving ? 'Guardando\u2026' : 'Guardar'}</button>
+      <button type="button" className="effects-manage__btn" disabled={saving} onClick={onDone}>Cancelar</button>
+      {error && <span className="effects-table__status effects-table__status--error">{error}</span>}
+    </div>
+  );
+};
+
+/** Botones (admin) de una fila: editar, items, nueva variante, borrar. */
+const ManageCell = ({ row, open, toggle }: { row: Row; open: Set<string>; toggle: (id: string) => void }) => {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const run = async (action: () => Promise<void>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await action();
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const remove = () => run(async () => {
+    const what = row.variant ? 'la variante' : 'el efecto';
+    const extra = row.variant ? '' : ' y sus variantes';
+    if (!window.confirm(`\u00bfBorrar ${what} \u00ab${row.name}\u00bb? Se borran tambi\u00e9n su descripci\u00f3n, bonus y \u00e1rea${extra}. Solo se recupera desde la copia de seguridad.`)) return;
+    const result = await deleteNamedEffect(row.id);
+    if (result && window.confirm(`\u00ab${row.name}\u00bb lo tienen ${result.inUse} \u00edtem(s). \u00bfQuit\u00e1rselo a todos y borrarlo?`)) await deleteNamedEffect(row.id, true);
+  });
+  // Todos los efectos viven en la BD: cualquiera se edita y se borra igual.
+  const itemsKey = `items:${row.id}`;
+  const editKey = `edit:${row.id}`;
+  const variantKey = `variant:${row.id}`;
+  return (
+    <div className="effects-table__manage-buttons">
+      <button type="button" className={cx('effects-manage__btn', open.has(editKey) && 'effects-manage__btn--on')} aria-expanded={open.has(editKey)} onClick={() => toggle(editKey)}>Editar</button>
+      <button type="button" className={cx('effects-manage__btn', open.has(itemsKey) && 'effects-manage__btn--on')} aria-expanded={open.has(itemsKey)} onClick={() => toggle(itemsKey)}>{'\u00cdtems'}</button>
+      {!row.variant && (
+        <button type="button" className={cx('effects-manage__btn', open.has(variantKey) && 'effects-manage__btn--on')} onClick={() => toggle(variantKey)}>+ Variante</button>
+      )}
+      <button type="button" className="effects-manage__btn effects-manage__btn--danger" disabled={busy} onClick={() => void remove()}>Borrar</button>
+      {error && <span className="effects-table__status effects-table__status--error">{error}</span>}
+    </div>
+  );
+};
+
+/** Panel (admin) de items de un efecto / variante: los que lo tienen (quitar) y buscador para ponerlo. */
+const AssignRow = ({ row, onChanged }: { row: Row; onChanged: () => void }) => {
+  const [query, setQuery] = useState('');
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const base = baseNamedEffectId(row.id);
+  const effect = findNamedEffect(row.id);
+  const holders = ITEMS.filter(item => item.namedEffects?.includes(row.id));
+  const variantHolders = row.variant ? 0 : ITEMS.filter(item => item.namedEffects?.some(id => id !== row.id && baseNamedEffectId(id) === base)).length;
+  const sameBase = (ids: string[] | undefined) => (ids ?? []).find(id => id !== row.id && baseNamedEffectId(id) === base);
+  const matches = query.trim()
+    ? ITEMS.filter(item => !item.namedEffects?.includes(row.id) && matchesSearch(item.nombre, query)).slice(0, 15)
+    : [];
+
+  const change = async (nombre: string, on: boolean) => {
+    setBusy(nombre);
+    setError(null);
+    try {
+      await assignNamedEffect(row.id, nombre, on);
+      onChanged();
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="effects-assign">
+      <div className="effects-assign__col">
+        <strong className="effects-assign__title">{`\u00cdtems con \u00ab${row.name}\u00bb (${holders.length})`}</strong>
+        {holders.length === 0 && <p className="effects-assign__hint">{'Ning\u00fan \u00edtem lo tiene.'}</p>}
+        {variantHolders > 0 && <p className="effects-assign__hint">{`Otros ${variantHolders} \u00edtem(s) tienen una variante: salen en la fila de cada variante.`}</p>}
+        {!row.variant && (effect?.variants?.length ?? 0) > 0 && !effect?.baseSelectable && (
+          <p className="effects-assign__hint">{'Este efecto tiene variantes: lo normal es asignar una variante.'}</p>
+        )}
+        <ul className="effects-assign__list">
+          {holders.map(item => (
+            <li key={item.nombre}>
+              <span>{item.nombre}</span>
+              <button type="button" className="effects-manage__btn effects-manage__btn--danger" disabled={busy !== null} onClick={() => void change(item.nombre, false)}>
+                {busy === item.nombre ? '\u2026' : 'Quitar'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="effects-assign__col">
+        <strong className="effects-assign__title">{'A\u00f1adir a un \u00edtem'}</strong>
+        <input className="filter-input" type="text" value={query} placeholder={'Buscar \u00edtem por nombre\u2026'} onChange={e => setQuery(e.target.value)} />
+        <ul className="effects-assign__list">
+          {matches.map(item => {
+            const other = sameBase(item.namedEffects);
+            return (
+              <li key={item.nombre}>
+                <span>
+                  {item.nombre}
+                  {other && <span className="effects-assign__note">{` (sustituye a ${namedEffectName(other)})`}</span>}
+                </span>
+                <button type="button" className="effects-manage__btn effects-manage__btn--add" disabled={busy !== null} onClick={() => void change(item.nombre, true)}>
+                  {busy === item.nombre ? '\u2026' : 'A\u00f1adir'}
+                </button>
+              </li>
+            );
+          })}
+          {query.trim() && matches.length === 0 && <li className="effects-assign__hint">Sin resultados</li>}
+        </ul>
+        {error && <span className="effects-table__status effects-table__status--error">{error}</span>}
+      </div>
+    </div>
+  );
+};
 
 /** Ítems por id: el efecto base cuenta todas sus variantes; la variante, solo la suya. */
 const itemCounts = (): Map<string, number> => {
@@ -168,7 +493,8 @@ const NamedEffectsTable = () => {
   const effectData = useNamedEffectDescriptions();
   const descriptions = effectData.descriptions;
   const itemsRevision = useLiveRevision('items');
-  const counts = useMemo(itemCounts, [itemsRevision]);
+  const [itemsBump, setItemsBump] = useState(0);
+  const counts = useMemo(itemCounts, [itemsRevision, itemsBump]);
   const [search, setSearch] = useState('');
   const [kind, setKind] = useState<'all' | NamedEffectKind>('all');
   const [onlyUsed, setOnlyUsed] = useState(false);
@@ -181,8 +507,12 @@ const NamedEffectsTable = () => {
     return next;
   });
 
+  // Se recalcula al recargar los datos (la lista de efectos llega de la BD con ellos).
+  const allRows = useMemo(() => ALL_NAMED_EFFECTS.flatMap(rowsOf), [effectData]);
+  const cols = canEdit ? 10 : 9;
+
   const rows = useMemo(() => {
-    const visible = ALL_ROWS.filter(row =>
+    const visible = allRows.filter(row =>
       (kind === 'all' || row.kind === kind) &&
       (!onlyUsed || counts.has(row.id)) &&
       (!onlyOnHit || namedEffectOnHit(effectData, row.id)) &&
@@ -192,13 +522,13 @@ const NamedEffectsTable = () => {
     // Si una variante coincide, se enseña también su efecto base (como cabecera).
     const ids = new Set(visible.map(row => row.id));
     for (const row of visible) if (row.variant) ids.add(baseNamedEffectId(row.id));
-    return ALL_ROWS.filter(row => ids.has(row.id));
-  }, [search, kind, onlyUsed, onlyOnHit, onlyBonus, counts, descriptions, effectData]);
+    return allRows.filter(row => ids.has(row.id));
+  }, [allRows, search, kind, onlyUsed, onlyOnHit, onlyBonus, counts, descriptions, effectData]);
 
   const kindCounts = useMemo(() => ({
-    active: NAMED_EFFECTS.filter(effect => effect.kind === 'active').length,
-    passive: NAMED_EFFECTS.filter(effect => effect.kind === 'passive').length,
-  }), []);
+    active: ALL_NAMED_EFFECTS.filter(effect => effect.kind === 'active').length,
+    passive: ALL_NAMED_EFFECTS.filter(effect => effect.kind === 'passive').length,
+  }), [effectData]);
 
   return (
     <div className="effects-root">
@@ -243,6 +573,7 @@ const NamedEffectsTable = () => {
       </div>
 
       {!canEdit && <p className="item-edit__hint">Solo el admin puede escribir las descripciones.</p>}
+      {canEdit && <NewEffectForm />}
 
       <div className="effects-table__wrap">
         <table className="effects-table">
@@ -257,6 +588,7 @@ const NamedEffectsTable = () => {
               <th>Descripción</th>
               <th title="Configurador de bonus: reglas en combate, CD y duración">Bonus</th>
               <th title="Tablero: usuario, objetivo y casillas donde hace efecto">Área</th>
+              {canEdit && <th>Gestionar</th>}
             </tr>
           </thead>
           <tbody>
@@ -291,10 +623,15 @@ const NamedEffectsTable = () => {
                   </button>
                   {area && !ownArea && <div className="effects-table__inherited">Heredada del base</div>}
                 </td>
+                {canEdit && (
+                  <td className="effects-table__manage">
+                    <ManageCell row={row} open={open} toggle={toggle} />
+                  </td>
+                )}
               </tr>
               {open.has(areaKey) && (
                 <tr className="effects-table__bonus-row">
-                  <td colSpan={9}>
+                  <td colSpan={cols}>
                     <AreaRow
                       own={ownArea}
                       inherited={row.variant ? effectData.area[baseNamedEffectId(row.id)] : undefined}
@@ -306,7 +643,7 @@ const NamedEffectsTable = () => {
               )}
               {open.has(row.id) && (
                 <tr className="effects-table__bonus-row">
-                  <td colSpan={9}>
+                  <td colSpan={cols}>
                     <EffectBonusEditor
                       id={row.id}
                       own={effectData.bonus[row.id]}
@@ -314,6 +651,27 @@ const NamedEffectsTable = () => {
                       canEdit={canEdit}
                       onSave={bonus => saveNamedEffectData(row.id, { bonus })}
                     />
+                  </td>
+                </tr>
+              )}
+              {canEdit && open.has(`edit:${row.id}`) && (
+                <tr className="effects-table__bonus-row">
+                  <td colSpan={cols}>
+                    <EditEffectForm key={`${row.name}|${row.en}|${row.kind}|${row.exclusive}|${row.shared}|${row.short ?? ''}|${row.baseSelectable ? 1 : 0}`} row={row} onDone={() => toggle(`edit:${row.id}`)} />
+                  </td>
+                </tr>
+              )}
+              {canEdit && open.has(`items:${row.id}`) && (
+                <tr className="effects-table__bonus-row">
+                  <td colSpan={cols}>
+                    <AssignRow row={row} onChanged={() => setItemsBump(n => n + 1)} />
+                  </td>
+                </tr>
+              )}
+              {canEdit && !row.variant && open.has(`variant:${row.id}`) && (
+                <tr className="effects-table__bonus-row">
+                  <td colSpan={cols}>
+                    <NewVariantForm base={row} onDone={() => toggle(`variant:${row.id}`)} />
                   </td>
                 </tr>
               )}

@@ -28,7 +28,7 @@ import { championPool } from './CombatAbilityUseSection';
 import { resolvedSpendKind } from './combatAbilityUse';
 import { kindTag } from './combatHelpers';
 import { adjustMarker, bumpCounter, heldTargetMarks, isPerTargetMarker, markOptions } from './targetMarks';
-import { itemActiveDamage, itemHasActiveText, itemIsUsable, itemUseHeadline, rollItemDamage, type ItemDamageRoll } from './combatItemUse';
+import { itemActiveDamage, itemHasActiveText, itemIsUsable, itemUseHeadline, itemUseTiming, rollItemDamage, type ItemDamageRoll } from './combatItemUse';
 import { canSeeHp, damageTargets, participantHp, targetHpLine, type TargetDamageFn } from './combatHp';
 import { applyScaledMr } from '../../data/combatTraits';
 import CombatTargetPicker from './CombatTargetPicker';
@@ -443,8 +443,8 @@ export default function CombatSheetView({
     }
     const cdKey = itemCooldownKey(name);
     const effectKey = itemActiveEffectKey(name);
-    const cd = typeof item.cooldown === 'number' && item.cooldown > 0 ? item.cooldown : 0;
-    const duration = typeof item.effectDuration === 'number' && item.effectDuration > 0 ? item.effectDuration : 0;
+    // Sin los campos antiguos del item, CD y duracion salen del configurador de sus efectos activos.
+    const { cooldown: cd, duration } = itemUseTiming(item, effectData);
     const enemy = duration > 0 && item.effectTarget === 'enemy';
     const self = duration > 0 && !enemy;
     setItemBusy(true);

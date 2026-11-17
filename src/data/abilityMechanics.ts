@@ -4,6 +4,7 @@ import type { CombatTraits } from './combatTraits';
 import { describeCombatTraits } from './combatTraits';
 import type { EffectBonusConfig } from './effectBonus';
 import { abilityStackKey } from './stacks';
+import { STAT_BONUS_LABEL } from '../features/calculos/statLine';
 
 /**
  * Mecánicas de combate de una habilidad (genéricas, para ir configurando campeones):
@@ -1273,7 +1274,7 @@ export function mechanicsSummary(mechanics: AbilityMechanics | undefined): strin
   if (mechanics.aaCritBonus) out.push(`AA: +${mechanics.aaCritBonus.pctPerFace || 0}% del daño por cada cara de prob. de crítico${mechanics.aaCritBonus.pctPerFace ? '' : ' (sin valor)'}`);
   if (mechanics.critNoDamage) out.push('Los críticos no hacen daño extra');
   if (mechanics.critDoublesPassive) out.push('Crítico: duplica el valor del estado de la pasiva');
-  for (const entry of mechanics.learnedStats ?? []) out.push(`Por tenerla aprendida: +${list(entry.values)} ${entry.stat}`);
+  for (const entry of mechanics.learnedStats ?? []) out.push(`Por tenerla aprendida: +${list(entry.values)} ${(STAT_BONUS_LABEL as Record<string, string>)[entry.stat] ?? entry.stat}`);
   for (const entry of mechanics.levelThresholds ?? []) {
     const bits = [
       entry.rangeBonus ? `+${entry.rangeBonus} alcance` : '',

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Player } from '../../data/players';
 import { hpSyncPatch } from '../calculos/playerTotals';
+import { HpExtrasTags, HpTrack } from '../combate/HpExtras';
 
 export type CombatPatch = {
   hp?: number;
@@ -285,22 +286,18 @@ const HpPanel = ({ player, suggestedMax, linkedMax, saving, error, onChange }: P
       <div className="sheet-resource__head sheet-resource__head--values">
         <span>
           {actualHp} / {maxHp}
-          {vidaTemporal > 0 && (
-            <span className="sheet-hp__badge sheet-hp__badge--temp" title="Vida temporal" style={{ marginLeft: 6 }}>
-              +{vidaTemporal}
-            </span>
-          )}
-          {escudo > 0 && (
-            <span className="sheet-hp__badge sheet-hp__badge--escudo" title="Escudo" style={{ marginLeft: 4 }}>
-              {escudo}
-            </span>
-          )}
+          <HpExtrasTags extras={{ tempHp: vidaTemporal, shield: escudo }} />
         </span>
         <span>{hpPct}%</span>
       </div>
-      <div className="sheet-resource__track" aria-hidden="true">
-        <div className="sheet-resource__fill" style={{ width: `${hpPct}%`, background: hpColor }} />
-      </div>
+      <HpTrack
+        current={actualHp}
+        max={maxHp}
+        extras={{ tempHp: vidaTemporal, shield: escudo }}
+        className="sheet-resource__track"
+        fillClassName="sheet-resource__fill"
+        fillStyle={{ background: hpColor }}
+      />
       {error && <p className="sheet-hp__error">{error}</p>}
     </div>
   );

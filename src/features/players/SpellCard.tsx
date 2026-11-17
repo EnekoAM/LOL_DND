@@ -3,6 +3,8 @@ import { cx } from '../../lib/cx';
 import PhaseTabs from '../habilidades/PhaseTabs';
 import { AreaGridView } from '../../components/AreaGrid';
 import type { AreaPattern } from '../../data/areaPattern';
+import type { PassiveBadge } from './abilityPassiveStats';
+import './SheetAbilities.css';
 
 export type SpellTone = 'pasiva' | 'basica' | 'definitiva' | 'auto';
 
@@ -42,6 +44,8 @@ type SpellCardProps = {
   area?: AreaPattern;
   /** La habilidad aplica efectos de impacto. */
   onHit?: boolean;
+  /** Bonus de stats pasivo de la habilidad (ya sumado a la ficha), o lo que daría al aprenderla. */
+  passiveBonus?: PassiveBadge;
 };
 
 const SpellCard = ({
@@ -66,6 +70,7 @@ const SpellCard = ({
   phasesChoose,
   area,
   onHit,
+  passiveBonus,
 }: SpellCardProps) => (
   <article
     className={cx(
@@ -108,6 +113,15 @@ const SpellCard = ({
         {note && <div className="spell__note">{note}</div>}
         {onHit && <div className="spell__onhit" title="Aplica efectos de impacto">Efecto de impacto</div>}
         {badge && <div className="spell__badge">{badge}</div>}
+        {passiveBonus && passiveBonus.texts.length > 0 && (
+          <div
+            className={cx('spell__passive', !passiveBonus.active && 'spell__passive--off')}
+            title={passiveBonus.active ? 'Bonus pasivo de esta habilidad: ya sumado a las estadísticas (total, desglose y combate)' : 'Bonus pasivo que dará cuando la habilidad tenga al menos rango 1'}
+          >
+            <span className="spell__passive-label">{passiveBonus.active ? 'Bonus pasivo activo' : 'Bonus pasivo al aprenderla'}</span>
+            {passiveBonus.texts.map(text => <span key={text} className="spell__passive-chip">{text}</span>)}
+          </div>
+        )}
       </div>
     </header>
     {area && (

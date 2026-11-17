@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
+import { lolDiceNote, lolToDice } from '../../data/lolDiceTable';
 import Modal from '../../components/Modal';
-import { PASSIVE_TRIGGERS, saveItemUpdate, type Item, type ItemUpdate, type PassiveTrigger } from '../../data/items';
-import { STAT_COLUMNS, formatStat } from '../calculos/statLine';
+import { saveItemUpdate, type Item, type ItemUpdate } from '../../data/items';
 import { cx } from '../../lib/cx';
-import { draftToItemUpdate, itemToDraft, type ItemDraft } from './itemDraft';
+import { draftToItemUpdate, itemToDraft, lolDiceStatOf, lolStatDice, type ItemDraft } from './itemDraft';
 import ItemStock from './ItemStock';
 import { RARITIES, rarityClass } from './rarity';
 import { useCanEdit } from '../../data/appRoleContext';
@@ -14,9 +14,6 @@ import { formatStatValue, getVisibleStats } from './stats';
 
 import { NAMED_EFFECTS, NAMED_EFFECT_KIND_LABEL, baseNamedEffectId, findNamedEffect, groupNamedEffects, namedEffectDescription, namedEffectName, namedEffectOptions } from '../../data/namedEffects';
 
-const triggerLabel = (trigger: PassiveTrigger): string => PASSIVE_TRIGGERS.find(entry => entry.id === trigger)?.label ?? trigger;
-const statTitle = (key: string): string => STAT_COLUMNS.find(column => column.key === key)?.title ?? key;
-
 type Props = {
   item: Item;
   onClose: () => void;
@@ -24,17 +21,7 @@ type Props = {
   readOnly?: boolean;
 };
 
-const EFFECTS = [
-  { key: 'pasiva', label: 'Pasiva' },
-  { key: 'activa', label: 'Activa' },
-] as const;
-
-/** El TSV marca con "-" los ítems sin ese efecto. */
-const isEffectDefined = (text: string | undefined): boolean =>
-  !!text && text.trim() !== '' && text.trim() !== '-';
-
 const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; canEdit: boolean }) => {
-  const effects = EFFECTS.filter(({ key }) => isEffectDefined(item.efecto?.[key]));
   const rarity = rarityClass(item.rareza);
   const effectDescriptions = useNamedEffectDescriptions();
 
@@ -45,30 +32,6 @@ const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; c
       <h2 className="modal-title">{item.nombre}</h2>
 
       <ItemStock item={item} className={cx('item-stock--modal', rarity)} />
-      {item.hasStacks && (
-        <p className="item-edit__hint">
-          Stacks activos{typeof item.maxStacks === 'number' ? ` (máx. ${item.maxStacks})` : ''}
-        </p>
-      )}
-      {typeof item.cooldown === 'number' && (
-        <p className="item-edit__hint">Cooldown: {item.cooldown} turno{item.cooldown === 1 ? '' : 's'}</p>
-      )}
-      {typeof item.effectDuration === 'number' && (
-        <p className="item-edit__hint">Efecto: {item.effectDuration} turno{item.effectDuration === 1 ? '' : 's'}</p>
-      )}
-      {item.effectTarget === 'enemy' && (
-        <p className="item-edit__hint">Objetivo: enemigo</p>
-      )}
-      {item.effectName && (
-        <p className="item-edit__hint">Nombre del efecto: {item.effectName}</p>
-      )}
-      {item.passiveBonus && (
-        <p className="item-edit__hint">
-          Pasiva ({triggerLabel(item.passiveBonus.trigger)}): {item.passiveBonus.amount > 0 ? '+' : ''}{formatStat(item.passiveBonus.amount)} {statTitle(item.passiveBonus.stat)}
-          {typeof item.passiveBonus.maxStacks === 'number' ? ` · hasta ${item.passiveBonus.maxStacks} stacks` : ''}
-          {typeof item.passiveBonus.durationTurns === 'number' ? ` · ${item.passiveBonus.durationTurns} turno${item.passiveBonus.durationTurns === 1 ? '' : 's'}` : ''}
-        </p>
-      )}
       {item.namedEffects && item.namedEffects.length > 0 && (
         <ul className="item-effects-list">
           {item.namedEffects.map(id => {
@@ -90,11 +53,6 @@ const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; c
           })}
         </ul>
       )}
-      {item.passiveDamage && (
-        <p className="item-edit__hint">
-          Daño de pasiva ({triggerLabel(item.passiveDamage.trigger)}): {formatStat(item.passiveDamage.currentHpPct)}% de la vida actual del objetivo
-        </p>
-      )}
 
       <div className="modal-rule">
         <span className="modal-rule__ornament">⚜</span>
@@ -107,13 +65,13 @@ const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; c
       )}
 
       <div className="modal-effects">
-        {effects.map(({ key, label }) => (
-          <div key={key} className="modal-effect">
-            <span className="modal-effect__tag">{label}</span>
-            <p className="modal-effect__text">{item.efecto[key]}</p>
+        {item.description && (
+          <div className="modal-effect">
+            <span className="modal-effect__tag">{'Descripci\u00f3n'}</span>
+            <p className="modal-effect__text">{item.description}</p>
           </div>
-        ))}
-        {effects.length === 0 && <p className="modal-no-effect">— Sin efectos registrados —</p>}
+        )}
+        {!item.description && !item.namedEffects?.length && <p className="modal-no-effect">- Sin efectos registrados -</p>}
       </div>
 
       <ul className="modal-stats">
@@ -147,11 +105,13 @@ type FormProps = {
   error: string | null;
   onChange: (patch: Partial<ItemDraft>) => void;
   onStatChange: (key: string, value: string) => void;
+  /** AD / AP del LoL: guarda el numero y rellena los dados de la stat (key). */
+  onLolChange: (lol: 'AD' | 'AP', key: string, value: string) => void;
   onSave: () => void;
   onCancel: () => void;
 };
 
-const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onSave, onCancel }: FormProps) => {
+const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onLolChange, onSave, onCancel }: FormProps) => {
   const rarities = RARITIES.includes(draft.rareza) || !draft.rareza ? RARITIES : [draft.rareza, ...RARITIES];
 
   return (
@@ -171,24 +131,14 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onSave, 
       </label>
 
       <label className="item-field">
-        <span>Pasiva</span>
+        <span>{'Descripci\u00f3n'}</span>
         <textarea
-          rows={3}
-          value={draft.pasiva}
-          placeholder="Sin pasiva"
+          rows={4}
+          maxLength={2000}
+          value={draft.description}
+          placeholder={'Descripci\u00f3n del \u00edtem (opcional)'}
           disabled={saving}
-          onChange={e => onChange({ pasiva: e.target.value })}
-        />
-      </label>
-
-      <label className="item-field">
-        <span>Activa</span>
-        <textarea
-          rows={3}
-          value={draft.activa}
-          placeholder="Sin activa"
-          disabled={saving}
-          onChange={e => onChange({ activa: e.target.value })}
+          onChange={e => onChange({ description: e.target.value })}
         />
       </label>
 
@@ -203,78 +153,9 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onSave, 
         />
       </label>
 
-      <div className="item-field">
-        <span>Stacks</span>
-        <button
-          type="button"
-          className={cx('item-edit__btn', draft.hasStacks && 'item-edit__btn--on')}
-          aria-pressed={draft.hasStacks}
-          disabled={saving}
-          onClick={() => onChange({ hasStacks: !draft.hasStacks })}
-        >
-          {draft.hasStacks ? 'Con acumulaciones' : 'Sin acumulaciones'}
-        </button>
-      </div>
-      {draft.hasStacks && (
-        <label className="item-field">
-          <span>Máx. stacks (opcional)</span>
-          <input
-            inputMode="numeric"
-            value={draft.maxStacks}
-            placeholder="Sin tope"
-            disabled={saving}
-            onChange={e => onChange({ maxStacks: e.target.value })}
-          />
-        </label>
-      )}
-
-      <label className="item-field">
-        <span>Cooldown (turnos)</span>
-        <input
-          inputMode="numeric"
-          value={draft.cooldown}
-          placeholder="Sin cooldown"
-          disabled={saving}
-          onChange={e => onChange({ cooldown: e.target.value })}
-        />
-      </label>
-
-      <label className="item-field">
-        <span>Efecto (turnos)</span>
-        <input
-          inputMode="numeric"
-          value={draft.effectDuration}
-          placeholder="Sin duración"
-          disabled={saving}
-          onChange={e => onChange({ effectDuration: e.target.value })}
-        />
-      </label>
-
-      <label className="item-field">
-        <span>Objetivo del efecto</span>
-        <select
-          value={draft.effectTarget}
-          disabled={saving}
-          onChange={e => onChange({ effectTarget: e.target.value === 'enemy' ? 'enemy' : 'self' })}
-        >
-          <option value="self">Propio</option>
-          <option value="enemy">Enemigo</option>
-        </select>
-      </label>
-
-      <label className="item-field">
-        <span>Nombre del efecto (opcional)</span>
-        <input
-          value={draft.effectName}
-          placeholder="El del ítem"
-          disabled={saving}
-          onChange={e => onChange({ effectName: e.target.value })}
-        />
-      </label>
-
       <div className="item-edit__block">
-        <span className="modal-effect__tag">Pasiva en combate</span>
-        <p className="item-edit__hint">Bonus temporal que se suma / acumula al saltar (p. ej. +0,3 letalidad por golpe) y daño % de la vida actual del objetivo. Vacío = sin pasiva.</p>
+        <span className="modal-effect__tag">Efectos con nombre</span>
+        <p className="item-edit__hint">{'Bonus, CD, duraci\u00f3n, cargas y \u00e1rea se configuran en la pantalla Efectos.'}</p>
         <div className="item-field">
           <span>Efectos con nombre (Vigor, Salvavidas…)</span>
           {draft.namedEffects.length > 0 && (
@@ -302,65 +183,48 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onSave, 
             ))}
           </select>
         </div>
-        <label className="item-field">
-          <span>Bonus: cuándo</span>
-          <select value={draft.passiveTrigger} disabled={saving} onChange={e => onChange({ passiveTrigger: e.target.value as ItemDraft['passiveTrigger'] })}>
-            <option value="">Sin bonus</option>
-            {PASSIVE_TRIGGERS.map(trigger => <option key={trigger.id} value={trigger.id}>{trigger.label}</option>)}
-          </select>
-        </label>
-        {draft.passiveTrigger && (
-          <>
-            <label className="item-field">
-              <span>Bonus: stat</span>
-              <select value={draft.passiveStat} disabled={saving} onChange={e => onChange({ passiveStat: e.target.value })}>
-                {STAT_COLUMNS.map(column => <option key={column.key} value={column.key}>{column.title}</option>)}
-              </select>
-            </label>
-            <label className="item-field">
-              <span>Bonus: cantidad (por stack)</span>
-              <input inputMode="decimal" value={draft.passiveAmount} placeholder="0,3" disabled={saving} onChange={e => onChange({ passiveAmount: e.target.value })} />
-            </label>
-            <label className="item-field">
-              <span>Bonus: stacks máx. (opcional)</span>
-              <input inputMode="numeric" value={draft.passiveMaxStacks} placeholder="Sin acumular" disabled={saving} onChange={e => onChange({ passiveMaxStacks: e.target.value })} />
-            </label>
-            <label className="item-field">
-              <span>Bonus: turnos (opcional)</span>
-              <input inputMode="numeric" value={draft.passiveTurns} placeholder="Hasta quitarlo" disabled={saving} onChange={e => onChange({ passiveTurns: e.target.value })} />
-            </label>
-          </>
-        )}
-        <label className="item-field">
-          <span>Daño de pasiva: cuándo</span>
-          <select value={draft.damageTrigger} disabled={saving} onChange={e => onChange({ damageTrigger: e.target.value as ItemDraft['damageTrigger'] })}>
-            <option value="">Sin daño</option>
-            {PASSIVE_TRIGGERS.map(trigger => <option key={trigger.id} value={trigger.id}>{trigger.label}</option>)}
-          </select>
-        </label>
-        {draft.damageTrigger && (
-          <label className="item-field">
-            <span>Daño: % vida actual del objetivo</span>
-            <input inputMode="decimal" value={draft.damagePct} placeholder="9" disabled={saving} onChange={e => onChange({ damagePct: e.target.value })} />
-          </label>
-        )}
       </div>
 
       <div className="item-edit__block">
         <span className="modal-effect__tag">Estadísticas</span>
         <p className="item-edit__hint">Vacío es 0. AD y AP admiten dados, como 1d4.</p>
+        <p className="item-edit__hint">{'AD / AP del LoL: escribe el n\u00famero que da el LoL y los dados se rellenan con tu tabla (fuera del editor solo se ven los dados).'}</p>
         <div className="item-edit__stats">
-          {Object.entries(draft.stats).map(([key, value]) => (
-            <label key={key} className="item-field">
-              <span>{key}</span>
-              <input
-                value={value}
-                placeholder="0"
-                disabled={saving}
-                onChange={e => onStatChange(key, e.target.value)}
-              />
-            </label>
-          ))}
+          {Object.entries(draft.stats).map(([key, value]) => {
+            const lolStat = lolDiceStatOf(key);
+            const lolKey: 'AD' | 'AP' = lolStat === 'ap' ? 'AP' : 'AD';
+            const lolText = lolStat ? draft.lol[lolKey] ?? '' : '';
+            const lolNumber = Number(lolText.trim().replace(',', '.'));
+            const converted = lolStat && lolText.trim() && Number.isFinite(lolNumber) ? lolToDice(lolStat, lolNumber) : null;
+            return (
+              <Fragment key={key}>
+                <label className="item-field">
+                  <span>{key}</span>
+                  <input
+                    value={value}
+                    placeholder="0"
+                    disabled={saving}
+                    onChange={e => onStatChange(key, e.target.value)}
+                  />
+                </label>
+                {lolStat && (
+                  <label className="item-field item-field--lol">
+                    <span>{`${lolKey} del LoL`}</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step="any"
+                      value={lolText}
+                      placeholder={'p. ej. 40'}
+                      disabled={saving}
+                      onChange={e => onLolChange(lolKey, key, e.target.value)}
+                    />
+                    <small className="item-field__lol-note">{converted ? `= ${lolDiceNote(converted)}` : 'Rellena los dados con la tabla'}</small>
+                  </label>
+                )}
+              </Fragment>
+            );
+          })}
         </div>
       </div>
 
@@ -444,9 +308,17 @@ const ItemDetailModal = ({ item, onClose, onSaved, readOnly = false }: Props) =>
             saving={saving}
             error={error}
             onChange={patch => setDraft(current => ({ ...current, ...patch }))}
-            onStatChange={(key, value) => setDraft(current => ({
+            onStatChange={(key, value) => setDraft(current => {
+              // Dados escritos a mano: ya no salen del valor del LoL.
+              const stat = lolDiceStatOf(key);
+              const lol = { ...current.lol };
+              if (stat) delete lol[stat === 'ap' ? 'AP' : 'AD'];
+              return { ...current, stats: { ...current.stats, [key]: value }, lol };
+            })}
+            onLolChange={(lolKey, key, value) => setDraft(current => ({
               ...current,
-              stats: { ...current.stats, [key]: value },
+              lol: { ...current.lol, [lolKey]: value },
+              stats: { ...current.stats, [key]: lolStatDice(key, value) },
             }))}
             onSave={() => { void save(); }}
             onCancel={cancelEditing}

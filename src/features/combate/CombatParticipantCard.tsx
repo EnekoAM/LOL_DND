@@ -1,6 +1,8 @@
 import type { CombatParticipant } from '../../data/combat';
 import { cx } from '../../lib/cx';
 import { effectIcon, formatEffectLabel } from './combatHelpers';
+import { participantHpPools } from './combatHp';
+import { HpExtrasTags, HpTrack, hpExtrasText } from './HpExtras';
 
 type Props = {
   participant: CombatParticipant;
@@ -60,7 +62,7 @@ export default function CombatParticipantCard({ participant, isTurn, onOpen, hp,
               <span
                 key={effect.id}
                 className="combat-mini__state"
-                title={`${formatEffectLabel(effect)} · ${effect.duration}`}
+                title={`${formatEffectLabel(effect)} · ${effect.duration >= 999 ? '\u221e (resto del combate)' : effect.duration}`}
               >
                 {effectIcon(effect.name)}
               </span>
@@ -70,11 +72,23 @@ export default function CombatParticipantCard({ participant, isTurn, onOpen, hp,
         )}
       </span>
       <span className="combat-mini__name">{participant.name}</span>
-      {hp && hp.max !== undefined && hp.max > 0 && (
-        <span className="combat-mini__hp" title={`Vida ${hp.current} / ${hp.max}`}>
-          <span className="combat-mini__hp-fill" style={{ width: `${Math.min(100, Math.round((hp.current / hp.max) * 100))}%` }} />
-        </span>
-      )}
+      {hp && hp.max !== undefined && hp.max > 0 && (() => {
+        const pools = participantHpPools(participant);
+        const extras = { tempHp: pools?.tempHp, shield: pools?.shield };
+        return (
+          <>
+            <HpTrack
+              current={hp.current}
+              max={hp.max}
+              extras={extras}
+              className="combat-mini__hp"
+              fillClassName="combat-mini__hp-fill"
+              title={`Vida ${hp.current} / ${hp.max}${hpExtrasText(extras)}`}
+            />
+            <HpExtrasTags extras={extras} />
+          </>
+        );
+      })()}
     </button>
   );
 }

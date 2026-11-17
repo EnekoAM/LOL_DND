@@ -1,6 +1,7 @@
 import type { AbilityDamage } from '../../data/champions';
 import type { Item } from '../../data/items';
 import { itemStatLine, type StatValue } from '../calculos/statLine';
+import { ampRoll, type RollAmp } from '../../data/rollAmps';
 
 export type DamageStats = {
   ad: StatValue;
@@ -139,6 +140,8 @@ export function rollAbilityDamage(
   stats: DamageStats,
   rank: number,
   random = Math.random,
+  /** "% a la tirada" de items (Rabadon, Sangria del soberano...): se suman a la tirada de AD/AP antes del % del rango. */
+  amps: readonly RollAmp[] = [],
 ) {
   if (!Number.isFinite(rank) || rank < 1) throw new Error('Habilidad sin aprender (rango 0). Asigna un punto para tirar daño.');
   const contributions = (['ad', 'ap'] as const).flatMap(stat => {
@@ -147,7 +150,8 @@ export function rollAbilityDamage(
     const source = damage[stat === 'ad' ? 'adSource' : 'apSource'] ?? 'total';
     if (source === 'bonus' && !stats.bonus) throw new Error('No se pudieron calcular las estadísticas bonus');
     const roll = rollDamageStat(source === 'bonus' ? stats.bonus![stat] : stats[stat], random);
-    return [{ stat, source, scaling, roll, damage: roll.total * scaling }];
+    const amp = ampRoll(stat, roll.total, amps);
+    return [{ stat, source, scaling, roll, amp, damage: amp.total * scaling }];
   });
   return { contributions, total: contributions.reduce((sum, entry) => sum + entry.damage, 0) };
 }

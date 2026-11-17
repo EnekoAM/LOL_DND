@@ -27,6 +27,7 @@ import PhaseTabs from '../habilidades/PhaseTabs';
 import ResourceChip from '../../components/ResourceChip';
 import AbilityCost from '../../components/AbilityCost';
 import AbilityInfoModal from '../habilidades/AbilityInfoModal';
+import { passiveBonusBadge } from '../players/abilityPassiveStats';
 import { resolveAbilityResource } from '../../data/resources';
 import { basicAttackEntries } from '../../data/players';
 import SpellCard, { SPELL_TYPE_LABEL, type SpellTone } from '../players/SpellCard';
@@ -42,7 +43,9 @@ import { expectedDamageStat, expectedItemAdFromDice, formatHpAdBonus, hpDamageAm
 import { formatDamageAmount, formatDamageType } from './combatAbilityUse';
 import { championDamageContext } from '../calculos/championDamage';
 import { playerBonusLine, playerMaxHp, playerTotalLine } from '../calculos/playerTotals';
-import { hasDamageScaling, rollAbilityDamage } from '../players/abilityDamage';
+import { hasDamageScaling } from '../players/abilityDamage';
+import { participantRollAmps, rollAbilityDamageFor } from './combatRollAmps';
+import { abilityRollAmpChips, abilityRollAmpLines, ampRoll, rollAmpChips, rollAmpLines } from '../../data/rollAmps';
 import {
   formatDiceBreakdown,
   formatSpendLine,
@@ -732,7 +735,7 @@ export default function CombatAbilityUseSection({
             ? championDamageContext(champion, extra).stats
             : null;
         if (!stats) return;
-        const result = rollAbilityDamage(ability.damage!, stats, row.rank);
+        const result = rollAbilityDamageFor(participant, ability.damage!, stats, row.rank);
         // Crítico: solo si la habilidad hace daño físico (el mágico / verdadero / mixto no critea).
         const critical = critOn && abilityIsPhysical(ability);
         abilityCritical = critical;
@@ -748,9 +751,11 @@ export default function CombatAbilityUseSection({
         headline = formatUseHeadline(row.seal, { kind: 'roll', total: damageTotal, type: ability.damage?.type });
         if (critical) headline = headline.replace(/^(\S+)/, '$1 CRÍTICO');
         detail = formatDiceBreakdown(result);
+        abilityLog.push(...abilityRollAmpLines(result));
+        abilityChips.push(...abilityRollAmpChips(result));
         abilityLog.push(
           `Daño${ability.damage?.type ? ` ${ability.damage.type}` : ''} (rango ${row.rank}) = ${result.contributions.map(entry =>
-            `${fmt(entry.scaling * 100)}% ${entry.stat.toUpperCase()} ${entry.source === 'bonus' ? 'bonus' : 'total'} (${rollText(entry.roll)}) = ${fmt(entry.damage)}`).join(' + ')} → ${fmt(result.total)}`,
+            `${fmt(entry.scaling * 100)}% ${entry.stat.toUpperCase()} ${entry.source === 'bonus' ? 'bonus' : 'total'} (${rollText(entry.roll)}${entry.amp.bonus ? ` + ${fmt(entry.amp.bonus)} (\u00edtems) = ${fmt(entry.amp.total)}` : ''}) = ${fmt(entry.damage)}`).join(' + ')} → ${fmt(result.total)}`,
           ...(critical && noCrit ? [`CRÍTICO sin daño extra (P «${noCrit}»: los críticos no hacen daño extra) → ${fmt(damageTotal)}`] : []),
           ...(critical && !noCrit ? [`CRÍTICO: ${fmt(result.total)} × DAÑO CRÍT ${fmt(mult)} = ${fmt(result.total * mult)}${damageTotal !== result.total * mult ? ` → ${fmt(damageTotal)} (redondeo ↑)` : ''}`] : []),
         );
@@ -815,12 +820,14 @@ export default function CombatAbilityUseSection({
         if (spendPool && cost > 0) await persistSpend(spendPool.kind, nextCurrent, extra);
         else if (Object.keys(extra).length > 0) await onCombatPatch(extra);
       }
-      if (spendPool && spendPool.kind === 'pool' && cost > 0) {
-        await healFromManaSpent(participant, cost, { level, effectData, callbacks: { onSelfPool: onPoolChange }, participants });
-      }
+      // Eternidad: cura el % del coste gastado (recurso de la barra, no el coste en vida).
+      const eternity = spendPool && spendPool.kind === 'pool' && cost > 0
+        ? await healFromManaSpent(participant, cost, { level, effectData, callbacks: { onSelfPool: onPoolChange }, participants }, spend.label)
+        : null;
 
       const undo = isAdmin
         ? () => {
+            if (eternity?.undo) void eternity.undo();
             if (prevPlayer) {
               const patch: PlayerListPatch = {};
               if (spendPool && cost > 0) {
@@ -866,6 +873,10 @@ export default function CombatAbilityUseSection({
         const nextHp = Math.max(1, hpPool.current - hpCost);
         abilityLog.push(`Coste de vida: ${hpCost} PV (${hpPct}% vida máx.; ${hpPool.current} → ${nextHp}; no baja de 1)`);
         await persistSpend('hp', nextHp);
+      }
+      if (eternity) {
+        abilityLog.push(eternity.line);
+        abilityChips.push(eternity.chip);
       }
       if (cdDuration > 0) abilityLog.push(`CD de la habilidad: ${cdDuration} t.`);
       let usedAbility = ability;
@@ -1113,7 +1124,7 @@ export default function CombatAbilityUseSection({
           let dealt = 0;
           if (hasDamageScaling(owner.ability.damage) && (owner.ability.damage?.ad?.length || owner.ability.damage?.ap?.length)) {
             try {
-              dealt += rollAbilityDamage(owner.ability.damage!, stats, owner.rank).total;
+              dealt += rollAbilityDamageFor(participant, owner.ability.damage!, stats, owner.rank).total;
             } catch (caught) {
               log.push(`${owner.seal} «${owner.name}»: daño al máximo a mano (${caught instanceof Error ? caught.message : 'no se pudo calcular'})`);
             }
@@ -2043,9 +2054,11 @@ export default function CombatAbilityUseSection({
       const shield = mechanics.spellShield;
       const source = `ability:${row.name}`;
       const snapshot: Record<string, CombatEffect | null> = { [participant.id]: participant.effects.find(effect => effect.source === source) ?? null };
-      await onApplySourcedEffect([participant.id], { source, name: shield.status, duration: shield.turns });
-      seed.undos.push(async () => { await onApplySourcedEffect([participant.id], { source, name: shield.status, duration: 1, restore: snapshot }); });
-      seed.chips.push({ kind: 'buff', text: `${shield.status} ${shield.turns}t`, title: `${label} → ${participant.name}` });
+      // El nombre del estado lleva su origen (habilidad) para distinguirlo del de un objeto: "Escudo de hechizos (W Velo de la oscuridad)".
+      const shieldName = `${shield.status} (${row.seal} ${row.name})`.slice(0, 80);
+      await onApplySourcedEffect([participant.id], { source, name: shieldName, duration: shield.turns });
+      seed.undos.push(async () => { await onApplySourcedEffect([participant.id], { source, name: shieldName, duration: 1, restore: snapshot }); });
+      seed.chips.push({ kind: 'buff', text: `${shieldName} ${shield.turns}t`, title: `${label} → ${participant.name}` });
       seed.log.push(`${label}: «${shield.status}» en ${participant.name} ${shield.turns} t. (si se rompe: bonus por tenerla aprendida × ${fmt(shield.learnedMultiplier)} durante ${shield.breakTurns} t.; botón «Romper» en la habilidad)`);
     }
     if (mechanics.armArmedAa) {
@@ -2388,12 +2401,14 @@ export default function CombatAbilityUseSection({
             ? championDamageContext(champion, extra).stats
             : null;
         if (stats) {
-          const result = rollAbilityDamage(ability.damage!, stats, row.rank);
+          const result = rollAbilityDamageFor(participant, ability.damage!, stats, row.rank);
           damageTotal = result.total;
+          abilityLog.push(...abilityRollAmpLines(result));
+          chips.push(...abilityRollAmpChips(result));
           headline = `${row.seal} «${row.name}»: detonar · ${fmt(damageTotal)}${ability.damage?.type ? ` ${ability.damage.type}` : ''}`;
           abilityLog.push(
             `Daño${ability.damage?.type ? ` ${ability.damage.type}` : ''} (rango ${row.rank}) = ${result.contributions.map(entry =>
-              `${fmt(entry.scaling * 100)}% ${entry.stat.toUpperCase()} ${entry.source === 'bonus' ? 'bonus' : 'total'} (${rollText(entry.roll)}) = ${fmt(entry.damage)}`).join(' + ')} → ${fmt(result.total)}`,
+              `${fmt(entry.scaling * 100)}% ${entry.stat.toUpperCase()} ${entry.source === 'bonus' ? 'bonus' : 'total'} (${rollText(entry.roll)}${entry.amp.bonus ? ` + ${fmt(entry.amp.bonus)} (\u00edtems) = ${fmt(entry.amp.total)}` : ''}) = ${fmt(entry.damage)}`).join(' + ')} → ${fmt(result.total)}`,
           );
         }
       }
@@ -2594,7 +2609,9 @@ export default function CombatAbilityUseSection({
     try {
       const roll = rollDamageStat(source);
       // AP: % del AP total por tramo de nivel, redondeando hacia arriba. AD: el AD total.
-      total = pct === 1 ? roll.total : Math.ceil(roll.total * pct);
+      const aaAmp = ampRoll(type === 'AP' ? 'ap' : 'ad', roll.total, participantRollAmps(participant));
+      const rolledTotal = aaAmp.total;
+      total = pct === 1 ? rolledTotal : Math.ceil(rolledTotal * pct);
       const aaMods = basicAttackMods(type, total, stats as Record<string, unknown>);
       total = aaMods.total;
       const form = formidableAaBonus(rows.map(row => row.ability), participantHp(participant)?.max ?? 0);
@@ -2614,19 +2631,21 @@ export default function CombatAbilityUseSection({
       const dice = roll.groups.map(group => `${group.sign < 0 ? '−' : ''}${group.count}d${group.sides}: [${group.rolls.join(', ')}]`);
       const pctLabel = `${Math.round(pct * 1000) / 10}%`;
       detail = [
-        pct === 1 ? null : `${type} ${formatDamageAmount(roll.total)} × ${pctLabel} = ${formatDamageAmount(total)}`,
+        pct === 1 ? null : `${type} ${formatDamageAmount(rolledTotal)} × ${pctLabel} = ${formatDamageAmount(total)}`,
         `${type} total ${String(source)}`,
+        ...rollAmpLines(aaAmp),
         ...dice,
       ].filter(Boolean).join(' · ');
-      const raw = pct === 1 ? roll.total : roll.total * pct;
+      const raw = pct === 1 ? rolledTotal : rolledTotal * pct;
       mainLog.push(
         `AA ${type} de ${participant.name}${target ? ` → ${target.name}` : ' (sin objetivo)'}`,
-        `Daño ${type === 'AP' ? 'mágico' : 'físico'} = ${type} total ${String(source)}: ${rollText(roll)}${pct === 1 ? '' : ` × ${pctLabel} (AP por nivel ${attackLevel}) = ${fmt(raw)}${total !== raw ? ` → ${fmt(total)} (redondeo ↑)` : ''}`}`,
+        `Daño ${type === 'AP' ? 'mágico' : 'físico'} = ${type} total ${String(source)}: ${rollText(roll)}${aaAmp.bonus ? ` + ${fmt(aaAmp.bonus)} (\u00edtems) = ${fmt(rolledTotal)}` : ''}${pct === 1 ? '' : ` × ${pctLabel} (AP por nivel ${attackLevel}) = ${fmt(raw)}${total !== raw ? ` → ${fmt(total)} (redondeo ↑)` : ''}`}`,
+        ...rollAmpLines(aaAmp),
         ...aaMods.log,
         ...(critical && noCrit ? [`CRÍTICO sin daño extra (P «${noCrit}»: los críticos no hacen daño extra) → ${fmt(total)}`] : []),
         ...(critical && !noCrit ? [`CRÍTICO: ${fmt(normal)} × DAÑO CRÍT ${fmt(mult)} = ${fmt(normal * mult)}${total !== normal * mult ? ` → ${fmt(total)} (redondeo ↑)` : ''} (los efectos de impacto no critean)`] : []),
       );
-      critChips.push(...aaMods.chips);
+      critChips.push(...rollAmpChips(aaAmp), ...aaMods.chips);
       if (critical) critChips.push({ kind: 'crit', text: noCrit ? 'CRÍTICO sin daño' : 'CRÍTICO', title: noCrit ? `${noCrit}: los críticos no hacen daño extra` : `× ${fmt(mult)} (DAÑO CRÍT)` });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No se pudo tirar el ataque');
@@ -2781,7 +2800,7 @@ export default function CombatAbilityUseSection({
               empLog.push(`${owner.seal} «${owner.name}»: daño del AA potenciado a mano (sin ficha)`);
             } else {
               try {
-                const rolled = rollAbilityDamage(owner.ability.damage!, stats, owner.rank);
+                const rolled = rollAbilityDamageFor(participant, owner.ability.damage!, stats, owner.rank);
                 if (rolled.total > 0 && onTargetDamage) {
                   const extra = await applyToTargets(owner, owner.ability, rolled.total, [target.id], [], empLog, { skipEffects: true, lifeSteal: false });
                   void extra;
@@ -2884,7 +2903,7 @@ export default function CombatAbilityUseSection({
             else bonuses = bonuses.map(bonus => bonus.source === abilityArmedAaSource(owner.name) ? { ...bonus, amount: chargesLeft - 1 } : bonus);
             if (stats && (armed.ad?.length || armed.ap?.length)) {
               try {
-                const rolled = rollAbilityDamage({ type: armed.type, ad: armed.ad, ap: armed.ap, adSource: armed.adSource, apSource: armed.apSource }, stats, owner.rank);
+                const rolled = rollAbilityDamageFor(participant, { type: armed.type, ad: armed.ad, ap: armed.ap, adSource: armed.adSource, apSource: armed.apSource }, stats, owner.rank);
                 if (rolled.total > 0 && onTargetDamage) {
                   const extra = await applyToTargets(owner, { ...owner.ability, effect: armed.effect, effectName: armed.effectName, effectDuration: armed.effectDuration, effectTarget: applyEffectNow ? 'enemy' : owner.ability.effectTarget }, rolled.total, [target.id], applyEffectNow ? [target.id] : [], armLog, applyEffectNow ? undefined : { skipEffects: true, lifeSteal: false });
                   kills = [...new Set([...kills, ...extra])];
@@ -2990,7 +3009,7 @@ export default function CombatAbilityUseSection({
             continue;
           }
           try {
-            const rolled = rollAbilityDamage({ type: wave.type ?? 'magic', ad: wave.ad, ap: wave.ap, adSource: wave.adSource, apSource: wave.apSource }, waveStats, owner.rank);
+            const rolled = rollAbilityDamageFor(participant, { type: wave.type ?? 'magic', ad: wave.ad, ap: wave.ap, adSource: wave.adSource, apSource: wave.apSource }, waveStats, owner.rank);
             if (rolled.total > 0 && onTargetDamage) {
               const typ = wave.type === 'true' ? 'verdadero' : wave.type === 'physical' ? 'físico' : 'mágico';
               const more = await applyToTargets(owner, { ...owner.ability, damage: { ...(owner.ability.damage ?? {}), type: typ } }, rolled.total, [target.id], [], waveLog, { skipEffects: true, lifeSteal: false });
@@ -3060,7 +3079,7 @@ export default function CombatAbilityUseSection({
             next.log.push(`${owner.seal} «${owner.name}»: daño de la detonación a mano (sin ficha)`);
           } else {
             try {
-              const rolled = rollAbilityDamage(owner.ability.damage!, stats, owner.rank);
+              const rolled = rollAbilityDamageFor(participant, owner.ability.damage!, stats, owner.rank);
               if (rolled.total > 0 && onTargetDamage) {
                 await applyToTargets(owner, owner.ability, rolled.total, [who.id], [], next.log, { skipEffects: true, lifeSteal: false });
                 next.log.push(`${owner.seal} «${owner.name}»: detonación ${fmt(rolled.total)}${owner.ability.damage?.type ? ` ${owner.ability.damage.type}` : ''} → ${who.name}`);
@@ -3487,6 +3506,7 @@ export default function CombatAbilityUseSection({
         rank={infoRow.rank}
         costNow={infoState.cost > 0 ? `${infoState.cost} ${infoState.spend.label}` : undefined}
         championResource={infoRow.ownerResource}
+        passiveBonus={passiveBonusBadge(infoRow.ability, infoRow.name, infoRow.rank, { level, playerStacks: player?.stacks, bonuses: participant.bonuses })}
         onClose={() => setInfoRow(null)}
       />
     );
@@ -3596,7 +3616,7 @@ export default function CombatAbilityUseSection({
           {missing && <p className="combat-page__hint">No se encontró la ficha de origen.</p>}
           {!missing && rows.length === 0 && <p className="combat-page__hint">Sin habilidades.</p>}
           {rows.length > 0 && (
-            <div className="spell-grid">
+            <div className="spell-grid spell-grid--combat">
               {rows.map(row => {
                 const state = rowState(row);
                 const active = activeAbility(row);
@@ -3628,12 +3648,14 @@ export default function CombatAbilityUseSection({
                     note={note}
                     area={row.ability.area}
                     onHit={row.ability.appliesOnHit === true}
+                    passiveBonus={passiveBonusBadge(row.ability, row.name, row.rank, { level, playerStacks: player?.stacks, bonuses: participant.bonuses })}
                     badge={resolved || costLabel ? (
                       <span className="spell__badge-row">
                         {resolved && <ResourceChip resource={resolved.id} inherited={resolved.inherited} />}
                         {costLabel && <AbilityCost text={costLabel} resource={resolved?.id} />}
                       </span>
                     ) : undefined}
+                    footerAction
                     onOpen={() => setInfoRow(row)}
                     openTitle="Ver descripción de la habilidad"
                     ranks={ranks}

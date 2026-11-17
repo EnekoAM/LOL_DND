@@ -22,6 +22,7 @@ import { normalizeName } from '../../lib/text';
 import BuildPicker from '../calculos/BuildPicker';
 import ItemTile, { type ItemTileState } from '../calculos/ItemTile';
 import { hpSyncPatch, playerMaxHp, playerTotalLine } from '../calculos/playerTotals';
+import { playerAbilityPassives } from './abilityPassiveStats';
 import {
   STAT_COLUMNS,
   formatDefenseStat,
@@ -356,7 +357,10 @@ const PlayerSheet = ({
   useEffect(() => {
     setPortraitFailed(false);
   }, [player.image, player.name]);
-  const total = playerTotalLine(player.sheet, player.equipamiento);
+  // Pasivas de habilidades con stats (p. ej. vel. de ataque por tenerla aprendida): suman como bonus.
+  const abilityPassives = playerAbilityPassives(player, level);
+  const passiveLines = abilityPassives.map(source => source.line);
+  const total = playerTotalLine(player.sheet, player.equipamiento, undefined, passiveLines);
   const columnsByKey = Object.fromEntries(STAT_COLUMNS.map(column => [column.key, column]));
 
   const removeAt = (items: string[], index: number) => items.filter((_, itemIndex) => itemIndex !== index);
@@ -447,7 +451,7 @@ const PlayerSheet = ({
 
   const suggestedMax = typeof total.hp === 'number' && Number.isFinite(total.hp) ? total.hp : 0;
   // PG máximos vinculados al HP TOTAL de la tabla (undefined si la ficha no tiene rol).
-  const tableMaxHp = playerMaxHp(player.sheet, player.equipamiento);
+  const tableMaxHp = playerMaxHp(player.sheet, player.equipamiento, passiveLines);
   const hpSyncTried = useRef<string | null>(null);
   useEffect(() => {
     if (saving) return;
@@ -769,6 +773,7 @@ const PlayerSheet = ({
                 playerName={player.name}
                 sheet={player.sheet}
                 equipment={player.equipamiento}
+                abilityPassives={abilityPassives}
                 defaultOpen
                 lockFutureLevels={!topUnlocked}
                 canPickRole={isAdmin}

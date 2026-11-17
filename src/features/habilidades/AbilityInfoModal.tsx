@@ -3,6 +3,8 @@ import Modal from '../../components/Modal';
 import type { Ability } from '../../data/champions';
 import type { ResourceId } from '../../data/resources';
 import { AbilityView } from './AbilityModal';
+import type { PassiveBadge } from '../players/abilityPassiveStats';
+import './Habilidades.css';
 
 type Props = {
   ability: Ability;
@@ -13,11 +15,13 @@ type Props = {
   /** Coste real ahora mismo (rango + acumulaciones), si se sabe. */
   costNow?: string;
   championResource?: ResourceId;
+  /** Bonus de stats pasivo de la habilidad (activo, o lo que daría al aprenderla). */
+  passiveBonus?: PassiveBadge;
   onClose: () => void;
 };
 
 /** Ficha de una habilidad en solo lectura (descripción, coste, mecánicas, daño, efectos, área). */
-const AbilityInfoModal = ({ ability, kicker, image, rank, costNow, championResource, onClose }: Props) => createPortal(
+const AbilityInfoModal = ({ ability, kicker, image, rank, costNow, championResource, passiveBonus, onClose }: Props) => createPortal(
   <Modal onClose={onClose} backdropClassName="hab-modal-backdrop" className="hab-modal">
     <div className="hab-modal__cap"><div className="hab-modal__rod" /></div>
     <div className="hab-modal__body">
@@ -31,6 +35,13 @@ const AbilityInfoModal = ({ ability, kicker, image, rank, costNow, championResou
           {typeof rank === 'number' && costNow ? ' · ' : ''}
           {costNow && <><strong>Coste ahora:</strong> {costNow}</>}
         </p>
+      )}
+      {passiveBonus && passiveBonus.texts.length > 0 && (
+        <div className={passiveBonus.active ? 'hab-modal__passive' : 'hab-modal__passive hab-modal__passive--off'}>
+          <strong>{passiveBonus.active ? 'Bonus pasivo activo' : 'Bonus pasivo al aprenderla'}</strong>
+          <span>{passiveBonus.texts.join(' · ')}</span>
+          <small>{passiveBonus.active ? 'Ya está sumado a las estadísticas (total, desglose y combate).' : 'Se sumará a las estadísticas cuando tenga al menos rango 1.'}</small>
+        </div>
       )}
       <AbilityView ability={ability} championResource={championResource} canEdit={false} onEdit={() => undefined} />
       <div className="hab-modal__actions">

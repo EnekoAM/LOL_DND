@@ -228,6 +228,45 @@ export function effectiveDefense(targetExact: StatValue, pct: StatValue = 0, fla
   return Math.max(0, Math.round(exact));
 }
 
+/** Nombre corto de cada stat en los bonus («+20 % vel. de ataque»). */
+export const STAT_BONUS_LABEL: Record<StatKey, string> = {
+  hp: 'Vida',
+  ac: 'Armadura (CA)',
+  mr: 'Resistencia mágica (RM)',
+  mana: 'Maná',
+  ad: 'AD',
+  ap: 'AP',
+  critChance: '% prob. crítico',
+  critDamage: 'Daño crítico',
+  spe: 'Velocidad (SPE)',
+  atkSpe: 'Ataques',
+  atkSpePct: '% vel. de ataque',
+  abSpe: 'Habilidades',
+  abSpePct: '% vel. de habilidad',
+  lethality: 'Letalidad',
+  magicPen: 'Pen. mágica',
+  armorPenPct: '% pen. armadura',
+  magicPenPct: '% pen. mágica',
+  healShieldPct: '% curación y escudos',
+  tenacityPct: '% tenacidad',
+  slowResistPct: '% res. ralentización',
+  lifeStealPct: '% robo de vida',
+  omnivampPct: '% omnisucción',
+  range: 'Alcance',
+  healthRegen: 'Regen. vida',
+  manaRegen: 'Regen. maná',
+};
+
+export function isStatLineKey(key: string): key is StatKey {
+  return STAT_COLUMNS.some(column => column.key === key);
+}
+
+/** «+20 % vel. de ataque», «+2 Alcance»… */
+export function formatStatBonus(stat: StatKey, amount: number): string {
+  const value = formatStat(Math.round(Math.abs(amount) * 1000) / 1000);
+  return `${amount < 0 ? '−' : '+'}${value} ${STAT_BONUS_LABEL[stat]}`;
+}
+
 export function isZeroStat(value: StatValue): boolean {
   if (typeof value === 'number') return value === 0;
   const text = value.trim();

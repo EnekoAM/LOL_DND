@@ -1,11 +1,12 @@
 import { BASIC_MAX_RANK, ULT_MAX_RANK, milestoneRank, normalizeRanks, type RankedSlot } from '../../data/abilityRanks';
-import { abilityRuleBase, abilityStacks, hasPermanentMaxStacks, rankValue, readPermanentAbilityStacks, shouldGainAbilityStack, stacksRequirement, totalRangeBonus } from '../../data/abilityMechanics';
+import { abilityRuleBase, abilityStacks, hasPermanentMaxStacks, rankValue, shouldGainAbilityStack, stacksRequirement } from '../../data/abilityMechanics';
 import { ABILITY_KEYS, findAbilityRef, type Ability } from '../../data/champions';
 import type { CombatBonus, CombatParticipant } from '../../data/combat';
 import { participantChampion, participantNpc } from '../../data/combatSheet';
 import type { EffectRule } from '../../data/effectBonus';
 import { PLAYERS, PLAYER_ABILITY_SLOTS } from '../../data/players';
 import type { ActiveNamedEffect } from './effectRules';
+import { abilityPassiveBonuses } from '../players/abilityPassiveStats';
 
 /** Habilidad que tiene el participante, con su rango (0 = sin aprender; la pasiva siempre ≥ 1). */
 export type OwnedAbility = { seal: string; name: string; ability: Ability; rank: number };
@@ -81,14 +82,10 @@ export function abilityNamedEffects(
     if (mechanics.effectRules?.rules.length) {
       out.push({ id: base, base, name: entry.name, item, config: mechanics.effectRules });
     }
-    const learned: EffectRule[] = [];
-    for (const stat of mechanics.learnedStats ?? []) {
-      const value = rankValue(stat.values, entry.rank);
-      if (value) learned.push({ trigger: 'always', kind: 'stat', stat: stat.stat, flat: value });
-    }
     const level = stackOptions?.level ?? 1;
-    const rangeBonus = totalRangeBonus(mechanics.levelThresholds, level);
-    if (rangeBonus) learned.push({ trigger: 'always', kind: 'stat', stat: 'range', flat: rangeBonus });
+    // Bonus fijos (aprendida, alcance por nivel, acumulaciones permanentes): los mismos que suma la ficha fuera de combate.
+    const learned: EffectRule[] = abilityPassiveBonuses(entry.ability, entry.name, entry.rank, { level, playerStacks: stackOptions?.playerStacks, bonuses: stackOptions?.bonuses })
+      .map((bonus): EffectRule => ({ trigger: 'always', kind: 'stat', stat: bonus.stat, flat: bonus.amount }));
     const temp = mechanics.stacks;
     if (temp?.stat && temp.perStack?.length) {
       const stacks = hasPermanentMaxStacks(mechanics.levelThresholds, level) ? temp.max : abilityStacks(stackOptions?.bonuses, entry.name).count;
@@ -99,13 +96,6 @@ export function abilityNamedEffects(
     if (temp?.onMaxStatus?.stat) {
       const atMax = hasPermanentMaxStacks(mechanics.levelThresholds, level) || abilityStacks(stackOptions?.bonuses, entry.name).count >= temp.max;
       if (atMax && temp.onMaxStatus.amount) learned.push({ trigger: 'always', kind: 'stat', stat: temp.onMaxStatus.stat, flat: temp.onMaxStatus.amount });
-    }
-    const perm = mechanics.permanentStacks;
-    if (perm?.stat && perm.perStack?.length) {
-      const stacks = readPermanentAbilityStacks({ name: entry.name, playerStacks: stackOptions?.playerStacks, bonuses: stackOptions?.bonuses });
-      const per = rankValue(perm.perStack, entry.rank) ?? 0;
-      const value = Math.round(stacks * per * 10) / 10;
-      if (value) learned.push({ trigger: 'always', kind: 'stat', stat: perm.stat, flat: value });
     }
     if (learned.length) out.push({ id: `${base}-learned`.slice(0, 60), base: `${base}-learned`.slice(0, 60), name: `${entry.name} (aprendida)`, item, config: { rules: learned } });
   }

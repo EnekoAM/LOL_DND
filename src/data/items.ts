@@ -57,7 +57,14 @@ export type Item = {
   passiveDamage?: ItemPassiveDamage;
   /** Efectos con nombre (ids de data/namedEffects.ts: Vigor, Salvavidas…). */
   namedEffects?: string[];
+  /** Descripcion libre (editor de items). */
+  description?: string;
+  /** AD / AP del LoL con los que se rellenaron los dados de stats (solo lo muestra el editor). */
+  lolStats?: ItemLolStats;
 };
+
+/** Valores del LoL de AD / AP (tabla de dados: data/lolDiceTable.ts). */
+export type ItemLolStats = { AD?: number; AP?: number };
 
 export let ITEMS: Item[] = [];
 
@@ -120,7 +127,8 @@ export async function grantItem(
 /** Lo que se puede cambiar de la definición de un ítem. El nombre es su identidad y no se toca. */
 export type ItemUpdate = {
   rareza: string;
-  efecto: { pasiva: string; activa: string };
+  /** Omitido = el servidor deja los textos de pasiva / activa como estan. */
+  efecto?: { pasiva: string; activa: string };
   stats: ItemStats;
   /** null quita el precio de tienda. */
   coste: number | null;
@@ -133,6 +141,10 @@ export type ItemUpdate = {
   passiveBonus?: ItemPassiveBonus | null;
   passiveDamage?: ItemPassiveDamage | null;
   namedEffects?: string[] | null;
+  /** Descripcion libre; null la quita. */
+  description?: string | null;
+  /** AD / AP del LoL (solo editor); null lo quita. */
+  lolStats?: ItemLolStats | null;
 };
 
 /**
@@ -167,7 +179,8 @@ export async function saveItemUpdate(nombre: string, update: ItemUpdate): Promis
 
   // Se actualiza el mismo objeto para que el resto de pantallas (builds, tienda…) vean el cambio.
   current.rareza = typeof saved.rareza === 'string' ? saved.rareza : update.rareza;
-  current.efecto = saved.efecto ?? { ...update.efecto };
+  if (saved.efecto) current.efecto = saved.efecto;
+  else if (update.efecto) current.efecto = { ...update.efecto };
   current.stats = saved.stats ?? { ...update.stats };
   if (typeof saved.coste === 'number') current.coste = saved.coste;
   else delete current.coste;
@@ -189,6 +202,10 @@ export async function saveItemUpdate(nombre: string, update: ItemUpdate): Promis
   else delete current.passiveDamage;
   if (Array.isArray(saved.namedEffects) && saved.namedEffects.length) current.namedEffects = [...saved.namedEffects];
   else delete current.namedEffects;
+  if (typeof saved.description === 'string' && saved.description.trim()) current.description = saved.description;
+  else delete current.description;
+  if (saved.lolStats && typeof saved.lolStats === 'object') current.lolStats = { ...saved.lolStats };
+  else delete current.lolStats;
   if (typeof saved.cantidad === 'number') current.cantidad = saved.cantidad;
   hydrateItems([...ITEMS]);
   return current;

@@ -3,6 +3,7 @@
 import type { ResourceId } from '../../data/resources';
 import { resolveAbilityResource, resourceLabel } from '../../data/resources';
 import type { AbilityDamageRoll } from '../players/abilityDamage';
+import { rollAmpLines } from '../../data/rollAmps';
 
 /** Primer número, o el del rango si el coste es una lista 10/20/30. «1/día» no gasta reserva. */
 export function parseAbilityCost(cost: string | undefined, rank: number): number | null {
@@ -93,6 +94,7 @@ export function formatDiceBreakdown(roll: AbilityDamageRoll): string | undefined
       const sign = group.sign < 0 ? '−' : '';
       parts.push(`${sign}${group.count}d${group.sides}: [${group.rolls.join(', ')}]`);
     }
+    if (entry.amp) parts.push(...rollAmpLines(entry.amp));
   }
   return parts.length > 0 ? parts.join(' · ') : undefined;
 }

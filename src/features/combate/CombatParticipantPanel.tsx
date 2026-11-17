@@ -31,6 +31,8 @@ type Props = {
   isAdmin: boolean;
   /** Player con el que entró este User (null = admin o invitado). */
   myPlayer: string | null;
+  /** Puede editar la iniciativa: el admin, o el player de este participante. */
+  canEditInitiative?: boolean;
   /** Guarda la vida (admin: cualquiera; User: solo la suya). */
   onHpSave: (current: number, max?: number, extra?: { tempHp?: number; shield?: number }) => Promise<void>;
   /** Guarda el recurso actual (maná, energía…); mismos permisos que la vida. */
@@ -74,7 +76,7 @@ type Props = {
   onEffectValue: (value: string) => void;
   onCustomEffect: (value: string) => void;
   onClose: () => void;
-  onInitiative: (value: number) => void;
+  onInitiative: (value: number) => void | Promise<void>;
   onRollInitiative: () => void;
   onToggleDefeated: () => void;
   onRemove: () => void;
@@ -116,11 +118,47 @@ function maxStacksForSource(source: string | undefined): number | undefined {
   return undefined;
 }
 
+const INITIATIVE_MIN = -99;
+const INITIATIVE_MAX = 999;
+
+/** Iniciativa: se escribe y se guarda con Enter o al salir del campo (Escape deshace). */
+function InitiativeInput({ value, disabled, onCommit }: { value: number; disabled: boolean; onCommit: (value: number) => void | Promise<void> }) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => { setDraft(String(value)); }, [value]);
+  const commit = () => {
+    const parsed = Number.parseInt(draft, 10);
+    if (!Number.isFinite(parsed)) { setDraft(String(value)); return; }
+    const next = Math.max(INITIATIVE_MIN, Math.min(INITIATIVE_MAX, parsed));
+    setDraft(String(next));
+    if (next !== value) void onCommit(next);
+  };
+  return (
+    <input
+      type="number"
+      className="combat-panel__ini-input"
+      inputMode="numeric"
+      min={INITIATIVE_MIN}
+      max={INITIATIVE_MAX}
+      value={draft}
+      disabled={disabled}
+      aria-label="Iniciativa"
+      title={disabled ? undefined : 'Escribe la iniciativa y pulsa Enter (Esc deshace)'}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => {
+        if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
+        else if (e.key === 'Escape') setDraft(String(value));
+      }}
+    />
+  );
+}
+
 /** Panel lateral con controles (GM edita; players solo ven). Sin PG. */
 export default function CombatParticipantPanel({
   participant,
   isAdmin,
   myPlayer,
+  canEditInitiative = false,
   onHpSave,
   onResourceSave,
   onActionsSave,
@@ -167,11 +205,10 @@ export default function CombatParticipantPanel({
         <div className="combat-panel__section">
           <h3 className="combat-panel__label">Iniciativa</h3>
           <div className="combat-panel__row">
-            <input
-              type="number"
+            <InitiativeInput
               value={participant.initiative}
-              disabled={!isAdmin || saving}
-              onChange={e => onInitiative(Number.parseInt(e.target.value, 10) || 0)}
+              disabled={!(isAdmin || canEditInitiative) || saving}
+              onCommit={onInitiative}
             />
             {isAdmin && (
               <button type="button" className="combat-btn combat-btn--small" disabled={saving} onClick={onRollInitiative}>
@@ -179,6 +216,9 @@ export default function CombatParticipantPanel({
               </button>
             )}
           </div>
+          {!isAdmin && canEditInitiative && (
+            <p className="combat-panel__ini-hint">Tu iniciativa: escribe el número y pulsa Enter (o sal del campo) para guardarla.</p>
+          )}
         </div>
   );
   const effectsBlock = (
@@ -198,7 +238,7 @@ export default function CombatParticipantPanel({
                   title={isAdmin ? 'Quitar' : formatEffectLabel(effect)}
                   onClick={() => isAdmin && onRemoveEffect(effect.id)}
                 >
-                  <span aria-hidden>{effectIcon(effect.name)}</span> {formatEffectLabel(effect)} · {effect.duration}
+                  <span aria-hidden>{effectIcon(effect.name)}</span> {formatEffectLabel(effect)} · {effect.duration >= 999 ? '\u221e' : effect.duration}
                 </button>
                 {isAdmin && (
                   <span className="combat-effect__stepper">

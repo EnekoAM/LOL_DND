@@ -61,7 +61,7 @@ function statBreakdown(participant: CombatParticipant, level: number, data: Name
     const value = bonusValue(bonus);
     if (!value) continue;
     combat += value;
-    const turns = typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : '';
+    const turns = typeof bonus.turns === 'number' ? ` · ${bonus.turns >= 999 ? '\u221e (resto del combate)' : `${bonus.turns} t.`}` : '';
     lines.push({ label: `${bonus.label ?? bonus.source ?? 'Bonus de combate'}${turns}`, value });
   }
   const rest = round(total - baseValue - combat);
@@ -120,7 +120,12 @@ export default function CombatHitCheck({ participants, level, effectData, onClos
     // Escudo de hechizos del objetivo: bloquea la siguiente habilidad (no los AA).
     let blockedBy: string | null = null;
     if (attack === 'ability') {
-      const itemShield = (target.effects ?? []).find(effect => (effect.source ?? '').startsWith(ITEM_SPELL_SHIELD_PREFIX) && (effect.duration ?? 0) > 0);
+      // Mismo orden que al aplicar la habilidad: primero el escudo de una habilidad, luego el de un objeto (el de menos turnos).
+      const abilityUp = participantAbilities(target, level).some(row => row.ability.mechanics?.spellShield
+        && (target.effects ?? []).some(effect => effect.source === `ability:${row.name}` && (effect.duration ?? 0) > 0));
+      const itemShield = abilityUp ? undefined : (target.effects ?? [])
+        .filter(effect => (effect.source ?? '').startsWith(ITEM_SPELL_SHIELD_PREFIX) && (effect.duration ?? 0) > 0)
+        .sort((a, b) => (a.duration ?? 0) - (b.duration ?? 0))[0];
       if (itemShield) blockedBy = `«${itemShield.name}» (objeto)`;
       if (!blockedBy) {
         const owned = participantAbilities(target, level).find(row => row.ability.mechanics?.spellShield

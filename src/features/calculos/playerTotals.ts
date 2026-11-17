@@ -2,6 +2,7 @@ import { findItem } from '../../data/items';
 import { PARTY } from '../../data/party';
 import { PLAYERS, savePlayerPatch, type Player, type PlayerSheet } from '../../data/players';
 import { sheetBase, sheetExtra } from './playerSheets';
+import { playerAbilityPassiveLines } from '../players/abilityPassiveStats';
 import {
   STAT_COLUMNS,
   emptyStatLine,
@@ -113,9 +114,14 @@ export function playerBonusLine(sheet: PlayerSheet | undefined, equipment: strin
  * PG máximos de la ficha = HP del TOTAL de Cálculos (base rol×nivel + equipo + extra).
  * Undefined si la ficha no tiene tabla de rol: entonces el máximo sigue siendo el guardado a mano.
  */
-export function playerMaxHp(sheet: PlayerSheet | undefined, equipment: string[]): number | undefined {
+export function playerMaxHp(
+  sheet: PlayerSheet | undefined,
+  equipment: string[],
+  /** Bonus fijos fuera del equipo (pasivas de habilidades con stats). */
+  extra: StatLine[] = [],
+): number | undefined {
   if (!sheet || !sheetBase(sheet)) return undefined;
-  const hp = playerTotalLine(sheet, equipment).hp;
+  const hp = playerTotalLine(sheet, equipment, undefined, extra).hp;
   return typeof hp === 'number' && Number.isFinite(hp) ? Math.max(0, Math.floor(hp)) : undefined;
 }
 
@@ -142,8 +148,8 @@ export function hpSyncPatch(
   return { hp: nextMax, actualHp: nextActual };
 }
 
-export function playerStatsDocument(sheet: PlayerSheet | undefined, equipment: string[]): PlayerStats {
-  const total = playerTotalLine(sheet, equipment);
+export function playerStatsDocument(sheet: PlayerSheet | undefined, equipment: string[], extra: StatLine[] = []): PlayerStats {
+  const total = playerTotalLine(sheet, equipment, undefined, extra);
   const stats = { nivel: PARTY.level } as PlayerStats;
   for (const column of STAT_COLUMNS) {
     stats[LINE_TO_STORED[column.key]] = isDefenseKey(column.key)
@@ -158,9 +164,11 @@ export async function syncPlayerStats(
   sheet: PlayerSheet | undefined,
   equipment: string[],
   combat: Pick<Player, 'hp' | 'actualHp'> = {},
+  /** Pasivas de habilidades con stats (playerAbilityPassiveLines). */
+  extra: StatLine[] = [],
 ): Promise<void> {
-  const hp = hpSyncPatch(combat, playerMaxHp(sheet, equipment));
-  await savePlayerPatch(playerName, { stats: playerStatsDocument(sheet, equipment), ...hp });
+  const hp = hpSyncPatch(combat, playerMaxHp(sheet, equipment, extra));
+  await savePlayerPatch(playerName, { stats: playerStatsDocument(sheet, equipment, extra), ...hp });
 }
 
 /** ¿El total guardado ya coincide con el calculado? */
@@ -177,8 +185,9 @@ function sameStats(saved: Player['stats'], next: PlayerStats): boolean {
  */
 export async function syncAllPlayerStats(): Promise<number> {
   const saves = PLAYERS.filter(player => player.sheet).flatMap(player => {
-    const stats = playerStatsDocument(player.sheet, player.equipamiento);
-    const hp = hpSyncPatch(player, playerMaxHp(player.sheet, player.equipamiento));
+    const passives = playerAbilityPassiveLines(player, PARTY.level);
+    const stats = playerStatsDocument(player.sheet, player.equipamiento, passives);
+    const hp = hpSyncPatch(player, playerMaxHp(player.sheet, player.equipamiento, passives));
     if (!hp && sameStats(player.stats, stats)) return [];
     return [savePlayerPatch(player.name, { stats, ...hp })];
   });

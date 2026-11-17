@@ -5,7 +5,8 @@ import { PLAYERS } from '../../data/players';
 import type { NamedEffectData } from '../../data/namedEffectDescriptions';
 import { equippedItems } from './combatBonuses';
 import { abilityBreakSource, rankValue } from '../../data/abilityMechanics';
-import { activeNamedEffects, fireEffectRules, participantContext, type EffectCallbacks, type EffectTriggerName } from './effectRules';
+import { activeNamedEffects, fireEffectRules, participantContext, poolAmount, rangedFactor, rangedNote, type EffectCallbacks, type EffectTriggerName } from './effectRules';
+import type { ResultChip } from './combatResult';
 import { participantAbilities } from './abilityRules';
 import { participantHp, type TargetDamage } from './combatHp';
 import type { Item } from '../../data/items';
@@ -139,7 +140,7 @@ export type ReactiveHooks = {
 
 /** Dispara reglas reactivas (al recibir daño, vida baja, cada turno, al recibir un AA) del portador. */
 export async function fireReactiveItemEffects(
-  trigger: Extract<EffectTriggerName, 'each-turn' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'on-ultimate-use' | 'on-enemy-ultimate-use' | 'combat-start' | 'combat-entry' | 'on-survived-hit' | 'on-death'>,
+  trigger: Extract<EffectTriggerName, 'each-turn' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'on-ultimate-use' | 'on-enemy-ultimate-use' | 'combat-start' | 'combat-entry' | 'when-ready' | 'on-survived-hit' | 'on-death'>,
   bearer: CombatParticipant,
   hooks: ReactiveHooks,
   targetIds: string[] = [],
@@ -174,6 +175,49 @@ export async function fireReactiveItemEffects(
   return result.changed ? result.bonuses : undefined;
 }
 
+/** Disparador "Al infligir daño ..." según el tipo de daño hecho. */
+const DEAL_TRIGGER = { physical: 'on-deal-physical', magic: 'on-deal-magic', true: 'on-deal-true' } as const;
+const DEAL_LABEL = { physical: 'físico', magic: 'mágico', true: 'verdadero' } as const;
+
+/**
+ * Tras hacer daño con tipo conocido: reacciona el ATACANTE (reglas "Al infligir daño físico / mágico / verdadero"
+ * de sus ítems y habilidades). El "% daño" de la regla usa el daño infligido. Devuelve bonus nuevos y el deshacer.
+ */
+export async function fireDealtDamageEffects(
+  attacker: CombatParticipant,
+  damageType: 'physical' | 'magic' | 'true',
+  targetId: string,
+  dealt: number,
+  hooks: ReactiveHooks,
+): Promise<{ bonuses?: CombatBonus[]; undo?: () => Promise<void> }> {
+  const trigger = DEAL_TRIGGER[damageType];
+  if (!trigger || !(dealt > 0)) return {};
+  const base = participantContext(attacker, hooks.level);
+  if (!base) return {};
+  const effects = [...activeNamedEffects(participantItems(attacker), hooks.effectData), ...base.abilityEffects]
+    .filter(effect => effect.config.rules.some(rule => rule.trigger === trigger));
+  if (!effects.length) return {};
+  const result = await fireEffectRules({
+    trigger,
+    effects,
+    ctx: base.ctx,
+    bonuses: attacker.bonuses,
+    targetIds: [targetId],
+    participants: hooks.participants,
+    level: hooks.level,
+    callbacks: hooks.callbacks,
+    bearer: { id: attacker.id, name: attacker.name },
+    incomingDamage: dealt,
+  });
+  const lines = result.log.map(line => line.replace(/ recibido\b/g, ' infligido'));
+  if (lines.length) logCombat({ title: `Al infligir daño ${DEAL_LABEL[damageType]} — ${attacker.name}`, actor: attacker.name, lines });
+  const undos = [...result.undos];
+  return {
+    ...(result.changed ? { bonuses: result.bonuses } : {}),
+    ...(undos.length ? { undo: async () => { for (const undo of undos.reverse()) await undo(); } } : {}),
+  };
+}
+
 /** Tras aplicar daño: reacciona el herido (pérdida de vida / umbral / AA recibido). */
 export async function afterDamageTaken(
   target: CombatParticipant,
@@ -197,23 +241,39 @@ export async function afterDamageTaken(
   return bonuses;
 }
 
-/** Cura el % del maná gastado (Vara de las edades). */
-export async function healFromManaSpent(bearer: CombatParticipant, spent: number, hooks: ReactiveHooks): Promise<void> {
-  if (!(spent > 0)) return;
+/**
+ * Eternidad (Catalizador de eones / Vara de las edades): al usar una habilidad, cura al portador el % del coste gastado
+ * (cualquier recurso de la barra: maná, energía...; no el coste en vida). Redondeo como el resto de curas (al más cercano,
+ * con poder de curación y escudos); la vida no pasa del máximo. Devuelve la línea / chip / deshacer para el resultado de la habilidad.
+ */
+export async function healFromManaSpent(
+  bearer: CombatParticipant,
+  spent: number,
+  hooks: ReactiveHooks,
+  resourceLabel = 'maná',
+): Promise<{ amount: number; line: string; chip: ResultChip; undo?: () => Promise<void> } | null> {
+  if (!(spent > 0)) return null;
+  const ctx = participantContext(bearer, hooks.level)?.ctx;
   let raw = 0;
+  let pct = 0;
+  let item = '';
+  let note = '';
   for (const effect of activeNamedEffects(participantItems(bearer), hooks.effectData)) {
     for (const rule of effect.config.rules) {
-      if (rule.fromManaSpentPct) raw += spent * rule.fromManaSpentPct / 100;
+      // Regla "Al usar una habilidad" (o la antigua "Al usar") de curacion con % del coste.
+      if (!rule.fromManaSpentPct || rule.kind !== 'heal') continue;
+      raw += spent * rule.fromManaSpentPct / 100 * rangedFactor(rule, ctx);
+      note = note || rangedNote(rule, ctx);
+      pct += rule.fromManaSpentPct;
+      item = item || effect.item;
     }
   }
-  const amount = Math.floor(raw);
-  if (!(amount > 0)) return;
-  const undo = hooks.callbacks.onSelfPool ? await hooks.callbacks.onSelfPool('heal', amount) : null;
-  logCombat({
-    title: `Eternidad · ${bearer.name}`,
-    actor: bearer.name,
-    lines: [`Cura el ${fmtPct(raw * 100 / spent)}% de ${spent} maná gastado → ${amount} PV${undo ? '' : ' (a mano / vida al máximo)'}`],
-  });
+  if (!(raw > 0)) return null;
+  const final = ctx ? poolAmount(raw, ctx) : { amount: Math.round(raw), text: fmtPct(raw) };
+  if (!(final.amount > 0)) return null;
+  const undo = hooks.callbacks.onSelfPool ? await hooks.callbacks.onSelfPool('heal', final.amount) : null;
+  const line = `Eternidad (${item}): +${final.amount} vida (${fmtPct(pct)}% de coste ${spent} ${resourceLabel}${note} = ${final.text})${undo ? '' : ' (a mano / vida al m\u00e1ximo)'}`;
+  return { amount: final.amount, line, chip: { kind: 'heal', text: `Eternidad +${final.amount} PV`, title: line }, ...(undo ? { undo } : {}) };
 }
 
 const fmtPct = (value: number): string => String(Math.round(value * 10) / 10);
@@ -242,7 +302,13 @@ export async function consumeSpellShields(options: {
   for (const id of options.targetIds) {
     const target = options.participants.find(entry => entry.id === id);
     if (!target) continue;
-    const itemShield = (target.effects ?? []).find(effect => (effect.source ?? '').startsWith(ITEM_SPELL_SHIELD_PREFIX) && (effect.duration ?? 0) > 0);
+    // Orden: primero el escudo de una habilidad (p. ej. W de Nocturne); el de un objeto (Anulacion) se conserva.
+    // Entre escudos de objeto, el de menos turnos. Cada escudo lleva su origen en source: solo entra en CD el efecto cuyo escudo se rompe.
+    const abilityUp = participantAbilities(target, options.level).some(row => row.ability.mechanics?.spellShield
+      && (target.effects ?? []).some(effect => effect.source === `ability:${row.name}` && (effect.duration ?? 0) > 0));
+    const itemShield = abilityUp ? undefined : (target.effects ?? [])
+      .filter(effect => (effect.source ?? '').startsWith(ITEM_SPELL_SHIELD_PREFIX) && (effect.duration ?? 0) > 0)
+      .sort((a, b) => (a.duration ?? 0) - (b.duration ?? 0))[0];
     if (itemShield) {
       const base = (itemShield.source ?? '').slice(ITEM_SPELL_SHIELD_PREFIX.length);
       await options.applyEffect([id], { source: itemShield.source ?? '', name: itemShield.name, duration: 1, restore: { [id]: null } });

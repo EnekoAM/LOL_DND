@@ -1002,29 +1002,29 @@
   background: linear-gradient(90deg, #7a2a2a, #d06060);
 }
 
-/* Combate en curso: columna de iniciativa pegada al menú lateral (solo foto + ini) */
+/*
+ * Combate en curso: columna de iniciativa (solo foto + ini) en su propia columna del grid.
+ * Antes iba con position: fixed junto al menú y un padding-left calculado a mano: con otras
+ * anchuras / zoom el cálculo no cuadraba y la columna tapaba la ficha. Ahora ocupa su sitio y la ficha se encoge.
+ */
 .combat-page--active {
   --combat-rail-w: 92px;
-  --combat-nav-w: var(--sidenav-collapsed, 64px);
-  /* Solo empuja el contenido si la columna fija lo pisaría (pantallas estrechas). */
-  padding-left: max(1rem, calc(var(--combat-rail-w) + 12px - 28px - max(0px, (100vw - var(--combat-nav-w) - 56px - 1100px) / 2)));
-}
-
-.app-root--nav-expanded .combat-page--active {
-  --combat-nav-w: var(--sidenav-expanded, 212px);
 }
 
 .combat-stage {
   margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: var(--combat-rail-w) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
 }
 
 .combat-rail {
-  position: fixed;
-  top: var(--header-height, 64px);
-  bottom: 0;
-  left: var(--combat-nav-w);
-  z-index: 50;
+  position: sticky;
+  top: calc(var(--header-height, 64px) + 8px);
+  z-index: 5;
   width: var(--combat-rail-w);
+  max-height: calc(100vh - var(--header-height, 64px) - 16px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -1033,10 +1033,10 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0.75rem 0;
-  border-right: 1px solid rgba(201, 162, 39, 0.22);
+  border: 1px solid rgba(201, 162, 39, 0.22);
+  border-radius: 10px;
   background: linear-gradient(180deg, rgba(22, 20, 16, 0.97), rgba(10, 9, 8, 0.98));
   box-shadow: 4px 0 18px rgba(0, 0, 0, 0.4);
-  transition: left 0.22s ease;
   scrollbar-width: thin;
   scrollbar-color: rgba(201, 162, 39, 0.4) transparent;
 }
@@ -1049,11 +1049,20 @@
   margin-top: 0;
 }
 
+/* Estrecho: la iniciativa pasa a una tira horizontal encima de la ficha. */
 @media (max-width: 768px) {
-  .combat-page--active,
-  .app-root--nav-expanded .combat-page--active {
-    --combat-nav-w: 0px;
-    padding-left: calc(var(--combat-rail-w) + 0.5rem);
+  .combat-stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .combat-rail {
+    position: static;
+    width: auto;
+    max-height: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem;
   }
 }
 
@@ -1156,8 +1165,13 @@
 }
 
 /* Combate en curso: ficha del participante en el área central (como la de Players) */
-.combat-page--active {
-  max-width: 1500px;
+/* Combate en curso: ocupa todo el ancho de .app-main (su padding ya deja el hueco con el menú). */
+.combat-page.combat-page--active {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0 0 2rem;
+  box-sizing: border-box;
 }
 
 .combat-mini--selected {
@@ -1667,4 +1681,19 @@
 .combat-panel__tracker-name--info:focus-visible {
   color: #f0e6d2;
   text-decoration-color: #c9a227;
+}
+
+/* Iniciativa editable (admin, o el player en la suya): número grande y borde dorado. */
+.combat-panel__ini-input { font-size: 1.05rem; font-weight: 700; color: #fff4d6; }
+.combat-panel__ini-input:not(:disabled) { border: 1px solid #e8c96a; background: #1d160b; }
+.combat-panel__ini-input:not(:disabled):focus { outline: 2px solid #e8c96a; outline-offset: 1px; }
+.combat-panel__ini-hint { margin: 0.35rem 0 0; font-size: 0.8rem; color: #e8dcc0; }
+
+/* Cartas de habilidad en combate: ancho mínimo (pasan a más filas) y el botón Usar/Armar abajo, sin tapar el título. */
+.spell-grid.spell-grid--combat {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+.spell-grid--combat .spell__name {
+  overflow-wrap: break-word;
+  word-break: normal;
 }

@@ -5,6 +5,7 @@ import type { DamageStats } from './abilityDamage';
 import { damageBonusOf } from '../habilidades/abilityDraft';
 import { hasDamageScaling, rollAbilityDamage, type AbilityDamageRoll } from './abilityDamage';
 import PhaseTabs from '../habilidades/PhaseTabs';
+import { rollAmpLines, type RollAmp } from '../../data/rollAmps';
 import { parseAbilityCost } from '../combate/combatAbilityUse';
 import { abilityPhase, hasVariants, isChoosePhases, phaseLabels } from '../../data/abilityVariants';
 
@@ -14,6 +15,8 @@ type Props = {
   maxRank?: number;
   statsNote?: string;
   stats: DamageStats;
+  /** "% a la tirada" de los items (Rabadon, Sangria del soberano...). */
+  amps?: readonly RollAmp[];
   initialResult: AbilityDamageRoll | null;
   initialError: string | null;
   onClose: () => void;
@@ -23,7 +26,7 @@ type Props = {
 
 const number = (value: number) => value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
 
-const AbilityDamageModal = ({ ability: fullAbility, rank, stats, initialResult, initialError, onClose, maxRank, statsNote, initialPhase = 0 }: Props) => {
+const AbilityDamageModal = ({ ability: fullAbility, rank, stats, initialResult, initialError, onClose, maxRank, statsNote, initialPhase = 0, amps }: Props) => {
   const [selectedRank, setSelectedRank] = useState(rank);
   const [phase, setPhase] = useState(initialPhase);
   const ability = abilityPhase(fullAbility, phase);
@@ -40,7 +43,7 @@ const AbilityDamageModal = ({ ability: fullAbility, rank, stats, initialResult, 
       return;
     }
     try {
-      setResult(rollAbilityDamage(target.damage!, stats, nextRank));
+      setResult(rollAbilityDamage(target.damage!, stats, nextRank, Math.random, amps));
       setError(null);
     } catch (caught) {
       setResult(null);
@@ -95,7 +98,8 @@ const AbilityDamageModal = ({ ability: fullAbility, rank, stats, initialResult, 
                   <p key={index}>{group.sign < 0 ? '−' : ''}{group.count}d{group.sides}: [{group.rolls.join(', ')}]</p>
                 ))}
                 {entry.roll.flat !== 0 && <p>Modificador fijo: {number(entry.roll.flat)}</p>}
-                <p>{entry.stat.toUpperCase()}: {number(entry.roll.total)} × {number(entry.scaling * 100)}% = <strong>{number(entry.damage)}</strong></p>
+                {entry.amp ? rollAmpLines(entry.amp).map(line => <p key={line}>{line}</p>) : null}
+                <p>{entry.stat.toUpperCase()}: {number(entry.amp?.total ?? entry.roll.total)} × {number(entry.scaling * 100)}% = <strong>{number(entry.damage)}</strong></p>
               </div>
             ))}
             <div className="hab-modal__block">

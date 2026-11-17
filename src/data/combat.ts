@@ -106,6 +106,34 @@ export type CombatBonus = {
   label?: string;
 };
 
+/** Cura repartida (regla Curaci\u00f3n \u00abRepartir en N turnos\u00bb): bonus buff source hot:<efecto>|<total>, amount = lo que queda, turns = tramos que quedan, maxStacks = tramos totales. */
+export const HOT_PREFIX = 'hot:';
+export type HotTick = { label: string; amount: number; index: number; count: number; total: number };
+
+/**
+ * Al empezar el turno de quien la tiene: un tramo de cada cura repartida (lo que queda / tramos que quedan, hacia arriba,
+ * as\u00ed la suma da el total). before = antes de bajar turnos; after = ya bajados. Devuelve los tramos y los bonus de after
+ * con lo que queda (sin las que se acaban).
+ */
+export function hotTicks(before: CombatParticipant | undefined, after: CombatParticipant | undefined): { ticks: HotTick[]; bonuses?: CombatBonus[] } {
+  const olds = (before?.bonuses ?? []).filter(bonus => bonus.stat === 'buff' && (bonus.source ?? '').startsWith(HOT_PREFIX) && typeof bonus.turns === 'number' && bonus.turns > 0);
+  if (olds.length === 0 || !after) return { ticks: [] };
+  const ticks: HotTick[] = [];
+  const left = new Map<string, number>();
+  for (const old of olds) {
+    const remainingTicks = old.turns as number;
+    const amount = Math.ceil(Math.max(0, old.amount) / remainingTicks);
+    const count = old.maxStacks ?? remainingTicks + 1;
+    const total = Number((old.source ?? '').split('|').pop()) || 0;
+    ticks.push({ label: old.label ?? 'Cura', amount, index: count - remainingTicks + 1, count, total });
+    left.set(old.id, Math.max(0, old.amount - amount));
+  }
+  const bonuses = (after.bonuses ?? [])
+    .map(bonus => (left.has(bonus.id) ? { ...bonus, amount: left.get(bonus.id) as number } : bonus))
+    .filter(bonus => !(left.has(bonus.id) && bonus.amount <= 0));
+  return { ticks, bonuses };
+}
+
 export type CombatSheet = {
   kind: 'champion' | 'npc';
   capturedAt: string;
@@ -257,7 +285,8 @@ export function rollInitiative(bonus = 0): number {
 /** Al empezar el turno de un participante: baja duración de sus efectos y quita los que llegan a 0. */
 export function tickEffectsFor(participant: CombatParticipant): CombatParticipant {
   const effects = participant.effects
-    .map(effect => ({ ...effect, duration: effect.duration - 1 }))
+    // 999+ = hasta el final del combate (duraci\u00f3n -1): no baja.
+    .map(effect => (effect.duration >= 999 ? effect : { ...effect, duration: effect.duration - 1 }))
     .filter(effect => effect.duration > 0);
   return { ...participant, effects };
 }
@@ -343,7 +372,7 @@ export function tickCombatTrackers(participant: CombatParticipant): CombatPartic
     // Bonus con duración: un turno menos; a 0 se quitan.
     const bonuses = participant.bonuses
       .map(bonus => (bonus.stat === 'charges' ? tickCharges(bonus) : bonus))
-      .map(bonus => (typeof bonus.turns === 'number' ? { ...bonus, turns: bonus.turns - 1 } : bonus))
+      .map(bonus => (typeof bonus.turns === 'number' && bonus.turns < 999 ? { ...bonus, turns: bonus.turns - 1 } : bonus))
       .filter(bonus => typeof bonus.turns !== 'number' || bonus.turns > 0);
     const { bonuses: _old, ...rest } = participant;
     participant = bonuses.length ? { ...rest, bonuses } : rest;
@@ -397,6 +426,26 @@ export async function saveCombatBonuses(participantId: string, bonuses: CombatBo
 /**
  * Acciones que le quedan este turno (left) y cuántas de ellas son extra. Admin: cualquiera; User: su player.
  */
+/** Iniciativa de un participante (admin: cualquiera; User: solo la suya). La API reordena y conserva el turno. */
+export async function saveCombatInitiative(participantId: string, initiative: number): Promise<CombatState> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-App-Role': readAppRole() ?? 'user' };
+  const identity = readAppIdentity();
+  if (identity?.kind === 'player') headers['X-App-Player'] = encodeURIComponent(identity.name);
+  let response: Response;
+  try {
+    response = await fetch('/api/combat', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ op: 'initiative', participantId, initiative }),
+    });
+  } catch {
+    throw new Error(OFFLINE);
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readError(body, `Error ${response.status} al guardar la iniciativa`));
+  return normalize(((body ?? {}) as { combat?: unknown }).combat);
+}
+
 export async function saveCombatActions(
   participantId: string,
   kind: 'attacks' | 'abilities' | 'items',

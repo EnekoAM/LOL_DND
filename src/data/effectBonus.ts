@@ -17,6 +17,10 @@ export const EFFECT_TRIGGERS = [
   { id: 'after-ability', label: 'Tras habilidad: siguiente AA' },
   { id: 'after-use', label: 'Tras usar (activa): siguiente AA' },
   { id: 'on-ability-hit', label: 'Al acertar una habilidad' },
+  { id: 'on-ability-use', label: 'Al usar una habilidad' },
+  { id: 'on-deal-physical', label: 'Al infligir daño físico' },
+  { id: 'on-deal-magic', label: 'Al infligir daño mágico' },
+  { id: 'on-deal-true', label: 'Al infligir daño verdadero' },
   { id: 'on-use', label: 'Al usar (activa)' },
   { id: 'on-takedown', label: 'Al matar / asistir' },
   { id: 'hp-below', label: 'Vida por debajo de X%' },
@@ -28,6 +32,7 @@ export const EFFECT_TRIGGERS = [
   { id: 'on-enemy-ultimate-use', label: 'Cuando un enemigo usa su R' },
   { id: 'combat-start', label: 'Al empezar el combate' },
   { id: 'combat-entry', label: 'Al entrar en combate' },
+  { id: 'when-ready', label: 'Cuando est\u00e9 disponible (sin CD): al empezar el combate y en cuanto acaba el CD' },
   { id: 'on-survived-hit', label: 'Al sobrevivir un golpe' },
   { id: 'on-death', label: 'Al morir' },
 ] as const;
@@ -38,6 +43,7 @@ export const EFFECT_RULE_KINDS = [
   { id: 'damage', label: 'Daño extra' },
   { id: 'heal', label: 'Curación' },
   { id: 'shield', label: 'Escudo' },
+  { id: 'temp-hp', label: 'Vida temporal' },
   { id: 'mana', label: 'Recupera maná' },
   { id: 'slow', label: 'Ralentización' },
   { id: 'status', label: 'Estado al objetivo' },
@@ -90,6 +96,8 @@ export type EffectDamageType = (typeof DAMAGE_TYPES)[number]['id'];
 export const CD_START_MODES = [
   { id: 'on-activate', label: 'al activarse' },
   { id: 'on-end', label: 'al terminar' },
+  // Escudo de hechizos de un efecto (Anulacion): el CD no empieza al ponerlo, sino cuando bloquea una habilidad y se rompe.
+  { id: 'on-break', label: 'al romperse el escudo de hechizos' },
 ] as const;
 export type CdStartMode = (typeof CD_START_MODES)[number]['id'];
 
@@ -145,12 +153,20 @@ export type EffectRule = {
   triggerAtMax?: boolean;
   /** Solo si otra regla del mismo efecto está al máximo de stacks (p. ej. 3er AA de Guinsoo). */
   requiresMaxStacks?: boolean;
+  /** Valor fijo / por nivel escritos con n\u00fameros del LoL (se guardan tal cual): fuera del editor y en combate se usan / 10 (da\u00f1o, curaci\u00f3n, escudo, vida temporal; no dados ni escalados). */
+  lolScale?: boolean;
+  /** AD / AP del LoL con el que se rellenaron los dados (tabla de dados); solo lo muestra el editor: el combate usa los dados / el fijo. */
+  lolDice?: number;
   /** Se aplica dentro de N turnos (cura/escudo/daño pendientes). */
   delayTurns?: number;
+  /** Curaci\u00f3n repartida en N tramos (2-20): uno al dispararse y uno al empezar cada turno de quien la recibe. */
+  healOverTurns?: number;
   /** Tras N turnos, el escudo baja a la mitad de lo concedido. */
   halfAfterTurns?: number;
   /** Cura este % del maná gastado (al usar habilidad). */
   fromManaSpentPct?: number;
+  /** Diferencia por rango: a distancia el valor de la regla es este % del de cuerpo a cuerpo (75 = 75 %). Vacío = igual. */
+  rangedPct?: number;
   /** Crítico a esta % de potencia (20 = 20 % del daño crít. extra) si se marca crít. */
   critPotencyPct?: number;
   /** Daño de zona: se repite cada turno del portador mientras duren las marcas. */
@@ -192,7 +208,7 @@ export function appliesToOptions(kind: string): { id: RuleAppliesTo; label: stri
   switch (kind) {
     case 'stat': case 'attack-speed': case 'move-speed':
       return [{ id: 'self', label: 'Portador' }, { id: 'allies', label: 'Aliados' }, { id: 'target', label: 'Objetivo (debuff)' }, { id: 'area', label: 'Objetivo + cercanos (debuff)' }, { id: 'nearby', label: 'Solo cercanos (debuff)' }];
-    case 'heal': case 'shield':
+    case 'heal': case 'shield': case 'temp-hp':
       return [{ id: 'self', label: 'Portador' }, { id: 'allies', label: 'Aliados' }];
     case 'damage': case 'slow':
       return [...debuff];
@@ -255,6 +271,23 @@ export type EffectCharges = { start: number; max: number; every: number; perTurn
 
 export const MAX_EFFECT_RULES = 12;
 
+/** Escala LoL: la vida aqu\u00ed es la del LoL / 10; los valores planos del LoL se dividen entre 10 (los % y escalados no). */
+export const LOL_SCALE = 10;
+export const LOL_SCALE_KINDS: readonly string[] = ['damage', 'heal', 'shield', 'temp-hp'];
+/** \u00bfEl fijo / por nivel de esta regla va en n\u00fameros del LoL? (no con dados). */
+export const lolScaled = (rule: Partial<Pick<EffectRule, 'lolScale' | 'dice' | 'kind'>>): boolean =>
+  rule.lolScale === true && !rule.dice && !!rule.kind && LOL_SCALE_KINDS.includes(rule.kind);
+/** Valor ya convertido (el que se usa y se ense\u00f1a fuera del editor). */
+export const lolValue = (rule: Partial<Pick<EffectRule, 'lolScale' | 'dice' | 'kind'>>, value: number): number =>
+  (lolScaled(rule) ? value / LOL_SCALE : value);
+
+/** Duraci\u00f3n -1 = hasta el final del combate. Se guarda -1; en combate se usan 999 turnos que no bajan. */
+export const UNTIL_COMBAT_END = -1;
+export const COMBAT_FOREVER_TURNS = 999;
+export const combatTurns = (turns: number): number => (turns < 0 ? COMBAT_FOREVER_TURNS : turns);
+export const isForeverTurns = (turns: number | undefined): boolean => typeof turns === 'number' && (turns < 0 || turns >= COMBAT_FOREVER_TURNS);
+export const durationText = (turns: number | undefined): string => (isForeverTurns(turns) ? '\u221e (resto del combate)' : `${turns ?? 0} t.`);
+
 const label = <T extends { id: string; label: string }>(list: readonly T[], id: string | undefined): string =>
   list.find(entry => entry.id === id)?.label ?? id ?? '';
 
@@ -266,11 +299,13 @@ export const statLabel = (key: string | undefined): string => STAT_COLUMNS.find(
 const num = (value: number): string => formatStat(Math.round(value * 1000) / 1000);
 
 /** «100% AD base + 45% AP» (o «5»). */
-export function formulaText(rule: Pick<EffectRule, 'flat' | 'ratios' | 'perLevel' | 'levelFrom' | 'dice' | 'missingHpScalePct'>): string {
+export function formulaText(rule: Pick<EffectRule, 'flat' | 'ratios' | 'perLevel' | 'levelFrom' | 'dice' | 'missingHpScalePct'> & Partial<Pick<EffectRule, 'lolScale' | 'kind'>>): string {
   const parts: string[] = [];
+  // Escala LoL: aqu\u00ed solo el valor final (/ 10); el del LoL se ve en el editor.
+  const shown = (value: number) => num(lolValue(rule, value));
   if (rule.dice) parts.push(rule.dice);
-  if (rule.perLevel?.length) parts.push(`${rule.perLevel.map(num).join('/')} (por nivel${rule.levelFrom === 'target' ? ' del objetivo' : ''})`);
-  else if (rule.flat) parts.push(num(rule.flat));
+  if (rule.perLevel?.length) parts.push(`${rule.perLevel.map(shown).join('/')} (por nivel${rule.levelFrom === 'target' ? ' del objetivo' : ''})`);
+  else if (rule.flat) parts.push(shown(rule.flat));
   for (const ratio of rule.ratios ?? []) parts.push(`${num(ratio.pct)}% ${scalingLabel(ratio.stat)}`);
   if (rule.missingHpScalePct) parts.push(`hasta +${num(rule.missingHpScalePct)}% según vida faltante`);
   return parts.join(' + ').replace(/\+ -/g, '− ') || (rule.dice ? rule.dice : '0');
@@ -283,6 +318,10 @@ const TRIGGER_SHORT: Record<EffectTrigger, string> = {
   'after-ability': 'Tras habilidad (siguiente AA)',
   'after-use': 'Tras usar (siguiente AA)',
   'on-ability-hit': 'Al acertar habilidad',
+  'on-ability-use': 'Al usar habilidad',
+  'on-deal-physical': 'Al infligir daño físico',
+  'on-deal-magic': 'Al infligir daño mágico',
+  'on-deal-true': 'Al infligir daño verdadero',
   'on-use': 'Al usar',
   'on-takedown': 'Al matar/asistir',
   'hp-below': 'Vida < X%',
@@ -294,12 +333,15 @@ const TRIGGER_SHORT: Record<EffectTrigger, string> = {
   'on-enemy-ultimate-use': 'Cuando un enemigo usa su R',
   'combat-start': 'Al empezar el combate',
   'combat-entry': 'Al entrar en combate',
+  'when-ready': 'Cuando est\u00e9 disponible (sin CD)',
   'on-survived-hit': 'Al sobrevivir un golpe',
   'on-death': 'Al morir',
 };
 
 /** Resumen legible de una regla: «Tras habilidad (siguiente AA): +100% AD base físico». */
 export function ruleSummary(rule: EffectRule): string {
+  const dealt = rule.trigger === 'on-deal-physical' || rule.trigger === 'on-deal-magic' || rule.trigger === 'on-deal-true';
+  const dmgWord = dealt ? 'infligido' : 'recibido';
   const trigger = rule.trigger === 'hp-below' ? `Vida < ${num(rule.hpBelowPct ?? 30)}%` : TRIGGER_SHORT[rule.trigger] ?? rule.trigger;
   const when = rule.onlyIf ? `${trigger} (${rangeConditionShort(rule.onlyIf)})` : trigger;
   const amount = formulaText(rule);
@@ -311,9 +353,10 @@ export function ruleSummary(rule: EffectRule): string {
     case 'attack-speed': what = `${rule.appliesTo === 'target' ? 'al objetivo ' : ''}${amount.startsWith('-') ? amount : `+${amount}`}% vel. ataque`; break;
     case 'move-speed': what = `${rule.appliesTo === 'target' ? 'al objetivo ' : ''}${amount.startsWith('-') ? amount : `+${amount}`} velocidad`; break;
     case 'damage': what = `+${amount} ${damageTypeLabel(rule.damageType ?? 'physical')}`; break;
-    case 'heal': what = `cura ${amount}`; break;
+    case 'heal': what = rule.fromManaSpentPct ? `cura ${num(rule.fromManaSpentPct)}% del coste de la habilidad` : rule.fromDamagePct ? `cura ${num(rule.fromDamagePct)}% del daño ${dmgWord}` : `cura ${amount}`; break;
     case 'shield': what = `escudo ${amount}`; break;
-    case 'mana': what = `recupera ${amount} maná`; break;
+    case 'temp-hp': what = `+${amount} vida temporal (caduca sola)`; break;
+    case 'mana': what = rule.fromDamagePct ? `recupera ${num(rule.fromDamagePct)}% del daño ${dmgWord} como maná` : rule.fromManaSpentPct ? `recupera ${num(rule.fromManaSpentPct)}% del coste de la habilidad como maná` : `recupera ${amount} maná`; break;
     case 'slow': what = `ralentiza ${num(rule.slowPct ?? 0)}%`; break;
     case 'status': what = `aplica ${rule.statusName || 'estado'}`; break;
     case 'vigor': what = `+${amount} Vigor`; break;
@@ -324,14 +367,17 @@ export function ruleSummary(rule: EffectRule): string {
     default: what = rule.kind;
   }
   const extras = [
-    rule.permanent ? 'cargas permanentes (ficha)' : rule.duration ? `${rule.duration} t.` : '',
+    rule.rangedPct != null ? `a distancia ${num(rule.rangedPct)}%` : '',
+    rule.permanent ? 'cargas permanentes (ficha)' : rule.duration ? durationText(rule.duration) : '',
     rule.maxStacks ? `hasta ×${rule.maxStacks}` : '',
     rule.everyN ? `cada ${rule.everyN}` : '',
     rule.perTargetCounter ? 'por objetivo' : '',
     rule.triggerAtMax ? 'al máximo de cargas' : '',
     rule.delayTurns ? `en ${rule.delayTurns} t.` : '',
+    rule.kind === 'heal' && rule.healOverTurns ? `repartida en ${rule.healOverTurns} t.` : '',
     rule.spellShield ? 'escudo de hechizos' : '',
     rule.pulseEachTurn ? 'pulso cada turno' : '',
+    rule.cooldownOnProc ? 'inicia el CD del efecto' : '',
     rule.note ? rule.note : '',
   ].filter(Boolean);
   if (rule.lifeSteal) extras.push('aplica robo de vida');
@@ -357,14 +403,15 @@ export const withLevelCooldown = (config: EffectBonusConfig, level: number): Eff
 
 export function configTimingText(config: EffectBonusConfig): string {
   return [
-    config.cooldownByLevel?.length ? `CD por nivel ${config.cooldownByLevel.join(' / ')} t. (niveles 1–5 / 6–10 / 11–15 / 16–20)${config.cdStart === 'on-end' ? ' (al terminar)' : ''}`
-      : config.cooldown ? `CD ${config.cooldown} t.${config.cdStart === 'on-end' ? ' (al terminar)' : ''}` : '',
-    config.duration ? `dura ${config.duration} t.` : '',
+    config.cooldownByLevel?.length ? `CD por nivel ${config.cooldownByLevel.join(' / ')} t. (niveles 1–5 / 6–10 / 11–15 / 16–20)${config.cdStart === 'on-end' ? ' (al terminar)' : config.cdStart === 'on-break' ? ' (al romperse el escudo de hechizos)' : ''}`
+      : config.cooldown ? `CD ${config.cooldown} t.${config.cdStart === 'on-end' ? ' (al terminar)' : config.cdStart === 'on-break' ? ' (al romperse el escudo de hechizos)' : ''}` : '',
+    config.rules.some(rule => rule.cooldownOnProc) ? `el CD empieza cuando se aplica la regla ${config.rules.findIndex(rule => rule.cooldownOnProc) + 1}` : '',
+    config.duration ? (isForeverTurns(config.duration) ? 'dura hasta el final del combate' : `dura ${config.duration} t.`) : '',
     config.abilityDischarge ? 'las habilidades también descargan el Vigor' : '',
     config.chainTargets && config.chainTargets > 1 ? `Vigor al máximo encadena a ${config.chainTargets} objetivos` : '',
     config.perTargetCooldown ? 'CD por objetivo (marca)' : '',
     config.maxTargets ? `hasta ${config.maxTargets} objetivos` : '',
-    config.charges ? `cargas de combate: empieza con ${config.charges.start}, máx. ${config.charges.max}, recarga 1 cada ${config.charges.every} t.${config.charges.perTurn ? ', máx. 1 por turno' : ''}` : '',
+    config.charges ? `usos recargables: empieza con ${config.charges.start}, máx. ${config.charges.max}, recarga 1 cada ${config.charges.every} t.${config.charges.perTurn ? ', máx. 1 por turno' : ''}` : '',
     config.oncePerCombat ? '1 vez por combate' : '',
   ].filter(Boolean).join(' · ');
 }
@@ -421,10 +468,14 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
     if (finite(r.missingHpScalePct)) rule.missingHpScalePct = r.missingHpScalePct;
     if (r.triggerAtMax === true) rule.triggerAtMax = true;
     if (r.requiresMaxStacks === true) rule.requiresMaxStacks = true;
+    if (r.lolScale === true) rule.lolScale = true;
+    if (finite(r.lolDice) && r.lolDice >= 0) rule.lolDice = r.lolDice;
     const delayTurns = turns(r.delayTurns);
     if (delayTurns) rule.delayTurns = delayTurns;
+    if (finite(r.healOverTurns) && r.healOverTurns >= 2) rule.healOverTurns = Math.min(20, Math.floor(r.healOverTurns));
     if (finite(r.halfAfterTurns) && r.halfAfterTurns >= 1) rule.halfAfterTurns = Math.min(99, Math.floor(r.halfAfterTurns));
     if (finite(r.fromManaSpentPct)) rule.fromManaSpentPct = r.fromManaSpentPct;
+  if (finite(r.rangedPct)) rule.rangedPct = r.rangedPct;
     if (finite(r.critPotencyPct)) rule.critPotencyPct = r.critPotencyPct;
     if (r.pulseEachTurn === true) rule.pulseEachTurn = true;
     if (r.spellShield === true) rule.spellShield = true;
@@ -433,7 +484,7 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
     if (finite(r.armedTurnsAfterSeen) && r.armedTurnsAfterSeen >= 1) rule.armedTurnsAfterSeen = Math.min(99, Math.floor(r.armedTurnsAfterSeen));
     if (finite(r.auraRange) && r.auraRange >= 1) rule.auraRange = Math.min(20, Math.floor(r.auraRange));
     if (finite(r.damageAmpPct)) rule.damageAmpPct = r.damageAmpPct;
-    const duration = turns(r.duration);
+    const duration = r.duration === UNTIL_COMBAT_END ? UNTIL_COMBAT_END : turns(r.duration);
     if (duration) rule.duration = duration;
     const maxStacks = finite(r.maxStacks) && r.maxStacks >= 1 ? Math.min(999, Math.floor(r.maxStacks)) : undefined;
     if (maxStacks) rule.maxStacks = maxStacks;
@@ -449,9 +500,9 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
     const list = source.cooldownByLevel.map(turns).filter((n): n is number => n !== undefined).slice(0, 4);
     if (list.length) config.cooldownByLevel = list;
   }
-  const duration = turns(source.duration);
+  const duration = source.duration === UNTIL_COMBAT_END ? UNTIL_COMBAT_END : turns(source.duration);
   if (duration) config.duration = duration;
-  if (source.cdStart === 'on-end' || source.cdStart === 'on-activate') config.cdStart = source.cdStart;
+  if (source.cdStart === 'on-end' || source.cdStart === 'on-activate' || source.cdStart === 'on-break') config.cdStart = source.cdStart;
   if (source.abilityDischarge === true) config.abilityDischarge = true;
   if (source.perTargetCooldown === true) config.perTargetCooldown = true;
   if (finite(source.maxTargets) && source.maxTargets >= 1) config.maxTargets = Math.min(20, Math.floor(source.maxTargets));
@@ -467,4 +518,4 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
 }
 
 /** Estado de una regla que el combate aplica solo (el resto se apunta a mano). */
-export const AUTOMATED_TRIGGERS: readonly EffectTrigger[] = ['always', 'on-attack', 'on-hit', 'after-ability', 'after-use', 'on-ability-hit', 'on-use', 'on-takedown', 'hp-below', 'on-damage-taken', 'on-attacked', 'each-turn', 'energized-max', 'on-ultimate-use', 'on-enemy-ultimate-use', 'combat-start', 'combat-entry', 'on-survived-hit', 'on-death'];
+export const AUTOMATED_TRIGGERS: readonly EffectTrigger[] = ['always', 'on-attack', 'on-hit', 'after-ability', 'after-use', 'on-ability-hit', 'on-ability-use', 'on-deal-physical', 'on-deal-magic', 'on-deal-true', 'on-use', 'on-takedown', 'hp-below', 'on-damage-taken', 'on-attacked', 'each-turn', 'energized-max', 'on-ultimate-use', 'on-enemy-ultimate-use', 'combat-start', 'combat-entry', 'when-ready', 'on-survived-hit', 'on-death'];

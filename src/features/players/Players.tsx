@@ -10,6 +10,7 @@ import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from '../calculos/damage';
 import DamagePanel from '../calculos/DamagePanel';
 import PickerCard from '../calculos/PickerCard';
 import { hpSyncPatch, playerMaxHp, playerStatsDocument } from '../calculos/playerTotals';
+import { playerAbilityPassiveLines } from './abilityPassiveStats';
 import '../calculos/Calculos.css';
 import PlayerSheet from './PlayerSheet';
 import './Players.css';
@@ -133,8 +134,8 @@ const Players = () => {
     const payload = recalc
       ? {
           ...patch,
-          stats: playerStatsDocument(nextSheet, nextEquipment),
-          ...hpSyncPatch(player, playerMaxHp(nextSheet, nextEquipment)),
+          stats: playerStatsDocument(nextSheet, nextEquipment, playerAbilityPassiveLines(player)),
+          ...hpSyncPatch(player, playerMaxHp(nextSheet, nextEquipment, playerAbilityPassiveLines(player))),
         }
       : patch;
     setPlayer(current => (sameName(current, name) && current ? { ...current, ...payload } : current));

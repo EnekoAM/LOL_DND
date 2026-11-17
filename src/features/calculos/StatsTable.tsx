@@ -12,10 +12,12 @@ import {
 } from './playerSheets';
 import { ROLE_TABLES, findRoleTable } from '../../data/roles';
 import { playerTotalLine } from './playerTotals';
+import type { AbilityPassiveSource } from '../players/abilityPassiveStats';
 import {
   STAT_COLUMNS,
   formatDefenseStat,
   formatStat,
+  formatStatBonus,
   isDefenseKey,
   isZeroStat,
   itemStatLine,
@@ -42,6 +44,8 @@ type Props = {
   canEditExtra?: boolean;
   /** Editor de estadísticas adicionales; se muestra debajo de la tabla al pulsar el lápiz. */
   renderExtraEditor?: (close: () => void) => ReactNode;
+  /** Pasivas de habilidades que dan stats (fichas de players): una fila cada una y suman al total. */
+  abilityPassives?: AbilityPassiveSource[];
 };
 
 const EXTRA_LABEL = 'Estad\u00edsticas adicionales';
@@ -50,7 +54,7 @@ type SheetRow = {
   key: string;
   label: string;
   line: StatLine | null;
-  tone?: 'total' | 'base' | 'extra' | 'current';
+  tone?: 'total' | 'base' | 'extra' | 'current' | 'passive';
   onClick?: () => void;
   passive?: string;
   active?: string;
@@ -171,8 +175,7 @@ const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: bo
             ))}
             {effects && (
               <>
-                <th>PASIVA</th>
-                <th>ACTIVA</th>
+                <th title={'Descripci\u00f3n del \u00edtem o bonus pasivo de la habilidad (pasa el rat\u00f3n por \u00abS\u00ed\u00bb)'}>INFO</th>
               </>
             )}
           </tr>
@@ -197,7 +200,6 @@ const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: bo
               {effects && (
                 <>
                   <EffectCell text={row.passive} />
-                  <EffectCell text={row.active} />
                 </>
               )}
             </tr>
@@ -302,6 +304,7 @@ const StatsTable = ({
   canPickRole = true,
   canEditExtra = false,
   renderExtraEditor,
+  abilityPassives = [],
 }: Props) => {
   const [open, setOpen] = useState(defaultOpen);
   const [editingExtra, setEditingExtra] = useState(false);
@@ -326,17 +329,28 @@ const StatsTable = ({
       key: `${name}-${index}`,
       label: item?.nombre ?? name,
       line: item ? itemStatLine(item.stats) : null,
-      passive: item?.efecto.pasiva ?? '',
-      active: item?.efecto.activa ?? '',
+      // Los textos antiguos de pasiva / activa ya no se ensenan: solo la descripcion del item.
+      passive: item?.description ?? '',
     };
   });
 
-  const total = playerTotalLine(sheet, equipment, level);
+  const passiveRows: SheetRow[] = abilityPassives.map(source => ({
+    key: `passive-${source.seal}-${source.name}`,
+    label: `Pasiva: ${source.name} (${source.seal})`,
+    line: source.line,
+    tone: 'passive' as const,
+    passive: `Bonus pasivo de la habilidad: ${source.bonuses.map(bonus => `${formatStatBonus(bonus.stat, bonus.amount)} (${bonus.reason})`).join(' · ')}`,
+    active: '-',
+  }));
+
+  // Las pasivas cuentan como bonus (igual que los ítems).
+  const total = playerTotalLine(sheet, equipment, level, abilityPassives.map(source => source.line));
 
   const rows: SheetRow[] = [
     { key: 'total', label: 'Total', line: total, tone: 'total' },
     ...(base ? [{ key: 'base', label: `Base nv. ${level}`, line: base, tone: 'base' as const }] : []),
     ...itemRows,
+    ...passiveRows,
     ...(extra || extraEditable
       ? [{
           key: 'extra',

@@ -863,3 +863,11 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Ficha de la habilidad: bonus de stats pasivo (ya sumado a la ficha). */
+.hab-modal__passive { display: flex; flex-direction: column; gap: 3px; margin: 6px 0 12px; padding: 9px 12px; border: 1px solid #4fd1a1; border-radius: 6px; background: rgba(46, 160, 115, 0.18); color: #eafff5; }
+.hab-modal__passive strong { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #9ff5d2; }
+.hab-modal__passive span { font-size: 15px; font-weight: 700; color: #ffffff; }
+.hab-modal__passive small { font-size: 12px; color: #d4f3e6; }
+.hab-modal__passive--off { border-style: dashed; border-color: #b3aa93; background: rgba(255, 255, 255, 0.05); }
+.hab-modal__passive--off strong { color: #e8e1cf; }

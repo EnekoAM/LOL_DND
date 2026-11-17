@@ -214,7 +214,8 @@
   line-height: 1.2;
   color: var(--ink);
   text-shadow: 0 1px 0 #000;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .spell--definitiva .spell__name {
@@ -516,3 +517,10 @@
   text-transform: uppercase;
   color: #e0a84a;
 }
+
+/* Bonus de stats pasivo de la habilidad (ya sumado a la ficha). */
+.spell__passive { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 6px; }
+.spell__passive-label { width: 100%; font-family: 'Cinzel', serif; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #9ff5d2; }
+.spell__passive-chip { padding: 1px 7px; border-radius: 4px; background: #6ee7b7; color: #062016; font-size: 11px; font-weight: 700; line-height: 1.5; white-space: nowrap; }
+.spell__passive--off .spell__passive-label { color: #e8e1cf; }
+.spell__passive--off .spell__passive-chip { background: transparent; color: #f1ead8; border: 1px dashed #b3aa93; }

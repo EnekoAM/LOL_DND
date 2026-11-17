@@ -13,14 +13,6 @@ type Props = {
   onBack: () => void;
 };
 
-const EFFECTS = [
-  { key: 'pasiva', label: 'Pasiva' },
-  { key: 'activa', label: 'Activa' },
-] as const;
-
-const isEffectDefined = (text: string | undefined): boolean =>
-  !!text && text.trim() !== '' && text.trim() !== '-';
-
 const Column = ({ item, label, empty }: { item: Item | undefined; label: string; empty: string }) => {
   if (!item) {
     return (
@@ -31,7 +23,6 @@ const Column = ({ item, label, empty }: { item: Item | undefined; label: string;
     );
   }
   const rarity = rarityClass(item.rareza);
-  const effects = EFFECTS.filter(({ key }) => isEffectDefined(item.efecto?.[key]));
   const stats = getVisibleStats(item.stats);
 
   return (
@@ -58,13 +49,12 @@ const Column = ({ item, label, empty }: { item: Item | undefined; label: string;
         )}
       </ul>
       <div className="item-compare__effects">
-        {effects.map(({ key, label: effectLabel }) => (
-          <div key={key} className="item-compare__effect">
-            <span>{effectLabel}</span>
-            <p>{item.efecto[key]}</p>
+        {item.description ? (
+          <div className="item-compare__effect">
+            <span>{'Descripci\u00f3n'}</span>
+            <p>{item.description}</p>
           </div>
-        ))}
-        {effects.length === 0 && <p className="item-compare__muted">Sin efectos</p>}
+        ) : <p className="item-compare__muted">{'Sin descripci\u00f3n'}</p>}
       </div>
     </div>
   );

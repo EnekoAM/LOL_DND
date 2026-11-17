@@ -1859,3 +1859,10 @@
   line-height: 1.2;
   vertical-align: middle;
 }
+
+/* Pasivas de habilidades con stats en el desglose: fila propia en verde menta (legible). */
+.calc-sheet__row--passive th,
+.calc-sheet__row--passive td { color: #9ff5d2; background: rgba(46, 160, 115, 0.14); }
+.calc-sheet__row--passive th:first-child { background: #0f2a20; border-left: 3px solid #4fd1a1; font-weight: 700; }
+.calc-sheet__row--passive .calc-sheet__zero { color: rgba(159, 245, 210, 0.38); }
+.calc-sheet__row--passive .calc-sheet__effect { color: #9ff5d2; }

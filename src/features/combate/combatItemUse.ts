@@ -1,4 +1,6 @@
 import type { Item } from '../../data/items';
+import { findNamedEffect } from '../../data/namedEffects';
+import { namedEffectBonus, type NamedEffectData } from '../../data/namedEffectDescriptions';
 import { milestoneRank } from '../../data/abilityRanks';
 import { rollAbilityDamage, rollDamageStat, type DamageStats } from '../players/abilityDamage';
 import { formatDamageAmount, formatDamageType } from './combatAbilityUse';
@@ -47,14 +49,34 @@ export function itemActiveDamage(item: Item | undefined): ItemActiveDamage | nul
 /** Tiene texto de activa (no vacío ni «-»). Sin él, usarlo es activar a mano su pasiva y no gasta uso de objeto. */
 export const itemHasActiveText = (item: Item): boolean => {
   const text = (item.efecto?.activa ?? '').trim();
-  return text !== '' && text !== '-';
+  // Los textos antiguos de activa se vaciaron: cuenta como activa si lleva un efecto con nombre de tipo Activa.
+  return (text !== '' && text !== '-') || itemHasActiveEffect(item);
 };
+
+/** Lleva algun efecto con nombre de tipo Activa. */
+export const itemHasActiveEffect = (item: Item): boolean =>
+  (item.namedEffects ?? []).some(id => findNamedEffect(id)?.kind === 'active');
+
+/** CD / duracion al usar el item: los campos antiguos del item o, si no los tiene, los del configurador de sus efectos activos. */
+export function itemUseTiming(item: Item, data: NamedEffectData): { cooldown: number; duration: number } {
+  const positive = (n: unknown): number => (typeof n === 'number' && n > 0 ? n : 0);
+  let cooldown = positive(item.cooldown);
+  let duration = positive(item.effectDuration);
+  for (const id of item.namedEffects ?? []) {
+    if (findNamedEffect(id)?.kind !== 'active') continue;
+    const config = namedEffectBonus(data, id);
+    if (!positive(item.cooldown)) cooldown = Math.max(cooldown, positive(config?.cooldown));
+    if (!positive(item.effectDuration)) duration = Math.max(duration, positive(config?.duration));
+  }
+  return { cooldown, duration };
+}
 
 export function itemIsUsable(item: Item | undefined): boolean {
   if (!item) return false;
   return !!itemActiveDamage(item)
     || (typeof item.cooldown === 'number' && item.cooldown > 0)
-    || (typeof item.effectDuration === 'number' && item.effectDuration > 0);
+    || (typeof item.effectDuration === 'number' && item.effectDuration > 0)
+    || itemHasActiveEffect(item);
 }
 
 export type ItemDamageRoll = { total: number; type?: string; detail?: string };

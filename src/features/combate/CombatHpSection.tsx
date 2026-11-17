@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { CombatParticipant } from '../../data/combat';
-import type { ParticipantHp } from './combatHp';
+import { participantHpPools, type ParticipantHp } from './combatHp';
+import { HpExtrasTags, HpTrack } from './HpExtras';
 import CombatManualDamage from './CombatManualDamage';
 
 type Props = {
@@ -52,22 +53,27 @@ export default function CombatHpSection({ participant, hp, canSee, saving, onSav
       setBusy(false);
     }
   };
-  const pct = max && max > 0 ? Math.min(100, Math.round((hp.current / max) * 100)) : 100;
+  const pools = participantHpPools(participant);
+  const extras = { tempHp: pools?.tempHp, shield: pools?.shield };
 
   return (
     <div className="combat-panel__section">
       <h3 className="combat-panel__label">Vida</h3>
       <div className="combat-resource">
         <div className="combat-resource__head">
-          <span>{hp.current}{max !== undefined ? ` / ${max}` : ''}</span>
+          <span>{hp.current}{max !== undefined ? ` / ${max}` : ''}<HpExtrasTags extras={extras} /></span>
           <span className="combat-resource__steps">
             <button type="button" className="combat-btn combat-btn--small" disabled={locked || hp.current <= 0} aria-label="Quitar 1 de vida" onClick={() => { void save(hp.current - 1); }}>−</button>
             <button type="button" className="combat-btn combat-btn--small" disabled={locked || (max !== undefined && hp.current >= max)} aria-label="Añadir 1 de vida" onClick={() => { void save(hp.current + 1); }}>+</button>
           </span>
         </div>
-        <div className="combat-resource__track" aria-hidden="true">
-          <div className="combat-resource__fill combat-resource__fill--hp" style={{ width: `${pct}%` }} />
-        </div>
+        <HpTrack
+          current={hp.current}
+          max={max && max > 0 ? max : Math.max(1, hp.current)}
+          extras={extras}
+          className="combat-resource__track"
+          fillClassName="combat-resource__fill combat-resource__fill--hp"
+        />
       </div>
       <form
         className="combat-panel__row combat-hp__form"

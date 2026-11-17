@@ -1,8 +1,9 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { readAppRole } from './appRole';
-import { baseNamedEffectId } from './namedEffects';
+import { applyNamedEffects, baseNamedEffectId, parseNamedEffects, type NamedEffectKind } from './namedEffects';
+import { ITEMS, findItem, hydrateItems } from './items';
 import { normalizeBonusConfig, type EffectBonusConfig } from './effectBonus';
-import { useLiveRevision } from './live';
+import { bumpLive, useLiveRevision } from './live';
 import { normalizeArea, type AreaPattern } from './areaPattern';
 
 /**
@@ -53,7 +54,9 @@ async function load(revision: number): Promise<void> {
       if (!response.ok) return;
       const body: unknown = await response.json().catch(() => null);
       if (!body || typeof body !== 'object') return;
-      const source = body as { descriptions?: unknown; onHit?: unknown; bonus?: unknown; area?: unknown };
+      const source = body as { descriptions?: unknown; onHit?: unknown; bonus?: unknown; area?: unknown; effects?: unknown };
+      // La lista de efectos viene entera de la BD.
+      applyNamedEffects(parseNamedEffects(source.effects));
       const pick = <T,>(raw: unknown, ok: (value: unknown) => value is T): Record<string, T> =>
         raw && typeof raw === 'object'
           ? Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter((entry): entry is [string, T] => ok(entry[1])))
@@ -73,6 +76,8 @@ async function load(revision: number): Promise<void> {
         ),
       };
       emit();
+      // Repinta lo que depende de los items (nombres / tipos de sus efectos) sin volver a pedirlos.
+      bumpLive(['items']);
     } catch {
       // Sin API: se quedan las que hubiera.
     }
@@ -156,4 +161,84 @@ export async function saveNamedEffectData(id: string, patch: { description?: str
 export async function saveNamedEffectDescription(id: string, description: string): Promise<string> {
   await saveNamedEffectData(id, { description });
   return data.descriptions[id] ?? '';
+}
+
+
+async function adminRequest(method: 'POST' | 'DELETE', query: string, payload?: unknown): Promise<{ status: number; body: unknown }> {
+  if (readAppRole() !== 'admin') throw new Error('Solo el admin puede gestionar los efectos');
+  let response: Response;
+  try {
+    response = await fetch(`/api/named-effects${query}`, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'X-App-Role': 'admin' },
+      ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),
+    });
+  } catch {
+    throw new Error(OFFLINE);
+  }
+  const body: unknown = await response.json().catch(() => null);
+  return { status: response.status, body };
+}
+
+/** Vuelve a pedir efectos y datos (tras crear / borrar / ocultar). */
+async function reload(): Promise<void> {
+  loading = null;
+  await load(loadedRevision);
+}
+
+/** Deja en memoria los efectos de un item como los devolvio la API. */
+function setItemEffects(nombre: string, ids: string[]): void {
+  const item = findItem(nombre);
+  if (!item) return;
+  if (ids.length) item.namedEffects = [...ids];
+  else delete item.namedEffects;
+}
+
+/** Crea un efecto (id sin ':') o una variante (`base:clave`). Solo admin. */
+export async function createNamedEffect(entry: { id: string; name: string; kind?: NamedEffectKind; exclusive?: boolean; shared?: boolean; short?: string }): Promise<void> {
+  const { status, body } = await adminRequest('POST', '', { action: 'create', ...entry });
+  if (status >= 400) throw new Error(readError(body, `Error ${status} al crear el efecto`));
+  await reload();
+}
+
+/** Edita un efecto (nombre, ingles, tipo, unico, compartido, base elegible) o una variante (nombre, etiqueta). Solo admin. */
+export async function updateNamedEffect(id: string, patch: { name?: string; en?: string; kind?: NamedEffectKind; exclusive?: boolean; shared?: boolean; baseSelectable?: boolean; short?: string }): Promise<void> {
+  const { status, body } = await adminRequest('POST', '', { action: 'update', id, ...patch });
+  if (status >= 400) throw new Error(readError(body, `Error ${status} al guardar el efecto`));
+  await reload();
+}
+
+/**
+ * Borra un efecto / variante (un base con sus variantes). Sin force, si lo tienen items no borra y devuelve { inUse }.
+ * Con force tambien se lo quita a esos items.
+ */
+export async function deleteNamedEffect(id: string, force = false): Promise<{ inUse: number } | null> {
+  const { status, body } = await adminRequest('DELETE', `?id=${encodeURIComponent(id)}${force ? '&force=1' : ''}`);
+  const inUse = body && typeof body === 'object' ? (body as { inUse?: unknown }).inUse : undefined;
+  if (status === 409 && typeof inUse === 'number') return { inUse };
+  if (status >= 400) throw new Error(readError(body, `Error ${status} al borrar el efecto`));
+  const matches = (entry: string) => id.includes(':') ? entry === id : baseNamedEffectId(entry) === id;
+  let touched = false;
+  for (const item of ITEMS) {
+    if (!item.namedEffects?.some(matches)) continue;
+    setItemEffects(item.nombre, item.namedEffects.filter(entry => !matches(entry)));
+    touched = true;
+  }
+  if (touched) hydrateItems([...ITEMS]);
+  await reload();
+  return null;
+}
+
+/** La lista de efectos ya no esta en el codigo: se pide al arrancar (no espera a que se monte una pantalla). */
+void load(0);
+
+/** Pone (on) o quita un efecto / variante a un item; al poner sustituye otra variante del mismo efecto. Solo admin. */
+export async function assignNamedEffect(id: string, itemName: string, on: boolean): Promise<void> {
+  const { status, body } = await adminRequest('POST', '', { action: 'assign', id, item: itemName, on });
+  if (status >= 400) throw new Error(readError(body, `Error ${status} al guardar el \u00edtem`));
+  const saved = body && typeof body === 'object' ? (body as { namedEffects?: unknown }).namedEffects : undefined;
+  if (Array.isArray(saved)) {
+    setItemEffects(itemName, saved.filter((entry): entry is string => typeof entry === 'string'));
+    hydrateItems([...ITEMS]);
+  }
 }

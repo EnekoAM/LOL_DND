@@ -30,8 +30,11 @@ import {
 import { cx } from '../../lib/cx';
 import AbilityAssignModal from '../habilidades/AbilityAssignModal';
 import { playerTotalLine, playerBonusLine } from '../calculos/playerTotals';
+import { passiveBonusBadge, playerAbilityPassives } from './abilityPassiveStats';
 import AbilityDamageModal from './AbilityDamageModal';
 import { hasDamageScaling, rollAbilityDamage, type AbilityDamageRoll } from './abilityDamage';
+import { rollAmpsFor } from '../../data/rollAmps';
+import { equippedItems } from '../combate/combatBonuses';
 import { anyPhaseHasDamage, hasVariants, isChoosePhases, phaseLabels } from '../../data/abilityVariants';
 import '../habilidades/Habilidades.css';
 import './SheetAbilities.css';
@@ -71,10 +74,15 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
     result: AbilityDamageRoll | null;
     error: string | null;
   } | null>(null);
+  // Las pasivas con stats cuentan como bonus, igual que los ítems.
+  const passiveLines = playerAbilityPassives(player, level).map(source => source.line);
   const stats = {
-    ...playerTotalLine(player.sheet, player.equipamiento, level),
-    bonus: playerBonusLine(player.sheet, player.equipamiento),
+    ...playerTotalLine(player.sheet, player.equipamiento, level, passiveLines),
+    bonus: playerBonusLine(player.sheet, player.equipamiento, passiveLines),
   };
+  // "% a la tirada" de los items (Rabadon, Sangria del soberano...); la vida faltante sale de la vida de la ficha.
+  const maxHp = typeof player.hp === 'number' && player.hp > 0 ? player.hp : undefined;
+  const amps = rollAmpsFor(equippedItems(player.equipamiento), maxHp ? { current: typeof player.actualHp === 'number' ? player.actualHp : maxHp, max: maxHp } : null);
   const openAbility = (ability: Ability, rank: number) => {
     if (!anyPhaseHasDamage(ability)) {
       onSelectAbility(ability, rank);
@@ -85,7 +93,7 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
       return;
     }
     try {
-      const result = rollAbilityDamage(ability.damage!, stats, rank);
+      const result = rollAbilityDamage(ability.damage!, stats, rank, Math.random, amps);
       setDamageRoll({ ability, rank, result, error: null });
     } catch (caught) {
       setDamageRoll({ ability, rank, result: null, error: caught instanceof Error ? caught.message : 'No se pudo tirar el daño' });
@@ -207,6 +215,7 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
                 name={abilityName ?? 'No definida'}
                 area={empty ? undefined : ability?.area ?? undefined}
                 onHit={!empty && ability?.appliesOnHit === true}
+                passiveBonus={empty || !ability ? undefined : passiveBonusBadge(ability, ability.name, rank, { level, playerStacks: player.stacks })}
                 champion={ref?.champion}
                 image={ref?.image}
                 empty={empty}
@@ -262,6 +271,7 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
           ability={damageRoll.ability}
           rank={damageRoll.rank}
           stats={stats}
+          amps={amps}
           initialResult={damageRoll.result}
           initialError={damageRoll.error}
           onClose={() => setDamageRoll(null)}
