@@ -1,5 +1,6 @@
 import { STAT_KEYS, type Item, type ItemLolStats, type ItemStats, type ItemUpdate, type StatValue } from '../../data/items';
 import { lolToDice, type LolDiceStat } from '../../data/lolDiceTable';
+import { compactStatText, isStatAmountText } from '../calculos/statLine';
 
 export type ItemDraft = {
   rareza: string;
@@ -45,9 +46,7 @@ function parseLolStats(draft: ItemDraft): ItemLolStats | null {
   return out.AD !== undefined || out.AP !== undefined ? out : null;
 }
 
-/** Dados como "1d4", "2d6+1" o "d8". */
-const DICE = /^\d*d\d+(\s*[+-]\s*\d+)?$/i;
-
+/** Dados como "1d4", "5d6+1d2", "4d6+1d4+3" o "d8". */
 
 /** Todas las stats conocidas, más las que tenga el ítem aunque no estén en el primero del JSON. */
 export const editableStatKeys = (item: Item): string[] => {
@@ -77,11 +76,10 @@ function parseStat(key: string, text: string, original: StatValue | undefined): 
   if (!trimmed) return 0;
   const amount = Number(trimmed.replace(',', '.'));
   if (Number.isFinite(amount)) return amount;
-  const compact = trimmed.replace(/\s+/g, '');
-  if (DICE.test(compact)) return compact.toLowerCase();
+  if (isStatAmountText(trimmed)) return compactStatText(trimmed).toLowerCase();
   // Respeta textos raros que ya venían en los datos aunque no sean un dado.
   if (typeof original === 'string' && original.trim() === trimmed) return original;
-  throw new Error(`${key} tiene que ser un número o un dado (por ejemplo 1d4)`);
+  throw new Error(`${key} tiene que ser un número o dados (por ejemplo 1d6+1d4)`);
 }
 
 function parseCost(text: string): number | null {

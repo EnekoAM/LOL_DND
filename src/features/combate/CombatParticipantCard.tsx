@@ -74,7 +74,7 @@ export default function CombatParticipantCard({ participant, isTurn, onOpen, hp,
       <span className="combat-mini__name">{participant.name}</span>
       {hp && hp.max !== undefined && hp.max > 0 && (() => {
         const pools = participantHpPools(participant);
-        const extras = { tempHp: pools?.tempHp, shield: pools?.shield };
+        const extras = { tempHp: pools?.tempHp, shield: pools?.shield, physicalShield: pools?.physicalShield, magicShield: pools?.magicShield };
         return (
           <>
             <HpTrack

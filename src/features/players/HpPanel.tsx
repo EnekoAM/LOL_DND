@@ -7,6 +7,8 @@ export type CombatPatch = {
   hp?: number;
   actualHp?: number;
   escudo?: number;
+  escudoFisico?: number;
+  escudoMagico?: number;
   vidaTemporal?: number;
   mana?: number;
   actualMana?: number;
@@ -17,7 +19,7 @@ export type CombatPatch = {
 
 type Props = {
   /** Player o, en combate, un campeón/NPC con sus valores del combate. */
-  player: Pick<Player, 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal'>;
+  player: Pick<Player, 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal'> & Partial<Pick<Player, 'escudoFisico' | 'escudoMagico'>>;
   /** Máximo sugerido por el total de Cálculos (si aún no hay `hp` guardado). */
   suggestedMax: number;
   /**
@@ -37,10 +39,24 @@ function suggestedOr(value: number | undefined, fallback: number): number {
 /** Daño: primero escudo, luego vida temporal, luego vida. */
 export function applyDamage(
   amount: number,
-  state: { actualHp: number; escudo: number; vidaTemporal: number },
-): { actualHp: number; escudo: number; vidaTemporal: number } {
+  state: { actualHp: number; escudo: number; vidaTemporal: number; escudoFisico?: number; escudoMagico?: number },
+  damageType?: 'physical' | 'magic' | 'true',
+): { actualHp: number; escudo: number; vidaTemporal: number; escudoFisico: number; escudoMagico: number } {
   let left = amount;
   let { actualHp, escudo, vidaTemporal } = state;
+  let escudoFisico = state.escudoFisico ?? 0;
+  let escudoMagico = state.escudoMagico ?? 0;
+  // Escudo fisico: solo dano fisico. Escudo magico: solo dano magico. Van antes que el generico.
+  if (left > 0 && damageType === 'physical' && escudoFisico > 0) {
+    const take = Math.min(escudoFisico, left);
+    escudoFisico -= take;
+    left -= take;
+  }
+  if (left > 0 && damageType === 'magic' && escudoMagico > 0) {
+    const take = Math.min(escudoMagico, left);
+    escudoMagico -= take;
+    left -= take;
+  }
   if (left > 0 && escudo > 0) {
     const take = Math.min(escudo, left);
     escudo -= take;
@@ -52,7 +68,7 @@ export function applyDamage(
     left -= take;
   }
   if (left > 0) actualHp = Math.max(0, actualHp - left);
-  return { actualHp, escudo, vidaTemporal };
+  return { actualHp, escudo, vidaTemporal, escudoFisico, escudoMagico };
 }
 
 const parseNonNegInt = (raw: string): number | null => {
@@ -286,14 +302,14 @@ const HpPanel = ({ player, suggestedMax, linkedMax, saving, error, onChange }: P
       <div className="sheet-resource__head sheet-resource__head--values">
         <span>
           {actualHp} / {maxHp}
-          <HpExtrasTags extras={{ tempHp: vidaTemporal, shield: escudo }} />
+          <HpExtrasTags extras={{ tempHp: vidaTemporal, shield: escudo, physicalShield: player.escudoFisico, magicShield: player.escudoMagico }} />
         </span>
         <span>{hpPct}%</span>
       </div>
       <HpTrack
         current={actualHp}
         max={maxHp}
-        extras={{ tempHp: vidaTemporal, shield: escudo }}
+        extras={{ tempHp: vidaTemporal, shield: escudo, physicalShield: player.escudoFisico, magicShield: player.escudoMagico }}
         className="sheet-resource__track"
         fillClassName="sheet-resource__fill"
         fillStyle={{ background: hpColor }}

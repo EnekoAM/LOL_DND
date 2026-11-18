@@ -1743,7 +1743,7 @@ export default function CombatAbilityUseSection({
         continue;
       }
       const pools = participantHpPools(who);
-      const amount = Math.max(1, (pools?.current ?? hp.current) + (pools?.tempHp ?? 0) + (pools?.shield ?? 0));
+      const amount = Math.max(1, (pools?.current ?? hp.current) + (pools?.tempHp ?? 0) + (pools?.shield ?? 0) + (pools?.physicalShield ?? 0) + (pools?.magicShield ?? 0));
       const more = await applyToTargets(row, row.ability, amount, [id], [], log, { skipEffects: true, lifeSteal: false });
       log.push(`Execute (≤ ${config.hpPct}%): ${amount} a ${who.name}`);
       chips.push({ kind: 'buff', text: `Execute ${who.name}`, title: `≤ ${config.hpPct}% vida máx.` });

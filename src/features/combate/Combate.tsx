@@ -314,14 +314,14 @@ export default function Combate() {
       }
     }
     if (!(amount > 0)) return null;
-    const next = applyDamage(Math.floor(amount), { actualHp: prev.current, escudo: prev.shield, vidaTemporal: prev.tempHp });
-    const save = async (current: number, tempHp: number, shield: number) => {
-      const result = await saveCombatHp(targetId, current, undefined, { tempHp, shield });
+    const next = applyDamage(Math.floor(amount), { actualHp: prev.current, escudo: prev.shield, vidaTemporal: prev.tempHp, escudoFisico: prev.physicalShield, escudoMagico: prev.magicShield }, opts?.damageType);
+    const save = async (current: number, tempHp: number, shield: number, physicalShield?: number, magicShield?: number) => {
+      const result = await saveCombatHp(targetId, current, undefined, { tempHp, shield, ...(physicalShield === undefined ? {} : { physicalShield }), ...(magicShield === undefined ? {} : { magicShield }) });
       stateRef.current = result.combat;
       setState(result.combat);
       setTrackerBump(n => n + 1);
     };
-    await save(next.actualHp, next.vidaTemporal, next.escudo);
+    await save(next.actualHp, next.vidaTemporal, next.escudo, next.escudoFisico, next.escudoMagico);
     // Vida temporal de reglas \u00abVida temporal\u00bb: lo gastado sale de esas concesiones (las m\u00e1s antiguas primero).
     const usedTemp = prev.tempHp - next.vidaTemporal;
     const grantsBefore = (target.bonuses ?? []).filter(isTempGrant);
@@ -360,8 +360,8 @@ export default function Combate() {
       name: target.name,
       before: prev.current,
       after: next.actualHp,
-      absorbed: (prev.shield - next.escudo) + (prev.tempHp - next.vidaTemporal),
-      undo: async () => { await save(prev.current, prev.tempHp, prev.shield); await restoreGrants(); },
+      absorbed: (prev.shield - next.escudo) + (prev.physicalShield - next.escudoFisico) + (prev.magicShield - next.escudoMagico) + (prev.tempHp - next.vidaTemporal),
+      undo: async () => { await save(prev.current, prev.tempHp, prev.shield, prev.physicalShield, prev.magicShield); await restoreGrants(); },
     };
     if (canAct && !reactingRef.current) {
       reactingRef.current = true;
@@ -376,7 +376,7 @@ export default function Combate() {
               onTargetDamage: (id: string, value: DamageAmount) => damageTarget(id, value),
               onTargetBonuses: targetBonuses,
               onSelfPool: (kind: PoolKind, value: number) => poolChange(fresh.id, kind, value),
-              onTargetPool: (id: string, kind: 'heal' | 'shield' | 'temp', value: number) => poolChange(id, kind, value),
+              onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number) => poolChange(id, kind, value),
               onApplySourcedEffect: applySourcedToMany,
             },
           };
@@ -406,7 +406,7 @@ export default function Combate() {
               onTargetDamage: (id: string, value: DamageAmount) => damageTarget(id, value),
               onTargetBonuses: targetBonuses,
               onSelfPool: (kind: PoolKind, value: number) => poolChange(fresh.id, kind, value),
-              onTargetPool: (id: string, kind: 'heal' | 'shield' | 'temp', value: number) => poolChange(id, kind, value),
+              onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number) => poolChange(id, kind, value),
               onApplySourcedEffect: applySourcedToMany,
             },
           });
@@ -569,6 +569,20 @@ export default function Combate() {
     const pools = participantHpPools(self);
     const hp = participantHp(self);
     if (!pools || !hp) return null;
+    if (kind === 'shield-physical' || kind === 'shield-magic') {
+      const key = kind === 'shield-physical' ? 'physicalShield' : 'magicShield';
+      const before = pools[key];
+      const saveTyped = async (value: number) => {
+        const fresh = stateRef.current.participants.find(p => p.id === participantId);
+        const now = fresh ? participantHpPools(fresh) : null;
+        const result = await saveCombatHp(participantId, now?.current ?? pools.current, undefined, { tempHp: now?.tempHp ?? pools.tempHp, shield: now?.shield ?? pools.shield, [key]: value });
+        stateRef.current = result.combat;
+        setState(result.combat);
+        bump();
+      };
+      await saveTyped(before + amount);
+      return () => saveTyped(before);
+    }
     const next = kind === 'heal'
       ? { current: typeof hp.max === 'number' ? Math.min(hp.max, pools.current + amount) : pools.current + amount, shield: pools.shield }
       : { current: pools.current, shield: pools.shield + amount };
@@ -927,12 +941,13 @@ export default function Combate() {
       .finally(() => setSaving(false));
   };
 
-  const reduceShieldBy = async (participantId: string, amount: number): Promise<boolean> => {
+  const reduceShieldBy = async (participantId: string, amount: number, kind?: 'physical' | 'magic'): Promise<boolean> => {
     const self = stateRef.current.participants.find(p => p.id === participantId);
     const pools = self ? participantHpPools(self) : null;
-    if (!self || !pools || !(pools.shield > 0) || !(amount > 0)) return false;
-    const next = Math.max(0, pools.shield - amount);
-    const result = await saveCombatHp(participantId, pools.current, undefined, { tempHp: pools.tempHp, shield: next });
+    const key = kind === 'physical' ? 'physicalShield' : kind === 'magic' ? 'magicShield' : 'shield';
+    if (!self || !pools || !(pools[key] > 0) || !(amount > 0)) return false;
+    const next = Math.max(0, pools[key] - amount);
+    const result = await saveCombatHp(participantId, pools.current, undefined, { tempHp: pools.tempHp, shield: pools.shield, [key]: next });
     stateRef.current = result.combat;
     setState(result.combat);
     setTrackerBump(n => n + 1);
@@ -983,7 +998,7 @@ export default function Combate() {
             onTargetDamage: (id: string, value: DamageAmount) => damageTarget(id, value),
             onTargetBonuses: targetBonuses,
             onSelfPool: (kind: PoolKind, value: number) => poolChange(bearer.id, kind, value),
-            onTargetPool: (id: string, kind: 'heal' | 'shield' | 'temp', value: number) => poolChange(id, kind, value),
+            onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number) => poolChange(id, kind, value),
             onApplySourcedEffect: applySourcedToMany,
           },
         };
@@ -1017,7 +1032,7 @@ export default function Combate() {
             onTargetDamage: (targetId: string, value: DamageAmount) => damageTarget(targetId, value),
             onTargetBonuses: targetBonuses,
             onSelfPool: (kind: PoolKind, value: number) => poolChange(bearer.id, kind, value),
-            onTargetPool: (targetId: string, kind: 'heal' | 'shield' | 'temp', value: number) => poolChange(targetId, kind, value),
+            onTargetPool: (targetId: string, kind: Exclude<PoolKind, 'mana'>, value: number) => poolChange(targetId, kind, value),
             onApplySourcedEffect: applySourcedToMany,
           },
         };

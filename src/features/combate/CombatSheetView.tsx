@@ -613,7 +613,7 @@ export default function CombatSheetView({
   /** Mismo editor de vida que los players (Curar/Daño, máximo, vida temporal, escudo) sobre el combate. */
   const participantHpPanel = (current: number, max: number) => (
     <HpPanel
-      player={{ hp: max, actualHp: current, escudo: participant.shield, vidaTemporal: participant.tempHp }}
+      player={{ hp: max, actualHp: current, escudo: participant.shield, escudoFisico: participant.physicalShield, escudoMagico: participant.magicShield, vidaTemporal: participant.tempHp }}
       suggestedMax={max}
       saving={saving || !isAdmin}
       error={hpError}

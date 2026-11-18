@@ -1,4 +1,4 @@
-import { LOL_SCALE_KINDS, type EffectBonusConfig, type EffectRule } from './effectBonus';
+import { LOL_SCALE_KINDS, ruleLolAdAp, type EffectBonusConfig, type EffectRule } from './effectBonus';
 
 /**
  * Modelo del editor de efectos (sin React, para poder probarlo): que campos tienen sentido segun el
@@ -6,7 +6,7 @@ import { LOL_SCALE_KINDS, type EffectBonusConfig, type EffectRule } from './effe
  * Se guarda la misma forma de siempre (EffectBonusConfig): el combate no cambia.
  */
 
-export const FORMULA_KINDS: readonly string[] = ['stat', 'damage', 'heal', 'shield', 'temp-hp', 'mana', 'attack-speed', 'move-speed', 'vigor', 'damage-reduction'];
+export const FORMULA_KINDS: readonly string[] = ['stat', 'damage', 'heal', 'shield', 'shield-magic', 'shield-physical', 'temp-hp', 'mana', 'attack-speed', 'move-speed', 'vigor', 'damage-reduction'];
 export const STACK_KINDS: readonly string[] = ['stat', 'attack-speed', 'move-speed'];
 
 type RuleKey = keyof EffectRule;
@@ -24,7 +24,7 @@ export function ruleFieldApplies(field: RuleKey, rule: Pick<EffectRule, 'trigger
     // critPotencyPct no va aqui: lo lee itemCombatHooks por id (Llamasombria es un estado).
     case 'lifeSteal': case 'healFromDealtPct': case 'missingHpScalePct': case 'pulseEachTurn': case 'damageType':
       return kind === 'damage';
-    // Dados: da\u00f1o y Bonus de stat (AD / AP del LoL con la tabla de dados).
+    // Dados: da\u00f1o y Bonus de stat (AD / AP del LoL en dados d6).
     case 'dice': case 'lolDice': return kind === 'damage' || kind === 'stat';
     case 'fromDamagePct': case 'fromManaSpentPct': return kind === 'heal' || kind === 'mana';
     case 'vs': return kind === 'damage-reduction';
@@ -33,10 +33,10 @@ export function ruleFieldApplies(field: RuleKey, rule: Pick<EffectRule, 'trigger
     case 'statusName': case 'spellShield': return kind === 'status';
     case 'count': return kind === 'extra-on-hit';
     case 'stat': return kind === 'stat';
-    case 'halfAfterTurns': return kind === 'shield';
+    case 'halfAfterTurns': return kind === 'shield' || kind === 'shield-magic' || kind === 'shield-physical';
     case 'healOverTurns': return kind === 'heal';
     case 'lolScale': return LOL_SCALE_KINDS.includes(kind);
-    case 'permanent': return STACK_KINDS.includes(kind);
+    case 'permanent': case 'stacksPerTrigger': return STACK_KINDS.includes(kind);
     case 'flat': case 'ratios': case 'perLevel': case 'levelFrom': return FORMULA_KINDS.includes(kind);
     case 'auraRange': return false;
     default: return true;
@@ -54,7 +54,7 @@ export function lolDiceStatOfRule(rule: Pick<EffectRule, 'kind' | 'stat' | 'dama
 export const ruleFieldVisible = (field: RuleKey, rule: EffectRule): boolean =>
   ruleFieldApplies(field, rule) || hasValue(rule[field]);
 
-const RULE_KEYS: RuleKey[] = ['lolScale', 'lolDice', 'healOverTurns', 'hpBelowPct', 'targetHpBelowPct', 'lifeSteal', 'healFromDealtPct', 'dice', 'missingHpScalePct', 'pulseEachTurn', 'damageType', 'fromDamagePct', 'fromManaSpentPct', 'vs', 'action', 'slowPct', 'statusName', 'spellShield', 'count', 'stat', 'halfAfterTurns', 'permanent', 'flat', 'ratios', 'perLevel', 'levelFrom', 'auraRange'];
+const RULE_KEYS: RuleKey[] = ['lolScale', 'lolDice', 'healOverTurns', 'hpBelowPct', 'targetHpBelowPct', 'lifeSteal', 'healFromDealtPct', 'dice', 'missingHpScalePct', 'pulseEachTurn', 'damageType', 'fromDamagePct', 'fromManaSpentPct', 'vs', 'action', 'slowPct', 'statusName', 'spellShield', 'count', 'stat', 'halfAfterTurns', 'permanent', 'stacksPerTrigger', 'flat', 'ratios', 'perLevel', 'levelFrom', 'auraRange'];
 
 /** Al cambiar \u00abCu\u00e1ndo\u00bb o \u00abQu\u00e9\u00bb: se quitan los campos que ya no se usan (lo oculto no se guarda). */
 export function dropUnusedFields(rule: EffectRule): EffectRule {
@@ -183,8 +183,9 @@ export const FIELD_LABEL: Partial<Record<RuleKey, string>> = {
   halfAfterTurns: 'El escudo baja a la mitad tras N turnos',
   healOverTurns: 'Repartir en N turnos',
   lolScale: 'Valor del LoL (\u00f710)',
-  lolDice: 'AD / AP del LoL (tabla de dados)',
+  lolDice: 'AD / AP del LoL (dados d6)',
   permanent: 'Cargas permanentes',
+  stacksPerTrigger: 'Cargas por activación',
   flat: 'Valor fijo',
   ratios: 'Escalados',
   perLevel: 'Valor por nivel',
@@ -209,7 +210,7 @@ export function ruleWarnings(rule: EffectRule, config: EffectBonusConfig, kindLa
   if (rule.healOverTurns != null && (rule.fromDamagePct || rule.fromManaSpentPct)) out.push('\u00abRepartir en N turnos\u00bb no vale con la cura por % del da\u00f1o o del man\u00e1: se cura de golpe.');
   if (rule.permanent && rule.duration != null) out.push('Las cargas permanentes no caducan: la duraci\u00f3n no se usa.');
   if (rule.duration != null && config.duration != null && rule.duration === config.duration) out.push('La duraci\u00f3n propia es igual que la del efecto: sobra.');
-  if (FORMULA_KINDS.includes(rule.kind) && !rule.flat && !rule.ratios?.some(ratio => ratio.pct) && !rule.perLevel?.length && !rule.dice && !rule.fromDamagePct && !rule.fromManaSpentPct) {
+  if (FORMULA_KINDS.includes(rule.kind) && !rule.flat && !rule.ratios?.some(ratio => ratio.pct) && !rule.perLevel?.length && !rule.dice && !rule.fromDamagePct && !rule.fromManaSpentPct && !ruleLolAdAp(rule)) {
     out.push('Falta el valor (fijo, por nivel, dados o un escalado).');
   }
   return out;

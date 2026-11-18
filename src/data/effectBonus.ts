@@ -43,6 +43,8 @@ export const EFFECT_RULE_KINDS = [
   { id: 'damage', label: 'Daño extra' },
   { id: 'heal', label: 'Curación' },
   { id: 'shield', label: 'Escudo' },
+  { id: 'shield-magic', label: 'Escudo mágico' },
+  { id: 'shield-physical', label: 'Escudo físico' },
   { id: 'temp-hp', label: 'Vida temporal' },
   { id: 'mana', label: 'Recupera maná' },
   { id: 'slow', label: 'Ralentización' },
@@ -83,6 +85,7 @@ export const SCALING_STATS = [
   { id: 'targetMr', label: 'MR del objetivo' },
   { id: 'targetSpe', label: 'Velocidad del objetivo' },
   { id: 'lethality', label: 'Letalidad' },
+  { id: 'dealtDamage', label: 'Da\u00f1o infligido' },
 ] as const;
 export type ScalingStat = (typeof SCALING_STATS)[number]['id'];
 
@@ -155,7 +158,7 @@ export type EffectRule = {
   requiresMaxStacks?: boolean;
   /** Valor fijo / por nivel escritos con n\u00fameros del LoL (se guardan tal cual): fuera del editor y en combate se usan / 10 (da\u00f1o, curaci\u00f3n, escudo, vida temporal; no dados ni escalados). */
   lolScale?: boolean;
-  /** AD / AP del LoL con el que se rellenaron los dados (tabla de dados); solo lo muestra el editor: el combate usa los dados / el fijo. */
+  /** AD / AP del LoL de la regla (tabla de dados). En un bonus de stat AD/AP es el valor que se suma al total antes de convertir; el editor puede usarlo para rellenar dados. */
   lolDice?: number;
   /** Se aplica dentro de N turnos (cura/escudo/daño pendientes). */
   delayTurns?: number;
@@ -193,6 +196,8 @@ export type EffectRule = {
    * (valor × cargas) solo suma con el ítem equipado. Ignora «Dura». Campeones / NPCs: bonus sin turnos en ese combate.
    */
   permanent?: boolean;
+  /** Cargas permanentes que suma cada disparo (por defecto 1; no pasa de maxStacks). */
+  stacksPerTrigger?: number;
   /** Solo si el portador es cuerpo a cuerpo (rango total ≤ 1, el 0 cuenta) o a distancia (rango > 1); vacío = siempre. */
   onlyIf?: RuleRangeCondition;
   /** Solo contra campeones, una vez por turno… (texto libre). */
@@ -208,7 +213,7 @@ export function appliesToOptions(kind: string): { id: RuleAppliesTo; label: stri
   switch (kind) {
     case 'stat': case 'attack-speed': case 'move-speed':
       return [{ id: 'self', label: 'Portador' }, { id: 'allies', label: 'Aliados' }, { id: 'target', label: 'Objetivo (debuff)' }, { id: 'area', label: 'Objetivo + cercanos (debuff)' }, { id: 'nearby', label: 'Solo cercanos (debuff)' }];
-    case 'heal': case 'shield': case 'temp-hp':
+    case 'heal': case 'shield': case 'shield-magic': case 'shield-physical': case 'temp-hp':
       return [{ id: 'self', label: 'Portador' }, { id: 'allies', label: 'Aliados' }];
     case 'damage': case 'slow':
       return [...debuff];
@@ -273,13 +278,20 @@ export const MAX_EFFECT_RULES = 12;
 
 /** Escala LoL: la vida aqu\u00ed es la del LoL / 10; los valores planos del LoL se dividen entre 10 (los % y escalados no). */
 export const LOL_SCALE = 10;
-export const LOL_SCALE_KINDS: readonly string[] = ['damage', 'heal', 'shield', 'temp-hp'];
+export const LOL_SCALE_KINDS: readonly string[] = ['damage', 'heal', 'shield', 'shield-magic', 'shield-physical', 'temp-hp'];
 /** \u00bfEl fijo / por nivel de esta regla va en n\u00fameros del LoL? (no con dados). */
 export const lolScaled = (rule: Partial<Pick<EffectRule, 'lolScale' | 'dice' | 'kind'>>): boolean =>
   rule.lolScale === true && !rule.dice && !!rule.kind && LOL_SCALE_KINDS.includes(rule.kind);
 /** Valor ya convertido (el que se usa y se ense\u00f1a fuera del editor). */
 export const lolValue = (rule: Partial<Pick<EffectRule, 'lolScale' | 'dice' | 'kind'>>, value: number): number =>
   (lolScaled(rule) ? value / LOL_SCALE : value);
+
+/** Bonus de stat AD/AP con un valor LoL guardado (aunque su conversion a dados sea 0). */
+export function ruleLolAdAp(rule: Pick<EffectRule, 'kind' | 'stat' | 'lolDice'>): { stat: 'ad' | 'ap'; value: number } | null {
+  if (rule.kind !== 'stat' || (rule.stat !== 'ad' && rule.stat !== 'ap')) return null;
+  if (typeof rule.lolDice !== 'number' || !Number.isFinite(rule.lolDice) || rule.lolDice < 0) return null;
+  return { stat: rule.stat, value: rule.lolDice };
+}
 
 /** Duraci\u00f3n -1 = hasta el final del combate. Se guarda -1; en combate se usan 999 turnos que no bajan. */
 export const UNTIL_COMBAT_END = -1;
@@ -299,14 +311,18 @@ export const statLabel = (key: string | undefined): string => STAT_COLUMNS.find(
 const num = (value: number): string => formatStat(Math.round(value * 1000) / 1000);
 
 /** «100% AD base + 45% AP» (o «5»). */
-export function formulaText(rule: Pick<EffectRule, 'flat' | 'ratios' | 'perLevel' | 'levelFrom' | 'dice' | 'missingHpScalePct'> & Partial<Pick<EffectRule, 'lolScale' | 'kind'>>): string {
+export function formulaText(rule: Pick<EffectRule, 'flat' | 'ratios' | 'perLevel' | 'levelFrom' | 'dice' | 'missingHpScalePct'> & Partial<Pick<EffectRule, 'lolScale' | 'kind' | 'stat' | 'lolDice'>>): string {
   const parts: string[] = [];
   // Escala LoL: aqu\u00ed solo el valor final (/ 10); el del LoL se ve en el editor.
   const shown = (value: number) => num(lolValue(rule, value));
   if (rule.dice) parts.push(rule.dice);
   if (rule.perLevel?.length) parts.push(`${rule.perLevel.map(shown).join('/')} (por nivel${rule.levelFrom === 'target' ? ' del objetivo' : ''})`);
   else if (rule.flat) parts.push(shown(rule.flat));
-  for (const ratio of rule.ratios ?? []) parts.push(`${num(ratio.pct)}% ${scalingLabel(ratio.stat)}`);
+  else if (typeof rule.lolDice === 'number' && Number.isFinite(rule.lolDice) && !rule.dice) {
+    const tag = rule.stat === 'ad' || rule.stat === 'ap' ? ` ${rule.stat.toUpperCase()} del LoL` : ' del LoL';
+    parts.push(`${num(rule.lolDice)}${tag}`);
+  }
+  for (const ratio of rule.ratios ?? []) parts.push(ratio.stat === 'dealtDamage' ? `${num(ratio.pct)}% del da\u00f1o infligido` : `${num(ratio.pct)}% ${scalingLabel(ratio.stat)}`);
   if (rule.missingHpScalePct) parts.push(`hasta +${num(rule.missingHpScalePct)}% según vida faltante`);
   return parts.join(' + ').replace(/\+ -/g, '− ') || (rule.dice ? rule.dice : '0');
 }
@@ -355,6 +371,8 @@ export function ruleSummary(rule: EffectRule): string {
     case 'damage': what = `+${amount} ${damageTypeLabel(rule.damageType ?? 'physical')}`; break;
     case 'heal': what = rule.fromManaSpentPct ? `cura ${num(rule.fromManaSpentPct)}% del coste de la habilidad` : rule.fromDamagePct ? `cura ${num(rule.fromDamagePct)}% del daño ${dmgWord}` : `cura ${amount}`; break;
     case 'shield': what = `escudo ${amount}`; break;
+    case 'shield-magic': what = `escudo mágico ${amount}`; break;
+    case 'shield-physical': what = `escudo físico ${amount}`; break;
     case 'temp-hp': what = `+${amount} vida temporal (caduca sola)`; break;
     case 'mana': what = rule.fromDamagePct ? `recupera ${num(rule.fromDamagePct)}% del daño ${dmgWord} como maná` : rule.fromManaSpentPct ? `recupera ${num(rule.fromManaSpentPct)}% del coste de la habilidad como maná` : `recupera ${amount} maná`; break;
     case 'slow': what = `ralentiza ${num(rule.slowPct ?? 0)}%`; break;
@@ -369,6 +387,7 @@ export function ruleSummary(rule: EffectRule): string {
   const extras = [
     rule.rangedPct != null ? `a distancia ${num(rule.rangedPct)}%` : '',
     rule.permanent ? 'cargas permanentes (ficha)' : rule.duration ? durationText(rule.duration) : '',
+    rule.stacksPerTrigger && rule.stacksPerTrigger > 1 ? `+${rule.stacksPerTrigger} cargas por activación` : '',
     rule.maxStacks ? `hasta ×${rule.maxStacks}` : '',
     rule.everyN ? `cada ${rule.everyN}` : '',
     rule.perTargetCounter ? 'por objetivo' : '',
@@ -432,6 +451,13 @@ const finite = (value: unknown): value is number => typeof value === 'number' &&
 const turns = (value: unknown): number | undefined => (finite(value) && value >= 1 ? Math.min(99, Math.floor(value)) : undefined);
 
 /** Normaliza lo que llega de la API (descarta lo que no encaje). */
+/** Cargas permanentes que suma un disparo (por defecto 1). */
+export function stacksPerTriggerOf(rule: Pick<EffectRule, 'stacksPerTrigger'>): number {
+  const n = rule.stacksPerTrigger;
+  if (typeof n !== 'number' || !Number.isFinite(n) || n < 1) return 1;
+  return Math.min(999, Math.floor(n));
+}
+
 export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefined {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
   const source = raw as Record<string, unknown>;
@@ -489,6 +515,7 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
     const maxStacks = finite(r.maxStacks) && r.maxStacks >= 1 ? Math.min(999, Math.floor(r.maxStacks)) : undefined;
     if (maxStacks) rule.maxStacks = maxStacks;
     if (r.permanent === true && (rule.kind === 'stat' || rule.kind === 'attack-speed' || rule.kind === 'move-speed')) rule.permanent = true;
+    if (finite(r.stacksPerTrigger) && r.stacksPerTrigger >= 2) rule.stacksPerTrigger = Math.min(999, Math.floor(r.stacksPerTrigger));
     if (r.onlyIf === 'melee' || r.onlyIf === 'ranged') rule.onlyIf = r.onlyIf;
     if (typeof r.note === 'string' && r.note.trim()) rule.note = r.note.trim();
     rules.push(rule);

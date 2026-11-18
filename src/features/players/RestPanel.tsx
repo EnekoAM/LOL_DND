@@ -62,6 +62,8 @@ const RestPanel = ({ player, maxHp, maxMana, saving, error, onChange }: Props) =
         actualMana: maxMana,
         vidaTemporal: 0,
         escudo: 0,
+        escudoFisico: 0,
+        escudoMagico: 0,
         shortRestsUsed: 0,
       });
     } catch (error: unknown) {

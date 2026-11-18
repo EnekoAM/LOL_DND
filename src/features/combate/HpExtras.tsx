@@ -5,7 +5,7 @@ import './HpExtras.css';
 /**
  * Vida estilo LoL: la barra se escala a max(vida max., vida + extras) y la vida temporal (verde oscuro) y los escudos
  * van como tramos a continuacion de la vida: escudo generico blanco, fisico naranja, magico morado.
- * Hoy el combate solo lleva un escudo generico (no hay escudos por tipo de dano).
+ * El escudo fisico solo bloquea dano fisico y el magico solo magico (reglas "Escudo fisico" / "Escudo magico").
  */
 export type HpExtras = { tempHp?: number; shield?: number; physicalShield?: number; magicShield?: number };
 

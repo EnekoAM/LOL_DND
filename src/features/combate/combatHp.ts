@@ -56,14 +56,14 @@ export function canSeeHp(participant: CombatParticipant, isAdmin: boolean, _myPl
 }
 
 /** Vida + vida temporal + escudo de un objetivo (players: su ficha; resto: el combate). */
-export function participantHpPools(participant: CombatParticipant): { current: number; tempHp: number; shield: number } | null {
+export function participantHpPools(participant: CombatParticipant): { current: number; tempHp: number; shield: number; physicalShield: number; magicShield: number } | null {
   const hp = participantHp(participant);
   if (!hp) return null;
   if (participant.kind === 'player') {
     const player = PLAYERS.find(p => p.name === participant.sourceId);
-    return { current: hp.current, tempHp: finite(player?.vidaTemporal) ? player!.vidaTemporal! : 0, shield: finite(player?.escudo) ? player!.escudo! : 0 };
+    return { current: hp.current, tempHp: finite(player?.vidaTemporal) ? player!.vidaTemporal! : 0, shield: finite(player?.escudo) ? player!.escudo! : 0, physicalShield: finite(player?.escudoFisico) ? player!.escudoFisico! : 0, magicShield: finite(player?.escudoMagico) ? player!.escudoMagico! : 0 };
   }
-  return { current: hp.current, tempHp: finite(participant.tempHp) ? participant.tempHp : 0, shield: finite(participant.shield) ? participant.shield : 0 };
+  return { current: hp.current, tempHp: finite(participant.tempHp) ? participant.tempHp : 0, shield: finite(participant.shield) ? participant.shield : 0, physicalShield: finite(participant.physicalShield) ? participant.physicalShield : 0, magicShield: finite(participant.magicShield) ? participant.magicShield : 0 };
 }
 
 /** Daño aplicado a un objetivo del combate (con su Deshacer exacto). */

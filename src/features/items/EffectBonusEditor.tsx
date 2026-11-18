@@ -134,7 +134,8 @@ const H = {
   missingHp: 'El da\u00f1o sube hasta este % seg\u00fan la vida que le falta al objetivo (75 = hasta +75 %).',
   ownDuration: 'Si esta regla dura distinto que el efecto. Vac\u00edo = usa la duraci\u00f3n del efecto.',
   maxStacks: 'Cu\u00e1ntas veces se acumula como mucho (bonus por acumulaci\u00f3n).',
-  permanent: 'Cada vez suma 1 carga en la ficha del personaje y se conserva entre combates; el bonus solo cuenta con el \u00edtem equipado.',
+  stacksPerTrigger: 'Cu\u00e1ntas cargas permanentes suma cada vez que se cumple el \u00abCu\u00e1ndo\u00bb (1 por defecto). No pasa del m\u00e1ximo de acumulaciones.',
+  permanent: 'Cada vez suma las cargas por activaci\u00f3n (1 por defecto) en la ficha del personaje y se conserva entre combates; el bonus solo cuenta con el \u00edtem equipado.',
   triggerAtMax: 'Solo se aplica al llegar al m\u00e1ximo de acumulaciones; luego se reinicia.',
   perTargetCounter: 'El contador (cada N / acumulaciones) va por separado para cada objetivo.',
   everyN: 'Solo se aplica una de cada N veces que se cumple el \u00abCu\u00e1ndo\u00bb.',
@@ -160,7 +161,7 @@ const H = {
   forever: 'Guarda -1: dura hasta que termine el combate (o hasta que se gaste, p. ej. un escudo de hechizos que bloquea una habilidad). 0 no es infinito.',
   lol: 'Escribe el n\u00famero del LoL (100, 150...). Fuera del editor y en combate se usa / 10 (la vida aqu\u00ed es la del LoL / 10). Solo el fijo y el por nivel: los escalados (% de armadura, % de vida...) y los dados no cambian. Sin redondeo intermedio: el total se redondea como siempre (curas y escudos, al m\u00e1s cercano).',
   chain: 'El golpe del Vigor al m\u00e1ximo salta a N objetivos.',
-  lolDice: 'Escribe el AD / AP que da el LoL (40, 75...) y se rellenan los dados con tu tabla: el valor exacto; si no est\u00e1, el m\u00e1s cercano (empate: el menor); fuera de la tabla, por su pendiente. Si luego cambias los dados a mano, se olvida el valor del LoL.',
+  lolDice: 'Escribe el AD / AP que da el LoL (4, 40, 75...). En un bonus de stat se guarda ese valor (aunque no llegue a 1d6) y se suma al AD/AP total antes de convertir. En da\u00f1o se rellenan los dados: 1d6 cada 15 de AD o cada 20 de AP; lo que sobra suma +1d2 o +1d4 (AD: 5-9 / 10-14; AP: 7-13 / 14-19). Si luego cambias los dados a mano, se olvida el valor del LoL.',
 };
 
 const RuleCard = ({ rule, index, config, onChange, onRemove }: {
@@ -179,10 +180,10 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
   const range = rangeModeOf(rule);
   const options = appliesToOptions(rule.kind);
   const formula = FORMULA_KINDS.includes(rule.kind) || show('flat') || show('ratios') || show('perLevel');
-  const stacksUsed = [rule.maxStacks, rule.permanent, rule.triggerAtMax, rule.perTargetCounter, rule.everyN, rule.requiresMaxStacks].filter(hasValue).length;
+  const stacksUsed = [rule.maxStacks, rule.permanent, rule.stacksPerTrigger, rule.triggerAtMax, rule.perTargetCounter, rule.everyN, rule.requiresMaxStacks].filter(hasValue).length;
   const advancedUsed = [rule.delayTurns, rule.unseenTurns, rule.armedTurnsAfterSeen, rule.damageAmpPct, rule.critPotencyPct, rule.note].filter(hasValue).length;
   const warnings = ruleWarnings(rule, config, kindLabel(rule.kind));
-  // AD / AP del LoL -> dados con la tabla (Bonus de stat AD / AP y da\u00f1o).
+  // AD / AP del LoL -> dados d6 (1d6 cada 15 AD / 20 AP) (Bonus de stat AD / AP y da\u00f1o).
   const lolStat = lolDiceStatOfRule(rule);
   const lolDice = lolStat && rule.lolDice != null ? lolToDice(lolStat, rule.lolDice) : null;
   const showLolDice = !!lolStat && valueMode !== 'level' && (valueMode === 'dice' || rule.kind === 'stat' || rule.lolDice != null);
@@ -190,13 +191,16 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
     if (value === undefined || !lolStat) { set({ lolDice: undefined }); return; }
     const result = lolToDice(lolStat, value);
     if (!result) return;
-    if (result.dice > 0) {
-      setValueMode('dice');
-      set({ lolDice: value, dice: result.text, flat: undefined, perLevel: undefined, lolScale: undefined });
-    } else {
-      setValueMode('flat');
-      set({ lolDice: value, flat: result.bonus || undefined, dice: undefined, perLevel: undefined, lolScale: undefined });
-    }
+    // Bonus de stat AD/AP: se guarda el valor LoL aunque la conversion a dados sea 0.
+    // No se persisten los dados derivados (el preview sale de lolToDice); asi no choca el validador de dados.
+    setValueMode(rule.kind === 'stat' ? 'flat' : (result.dice > 0 ? 'dice' : 'flat'));
+    set({
+      lolDice: value,
+      dice: rule.kind === 'stat' ? undefined : (result.dice > 0 ? result.text : undefined),
+      flat: rule.kind === 'stat' ? undefined : (result.dice > 0 ? undefined : rule.flat),
+      perLevel: undefined,
+      lolScale: undefined,
+    });
   };
 
   const changeTriggerOrKind = (patch: Partial<EffectRule>) => {
@@ -344,10 +348,12 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
                 <Check label={`Valor del LoL (\u00f7${LOL_SCALE})`} help={H.lol} checked={rule.lolScale === true} onChange={checked => set({ lolScale: checked ? true : undefined })} />
               )}
               {showLolDice && lolStat && (
-                <NumberField label={`${lolStat.toUpperCase()} del LoL (tabla de dados)`} help={H.lolDice} placeholder={'p. ej. 40'} value={rule.lolDice} onChange={applyLolDice} />
+                <NumberField label={`${lolStat.toUpperCase()} del LoL (dados d6)`} help={H.lolDice} placeholder={'p. ej. 40'} value={rule.lolDice} onChange={applyLolDice} />
               )}
-              {showLolDice && lolDice && <span className="bx-lol">{`= ${lolDiceNote(lolDice)}`}</span>}
-              {valueMode === 'flat' && <NumberField label={lolScaled(rule) ? 'Valor fijo (del LoL)' : 'Valor fijo'} value={rule.flat} onChange={flat => set({ flat, lolDice: undefined })} />}
+              {showLolDice && (lolDice || (rule.permanent && rule.lolDice != null)) && (
+                <span className="bx-lol">{`${lolDice ? `= ${lolDiceNote(lolDice)}` : ''}${rule.permanent && lolStat ? `${lolDice ? ' \u00b7 ' : ''}por carga: se suma al ${lolStat.toUpperCase()} total antes de convertir` : ''}`}</span>
+              )}
+              {valueMode === 'flat' && rule.lolDice == null && <NumberField label={lolScaled(rule) ? 'Valor fijo (del LoL)' : 'Valor fijo'} value={rule.flat} onChange={flat => set({ flat, lolDice: undefined })} />}
               {valueMode === 'flat' && lolScaled(rule) && rule.flat != null && <span className="bx-lol">{`= ${shortNum(rule.flat / LOL_SCALE)}`}</span>}
               {valueMode === 'level' && (
                 <Field label={'Valor por nivel (1-20, separados por /)'} help={H.perLevel} wide>
@@ -388,7 +394,8 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
                   <button type="button" className="bx-remove" title="Quitar escalado" onClick={() => set({ ratios: ratios.filter((_, j) => j !== i) })}>Quitar</button>
                 </span>
               ))}
-              {ratios.length < 6 && <button type="button" className="bx-btn" title={H.ratio} onClick={() => set({ ratios: [...ratios, { stat: 'ap', pct: 0 }] })}>+ escalado</button>}
+              {ratios.some(r => r.stat === 'dealtDamage') && <small className="bx-hint">{'Da\u00f1o infligido: solo con disparadores que hacen da\u00f1o ("Al infligir da\u00f1o f\u00edsico / m\u00e1gico / verdadero"); en el resto suma 0. Es el da\u00f1o final, tras armadura / RM y escudos del objetivo.'}</small>}
+{ratios.length < 6 && <button type="button" className="bx-btn" title={H.ratio} onClick={() => set({ ratios: [...ratios, { stat: 'ap', pct: 0 }] })}>+ escalado</button>}
             </div>
           </fieldset>
         )}
@@ -409,7 +416,8 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
 
       <Fold title={'Acumulaci\u00f3n'} used={stacksUsed}>
         <NumberField label={'M\u00e1ximo de acumulaciones'} help={H.maxStacks} step="1" value={rule.maxStacks} onChange={maxStacks => set({ maxStacks })} />
-        {(STACK_KINDS.includes(rule.kind) || rule.permanent) && <Check label={'Cargas permanentes (se guardan en la ficha)'} help={H.permanent} checked={!!rule.permanent} onChange={checked => set({ permanent: checked || undefined })} />}
+        {(STACK_KINDS.includes(rule.kind) || rule.permanent) && <Check label={'Cargas permanentes (se guardan en la ficha)'} help={H.permanent} checked={!!rule.permanent} onChange={checked => set({ permanent: checked || undefined, ...(checked ? {} : { stacksPerTrigger: undefined }) })} />}
+        {(rule.permanent || rule.stacksPerTrigger != null) && <NumberField label={'Cargas por activación'} help={H.stacksPerTrigger} step="1" value={rule.stacksPerTrigger ?? 1} onChange={value => set({ stacksPerTrigger: value && value >= 2 ? Math.min(999, Math.floor(value)) : undefined })} />}
         <Check label={'Solo al llegar al m\u00e1ximo'} help={H.triggerAtMax} checked={!!rule.triggerAtMax} onChange={checked => set({ triggerAtMax: checked || undefined })} />
         <NumberField label={'Solo 1 de cada N veces'} help={H.everyN} step="1" value={rule.everyN} onChange={everyN => set({ everyN })} />
         <Check label={'Cuenta por objetivo'} help={H.perTargetCounter} checked={!!rule.perTargetCounter} onChange={checked => set({ perTargetCounter: checked || undefined })} />

@@ -200,7 +200,7 @@ export async function fireDealtDamageEffects(
   const result = await fireEffectRules({
     trigger,
     effects,
-    ctx: base.ctx,
+    ctx: { ...base.ctx, dealt },
     bonuses: attacker.bonuses,
     targetIds: [targetId],
     participants: hooks.participants,
@@ -380,13 +380,14 @@ export async function firePendingItemDamage(
 export async function firePendingHalfShields(
   participantId: string,
   expired: CombatBonus[],
-  reduceShield: (id: string, amount: number) => Promise<boolean>,
+  reduceShield: (id: string, amount: number, kind?: 'physical' | 'magic') => Promise<boolean>,
   saveBonuses: (id: string, bonuses: CombatBonus[]) => Promise<void>,
   currentBonuses: () => CombatBonus[],
 ): Promise<void> {
   const lines: string[] = [];
   for (const marker of expired) {
-    const ok = await reduceShield(participantId, marker.amount);
+    const typed = (marker.source ?? '').endsWith('|magic') ? 'magic' : (marker.source ?? '').endsWith('|physical') ? 'physical' : undefined;
+    const ok = await reduceShield(participantId, marker.amount, typed);
     lines.push(`Escudo −${marker.amount}${ok ? '' : ' (no quedaba tanto)'}`);
     await saveBonuses(participantId, currentBonuses().filter(bonus => bonus.source !== marker.source));
   }

@@ -1,6 +1,8 @@
 import type { CombatBonus, CombatParticipant, SourcedEffectInput } from '../../data/combat';
 import { participantChampion, participantNpc } from '../../data/combatSheet';
-import { formulaText, isMeleeRange, rangeConditionShort, rangeTypeLabel, ruleAppliesTo, ruleMatchesRange, scalingLabel, withLevelCooldown, combatTurns, durationText, lolValue, type EffectBonusConfig, type EffectRule, type ScalingStat } from '../../data/effectBonus';
+import { formulaText, isMeleeRange, rangeConditionShort, rangeTypeLabel, ruleAppliesTo, ruleLolAdAp, ruleMatchesRange, scalingLabel, stacksPerTriggerOf, withLevelCooldown, combatTurns, durationText, lolValue, type EffectBonusConfig, type EffectRule, type ScalingStat } from '../../data/effectBonus';
+import { lolToDice } from '../../data/lolDiceTable';
+import { withLolStatBonus } from '../../data/lolStatBonus';
 import { damageChipKind, fmt, signed, statShort, type ResultChip } from './combatResult';
 import { effectiveResistLine } from './combatMitigation';
 import type { Item } from '../../data/items';
@@ -52,7 +54,7 @@ type Stats = Record<string, unknown> & { bonus?: Record<string, unknown> };
  * missingHp: vida faltante del portador (máx. − actual) en combate; fuera de combate no hay.
  * melee: cuerpo a cuerpo (rango de ataque total ≤ 1, el 0 cuenta); si no, a distancia (condición «Solo si» de las reglas).
  */
-export type EffectContext = { stats: Stats; level: number; missingHp?: number; melee?: boolean };
+export type EffectContext = { stats: Stats; level: number; missingHp?: number; melee?: boolean; /** Dano infligido por el disparo (solo reglas "Al infligir dano ..."; ya con armadura/RM y escudos del objetivo aplicados). */ dealt?: number };
 type TargetInfo = { current: number; max: number; armor: number; mr: number; spe?: number; level?: number };
 
 /** Media de una stat (los dados cuentan su media); con roll, tira los dados. */
@@ -77,6 +79,7 @@ function scalingValue(stat: ScalingStat, ctx: EffectContext, target: TargetInfo 
     case 'baseAd': return Math.max(0, total('ad') - bonus('ad'));
     case 'bonusAd': case 'bonusHp': case 'bonusMana': case 'bonusArmor': case 'bonusMr': return bonus(SCALING_KEY[stat]!);
     case 'level': return ctx.level;
+    case 'dealtDamage': return Math.max(0, ctx.dealt ?? 0);
     case 'missingHp': return Math.max(0, ctx.missingHp ?? 0);
     case 'targetMaxHp': return target?.max ?? 0;
     case 'targetCurrentHp': return target?.current ?? 0;
@@ -88,7 +91,7 @@ function scalingValue(stat: ScalingStat, ctx: EffectContext, target: TargetInfo 
   }
 }
 
-const NO_DICE = new Set<string>(['baseAd', 'bonusAd', 'bonusHp', 'bonusMana', 'bonusArmor', 'bonusMr', 'level', 'missingHp', 'targetMaxHp', 'targetCurrentHp', 'targetMissingHp', 'targetArmor', 'targetMr', 'targetSpe']);
+const NO_DICE = new Set<string>(['baseAd', 'bonusAd', 'bonusHp', 'bonusMana', 'bonusArmor', 'bonusMr', 'level', 'missingHp', 'targetMaxHp', 'targetCurrentHp', 'targetMissingHp', 'targetArmor', 'targetMr', 'targetSpe', 'dealtDamage']);
 
 /** Diferencia por rango: factor de la regla para este portador (a distancia = rangedPct %; cuerpo a cuerpo o rango desconocido = 1). */
 export function rangedFactor(rule: Pick<EffectRule, 'rangedPct'>, ctx: Pick<EffectContext, 'melee'> | undefined): number {
@@ -106,7 +109,11 @@ export type RuleBreakdown = { value: number; text: string; /** Sin redondear (cu
 export function ruleBreakdown(rule: EffectRule, ctx: EffectContext, target?: TargetInfo, roll = false): RuleBreakdown {
   const parts: string[] = [];
   let value = 0;
-  if (rule.perLevel?.length) {
+  const lolAdAp = ruleLolAdAp(rule);
+  if (lolAdAp && !rule.perLevel?.length) {
+    value = lolAdAp.value;
+    parts.push(`${fmt(lolAdAp.value)} ${lolAdAp.stat.toUpperCase()} del LoL`);
+  } else if (rule.perLevel?.length) {
     // «Por nivel del objetivo» (Medallón, Redención…): el nivel de cada objetivo; si no se sabe, el del portador.
     const fromTarget = rule.levelFrom === 'target' && typeof target?.level === 'number';
     const level = fromTarget ? target!.level! : ctx.level;
@@ -117,7 +124,7 @@ export function ruleBreakdown(rule: EffectRule, ctx: EffectContext, target?: Tar
     value = lolValue(rule, rule.flat);
     parts.push(fmt(value));
   }
-  if (rule.dice) {
+  if (rule.dice && !lolAdAp) {
     try {
       const rolled = rollDamageStat(rule.dice);
       const expected = rolled.flat + rolled.groups.reduce((sum, group) => sum + group.sign * group.count * (group.sides + 1) / 2, 0);
@@ -259,6 +266,16 @@ export function alwaysOnLines(effects: ActiveNamedEffect[], ctx: EffectContext):
       if (rule.trigger !== 'always' || rule.appliesTo === 'target' || rule.permanent || !STAT_KINDS.has(rule.kind) || !rangeOk(rule, ctx)) continue;
       const stat = ruleStat(rule);
       if (!stat) continue;
+      const lol = ruleLolAdAp(rule);
+      if (lol) {
+        if (!lol.value) continue;
+        const line = emptyStatLine();
+        const converted = lolToDice(lol.stat, Math.max(0, lol.value));
+        line[stat] = converted?.text ?? '0';
+        withLolStatBonus(line, { [lol.stat]: lol.value });
+        lines.push(line);
+        continue;
+      }
       const amount = ruleAmount(rule, ctx);
       if (!amount) continue;
       const line = emptyStatLine();
@@ -282,7 +299,19 @@ export function permanentStackLines(effects: ActiveNamedEffect[], ctx: EffectCon
       if (!isPermanentStackRule(rule) || !rangeOk(rule, ctx)) continue;
       const stat = ruleStat(rule);
       if (!stat) continue;
-      const amount = ruleAmount(rule, ctx) * Math.min(count, rule.maxStacks ?? count);
+      const used = Math.min(count, rule.maxStacks ?? count);
+      const lol = ruleLolAdAp(rule);
+      if (lol) {
+        const total = Math.round(lol.value * used * 1000) / 1000;
+        if (!total) continue;
+        const line = emptyStatLine();
+        const converted = lolToDice(lol.stat, Math.max(0, total));
+        line[stat] = converted?.text ?? '0';
+        withLolStatBonus(line, { [lol.stat]: total });
+        lines.push(line);
+        continue;
+      }
+      const amount = ruleAmount(rule, ctx) * used;
       if (!amount) continue;
       const line = emptyStatLine();
       line[stat] = Math.round(amount * 1000) / 1000;
@@ -297,6 +326,7 @@ export const playerPermanentStacks = (participant: CombatParticipant): Record<st
   participant.kind === 'player' ? PLAYERS.find(p => p.name === participant.sourceId)?.stacks : undefined;
 
 /** Bonus del combate + reglas «Siempre» + cargas permanentes de sus efectos con nombre (lo que suma al total de la ficha). */
+/** In combat, these lines are passed to playerTotalLine as `extra`. Do not also pass itemPermanentStackSources there or stacks would count twice. */
 export function combatExtraLines(participant: CombatParticipant, level: number, data: NamedEffectData): StatLine[] {
   const extra = bonusLines(participant);
   const base = participantContext(participant, level, extra);
@@ -351,6 +381,7 @@ function upsertStacking(bonuses: CombatBonus[], source: string, stat: StatKey, a
     ...(turns ? { turns } : {}),
     source,
     label,
+    ...(ruleLolAdAp(rule) ? { lol: true } : {}),
   };
   if (index >= 0) return bonuses.map((bonus, i) => (i === index ? entry : bonus));
   return [...bonuses, entry].slice(-30);
@@ -379,7 +410,10 @@ export function armAfterAbility(
 }
 
 /** Reservas: cura / escudo / man\u00e1 / vida temporal ('temp' admite negativo: refresco de una concesi\u00f3n). */
-export type PoolKind = 'heal' | 'shield' | 'mana' | 'temp';
+export type PoolKind = 'heal' | 'shield' | 'shield-magic' | 'shield-physical' | 'mana' | 'temp';
+/** Escudo generico (bloquea todo), magico (solo dano magico) o fisico (solo dano fisico). */
+export const isShieldKind = (kind: string): boolean => kind === 'shield' || kind === 'shield-magic' || kind === 'shield-physical';
+export const shieldWord = (kind: string): string => (kind === 'shield-magic' ? 'escudo m\u00e1gico' : kind === 'shield-physical' ? 'escudo f\u00edsico' : 'escudo');
 /** Concesiones de las reglas \u00abVida temporal\u00bb: bonus buff con lo que queda de lo concedido y sus turnos. */
 export const TEMP_HP_PREFIX = 'temphp:';
 export const isTempGrant = (bonus: CombatBonus): boolean => bonus.stat === 'buff' && (bonus.source ?? '').startsWith(TEMP_HP_PREFIX);
@@ -394,14 +428,14 @@ export type EffectCallbacks = {
   /** Cura / escudo / maná al portador; devuelve su Deshacer. */
   onSelfPool?: (kind: PoolKind, amount: number) => Promise<(() => Promise<void>) | null>;
   /** Cura / escudo a otro participante (reglas «Aliados»); devuelve su Deshacer. */
-  onTargetPool?: (targetId: string, kind: 'heal' | 'shield' | 'temp', amount: number) => Promise<(() => Promise<void>) | null>;
+  onTargetPool?: (targetId: string, kind: Exclude<PoolKind, 'mana'>, amount: number) => Promise<(() => Promise<void>) | null>;
   /** Reglas «Aliados»: elegir a quién (el portador puede ir incluido). */
   pickAllies?: (effectName: string) => Promise<string[]>;
   /**
-   * Cargas permanentes: +1 carga del efecto (id con variante) en la ficha del portador (players.stacks effect:<id>, hasta max).
+   * Cargas permanentes: +N cargas del efecto (id con variante) en la ficha del portador (players.stacks effect:<id>, hasta max).
    * Devuelve antes / después y su Deshacer; null si el portador no tiene ficha (campeón / NPC).
    */
-  onPermanentStack?: (base: string, max: number | undefined) => Promise<{ before: number; after: number; undo: () => Promise<void> } | null>;
+  onPermanentStack?: (base: string, max: number | undefined, gain?: number) => Promise<{ before: number; after: number; undo: () => Promise<void> } | null>;
   /** Concede una acción extra de habilidad o de AA este turno. */
   onGrantAction?: (kind: 'abilities' | 'attacks', amount: number) => Promise<void>;
   /** ¿El jugador ha marcado crítico en esta acción? */
@@ -595,7 +629,7 @@ export async function fireEffectRules(options: {
   let procCooldown = false;
   const applyRules = async (effect: ActiveNamedEffect, rules: { rule: EffectRule; index: number }[], targets: string[] = targetIds): Promise<number> => {
     let extraHits = 0;
-    // Una carga permanente por efecto y disparo (aunque tenga varias reglas de cargas).
+    // Cargas permanentes por efecto y disparo (stacksPerTrigger de la regla, por defecto 1; aunque tenga varias reglas de cargas).
     const permanentDone = new Set<string>();
     const duration = effect.config.duration;
     const label = effect.name;
@@ -793,8 +827,9 @@ export async function fireEffectRules(options: {
               result.chips.push({ kind: 'mana', text: chargesText(label, left - 1, charges.max, recharge), title: `${label}: cargas de combate (recarga 1 cada ${charges.every} t.)` });
               result.log.push(`${origin}: gasta 1 carga de combate ${left} → ${left - 1}/${charges.max} · recarga en ${recharge} t. (1 cada ${charges.every} t.)`);
             }
-            if (!callbacks.onPermanentStack) { manual(`${label}: +1 carga permanente (sin ficha)`); continue; }
-            const saved = await callbacks.onPermanentStack(effect.id, rule.maxStacks);
+            const gain = stacksPerTriggerOf(rule);
+            if (!callbacks.onPermanentStack) { manual(`${label}: +${gain} carga${gain === 1 ? '' : 's'} permanente${gain === 1 ? '' : 's'} (sin ficha)`); continue; }
+            const saved = await callbacks.onPermanentStack(effect.id, rule.maxStacks, gain);
             if (saved && !calc.value) {
               result.undos.push(saved.undo);
               result.chips.push({ kind: 'buff', text: `${label} ${saved.before}→${saved.after}${rule.maxStacks ? `/${rule.maxStacks}` : ''}`, title: `${label} · cargas permanentes (ficha)` });
@@ -958,7 +993,7 @@ export async function fireEffectRules(options: {
           if (rule.cooldownOnProc) procCooldown = true;
           break;
         }
-        case 'heal': case 'shield': case 'mana': {
+        case 'heal': case 'shield': case 'shield-magic': case 'shield-physical': case 'mana': {
           // Cura repartida: total calculado ya (valor + escalados x poder de curaci\u00f3n), 1.\u00ba tramo al momento y el resto
           // al empezar cada turno de quien la recibe (Combate: hotTicks). Del mismo efecto, sustituye lo que quedaba.
           if (rule.kind === 'heal' && (rule.healOverTurns ?? 0) >= 2 && !rule.fromDamagePct && !rule.fromManaSpentPct) {
@@ -998,7 +1033,7 @@ export async function fireEffectRules(options: {
           }
           if (to === 'allies' && rule.kind !== 'mana') {
             const kind = rule.kind;
-            const word = kind === 'heal' ? 'cura' : 'escudo';
+            const word = kind === 'heal' ? 'cura' : shieldWord(kind);
             for (const id of ruleTargets) {
               const calc = ruleBreakdown(rule, ctx, targetInfo(id, ''));
               const final = poolAmount(calc.raw, ctx);
@@ -1026,10 +1061,10 @@ export async function fireEffectRules(options: {
               if (!undo) continue;
               result.undos.push(undo);
               result.notes.push(`${label}: ${word} +${amount} a ${nameOf(id)}`);
-              result.chips.push({ kind, text: `+${amount} ${kind === 'heal' ? 'PV' : 'escudo'} ${nameOf(id)}`, title: label });
+              result.chips.push({ kind: kind === 'heal' ? 'heal' : 'shield', text: `+${amount} ${kind === 'heal' ? 'PV' : shieldWord(kind)} ${nameOf(id)}`, title: label });
               result.log.push(`${origin}: ${word} a ${nameOf(id)} = ${calc.text} · al aplicar: ${final.text}${(rule.duration ?? duration) ? ` · ${durationText(rule.duration ?? duration ?? 0)} (quitar a mano al acabar)` : ''}`);
-              if (kind === 'shield' && rule.halfAfterTurns && callbacks.onTargetBonuses) {
-                const pending = `pending-half:${effect.base}`;
+              if (isShieldKind(kind) && rule.halfAfterTurns && callbacks.onTargetBonuses) {
+                const pending = `pending-half:${effect.base}${kind === 'shield-magic' ? '|magic' : kind === 'shield-physical' ? '|physical' : ''}`;
                 const half = Math.max(0, Math.round(amount / 2));
                 const undoHalf = await callbacks.onTargetBonuses(id, current => [
                   ...current.filter(bonus => bonus.source !== pending),
@@ -1063,7 +1098,7 @@ export async function fireEffectRules(options: {
           const final = rule.kind === 'mana' ? null : poolAmount(calc.raw, ctx);
           const amount = final ? final.amount : Math.floor(calc.value);
           if (amount <= 0) break;
-          const word = rule.kind === 'heal' ? 'cura' : rule.kind === 'shield' ? 'escudo' : 'maná';
+          const word = rule.kind === 'heal' ? 'cura' : isShieldKind(rule.kind) ? shieldWord(rule.kind) : 'maná';
           if (rule.delayTurns && rule.kind !== 'mana') {
             const pending = `pending:${effect.base}`;
             bonuses = [...bonuses.filter(bonus => bonus.source !== pending), { id: `pend-self-${effect.base}`, stat: 'buff', amount, turns: rule.delayTurns, source: pending, label: `${label}`.slice(0, 80) }];
@@ -1077,7 +1112,7 @@ export async function fireEffectRules(options: {
           if (undo) {
             result.undos.push(undo);
             result.notes.push(`${label}: ${word} +${amount}`);
-            result.chips.push({ kind: rule.kind, text: `+${amount} ${rule.kind === 'heal' ? 'PV' : rule.kind === 'shield' ? 'escudo' : 'maná'}`, title: `${label} → ${bearerName}` });
+            result.chips.push({ kind: rule.kind === 'heal' || rule.kind === 'mana' ? rule.kind : 'shield', text: `+${amount} ${rule.kind === 'heal' ? 'PV' : isShieldKind(rule.kind) ? shieldWord(rule.kind) : 'maná'}`, title: `${label} → ${bearerName}` });
             result.log.push(`${origin}: ${word} a ${bearerName} = ${calc.text}${final ? ` · al aplicar: ${final.text}` : amount !== calc.value ? ` → ${amount} (redondeo ↓)` : ''}`);
           }
           break;

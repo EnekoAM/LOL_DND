@@ -21,7 +21,7 @@ import { AumentoList, QuestList } from './SheetExtras';
 import { normalizeName } from '../../lib/text';
 import BuildPicker from '../calculos/BuildPicker';
 import ItemTile, { type ItemTileState } from '../calculos/ItemTile';
-import { hpSyncPatch, playerMaxHp, playerTotalLine } from '../calculos/playerTotals';
+import { hpSyncPatch, manaSyncPatch, playerMaxHp, playerMaxMana, playerTotalLine } from '../calculos/playerTotals';
 import { playerAbilityPassives } from './abilityPassiveStats';
 import {
   STAT_COLUMNS,
@@ -44,7 +44,7 @@ import SheetAbilities from './SheetAbilities';
 import ReorderableItem from './ReorderableItem';
 import { itemStackKey, readStack } from '../../data/stacks';
 import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
-import { itemHasPermanentStacks, permanentStackEntries } from '../../data/permanentStacks';
+import { itemHasPermanentStacks, itemPermanentStackSources, permanentStackEntries } from '../../data/permanentStacks';
 import { equippedItems } from '../combate/combatBonuses';
 import PermanentStacks from './PermanentStacks';
 import { MAIN_EQUIPMENT_SLOTS, botQuestDone, equipmentLayout, isBootsItem, isBootsName } from './equipmentSlots';
@@ -360,7 +360,9 @@ const PlayerSheet = ({
   // Pasivas de habilidades con stats (p. ej. vel. de ataque por tenerla aprendida): suman como bonus.
   const abilityPassives = playerAbilityPassives(player, level);
   const passiveLines = abilityPassives.map(source => source.line);
-  const total = playerTotalLine(player.sheet, player.equipamiento, undefined, passiveLines);
+  const stackSources = itemPermanentStackSources(equippedItems(player.equipamiento), effectData, player.stacks);
+  const bonusLines = [...passiveLines, ...stackSources.map(source => source.line)];
+  const total = playerTotalLine(player.sheet, player.equipamiento, undefined, bonusLines);
   const columnsByKey = Object.fromEntries(STAT_COLUMNS.map(column => [column.key, column]));
 
   const removeAt = (items: string[], index: number) => items.filter((_, itemIndex) => itemIndex !== index);
@@ -451,7 +453,7 @@ const PlayerSheet = ({
 
   const suggestedMax = typeof total.hp === 'number' && Number.isFinite(total.hp) ? total.hp : 0;
   // PG máximos vinculados al HP TOTAL de la tabla (undefined si la ficha no tiene rol).
-  const tableMaxHp = playerMaxHp(player.sheet, player.equipamiento, passiveLines);
+  const tableMaxHp = playerMaxHp(player.sheet, player.equipamiento, bonusLines);
   const hpSyncTried = useRef<string | null>(null);
   useEffect(() => {
     if (saving) return;
@@ -463,6 +465,17 @@ const PlayerSheet = ({
     hpSyncTried.current = key;
     Promise.resolve(onCombatChange(patch)).catch(() => undefined);
   }, [player, tableMaxHp, level, saving, onCombatChange]);
+  const tableMaxMana = playerMaxMana(player.sheet, player.equipamiento, bonusLines);
+  const manaSyncTried = useRef<string | null>(null);
+  useEffect(() => {
+    if (saving) return;
+    const patch = manaSyncPatch(player, tableMaxMana);
+    if (!patch) return;
+    const key = `${player.name}:${player.mana}:${player.actualMana}:${patch.mana}`;
+    if (manaSyncTried.current === key) return;
+    manaSyncTried.current = key;
+    Promise.resolve(onCombatChange(patch)).catch(() => undefined);
+  }, [player, tableMaxMana, level, saving, onCombatChange]);
   const suggestedMana = typeof total.mana === 'number' && Number.isFinite(total.mana) ? total.mana : 0;
 
   return (
@@ -774,6 +787,7 @@ const PlayerSheet = ({
                 sheet={player.sheet}
                 equipment={player.equipamiento}
                 abilityPassives={abilityPassives}
+                stackSources={stackSources}
                 defaultOpen
                 lockFutureLevels={!topUnlocked}
                 canPickRole={isAdmin}

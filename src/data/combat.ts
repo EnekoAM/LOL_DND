@@ -72,6 +72,8 @@ export type CombatParticipant = {
   /** Vida temporal y escudo (campeones / NPCs). */
   tempHp?: number;
   shield?: number;
+  physicalShield?: number;
+  magicShield?: number;
   /** Máximo del recurso fijado a mano; si no, el de sus stats / Recurso. */
   resourceMax?: number;
   /**
@@ -104,6 +106,8 @@ export type CombatBonus = {
   /** "manual" o "item:<nombre>". */
   source?: string;
   label?: string;
+  /** amount es AD/AP del LoL: se suma al total LoL antes de convertir (no es un plano residual). */
+  lol?: boolean;
 };
 
 /** Cura repartida (regla Curaci\u00f3n \u00abRepartir en N turnos\u00bb): bonus buff source hot:<efecto>|<total>, amount = lo que queda, turns = tramos que quedan, maxStacks = tramos totales. */
@@ -393,7 +397,7 @@ export async function saveCombatHp(
   participantId: string,
   current: number,
   max?: number,
-  extra?: { tempHp?: number; shield?: number },
+  extra?: { tempHp?: number; shield?: number; physicalShield?: number; magicShield?: number },
 ): Promise<{ combat: CombatState; player?: import('./players').Player }> {
   return saveCombatValue('hp', participantId, current, max, extra);
 }
@@ -475,7 +479,7 @@ async function saveCombatValue(
   participantId: string,
   current: number,
   max?: number,
-  extra?: { tempHp?: number; shield?: number },
+  extra?: { tempHp?: number; shield?: number; physicalShield?: number; magicShield?: number },
 ): Promise<{ combat: CombatState; player?: import('./players').Player }> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-App-Role': readAppRole() ?? 'user' };
   const identity = readAppIdentity();

@@ -27,6 +27,10 @@ export type NamedEffectData = {
 };
 
 let data: NamedEffectData = { descriptions: {}, onHit: {}, bonus: {}, area: {} };
+
+export function getNamedEffectData(): NamedEffectData {
+  return data;
+}
 let loadedRevision = -1;
 let loading: Promise<void> | null = null;
 const listeners = new Set<() => void>();
@@ -45,6 +49,41 @@ function readError(body: unknown, fallback: string): string {
   return fallback;
 }
 
+/** Apply /api/named-effects (or an equivalent body). Used at boot and when the hook reloads. */
+export function hydrateNamedEffectPayload(body: unknown, options: { bumpItems?: boolean } = {}): void {
+  if (!body || typeof body !== 'object') return;
+  const source = body as { descriptions?: unknown; onHit?: unknown; bonus?: unknown; area?: unknown; effects?: unknown };
+  applyNamedEffects(parseNamedEffects(source.effects));
+  const pick = <T,>(raw: unknown, ok: (value: unknown) => value is T): Record<string, T> =>
+    raw && typeof raw === 'object'
+      ? Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter((entry): entry is [string, T] => ok(entry[1])))
+      : {};
+  data = {
+    descriptions: pick(source.descriptions, (value): value is string => typeof value === 'string'),
+    onHit: pick(source.onHit, (value): value is boolean => typeof value === 'boolean'),
+    bonus: Object.fromEntries(
+      Object.entries(source.bonus && typeof source.bonus === 'object' ? source.bonus as Record<string, unknown> : {})
+        .map(([id, raw]) => [id, normalizeBonusConfig(raw)] as const)
+        .filter((entry): entry is readonly [string, EffectBonusConfig] => !!entry[1]),
+    ),
+    area: Object.fromEntries(
+      Object.entries(source.area && typeof source.area === 'object' ? source.area as Record<string, unknown> : {})
+        .map(([id, raw]) => [id, normalizeArea(raw)] as const)
+        .filter((entry): entry is readonly [string, AreaPattern] => !!entry[1]),
+    ),
+  };
+  if (loadedRevision < 0) loadedRevision = 0;
+  emit();
+  if (options.bumpItems) bumpLive(['items']);
+}
+
+/** Load from the API if we still have no bonus/description data (sync before first paint). */
+export async function ensureNamedEffectData(): Promise<NamedEffectData> {
+  if (Object.keys(data.bonus).length || Object.keys(data.descriptions).length) return data;
+  await load(Math.max(0, loadedRevision));
+  return data;
+}
+
 async function load(revision: number): Promise<void> {
   if (loading && loadedRevision === revision) return loading;
   loadedRevision = revision;
@@ -54,30 +93,7 @@ async function load(revision: number): Promise<void> {
       if (!response.ok) return;
       const body: unknown = await response.json().catch(() => null);
       if (!body || typeof body !== 'object') return;
-      const source = body as { descriptions?: unknown; onHit?: unknown; bonus?: unknown; area?: unknown; effects?: unknown };
-      // La lista de efectos viene entera de la BD.
-      applyNamedEffects(parseNamedEffects(source.effects));
-      const pick = <T,>(raw: unknown, ok: (value: unknown) => value is T): Record<string, T> =>
-        raw && typeof raw === 'object'
-          ? Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter((entry): entry is [string, T] => ok(entry[1])))
-          : {};
-      data = {
-        descriptions: pick(source.descriptions, (value): value is string => typeof value === 'string'),
-        onHit: pick(source.onHit, (value): value is boolean => typeof value === 'boolean'),
-        bonus: Object.fromEntries(
-          Object.entries(source.bonus && typeof source.bonus === 'object' ? source.bonus as Record<string, unknown> : {})
-            .map(([id, raw]) => [id, normalizeBonusConfig(raw)] as const)
-            .filter((entry): entry is readonly [string, EffectBonusConfig] => !!entry[1]),
-        ),
-        area: Object.fromEntries(
-          Object.entries(source.area && typeof source.area === 'object' ? source.area as Record<string, unknown> : {})
-            .map(([id, raw]) => [id, normalizeArea(raw)] as const)
-            .filter((entry): entry is readonly [string, AreaPattern] => !!entry[1]),
-        ),
-      };
-      emit();
-      // Repinta lo que depende de los items (nombres / tipos de sus efectos) sin volver a pedirlos.
-      bumpLive(['items']);
+      hydrateNamedEffectPayload(body, { bumpItems: true });
     } catch {
       // Sin API: se quedan las que hubiera.
     }

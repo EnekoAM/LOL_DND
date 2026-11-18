@@ -54,7 +54,7 @@ export default function CombatHpSection({ participant, hp, canSee, saving, onSav
     }
   };
   const pools = participantHpPools(participant);
-  const extras = { tempHp: pools?.tempHp, shield: pools?.shield };
+  const extras = { tempHp: pools?.tempHp, shield: pools?.shield, physicalShield: pools?.physicalShield, magicShield: pools?.magicShield };
 
   return (
     <div className="combat-panel__section">

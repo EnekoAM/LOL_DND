@@ -188,7 +188,7 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onLolCha
       <div className="item-edit__block">
         <span className="modal-effect__tag">Estadísticas</span>
         <p className="item-edit__hint">Vacío es 0. AD y AP admiten dados, como 1d4.</p>
-        <p className="item-edit__hint">{'AD / AP del LoL: escribe el n\u00famero que da el LoL y los dados se rellenan con tu tabla (fuera del editor solo se ven los dados).'}</p>
+        <p className="item-edit__hint">{'AD / AP del LoL: escribe el n\u00famero que da el LoL y los dados se rellenan solos: 1d6 cada 15 AD / 20 AP, y lo que sobra +1d2 o +1d4 (fuera del editor solo se ven los dados).'}</p>
         <div className="item-edit__stats">
           {Object.entries(draft.stats).map(([key, value]) => {
             const lolStat = lolDiceStatOf(key);
@@ -219,7 +219,7 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onLolCha
                       disabled={saving}
                       onChange={e => onLolChange(lolKey, key, e.target.value)}
                     />
-                    <small className="item-field__lol-note">{converted ? `= ${lolDiceNote(converted)}` : 'Rellena los dados con la tabla'}</small>
+                    <small className="item-field__lol-note">{converted ? `= ${lolDiceNote(converted)}` : 'Rellena los dados (1d6 cada 15 AD / 20 AP)'}</small>
                   </label>
                 )}
               </Fragment>

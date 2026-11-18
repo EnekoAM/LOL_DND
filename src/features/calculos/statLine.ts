@@ -33,6 +33,26 @@ export type StatKey = (typeof STAT_COLUMNS)[number]['key'];
 /** Número plano, o dados como "2d4+2d2". */
 export type StatValue = number | string;
 
+/** "5d6+1d2", "4d6+1d4+3", "1d2+5d4+1d6+3d8+4" or a plain number. */
+export const STAT_AMOUNT_RE = /^(?:[+-]?(?:\d+d\d+|\d+(?:\.\d+)?))(?:[+-](?:\d+d\d+|\d+(?:\.\d+)?))*$/i;
+
+const STAT_AMOUNT_LIMIT = 80;
+
+/** Compact a stat text: trim, drop spaces, commas to dots, "d8" -> "1d8". */
+export function compactStatText(text: string): string {
+  return text
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/,/g, '.')
+    .replace(/(^|[+-])d(\d+)/gi, '$11d$2');
+}
+
+export function isStatAmountText(text: string): boolean {
+  const compact = compactStatText(text);
+  return compact.length > 0 && compact.length <= STAT_AMOUNT_LIMIT && STAT_AMOUNT_RE.test(compact);
+}
+
+
 export type StatLine = Record<StatKey, StatValue>;
 
 /** Claves de ítem (items.json) que entran en la ficha. Los ítems no traen Attacks ni Abilities planos. */
@@ -120,7 +140,7 @@ function parseAmount(value: StatValue | undefined): ParsedAmount {
   // Filas antiguas (p. ej. tablas de rol guardadas antes de una stat nueva) pueden no traer la clave.
   if (typeof value !== 'string') return { dice: new Map(), flat: 0 };
 
-  const text = value.trim().replace(',', '.');
+  const text = compactStatText(value);
   if (!text || text === '-') return { dice: new Map(), flat: 0 };
 
   const dice = new Map<number, number>();

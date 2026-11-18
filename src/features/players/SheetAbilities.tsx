@@ -29,7 +29,7 @@ import {
 } from '../../data/players';
 import { cx } from '../../lib/cx';
 import AbilityAssignModal from '../habilidades/AbilityAssignModal';
-import { playerTotalLine, playerBonusLine } from '../calculos/playerTotals';
+import { playerTotalLine, playerBonusLine, playerPersistentBonusLines } from '../calculos/playerTotals';
 import { passiveBonusBadge, playerAbilityPassives } from './abilityPassiveStats';
 import AbilityDamageModal from './AbilityDamageModal';
 import { hasDamageScaling, rollAbilityDamage, type AbilityDamageRoll } from './abilityDamage';
@@ -75,10 +75,10 @@ const SheetAbilities = ({ player, level, saving, error, onSelectAbility, onAbili
     error: string | null;
   } | null>(null);
   // Las pasivas con stats cuentan como bonus, igual que los ítems.
-  const passiveLines = playerAbilityPassives(player, level).map(source => source.line);
+  const bonusLines = playerPersistentBonusLines(player, player.equipamiento, level);
   const stats = {
-    ...playerTotalLine(player.sheet, player.equipamiento, level, passiveLines),
-    bonus: playerBonusLine(player.sheet, player.equipamiento, passiveLines),
+    ...playerTotalLine(player.sheet, player.equipamiento, level, bonusLines),
+    bonus: playerBonusLine(player.sheet, player.equipamiento, bonusLines),
   };
   // "% a la tirada" de los items (Rabadon, Sangria del soberano...); la vida faltante sale de la vida de la ficha.
   const maxHp = typeof player.hp === 'number' && player.hp > 0 ? player.hp : undefined;

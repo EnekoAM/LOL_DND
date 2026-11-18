@@ -8,7 +8,7 @@ import {
   type AbilityScore,
 } from '../calculos/playerSheets';
 import { ROLE_TABLES, findRoleTable } from '../../data/roles';
-import { STAT_COLUMNS, type StatKey } from '../calculos/statLine';
+import { STAT_COLUMNS, compactStatText, isStatAmountText, type StatKey } from '../calculos/statLine';
 
 type Props = {
   sheet: PlayerSheet | undefined;
@@ -72,10 +72,10 @@ function fromDraft(draft: Draft, skills: PlayerSheet['skills']): PlayerSheet | s
       extra[column.key] = number;
       continue;
     }
-    if (!/^[\d\s+\-.d]+$/i.test(raw) || raw.length > 20) {
-      return `${column.label} tiene que ser un número o un dado (por ejemplo 1d4)`;
+    if (!isStatAmountText(raw)) {
+      return `${column.label} tiene que ser un número o dados (por ejemplo 1d6+1d4)`;
     }
-    extra[column.key] = raw.replace(/\s+/g, '');
+    extra[column.key] = compactStatText(raw).toLowerCase();
   }
   if (Object.keys(extra).length) sheet.extra = extra;
   return sheet;

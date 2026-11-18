@@ -1,5 +1,9 @@
 import { findItem } from '../../data/items';
+import { invertLolDice, lolToDice, type LolDiceStat } from '../../data/lolDiceTable';
+import { lolStatBonusOf } from '../../data/lolStatBonus';
+import { ensureNamedEffectData, getNamedEffectData } from '../../data/namedEffectDescriptions';
 import { PARTY } from '../../data/party';
+import { itemPermanentStackLines } from '../../data/permanentStacks';
 import { PLAYERS, savePlayerPatch, type Player, type PlayerSheet } from '../../data/players';
 import { sheetBase, sheetExtra } from './playerSheets';
 import { playerAbilityPassiveLines } from '../players/abilityPassiveStats';
@@ -8,6 +12,7 @@ import {
   emptyStatLine,
   roundDefense,
   isDefenseKey,
+  isZeroStat,
   itemStatLine,
   sumStatLines,
   type StatKey,
@@ -80,7 +85,67 @@ const LINE_TO_STORED: Record<StatKey, Exclude<PlayerStatsKey, 'nivel'>> = {
 /** Stats del total que se redondean al entero más cercano. */
 const ROUNDED_TOTAL_KEYS = ['lethality', 'magicPen'] as const;
 
-/** Misma suma que la fila Total de Cálculos (base de rol + equipo + extra). */
+
+/** Ability passives + equipped permanent item-stack bonuses. Combat must NOT also pass combatExtraLines that already include stacks. */
+export function playerPersistentBonusLines(player: Player, equipment: string[] = player.equipamiento, level?: number): StatLine[] {
+  return [
+    ...playerAbilityPassiveLines(player, level),
+    ...itemPermanentStackLines(equipment, getNamedEffectData(), player.stacks),
+  ];
+}
+
+function lolContribution(stat: LolDiceStat, value: StatValue | undefined, lol?: number): { lol: number; leftover?: StatValue } {
+  if (typeof lol === 'number' && Number.isFinite(lol)) return { lol };
+  if (value === undefined || isZeroStat(value)) return { lol: 0 };
+  if (typeof value === 'string') {
+    const inverted = invertLolDice(stat, value);
+    if (inverted !== null) return { lol: inverted };
+    return { lol: 0, leftover: value };
+  }
+  return { lol: 0, leftover: value };
+}
+
+function combineLolStat(stat: LolDiceStat, parts: { lol: number; leftover?: StatValue }[]): StatValue {
+  const lolSum = parts.reduce((sum, part) => sum + part.lol, 0);
+  const lines: StatLine[] = [];
+  const converted = lolToDice(stat, Math.max(0, lolSum));
+  if (converted && !isZeroStat(converted.text)) {
+    const line = emptyStatLine();
+    line[stat] = converted.text;
+    lines.push(line);
+  }
+  for (const part of parts) {
+    if (part.leftover === undefined || isZeroStat(part.leftover)) continue;
+    const line = emptyStatLine();
+    line[stat] = part.leftover;
+    lines.push(line);
+  }
+  if (!lines.length) return 0;
+  return sumStatLines(lines)[stat];
+}
+
+function lolPartsFor(stat: LolDiceStat, sheet: PlayerSheet | undefined, equipment: string[], extraLines: StatLine[], base: StatLine | undefined): { lol: number; leftover?: StatValue }[] {
+  const parts: { lol: number; leftover?: StatValue }[] = [];
+  if (base) parts.push(lolContribution(stat, base[stat]));
+  for (const name of equipment) {
+    const item = findItem(name);
+    const key = stat === 'ad' ? 'AD' : 'AP';
+    parts.push(lolContribution(stat, item?.stats?.[key], item?.lolStats?.[key]));
+  }
+  const extra = sheetExtra(sheet);
+  if (extra) parts.push(lolContribution(stat, extra[stat]));
+  for (const line of extraLines) {
+    const lol = lolStatBonusOf(line);
+    if (lol && typeof lol[stat] === 'number' && Number.isFinite(lol[stat])) {
+      parts.push({ lol: lol[stat] });
+      continue;
+    }
+    parts.push(lolContribution(stat, line[stat]));
+  }
+  return parts;
+}
+
+/** Misma suma que la fila Total de Cálculos (base de rol + equipo + extra). AD/AP: suma LoL y convierte una vez. */
 export function playerTotalLine(
   sheet: PlayerSheet | undefined,
   equipment: string[],
@@ -90,6 +155,8 @@ export function playerTotalLine(
 ): StatLine {
   const base = sheet ? sheetBase(sheet, level) : undefined;
   const total = sumStatLines([...(base ? [base] : []), playerBonusLine(sheet, equipment, extra)]);
+  total.ad = combineLolStat('ad', lolPartsFor('ad', sheet, equipment, extra, base));
+  total.ap = combineLolStat('ap', lolPartsFor('ap', sheet, equipment, extra, base));
   // Letalidad y pen. mágica planas: al entero más cercano (sobre el total, no por ítem).
   for (const key of ROUNDED_TOTAL_KEYS) {
     const value = total[key];
@@ -125,6 +192,17 @@ export function playerMaxHp(
   return typeof hp === 'number' && Number.isFinite(hp) ? Math.max(0, Math.floor(hp)) : undefined;
 }
 
+/** Mana max from the sheet total (numeric only). */
+export function playerMaxMana(
+  sheet: PlayerSheet | undefined,
+  equipment: string[],
+  extra: StatLine[] = [],
+): number | undefined {
+  if (!sheet || !sheetBase(sheet)) return undefined;
+  const mana = playerTotalLine(sheet, equipment, undefined, extra).mana;
+  return typeof mana === 'number' && Number.isFinite(mana) ? Math.max(0, Math.floor(mana)) : undefined;
+}
+
 const finiteNumber = (value: number | undefined): value is number =>
   typeof value === 'number' && Number.isFinite(value);
 
@@ -148,6 +226,21 @@ export function hpSyncPatch(
   return { hp: nextMax, actualHp: nextActual };
 }
 
+/** Align `mana` (max) with the table, same rules as hpSyncPatch. */
+export function manaSyncPatch(
+  player: Pick<Player, 'mana' | 'actualMana'>,
+  nextMax: number | undefined,
+): { mana: number; actualMana: number } | null {
+  if (nextMax === undefined) return null;
+  const oldMax = finiteNumber(player.mana) ? player.mana : undefined;
+  const actual = finiteNumber(player.actualMana) ? player.actualMana : (oldMax ?? nextMax);
+  const delta = oldMax === undefined ? 0 : nextMax - oldMax;
+  let nextActual = Math.min(nextMax, Math.max(0, actual + delta));
+  if (actual > 0 && nextActual === 0 && nextMax > 0) nextActual = 1;
+  if (oldMax === nextMax && nextActual === player.actualMana) return null;
+  return { mana: nextMax, actualMana: nextActual };
+}
+
 export function playerStatsDocument(sheet: PlayerSheet | undefined, equipment: string[], extra: StatLine[] = []): PlayerStats {
   const total = playerTotalLine(sheet, equipment, undefined, extra);
   const stats = { nivel: PARTY.level } as PlayerStats;
@@ -163,12 +256,13 @@ export async function syncPlayerStats(
   playerName: string,
   sheet: PlayerSheet | undefined,
   equipment: string[],
-  combat: Pick<Player, 'hp' | 'actualHp'> = {},
+  combat: Pick<Player, 'hp' | 'actualHp' | 'mana' | 'actualMana'> = {},
   /** Pasivas de habilidades con stats (playerAbilityPassiveLines). */
   extra: StatLine[] = [],
 ): Promise<void> {
   const hp = hpSyncPatch(combat, playerMaxHp(sheet, equipment, extra));
-  await savePlayerPatch(playerName, { stats: playerStatsDocument(sheet, equipment, extra), ...hp });
+  const mana = manaSyncPatch(combat, playerMaxMana(sheet, equipment, extra));
+  await savePlayerPatch(playerName, { stats: playerStatsDocument(sheet, equipment, extra), ...hp, ...mana });
 }
 
 /** ¿El total guardado ya coincide con el calculado? */
@@ -184,12 +278,14 @@ function sameStats(saved: Player['stats'], next: PlayerStats): boolean {
  * Devuelve cuántos players se guardaron.
  */
 export async function syncAllPlayerStats(): Promise<number> {
+  await ensureNamedEffectData();
   const saves = PLAYERS.filter(player => player.sheet).flatMap(player => {
-    const passives = playerAbilityPassiveLines(player, PARTY.level);
-    const stats = playerStatsDocument(player.sheet, player.equipamiento, passives);
-    const hp = hpSyncPatch(player, playerMaxHp(player.sheet, player.equipamiento, passives));
-    if (!hp && sameStats(player.stats, stats)) return [];
-    return [savePlayerPatch(player.name, { stats, ...hp })];
+    const extra = playerPersistentBonusLines(player, player.equipamiento, PARTY.level);
+    const stats = playerStatsDocument(player.sheet, player.equipamiento, extra);
+    const hp = hpSyncPatch(player, playerMaxHp(player.sheet, player.equipamiento, extra));
+    const mana = manaSyncPatch(player, playerMaxMana(player.sheet, player.equipamiento, extra));
+    if (!hp && !mana && sameStats(player.stats, stats)) return [];
+    return [savePlayerPatch(player.name, { stats, ...hp, ...mana })];
   });
   await Promise.all(saves);
   return saves.length;

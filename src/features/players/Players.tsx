@@ -9,8 +9,7 @@ import { normalizeName } from '../../lib/text';
 import { DEFAULT_DAMAGE_INPUTS, type DamageInputs } from '../calculos/damage';
 import DamagePanel from '../calculos/DamagePanel';
 import PickerCard from '../calculos/PickerCard';
-import { hpSyncPatch, playerMaxHp, playerStatsDocument } from '../calculos/playerTotals';
-import { playerAbilityPassiveLines } from './abilityPassiveStats';
+import { hpSyncPatch, manaSyncPatch, playerMaxHp, playerMaxMana, playerPersistentBonusLines, playerStatsDocument } from '../calculos/playerTotals';
 import '../calculos/Calculos.css';
 import PlayerSheet from './PlayerSheet';
 import './Players.css';
@@ -109,7 +108,7 @@ const Players = () => {
   };
 
   const updatePlayerList = (
-    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'accentColor' | 'shortRestsUsed' | 'sheet' | 'unlocks' | 'quests' | 'aumentos' | 'background' | 'mechanic' | 'stacks' | 'cooldowns' | 'activeEffects'>>,
+    patch: Partial<Pick<Player, 'build' | 'equipamiento' | 'hp' | 'actualHp' | 'escudo' | 'escudoFisico' | 'escudoMagico' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'accentColor' | 'shortRestsUsed' | 'sheet' | 'unlocks' | 'quests' | 'aumentos' | 'background' | 'mechanic' | 'stacks' | 'cooldowns' | 'activeEffects'>>,
   ): Promise<void> => {
     if (!player) return Promise.resolve();
     // Efectos con nombre exclusivos (Salvavidas…): no dos ítems con el mismo en el equipamiento.
@@ -123,7 +122,7 @@ const Players = () => {
     }
     const name = player.name;
     const isCombat =
-      'hp' in patch || 'actualHp' in patch || 'escudo' in patch || 'vidaTemporal' in patch
+      'hp' in patch || 'actualHp' in patch || 'escudo' in patch || 'escudoFisico' in patch || 'escudoMagico' in patch || 'vidaTemporal' in patch
       || 'mana' in patch || 'actualMana' in patch || 'inspiration' in patch || 'accentColor' in patch || 'shortRestsUsed' in patch;
     const isSheet = 'sheet' in patch;
     // El total guardado en `stats` depende de la ficha y del equipamiento: se recalcula si cambia cualquiera.
@@ -134,8 +133,9 @@ const Players = () => {
     const payload = recalc
       ? {
           ...patch,
-          stats: playerStatsDocument(nextSheet, nextEquipment, playerAbilityPassiveLines(player)),
-          ...hpSyncPatch(player, playerMaxHp(nextSheet, nextEquipment, playerAbilityPassiveLines(player))),
+          stats: playerStatsDocument(nextSheet, nextEquipment, playerPersistentBonusLines(player, nextEquipment)),
+          ...hpSyncPatch(player, playerMaxHp(nextSheet, nextEquipment, playerPersistentBonusLines(player, nextEquipment))),
+          ...manaSyncPatch(player, playerMaxMana(nextSheet, nextEquipment, playerPersistentBonusLines(player, nextEquipment))),
         }
       : patch;
     setPlayer(current => (sameName(current, name) && current ? { ...current, ...payload } : current));

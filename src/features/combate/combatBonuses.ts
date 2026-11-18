@@ -3,6 +3,7 @@ import { findItem, type Item, type PassiveTrigger } from '../../data/items';
 import { damageTargets, type TargetDamageFn } from './combatHp';
 import type { ResultChip } from './combatResult';
 import { emptyStatLine, STAT_COLUMNS, formatStat, type StatKey, type StatLine } from '../calculos/statLine';
+import { withLolStatBonus } from '../../data/lolStatBonus';
 
 const STAT_KEYS = new Set<string>(STAT_COLUMNS.map(column => column.key));
 
@@ -22,6 +23,9 @@ export function bonusLines(participant: CombatParticipant): StatLine[] {
   return bonuses.filter(bonus => isStatKey(bonus.stat)).map(bonus => {
     const line = emptyStatLine();
     line[bonus.stat as StatKey] = bonusValue(bonus);
+    if (bonus.lol && (bonus.stat === 'ad' || bonus.stat === 'ap')) {
+      withLolStatBonus(line, { [bonus.stat]: bonusValue(bonus) });
+    }
     return line;
   });
 }

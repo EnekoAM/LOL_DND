@@ -13,6 +13,7 @@ import {
 import { ROLE_TABLES, findRoleTable } from '../../data/roles';
 import { playerTotalLine } from './playerTotals';
 import type { AbilityPassiveSource } from '../players/abilityPassiveStats';
+import type { PermanentStackStatSource } from '../../data/permanentStacks';
 import {
   STAT_COLUMNS,
   formatDefenseStat,
@@ -46,6 +47,8 @@ type Props = {
   renderExtraEditor?: (close: () => void) => ReactNode;
   /** Pasivas de habilidades que dan stats (fichas de players): una fila cada una y suman al total. */
   abilityPassives?: AbilityPassiveSource[];
+  /** Cargas permanentes de efectos de item (solo con el item equipado). */
+  stackSources?: PermanentStackStatSource[];
 };
 
 const EXTRA_LABEL = 'Estad\u00edsticas adicionales';
@@ -305,6 +308,7 @@ const StatsTable = ({
   canEditExtra = false,
   renderExtraEditor,
   abilityPassives = [],
+  stackSources = [],
 }: Props) => {
   const [open, setOpen] = useState(defaultOpen);
   const [editingExtra, setEditingExtra] = useState(false);
@@ -343,14 +347,27 @@ const StatsTable = ({
     active: '-',
   }));
 
+  const stackRows: SheetRow[] = stackSources.map(source => ({
+    key: `stack-${source.key}`,
+    label: source.name,
+    line: source.line,
+    tone: 'passive' as const,
+    passive: `${source.stacks} cargas permanentes (solo con el item equipado)`,
+    active: '-',
+  }));
+
   // Las pasivas cuentan como bonus (igual que los ítems).
-  const total = playerTotalLine(sheet, equipment, level, abilityPassives.map(source => source.line));
+  const total = playerTotalLine(sheet, equipment, level, [
+    ...abilityPassives.map(source => source.line),
+    ...stackSources.map(source => source.line),
+  ]);
 
   const rows: SheetRow[] = [
     { key: 'total', label: 'Total', line: total, tone: 'total' },
     ...(base ? [{ key: 'base', label: `Base nv. ${level}`, line: base, tone: 'base' as const }] : []),
     ...itemRows,
     ...passiveRows,
+    ...stackRows,
     ...(extra || extraEditable
       ? [{
           key: 'extra',

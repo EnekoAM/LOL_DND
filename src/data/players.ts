@@ -127,6 +127,9 @@ export type Player = {
   actualHp?: number;
   /** Escudo (persistido; no se muestra en la vista compacta). */
   escudo?: number;
+  /** Escudos por tipo de daño (físico solo bloquea daño físico; mágico, mágico). */
+  escudoFisico?: number;
+  escudoMagico?: number;
   /** Vida temporal (persistida; solo en el editor). */
   vidaTemporal?: number;
   /** Máximo de maná (editable). */
@@ -200,7 +203,7 @@ function readError(body: unknown, fallback: string): string {
 }
 
 export type PlayerListPatch = Partial<
-  Pick<Player, 'build' | 'equipamiento' | 'stats' | 'hp' | 'actualHp' | 'escudo' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'accentColor' | 'shortRestsUsed'>
+  Pick<Player, 'build' | 'equipamiento' | 'stats' | 'hp' | 'actualHp' | 'escudo' | 'escudoFisico' | 'escudoMagico' | 'vidaTemporal' | 'mana' | 'actualMana' | 'inspiration' | 'accentColor' | 'shortRestsUsed'>
 > & {
   abilities?: Partial<Record<PlayerAbilitySlot, string | null>>;
   /** null borra la ficha. */
