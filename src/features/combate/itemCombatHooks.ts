@@ -5,7 +5,7 @@ import { PLAYERS } from '../../data/players';
 import type { NamedEffectData } from '../../data/namedEffectDescriptions';
 import { equippedItems } from './combatBonuses';
 import { abilityBreakSource, rankValue } from '../../data/abilityMechanics';
-import { activeNamedEffects, fireEffectRules, participantContext, poolAmount, rangedFactor, rangedNote, type EffectCallbacks, type EffectTriggerName } from './effectRules';
+import { activeNamedEffects, fireEffectRules, participantContext, VULNERABLE_PREFIX, poolAmount, rangedFactor, rangedNote, ruleAmount, type EffectCallbacks, type EffectTriggerName } from './effectRules';
 import type { ResultChip } from './combatResult';
 import { participantAbilities } from './abilityRules';
 import { participantHp, type TargetDamage } from './combatHp';
@@ -32,6 +32,24 @@ const IMMOBILIZE_KEYS = [
   'stun', 'root', 'charm', 'fear', 'taunt', 'suppression', 'airborne', 'knock up', 'knockup',
   'inmovilizacion', 'inmovilizado', 'inmovil',
 ];
+
+/** Inmovilizaciones del LoL (aturdir, enraizar, lanzar / empujar, suprimir, dormir, encantar, asustar, provocar, estasis); no ralentizar / silenciar / cegar. */
+const IMMOBILIZE_EXTRA = ['aturdid', 'enraizad', 'suprimid', 'dormid', 'sueno', 'sleep', 'asustad', 'aterrad', 'huida', 'flee', 'provocad', 'encantad', 'derribad', 'lanzad', 'empujad', 'empuje', 'suspendid', 'suspension', 'estasis', 'stasis', 'berserk', 'snare', 'knockback'];
+export function isImmobilizingEffectName(name: string): boolean {
+  const folded = fold(name);
+  if (folded.includes('ralent') || folded.includes('slow')) return false;
+  return IMMOBILIZE_KEYS.some(key => folded.includes(key)) || IMMOBILIZE_EXTRA.some(key => folded.includes(key));
+}
+
+/** % de Vulnerable del objetivo (estados de reglas «Vulnerable» activos; distintos efectos se suman, el mismo se renueva). */
+export function vulnerablePct(participant: CombatParticipant): number {
+  let total = 0;
+  for (const effect of participant.effects ?? []) {
+    if ((effect.duration ?? 0) <= 0 || !(effect.source ?? '').startsWith(VULNERABLE_PREFIX)) continue;
+    if (typeof effect.value === 'number' && Number.isFinite(effect.value) && effect.value > 0) total += effect.value;
+  }
+  return Math.min(500, total);
+}
 
 /** El objetivo está inmovilizado (CC que impide moverse) o marcado por Mandato. */
 export function isImmobilized(participant: CombatParticipant): boolean {
@@ -127,6 +145,39 @@ export function cinderbloomCrit(
   return { apply: true, potency, factor: 1 + (Math.max(1, critMult) - 1) * (potency / 100), threshold };
 }
 
+/**
+ * Reglas «Amplifica el daño» del atacante que valen para este golpe (Llamasombría): tipo de daño marcado y vida del
+ * objetivo ANTES del golpe por debajo del umbral. Una por efecto con nombre (pasiva única). pct = % extra.
+ */
+export function damageAmpRules(
+  attacker: CombatParticipant,
+  target: CombatParticipant,
+  data: NamedEffectData,
+  damageType: 'physical' | 'magic' | 'true',
+  level: number,
+): { name: string; pct: number; why: string }[] {
+  const context = participantContext(attacker, level);
+  const effects = [...activeNamedEffects(participantItems(attacker), data), ...(context?.abilityEffects ?? [])];
+  const hp = participantHp(target);
+  const hpPct = hp && typeof hp.max === 'number' && hp.max > 0 ? (hp.current / hp.max) * 100 : 100;
+  const out: { name: string; pct: number; why: string }[] = [];
+  const seen = new Set<string>();
+  for (const effect of effects) {
+    if (seen.has(effect.base)) continue;
+    for (const rule of effect.config.rules) {
+      if (rule.kind !== 'damage-amp') continue;
+      if (rule.damageTypes?.length && !rule.damageTypes.includes(damageType)) continue;
+      if (rule.targetHpBelowPct != null && !(hpPct < rule.targetHpBelowPct)) continue;
+      const pct = context ? ruleAmount(rule, context.ctx) : (rule.flat ?? 0);
+      if (!(pct > 0)) continue;
+      seen.add(effect.base);
+      out.push({ name: effect.name, pct, why: rule.targetHpBelowPct != null ? `vida ${Math.round(hpPct)}% < ${rule.targetHpBelowPct}%` : 'siempre' });
+      break;
+    }
+  }
+  return out;
+}
+
 export function hasCinderbloom(participant: CombatParticipant, data: NamedEffectData): boolean {
   return activeNamedEffects(participantItems(participant), data).some(effect => effect.config.rules.some(rule => !!rule.critPotencyPct));
 }
@@ -190,31 +241,75 @@ export async function fireDealtDamageEffects(
   dealt: number,
   hooks: ReactiveHooks,
 ): Promise<{ bonuses?: CombatBonus[]; undo?: () => Promise<void> }> {
-  const trigger = DEAL_TRIGGER[damageType];
-  if (!trigger || !(dealt > 0)) return {};
+  const typed = DEAL_TRIGGER[damageType];
+  if (!typed || !(dealt > 0)) return {};
   const base = participantContext(attacker, hooks.level);
   if (!base) return {};
-  const effects = [...activeNamedEffects(participantItems(attacker), hooks.effectData), ...base.abilityEffects]
-    .filter(effect => effect.config.rules.some(rule => rule.trigger === trigger));
+  const all = [...activeNamedEffects(participantItems(attacker), hooks.effectData), ...base.abilityEffects];
+  let bonuses = attacker.bonuses;
+  let changed = false;
+  const undos: (() => Promise<void>)[] = [];
+  // Una vez por instancia de daño: primero «Al infligir daño <tipo>» y luego «Al infligir daño» (cualquier tipo).
+  for (const trigger of [typed, 'on-deal-any'] as const) {
+    const effects = all.filter(effect => effect.config.rules.some(rule => rule.trigger === trigger));
+    if (!effects.length) continue;
+    const result = await fireEffectRules({
+      trigger,
+      effects,
+      ctx: { ...base.ctx, dealt },
+      bonuses,
+      targetIds: [targetId],
+      participants: hooks.participants,
+      level: hooks.level,
+      callbacks: hooks.callbacks,
+      bearer: { id: attacker.id, name: attacker.name },
+      incomingDamage: dealt,
+    });
+    if (result.changed) { bonuses = result.bonuses; changed = true; }
+    undos.push(...result.undos);
+    const lines = result.log.map(line => line.replace(/ recibido\b/g, ' infligido'));
+    if (lines.length) logCombat({ title: `Al infligir daño${trigger === 'on-deal-any' ? '' : ` ${DEAL_LABEL[damageType]}`} — ${attacker.name}`, actor: attacker.name, lines });
+  }
+  return {
+    ...(changed && bonuses ? { bonuses } : {}),
+    ...(undos.length ? { undo: async () => { for (const undo of undos.reverse()) await undo(); } } : {}),
+  };
+}
+
+/**
+ * Tras aplicar un control (estado de CC) a enemigos: reglas «Al aplicar control» del portador (\u00edtems y habilidades).
+ * targetIds = los controlados. immobilizing: el control inmoviliza (para «Solo inmovilizaciones»).
+ */
+export async function fireCcEffects(
+  bearer: CombatParticipant,
+  targetIds: string[],
+  immobilizing: boolean,
+  ccName: string,
+  hooks: ReactiveHooks,
+): Promise<{ bonuses?: CombatBonus[]; undo?: () => Promise<void> }> {
+  if (!targetIds.length) return {};
+  const base = participantContext(bearer, hooks.level);
+  if (!base) return {};
+  const all = [...activeNamedEffects(participantItems(bearer), hooks.effectData), ...base.abilityEffects];
+  const effects = all.filter(effect => effect.config.rules.some(rule => rule.trigger === 'on-cc' && (immobilizing || !rule.ccImmobilizeOnly)));
   if (!effects.length) return {};
   const result = await fireEffectRules({
-    trigger,
+    trigger: 'on-cc',
     effects,
-    ctx: { ...base.ctx, dealt },
-    bonuses: attacker.bonuses,
-    targetIds: [targetId],
+    ctx: base.ctx,
+    bonuses: bearer.bonuses,
+    targetIds,
     participants: hooks.participants,
     level: hooks.level,
     callbacks: hooks.callbacks,
-    bearer: { id: attacker.id, name: attacker.name },
-    incomingDamage: dealt,
+    bearer: { id: bearer.id, name: bearer.name },
+    ccImmobilizing: immobilizing,
   });
-  const lines = result.log.map(line => line.replace(/ recibido\b/g, ' infligido'));
-  if (lines.length) logCombat({ title: `Al infligir daño ${DEAL_LABEL[damageType]} — ${attacker.name}`, actor: attacker.name, lines });
-  const undos = [...result.undos];
+  if (result.log.length) logCombat({ title: `Al aplicar control (${ccName}) \u2014 ${bearer.name}`, actor: bearer.name, lines: result.log });
+  const undos = result.undos;
   return {
     ...(result.changed ? { bonuses: result.bonuses } : {}),
-    ...(undos.length ? { undo: async () => { for (const undo of undos.reverse()) await undo(); } } : {}),
+    ...(undos.length ? { undo: async () => { for (const undo of [...undos].reverse()) await undo(); } } : {}),
   };
 }
 

@@ -6,9 +6,9 @@ import { useAppRole, useMyPlayerName } from '../../data/appRoleContext';
 import { canSeeHp, participantHp, participantHpPools, type DamageAmount, type DamageApplyOpts, type TargetDamage } from './combatHp';
 import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
 import { critMultiplier } from './combatMitigation';
-import { hasVigorItem, participantContext, isTempGrant, type PoolKind } from './effectRules';
+import { hasVigorItem, participantContext, isTempGrant, receivedPct, receivedText, shieldWord, type PoolKind, type PoolOpts } from './effectRules';
 import { participantItems } from './itemCombatHooks';
-import { afterDamageTaken, cinderbloomCrit, expiredPendingByPrefix, firePendingHalfShields, firePendingItemDamage, fireDealtDamageEffects, fireReactiveItemEffects, grievousCutPct, incomingDamageReductionPct, itemDamageAmpPct } from './itemCombatHooks';
+import { afterDamageTaken, fireCcEffects, isImmobilizingEffectName, vulnerablePct, cinderbloomCrit, expiredPendingByPrefix, firePendingHalfShields, firePendingItemDamage, fireDealtDamageEffects, fireReactiveItemEffects, grievousCutPct, incomingDamageReductionPct, itemDamageAmpPct, damageAmpRules } from './itemCombatHooks';
 import { participantAbilities } from './abilityRules';
 import CombatTargetPicker from './CombatTargetPicker';
 import CombatHitCheck from './CombatHitCheck';
@@ -305,11 +305,32 @@ export default function Combate() {
         amount = boosted;
       }
     }
+    // Reglas «Amplifica el daño» del atacante (Llamasombría): tipo de daño y vida del objetivo antes del golpe.
+    if (attacker && opts?.damageType) {
+      for (const amp of damageAmpRules(attacker, target, effectData, opts.damageType, partyLevel())) {
+        const boosted = Math.ceil(amount * (1 + amp.pct / 100));
+        const factor = String(Math.round((1 + amp.pct / 100) * 1000) / 1000).replace('.', ',');
+        const word = opts.damageType === 'magic' ? 'mágico' : opts.damageType === 'true' ? 'verdadero' : 'físico';
+        logCombat({ title: `${amp.name} · ${target.name}`, actor: attacker.name, lines: [`${amp.name}: crítico ×${factor} (${amp.why}) · daño ${word} ${amount} → ${boosted}`] });
+        amount = boosted;
+      }
+    }
     if (attacker) {
       const amp = itemDamageAmpPct(target, effectData, attacker);
-      if (amp) {
+      // Mandato antiguo y Vulnerable no se suman: vale el mayor.
+      if (amp && amp >= vulnerablePct(target)) {
         const boosted = Math.ceil(amount * (1 + amp / 100));
         logCombat({ title: `Mandato · ${target.name}`, actor: attacker.name, lines: [`+${amp}% de daño a objetivo inmovilizado: ${amount} → ${boosted}`] });
+        amount = boosted;
+      }
+    }
+    // Vulnerable (reglas «Vulnerable»): +% de da\u00f1o recibido de todas las fuentes (con o sin atacante).
+    {
+      const vuln = vulnerablePct(target);
+      const legacy = attacker ? itemDamageAmpPct(target, effectData, attacker) : 0;
+      if (vuln && vuln > legacy) {
+        const boosted = Math.ceil(amount * (1 + vuln / 100));
+        logCombat({ title: `Vulnerable \u00b7 ${target.name}`, ...(attacker ? { actor: attacker.name } : {}), lines: [`+${vuln}% de da\u00f1o recibido (todas las fuentes)${legacy ? ' (no se suma con Mandato)' : ''}: ${amount} \u2192 ${boosted}`] });
         amount = boosted;
       }
     }
@@ -373,11 +394,11 @@ export default function Combate() {
             effectData,
             participants: stateRef.current.participants,
             callbacks: {
-              onTargetDamage: (id: string, value: DamageAmount) => damageTarget(id, value),
+              onTargetDamage: (id: string, value: DamageAmount, opts?: DamageApplyOpts) => damageTarget(id, value, opts),
               onTargetBonuses: targetBonuses,
-              onSelfPool: (kind: PoolKind, value: number) => poolChange(fresh.id, kind, value),
-              onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number) => poolChange(id, kind, value),
-              onApplySourcedEffect: applySourcedToMany,
+              onSelfPool: (kind: PoolKind, value: number, opts?: PoolOpts) => poolChange(fresh.id, kind, value, opts),
+              onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number, opts?: PoolOpts) => poolChange(id, kind, value, opts),
+              onApplySourcedEffect: (ids: string[], input: SourcedEffectInput) => applySourcedToMany(ids, input, fresh.id),
             },
           };
           const nextBonuses = await afterDamageTaken(fresh, result, amount, hooks, opts);
@@ -392,7 +413,7 @@ export default function Combate() {
       }
     }
     // "Al infligir daño físico / mágico / verdadero": reacciona el atacante (AA y habilidades con atacante y tipo).
-    if (canAct && attacker && opts?.damageType && !dealingRef.current) {
+    if (canAct && attacker && opts?.damageType && !opts.fromRule && !dealingRef.current) {
       dealingRef.current = true;
       try {
         const fresh = stateRef.current.participants.find(p => p.id === attacker.id);
@@ -403,11 +424,11 @@ export default function Combate() {
             effectData,
             participants: stateRef.current.participants,
             callbacks: {
-              onTargetDamage: (id: string, value: DamageAmount) => damageTarget(id, value),
+              onTargetDamage: (id: string, value: DamageAmount, opts?: DamageApplyOpts) => damageTarget(id, value, opts),
               onTargetBonuses: targetBonuses,
-              onSelfPool: (kind: PoolKind, value: number) => poolChange(fresh.id, kind, value),
-              onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number) => poolChange(id, kind, value),
-              onApplySourcedEffect: applySourcedToMany,
+              onSelfPool: (kind: PoolKind, value: number, opts?: PoolOpts) => poolChange(fresh.id, kind, value, opts),
+              onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number, opts?: PoolOpts) => poolChange(id, kind, value, opts),
+              onApplySourcedEffect: (ids: string[], input: SourcedEffectInput) => applySourcedToMany(ids, input, fresh.id),
             },
           });
           let undoBonuses: (() => Promise<void>) | undefined;
@@ -533,10 +554,21 @@ export default function Combate() {
     }
   };
 
-  const poolChange = async (participantId: string, kind: PoolKind, amount: number): Promise<(() => Promise<void>) | null> => {
+  const poolChange = async (participantId: string, kind: PoolKind, amount: number, opts?: PoolOpts): Promise<(() => Promise<void>) | null> => {
     if (kind === 'temp') return tempHpChange(participantId, amount);
     const self = stateRef.current.participants.find(p => p.id === participantId);
     if (!self || !(amount > 0)) return null;
+    // Curación y escudos recibidos % de quien lo recibe (Semblante espiritual): tras el poder de quien cura (multiplicativo) y
+    // antes de Heridas graves. La vida temporal ya la lleva su regla; el robo de vida / omnivamp. la lleva en su % (noReceived).
+    if (kind !== 'mana' && !opts?.noReceived) {
+      const recPct = receivedPct(participantContext(self, partyLevel())?.ctx.stats);
+      if (recPct) {
+        const boosted = Math.max(0, Math.round(amount * (1 + recPct / 100)));
+        logCombat({ title: `Curación y escudos recibidos · ${self.name}`, actor: self.name, lines: [`${kind === 'heal' ? 'Cura' : shieldWord(kind)}: ${amount}${receivedText(recPct)} → ${boosted} (redondeo al más cercano)`] });
+        amount = boosted;
+        if (!(amount > 0)) return null;
+      }
+    }
     if (kind === 'heal') {
       const cut = grievousCutPct(self);
       if (cut) {
@@ -630,11 +662,49 @@ export default function Combate() {
     return { ...stateRef.current, participants: sorted, turnIndex };
   };
 
-  const applySourcedToMany = (targetIds: string[] | string, input: SourcedEffectInput) => {
+  // «Al aplicar control»: tras poner un estado de CC, reacciona quien lo aplica (sus reglas on-cc) sobre los que lo han recibido.
+  const ccFiringRef = useRef(false);
+  const fireCcTrigger = async (bearerId: string | undefined, targetIds: string[], input: SourcedEffectInput) => {
+    if (!canAct || !bearerId || input.restore || ccFiringRef.current) return;
+    if (!isControlEffectName(input.name) && !isImmobilizingEffectName(input.name)) return;
+    const base = stateRef.current.participants;
+    const fresh = base.find(entry => entry.id === bearerId);
+    if (!fresh || fresh.defeated) return;
+    // Solo los que de verdad lo tienen ahora (no el portador, ni bloqueados por Inexpugnable / l\u00edmite de estados).
+    const ids = targetIds.filter(id => id !== bearerId && base.some(entry => entry.id === id && !entry.defeated && entry.effects.some(fx => fx.source === input.source && fx.duration > 0)));
+    if (!ids.length) return;
+    ccFiringRef.current = true;
+    try {
+      const fired = await fireCcEffects(fresh, ids, isImmobilizingEffectName(input.name), input.name, {
+        level: partyLevel(),
+        effectData,
+        participants: stateRef.current.participants,
+        callbacks: {
+          onTargetDamage: (id: string, value: DamageAmount, opts?: DamageApplyOpts) => damageTarget(id, value, opts),
+          onTargetBonuses: targetBonuses,
+          onSelfPool: (kind: PoolKind, value: number, opts?: PoolOpts) => poolChange(fresh.id, kind, value, opts),
+          onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number, opts?: PoolOpts) => poolChange(id, kind, value, opts),
+          onApplySourcedEffect: (next: string[], effect: SourcedEffectInput) => applySourcedToMany(next, effect, fresh.id),
+        },
+      });
+      if (fired.bonuses) {
+        const saved = await saveCombatBonuses(fresh.id, fired.bonuses);
+        stateRef.current = saved;
+        setState(saved);
+        setTrackerBump(n => n + 1);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudieron aplicar las reglas \u00abAl aplicar control\u00bb');
+    } finally {
+      ccFiringRef.current = false;
+    }
+  };
+
+  const applySourcedToMany = (targetIds: string[] | string, input: SourcedEffectInput, bearerId?: string): Promise<void> | undefined => {
     const ids = new Set(Array.isArray(targetIds) ? targetIds : [targetIds]);
     const base = stateRef.current.participants;
     if (!base.some(entry => ids.has(entry.id))) return;
-    const applierId = sourceBearerId(input.source);
+    const applierId = bearerId ?? sourceBearerId(input.source);
     const applier = applierId ? base.find(entry => entry.id === applierId) : undefined;
     const blocked: string[] = [];
     if (isControlEffectName(input.name) && applier) {
@@ -657,7 +727,7 @@ export default function Combate() {
     }
     if (!base.some(entry => ids.has(entry.id))) return;
     const participants = base.map(entry => (ids.has(entry.id) ? applySourcedEffect(entry, input) : entry));
-    return persist(syncOrder(participants, stateRef.current.participants[stateRef.current.turnIndex]?.id));
+    return persist(syncOrder(participants, stateRef.current.participants[stateRef.current.turnIndex]?.id)).then(() => fireCcTrigger(applierId, [...ids], input));
   };
 
   const current = ordered[state.turnIndex];
@@ -995,11 +1065,11 @@ export default function Combate() {
           effectData,
           participants: stateRef.current.participants,
           callbacks: {
-            onTargetDamage: (id: string, value: DamageAmount) => damageTarget(id, value),
+            onTargetDamage: (id: string, value: DamageAmount, opts?: DamageApplyOpts) => damageTarget(id, value, opts),
             onTargetBonuses: targetBonuses,
-            onSelfPool: (kind: PoolKind, value: number) => poolChange(bearer.id, kind, value),
-            onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number) => poolChange(id, kind, value),
-            onApplySourcedEffect: applySourcedToMany,
+            onSelfPool: (kind: PoolKind, value: number, opts?: PoolOpts) => poolChange(bearer.id, kind, value, opts),
+            onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number, opts?: PoolOpts) => poolChange(id, kind, value, opts),
+            onApplySourcedEffect: (ids: string[], input: SourcedEffectInput) => applySourcedToMany(ids, input, bearer.id),
           },
         };
         const bonuses = await fireReactiveItemEffects('each-turn', bearer, hooks, []);
@@ -1029,11 +1099,11 @@ export default function Combate() {
           effectData,
           participants: stateRef.current.participants,
           callbacks: {
-            onTargetDamage: (targetId: string, value: DamageAmount) => damageTarget(targetId, value),
+            onTargetDamage: (targetId: string, value: DamageAmount, opts?: DamageApplyOpts) => damageTarget(targetId, value, opts),
             onTargetBonuses: targetBonuses,
-            onSelfPool: (kind: PoolKind, value: number) => poolChange(bearer.id, kind, value),
-            onTargetPool: (targetId: string, kind: Exclude<PoolKind, 'mana'>, value: number) => poolChange(targetId, kind, value),
-            onApplySourcedEffect: applySourcedToMany,
+            onSelfPool: (kind: PoolKind, value: number, opts?: PoolOpts) => poolChange(bearer.id, kind, value, opts),
+            onTargetPool: (targetId: string, kind: Exclude<PoolKind, 'mana'>, value: number, opts?: PoolOpts) => poolChange(targetId, kind, value, opts),
+            onApplySourcedEffect: (ids: string[], input: SourcedEffectInput) => applySourcedToMany(ids, input, bearer.id),
           },
         };
         const bonuses = await fireReactiveItemEffects(trigger, bearer, hooks, []);
@@ -1165,8 +1235,8 @@ export default function Combate() {
           }}
           onTargetDamage={isAdmin || p.id === myParticipantId ? damageTarget : undefined}
           onTargetBonuses={isAdmin || p.id === myParticipantId ? targetBonuses : undefined}
-          onPoolChange={isAdmin || p.id === myParticipantId ? (kind, amount) => poolChange(p.id, kind, amount) : undefined}
-          onTargetPool={isAdmin || p.id === myParticipantId ? (targetId, kind, amount) => poolChange(targetId, kind, amount) : undefined}
+          onPoolChange={isAdmin || p.id === myParticipantId ? (kind, amount, opts) => poolChange(p.id, kind, amount, opts) : undefined}
+          onTargetPool={isAdmin || p.id === myParticipantId ? (targetId, kind, amount, opts) => poolChange(targetId, kind, amount, opts) : undefined}
           onManualDamage={canAct ? async amount => {
             // Daño apuntado a mano (players: enemigos con «Vida ?»): mismo camino que las habilidades.
             const result = await damageTarget(p.id, amount);
@@ -1235,7 +1305,8 @@ export default function Combate() {
             const base = stateRef.current.participants;
             if (!base.some(entry => ids.has(entry.id))) return;
             const participants = base.map(entry => (ids.has(entry.id) ? applySourcedEffect(entry, input) : entry));
-            return persist(syncOrder(participants, current?.id));
+            // El que aplica es el due\u00f1o del panel: si es un control, salta su «Al aplicar control».
+            return persist(syncOrder(participants, current?.id)).then(() => fireCcTrigger(p.id, [...ids], input));
           }}
           onEffectStacksChange={(effectId, stacks) => {
             updateOne(p.id, { effects: setEffectStacks(p, effectId, stacks).effects });

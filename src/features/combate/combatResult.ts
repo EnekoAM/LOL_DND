@@ -18,7 +18,7 @@ export const signed = (value: number): string => `${value > 0 ? '+' : value < 0 
 const STAT_SHORT: Record<string, string> = {
   hp: 'PV', ac: 'CA', mr: 'RM', mana: 'Maná', ad: 'AD', ap: 'AP', critChance: 'caras crít.', critDamage: 'daño crít.',
   spe: 'Vel.', atkSpePct: '% vel. at.', abSpePct: '% vel. hab.', lethality: 'Letal.', magicPen: 'Pen. mág.',
-  armorPenPct: '% pen. arm.', magicPenPct: '% pen. mág.', healShieldPct: '% cur./esc.', tenacityPct: '% tenac.',
+  armorPenPct: '% pen. arm.', magicPenPct: '% pen. mág.', healShieldPct: '% cur./esc.', healShieldReceivedPct: '% cur./esc. rec.', tenacityPct: '% tenac.',
   lifeStealPct: '% robo vida', omnivampPct: '% omnisucc.', healthRegen: 'Regen. PV', manaRegen: 'Regen. maná',
 };
 export const statShort = (stat: string): string => STAT_SHORT[stat] ?? stat;

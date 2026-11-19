@@ -6,7 +6,7 @@ import { LOL_SCALE_KINDS, ruleLolAdAp, type EffectBonusConfig, type EffectRule }
  * Se guarda la misma forma de siempre (EffectBonusConfig): el combate no cambia.
  */
 
-export const FORMULA_KINDS: readonly string[] = ['stat', 'damage', 'heal', 'shield', 'shield-magic', 'shield-physical', 'temp-hp', 'mana', 'attack-speed', 'move-speed', 'vigor', 'damage-reduction'];
+export const FORMULA_KINDS: readonly string[] = ['stat', 'damage', 'heal', 'shield', 'shield-magic', 'shield-physical', 'temp-hp', 'mana', 'attack-speed', 'move-speed', 'vigor', 'damage-reduction', 'damage-amp', 'vulnerable'];
 export const STACK_KINDS: readonly string[] = ['stat', 'attack-speed', 'move-speed'];
 
 type RuleKey = keyof EffectRule;
@@ -20,7 +20,8 @@ export function ruleFieldApplies(field: RuleKey, rule: Pick<EffectRule, 'trigger
   const kind = rule.kind;
   switch (field) {
     case 'hpBelowPct': return rule.trigger === 'hp-below' || kind === 'execute';
-    case 'targetHpBelowPct': return kind === 'execute' || kind === 'status' || kind === 'damage';
+    case 'targetHpBelowPct': return kind === 'execute' || kind === 'status' || kind === 'damage' || kind === 'damage-amp';
+    case 'damageTypes': return kind === 'damage-amp';
     // critPotencyPct no va aqui: lo lee itemCombatHooks por id (Llamasombria es un estado).
     case 'lifeSteal': case 'healFromDealtPct': case 'missingHpScalePct': case 'pulseEachTurn': case 'damageType':
       return kind === 'damage';
@@ -36,8 +37,10 @@ export function ruleFieldApplies(field: RuleKey, rule: Pick<EffectRule, 'trigger
     case 'halfAfterTurns': return kind === 'shield' || kind === 'shield-magic' || kind === 'shield-physical';
     case 'healOverTurns': return kind === 'heal';
     case 'lolScale': return LOL_SCALE_KINDS.includes(kind);
-    case 'permanent': case 'stacksPerTrigger': return STACK_KINDS.includes(kind);
+    case 'permanent': case 'stacksPerTrigger': case 'decays': case 'stackValue': return STACK_KINDS.includes(kind);
     case 'flat': case 'ratios': case 'perLevel': case 'levelFrom': return FORMULA_KINDS.includes(kind);
+    case 'ccImmobilizeOnly': return rule.trigger === 'on-cc';
+    case 'extendDuration': return kind === 'status' || kind === 'slow' || kind === 'vulnerable';
     case 'auraRange': return false;
     default: return true;
   }
@@ -54,7 +57,7 @@ export function lolDiceStatOfRule(rule: Pick<EffectRule, 'kind' | 'stat' | 'dama
 export const ruleFieldVisible = (field: RuleKey, rule: EffectRule): boolean =>
   ruleFieldApplies(field, rule) || hasValue(rule[field]);
 
-const RULE_KEYS: RuleKey[] = ['lolScale', 'lolDice', 'healOverTurns', 'hpBelowPct', 'targetHpBelowPct', 'lifeSteal', 'healFromDealtPct', 'dice', 'missingHpScalePct', 'pulseEachTurn', 'damageType', 'fromDamagePct', 'fromManaSpentPct', 'vs', 'action', 'slowPct', 'statusName', 'spellShield', 'count', 'stat', 'halfAfterTurns', 'permanent', 'stacksPerTrigger', 'flat', 'ratios', 'perLevel', 'levelFrom', 'auraRange'];
+const RULE_KEYS: RuleKey[] = ['lolScale', 'lolDice', 'healOverTurns', 'hpBelowPct', 'targetHpBelowPct', 'lifeSteal', 'healFromDealtPct', 'dice', 'missingHpScalePct', 'pulseEachTurn', 'damageType', 'fromDamagePct', 'fromManaSpentPct', 'vs', 'action', 'slowPct', 'statusName', 'spellShield', 'count', 'stat', 'halfAfterTurns', 'permanent', 'stackValue', 'decays', 'stacksPerTrigger', 'flat', 'ratios', 'perLevel', 'levelFrom', 'auraRange', 'damageTypes', 'ccImmobilizeOnly', 'extendDuration'];
 
 /** Al cambiar \u00abCu\u00e1ndo\u00bb o \u00abQu\u00e9\u00bb: se quitan los campos que ya no se usan (lo oculto no se guarda). */
 export function dropUnusedFields(rule: EffectRule): EffectRule {
@@ -185,12 +188,17 @@ export const FIELD_LABEL: Partial<Record<RuleKey, string>> = {
   lolScale: 'Valor del LoL (\u00f710)',
   lolDice: 'AD / AP del LoL (dados d6)',
   permanent: 'Cargas permanentes',
+  stackValue: 'La carga guarda el valor calculado',
+  ccImmobilizeOnly: 'Solo inmovilizaciones',
+  extendDuration: 'Reaplicar suma la duraci\u00f3n',
+  decays: 'Decae durante la duración',
   stacksPerTrigger: 'Cargas por activación',
   flat: 'Valor fijo',
   ratios: 'Escalados',
   perLevel: 'Valor por nivel',
   levelFrom: 'Nivel del objetivo',
   auraRange: 'Aura (casillas)',
+  damageTypes: 'Tipos de daño',
 };
 
 export function ruleWarnings(rule: EffectRule, config: EffectBonusConfig, kindLabel: string): string[] {
@@ -209,6 +217,9 @@ export function ruleWarnings(rule: EffectRule, config: EffectBonusConfig, kindLa
   if (rule.healOverTurns != null && rule.delayTurns) out.push('Con \u00abRepartir en N turnos\u00bb no se usa \u00abSe aplica dentro de (turnos)\u00bb.');
   if (rule.healOverTurns != null && (rule.fromDamagePct || rule.fromManaSpentPct)) out.push('\u00abRepartir en N turnos\u00bb no vale con la cura por % del da\u00f1o o del man\u00e1: se cura de golpe.');
   if (rule.permanent && rule.duration != null) out.push('Las cargas permanentes no caducan: la duraci\u00f3n no se usa.');
+  if (rule.decays && rule.permanent) out.push('«Decae durante la duración» no vale con cargas permanentes.');
+  if (rule.stackValue && !rule.permanent) out.push('«La carga guarda el valor calculado» necesita «Cargas permanentes».');
+  if (rule.decays && (rule.duration ?? config.duration) === -1) out.push('«Decae durante la duración» necesita una duración en turnos (no «hasta el final del combate»).');
   if (rule.duration != null && config.duration != null && rule.duration === config.duration) out.push('La duraci\u00f3n propia es igual que la del efecto: sobra.');
   if (FORMULA_KINDS.includes(rule.kind) && !rule.flat && !rule.ratios?.some(ratio => ratio.pct) && !rule.perLevel?.length && !rule.dice && !rule.fromDamagePct && !rule.fromManaSpentPct && !ruleLolAdAp(rule)) {
     out.push('Falta el valor (fijo, por nivel, dados o un escalado).');
@@ -221,6 +232,8 @@ export function configWarnings(config: EffectBonusConfig): string[] {
   const hasCd = !!config.cooldown || !!config.cooldownByLevel?.length;
   const choice = cdStartChoiceOf(config);
   if (config.perTargetCooldown && !hasCd) out.push('\u00abEnfriamiento por objetivo\u00bb necesita turnos de enfriamiento.');
+  if (config.cooldownReducedOnAttack && !hasCd) out.push('«Cada AA reduce el CD» necesita turnos de enfriamiento.');
+  if (config.cooldownReducedOnAttack && config.perTargetCooldown) out.push('«Cada AA reduce el CD» no baja los CD por objetivo (marcas en los enemigos), solo el del portador.');
   if (choice !== 'on-activate' && !hasCd) out.push('Elegiste cu\u00e1ndo empieza el enfriamiento, pero no hay turnos de enfriamiento.');
   if (config.duration != null && (config.duration === 0 || config.duration < -1 || !Number.isInteger(config.duration))) out.push('Duraci\u00f3n del efecto no v\u00e1lida: pon 1 o m\u00e1s turnos, o -1 (\u00abHasta el final del combate\u00bb). 0 no es infinito: se ignora.');
   if (config.cdStart === 'on-end' && config.duration === -1) out.push('\u00abAl terminar el efecto\u00bb con duraci\u00f3n -1: el efecto no termina en el combate; el CD se pone ya al activarse.');

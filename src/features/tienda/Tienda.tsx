@@ -36,6 +36,7 @@ const STAT_LABELS: Record<string, string> = {
   'Armor pen %': 'Pen. armadura %',
   'Magic pen %': 'Pen. mágica %',
   'Heal & shield %': 'Poder cur./escudos %',
+  'Heal & shield received %': 'Cur./escudos recibidos %',
   'Tenacity %': 'Tenacidad %',
   'Slow resist %': 'Res. ralentización %',
   'Life steal %': 'Robo de vida %',

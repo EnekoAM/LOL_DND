@@ -103,6 +103,11 @@ export type CombatBonus = {
   /** Marcador 'charges' (cargas de combate, source charges:<efecto>): amount = cargas, maxStacks = máx.; recarga en recharge turnos, cada rechargeEvery. */
   recharge?: number;
   rechargeEvery?: number;
+  /** CD con decimales («Cada AA reduce el CD»): parte del turno ya descontada; lo que queda = turns - cdCut. */
+  cdCut?: number;
+  /** Regla «Decae durante la duración»: valor entero al aplicarse y turnos totales; al empezar cada turno amount = decayFrom × turnos que quedan / decayTurns. */
+  decayFrom?: number;
+  decayTurns?: number;
   /** "manual" o "item:<nombre>". */
   source?: string;
   label?: string;
@@ -361,6 +366,16 @@ export function tickCharges(bonus: CombatBonus): CombatBonus {
   return amount < max && bonus.rechargeEvery ? { ...rest, amount, recharge: bonus.rechargeEvery } : { ...rest, amount };
 }
 
+/** Decae durante la duración: decayFrom × turnos que quedan / turnos totales (% con 2 decimales; planos al entero más cercano). */
+export function decayedAmount(stat: string, full: number, turnsLeft: number, total: number): number {
+  const value = full * Math.max(0, Math.min(1, turnsLeft / Math.max(1, total)));
+  return /Pct$/.test(stat) ? Math.round(value * 100) / 100 : Math.round(value);
+}
+const decayBonus = (bonus: CombatBonus): CombatBonus =>
+  typeof bonus.decayFrom === 'number' && typeof bonus.decayTurns === 'number' && typeof bonus.turns === 'number'
+    ? { ...bonus, amount: decayedAmount(bonus.stat, bonus.decayFrom, bonus.turns, bonus.decayTurns) }
+    : bonus;
+
 export function tickCombatTrackers(participant: CombatParticipant): CombatParticipant {
   // Empieza su turno: vuelve a tener todos sus ataques y habilidades.
   if (participant.actionsLeft || participant.actionsExtra) {
@@ -377,7 +392,10 @@ export function tickCombatTrackers(participant: CombatParticipant): CombatPartic
     const bonuses = participant.bonuses
       .map(bonus => (bonus.stat === 'charges' ? tickCharges(bonus) : bonus))
       .map(bonus => (typeof bonus.turns === 'number' && bonus.turns < 999 ? { ...bonus, turns: bonus.turns - 1 } : bonus))
-      .filter(bonus => typeof bonus.turns !== 'number' || bonus.turns > 0);
+      .filter(bonus => typeof bonus.turns !== 'number' || bonus.turns > 0)
+      // Decae durante la duración: baja a partes iguales (a 0 se quita).
+      .map(decayBonus)
+      .filter(bonus => bonus.amount !== 0 || typeof bonus.decayFrom !== 'number');
     const { bonuses: _old, ...rest } = participant;
     participant = bonuses.length ? { ...rest, bonuses } : rest;
   }

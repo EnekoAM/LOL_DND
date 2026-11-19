@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   CD_START_MODES,
   DAMAGE_TYPES,
@@ -136,16 +136,21 @@ const H = {
   maxStacks: 'Cu\u00e1ntas veces se acumula como mucho (bonus por acumulaci\u00f3n).',
   stacksPerTrigger: 'Cu\u00e1ntas cargas permanentes suma cada vez que se cumple el \u00abCu\u00e1ndo\u00bb (1 por defecto). No pasa del m\u00e1ximo de acumulaciones.',
   permanent: 'Cada vez suma las cargas por activaci\u00f3n (1 por defecto) en la ficha del personaje y se conserva entre combates; el bonus solo cuenta con el \u00edtem equipado.',
+  stackValue: 'Cada activación calcula el valor de la regla con las stats de ese momento (p. ej. 0,7 + 0,06% de la vida máx. antes de ganar) y lo SUMA a lo guardado en la ficha: 10 de vida acumulada = +10 de vida. Sin marcar, la ficha guarda un contador y suma valor × cargas. En la ficha se ve redondeado hacia abajo (los % con 2 decimales).',
   triggerAtMax: 'Solo se aplica al llegar al m\u00e1ximo de acumulaciones; luego se reinicia.',
   perTargetCounter: 'El contador (cada N / acumulaciones) va por separado para cada objetivo.',
   everyN: 'Solo se aplica una de cada N veces que se cumple el \u00abCu\u00e1ndo\u00bb.',
   requiresMax: 'Solo se aplica si otra regla de este efecto est\u00e1 al m\u00e1ximo de acumulaciones (3.er AA de Guinsoo).',
   delay: 'El efecto se aplica dentro de N turnos en vez de al momento.',
   half: 'Pasados N turnos el escudo baja a la mitad.',
+  ccImmobilizeOnly: 'Solo cuenta si el control inmoviliza (como en el LoL): aturdir, enraizar, lanzar por los aires / empujar, suprimir, dormir, encantar, asustar, provocar, estasis. Sin marcar vale cualquier control (tambi\u00e9n ralentizar, silenciar, cegar...). Se dispara cuando el portador aplica el estado a un enemigo (habilidades, activas y reglas de \u00edtems); los objetivos de la regla son los controlados.',
+  extendDuration: 'Si el objetivo ya tiene este estado activo, volver a aplicarlo SUMA los turnos (quedan + duraci\u00f3n). Sin marcar se renueva a la duraci\u00f3n completa (lo normal en el LoL: \u00abreaplicar alarga\u00bb suele ser renovar).',
+  decays: 'El bonus empieza entero y baja a partes iguales al empezar cada turno de quien lo tiene, hasta 0 al acabar la duración (valor × turnos que quedan / turnos totales). Los % guardan decimales; los planos se redondean al más cercano.',
   hot: 'La cura total se calcula al dispararse (valor + escalados \u00d7 poder de curaci\u00f3n) y se reparte en N tramos iguales: el 1.\u00ba al momento y uno al empezar cada turno de quien la recibe. Si vuelve a saltar, sustituye lo que quedaba.',
   unseen: 'Turnos sin ser visto para armar el siguiente AA.',
   armed: 'Despu\u00e9s de ser visto, el AA armado dura estos turnos.',
   amp: 'Quien tenga este estado recibe este % m\u00e1s de da\u00f1o.',
+  damageTypes: 'Amplifica el daño: solo el daño de estos tipos que haga el portador (ninguno marcado = todos). El valor fijo es el % extra (20 = × 1,2). Con «Solo si el objetivo tiene menos de (% vida)» se mira su vida antes del golpe.',
   crit: 'Si marcas cr\u00edtico, el da\u00f1o extra del cr\u00edtico va a este % de potencia.',
   note: 'Texto libre que sale en el registro de combate. No cambia ning\u00fan c\u00e1lculo.',
   targetHp: 'Solo se aplica si el objetivo tiene menos de este % de vida.',
@@ -153,6 +158,7 @@ const H = {
   cdLevel: 'Un CD distinto para cada tramo de nivel del portador: 1-5, 6-10, 11-15 y 16-20.',
   cdStart: 'Cu\u00e1ndo empieza a contar el enfriamiento.',
   perTarget: 'El CD se pone en el objetivo golpeado: cada objetivo tiene el suyo.',
+  cdOnAttack: 'Cada auto-ataque (AA) del portador baja el CD que le queda a este efecto en estos turnos (admite decimales: 0.5 = medio turno). Al llegar a 0 vuelve a estar disponible. En pantalla se redondea hacia arriba.',
   duration: 'Turnos que dura el efecto. Las reglas usan esta duraci\u00f3n salvo que tengan una propia.',
   once: 'Tras aplicarse no vuelve a dispararse en este combate (Medall\u00f3n, Sterak, Zhonya...).',
   maxTargets: 'Al usar la activa, a cu\u00e1ntos enemigos como mucho afecta.',
@@ -164,8 +170,10 @@ const H = {
   lolDice: 'Escribe el AD / AP que da el LoL (4, 40, 75...). En un bonus de stat se guarda ese valor (aunque no llegue a 1d6) y se suma al AD/AP total antes de convertir. En da\u00f1o se rellenan los dados: 1d6 cada 15 de AD o cada 20 de AP; lo que sobra suma +1d2 o +1d4 (AD: 5-9 / 10-14; AP: 7-13 / 14-19). Si luego cambias los dados a mano, se olvida el valor del LoL.',
 };
 
-const RuleCard = ({ rule, index, config, onChange, onRemove }: {
+const RuleCard = ({ rule, index, config, onChange, onRemove, onMoveUp, onMoveDown }: {
   rule: EffectRule; index: number; config: EffectBonusConfig; onChange: (rule: EffectRule) => void; onRemove: () => void;
+  /** Subir / bajar la regla en la lista (undefined = ya est\u00e1 en el extremo). */
+  onMoveUp?: () => void; onMoveDown?: () => void;
 }) => {
   const set = (patch: Partial<EffectRule>) => {
     const next: EffectRule = { ...rule, ...patch };
@@ -223,6 +231,10 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
       <div className="bx-rule__head">
         <strong>{`Regla ${index + 1}`}</strong>
         <span className="bx-rule__summary">{ruleSummary(rule)}</span>
+        <span className="bx-rule__move">
+          <button type="button" className="bx-btn bx-move" disabled={!onMoveUp} onClick={onMoveUp} title="Subir regla" aria-label="Subir regla">{'\u25b2'}</button>
+          <button type="button" className="bx-btn bx-move" disabled={!onMoveDown} onClick={onMoveDown} title="Bajar regla" aria-label="Bajar regla">{'\u25bc'}</button>
+        </span>
         <button type="button" className="bx-remove" onClick={onRemove} title="Quitar esta regla">Quitar</button>
       </div>
 
@@ -235,6 +247,7 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
                 {EFFECT_TRIGGERS.map(trigger => <option key={trigger.id} value={trigger.id}>{trigger.label}</option>)}
               </select>
             </Field>
+            {show('ccImmobilizeOnly') && <Check label={'Solo inmovilizaciones (no ralentizar / silenciar)'} help={H.ccImmobilizeOnly} checked={!!rule.ccImmobilizeOnly} onChange={checked => set({ ccImmobilizeOnly: checked || undefined })} />}
             {show('hpBelowPct') && <NumberField label={'Vida del portador por debajo de (%)'} help={H.hpBelow} value={rule.hpBelowPct} onChange={hpBelowPct => set({ hpBelowPct })} placeholder="30" />}
             <Field label={'Cuerpo a cuerpo / distancia'} help={H.range}>
               <select value={range} onChange={e => onChange(withRangeMode(rule, e.target.value as RangeMode))}>
@@ -308,6 +321,18 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
             )}
             {show('halfAfterTurns') && <NumberField label={'El escudo baja a la mitad tras (turnos)'} help={H.half} step="1" value={rule.halfAfterTurns} onChange={halfAfterTurns => set({ halfAfterTurns })} />}
             {show('targetHpBelowPct') && <NumberField label={'Solo si el objetivo tiene menos de (% vida)'} help={H.targetHp} value={rule.targetHpBelowPct} onChange={targetHpBelowPct => set({ targetHpBelowPct })} />}
+        {show('damageTypes') && (
+          <Field label={'Tipos de daño (ninguno = todos)'} help={H.damageTypes} wide>
+            <span className="bx-checks">
+              {DAMAGE_TYPES.map(type => (
+                <label key={type.id}>
+                  <input type="checkbox" checked={!!rule.damageTypes?.includes(type.id)} onChange={e => { const list = (rule.damageTypes ?? []).filter(entry => entry !== type.id); const next = e.target.checked ? [...list, type.id] : list; set({ damageTypes: next.length ? next : undefined }); }} />
+                  {` ${type.label}`}
+                </label>
+              ))}
+            </span>
+          </Field>
+        )}
             {show('lifeSteal') && <Check label={'Aplica robo de vida'} help={'Cura al portador el da\u00f1o hecho por su robo de vida % (Hidra voraz).'} checked={!!rule.lifeSteal} onChange={checked => set({ lifeSteal: checked || undefined })} />}
             {show('pulseEachTurn') && <Check label={'Se repite cada turno (zona)'} help={'El da\u00f1o se repite cada turno del portador mientras duren las marcas.'} checked={!!rule.pulseEachTurn} onChange={checked => set({ pulseEachTurn: checked || undefined })} />}
             {show('spellShield') && <Check label={'Es un escudo de hechizos'} help={'Bloquea la siguiente habilidad enemiga y se rompe.'} checked={!!rule.spellShield} onChange={checked => set({ spellShield: checked || undefined })} />}
@@ -394,7 +419,8 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
                   <button type="button" className="bx-remove" title="Quitar escalado" onClick={() => set({ ratios: ratios.filter((_, j) => j !== i) })}>Quitar</button>
                 </span>
               ))}
-              {ratios.some(r => r.stat === 'dealtDamage') && <small className="bx-hint">{'Da\u00f1o infligido: solo con disparadores que hacen da\u00f1o ("Al infligir da\u00f1o f\u00edsico / m\u00e1gico / verdadero"); en el resto suma 0. Es el da\u00f1o final, tras armadura / RM y escudos del objetivo.'}</small>}
+              {ratios.some(r => r.stat === 'dealtDamage') && <small className="bx-hint">{'Da\u00f1o infligido: solo con disparadores que hacen da\u00f1o ("Al infligir da\u00f1o" o "Al infligir da\u00f1o f\u00edsico / m\u00e1gico / verdadero"); en el resto suma 0. Es el da\u00f1o final, tras armadura / RM y escudos del objetivo.'}</small>}
+              {ratios.some(r => r.stat === 'enemiesHit') && <small className="bx-hint">{'Enemigos golpeados: multiplica el resto del valor (fijo + otros escalados) por los enemigos distintos golpeados en esa activación × este % (100% = × N). Si no hay más valor, el número es lo que da cada enemigo (35 = +35 por enemigo). Sin objetivos marcados = 0.'}</small>}
 {ratios.length < 6 && <button type="button" className="bx-btn" title={H.ratio} onClick={() => set({ ratios: [...ratios, { stat: 'ap', pct: 0 }] })}>+ escalado</button>}
             </div>
           </fieldset>
@@ -411,12 +437,15 @@ const RuleCard = ({ rule, index, config, onChange, onRemove }: {
           />
           {(ownDuration || rule.duration != null) && <NumberField label={'Dura (turnos; -1 = resto del combate)'} help={H.forever} step="1" value={rule.duration} onChange={duration => set({ duration })} />}
           {(ownDuration || rule.duration != null) && <Check label={'Hasta el final del combate'} help={H.forever} checked={rule.duration === -1} onChange={checked => set({ duration: checked ? -1 : undefined })} />}
+          {show('extendDuration') && <Check label={'Reaplicar suma la duraci\u00f3n (si no, la renueva)'} help={H.extendDuration} checked={!!rule.extendDuration} onChange={checked => set({ extendDuration: checked || undefined })} />}
+          {((STACK_KINDS.includes(rule.kind) && !rule.permanent) || rule.decays) && <Check label={'Decae durante la duración'} help={H.decays} checked={!!rule.decays} onChange={checked => set({ decays: checked || undefined })} />}
         </div>
       )}
 
       <Fold title={'Acumulaci\u00f3n'} used={stacksUsed}>
         <NumberField label={'M\u00e1ximo de acumulaciones'} help={H.maxStacks} step="1" value={rule.maxStacks} onChange={maxStacks => set({ maxStacks })} />
         {(STACK_KINDS.includes(rule.kind) || rule.permanent) && <Check label={'Cargas permanentes (se guardan en la ficha)'} help={H.permanent} checked={!!rule.permanent} onChange={checked => set({ permanent: checked || undefined, ...(checked ? {} : { stacksPerTrigger: undefined }) })} />}
+        {(rule.permanent || rule.stackValue) && <Check label={'La carga guarda el valor calculado (se suma)'} help={H.stackValue} checked={!!rule.stackValue} onChange={checked => set({ stackValue: checked || undefined })} />}
         {(rule.permanent || rule.stacksPerTrigger != null) && <NumberField label={'Cargas por activación'} help={H.stacksPerTrigger} step="1" value={rule.stacksPerTrigger ?? 1} onChange={value => set({ stacksPerTrigger: value && value >= 2 ? Math.min(999, Math.floor(value)) : undefined })} />}
         <Check label={'Solo al llegar al m\u00e1ximo'} help={H.triggerAtMax} checked={!!rule.triggerAtMax} onChange={checked => set({ triggerAtMax: checked || undefined })} />
         <NumberField label={'Solo 1 de cada N veces'} help={H.everyN} step="1" value={rule.everyN} onChange={everyN => set({ everyN })} />
@@ -451,6 +480,9 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
   const [error, setError] = useState<string | null>(null);
   const [levelOn, setLevelOn] = useState(() => !!effective?.cooldownByLevel?.length);
   const [version, setVersion] = useState(0);
+  // Clave estable por regla: al subir / bajar, el estado de su tarjeta (secciones abiertas, modo de valor...) se mueve con ella.
+  const ruleKeys = useRef<number[]>([]);
+  const nextRuleKey = useRef(0);
 
   useEffect(() => {
     if (!dirty) {
@@ -502,6 +534,17 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
     setConfig({ charges: next.start === undefined && next.max === undefined && next.every === undefined ? undefined : next as NonNullable<EffectBonusConfig['charges']> });
   };
   const allRules = [...draft.rules, ...(!own && inherited ? [] : inherited?.rules ?? [])];
+  while (ruleKeys.current.length < draft.rules.length) ruleKeys.current.push(nextRuleKey.current++);
+  if (ruleKeys.current.length > draft.rules.length) ruleKeys.current.length = draft.rules.length;
+  // Las reglas se disparan en el orden de la lista: subir / bajar cambia ese orden (y su n\u00famero).
+  const moveRule = (from: number, to: number) => {
+    if (to < 0 || to >= draft.rules.length || from === to) return;
+    const rules = [...draft.rules];
+    [rules[from], rules[to]] = [rules[to], rules[from]];
+    const keys = ruleKeys.current;
+    [keys[from], keys[to]] = [keys[to], keys[from]];
+    update({ ...draft, rules });
+  };
   const showMaxTargets = allRules.some(rule => rule.trigger === 'on-use') || draft.maxTargets != null;
   const advancedUsed = [draft.charges, draft.abilityDischarge, draft.chainTargets].filter(hasValue).length;
   const timing = configTimingText(draft);
@@ -537,6 +580,7 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
               </select>
             </Field>
             <Check label={'Por objetivo'} help={H.perTarget} checked={!!draft.perTargetCooldown} onChange={checked => setConfig({ perTargetCooldown: checked || undefined })} />
+            <NumberField label={'Cada AA reduce el CD (turnos)'} help={H.cdOnAttack} step="0.1" value={draft.cooldownReducedOnAttack} onChange={value => setConfig({ cooldownReducedOnAttack: value && value > 0 ? value : undefined })} />
           </div>
         </div>
         <div className="bx-group">
@@ -568,12 +612,14 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
 
       {draft.rules.map((rule, index) => (
         <RuleCard
-          key={index}
+          key={ruleKeys.current[index] ?? `r${index}`}
           rule={rule}
           index={index}
+          onMoveUp={index > 0 ? () => moveRule(index, index - 1) : undefined}
+          onMoveDown={index < draft.rules.length - 1 ? () => moveRule(index, index + 1) : undefined}
           config={draft}
           onChange={next => update({ ...draft, rules: draft.rules.map((r, i) => (i === index ? next : r)) })}
-          onRemove={() => { update({ ...draft, rules: draft.rules.filter((_, i) => i !== index) }); setVersion(v => v + 1); }}
+          onRemove={() => { ruleKeys.current.splice(index, 1); update({ ...draft, rules: draft.rules.filter((_, i) => i !== index) }); setVersion(v => v + 1); }}
         />
       ))}
 

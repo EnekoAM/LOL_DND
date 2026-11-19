@@ -10,7 +10,7 @@ import { namedEffectBonus, type NamedEffectData } from '../../data/namedEffectDe
 import { baseNamedEffectId, namedEffectName } from '../../data/namedEffects';
 import { PLAYERS } from '../../data/players';
 import { effectStackKey, isPermanentStackRule } from '../../data/permanentStacks';
-import { readStack } from '../../data/stacks';
+import { readStack, readStackValue } from '../../data/stacks';
 import { championDamageContext } from '../calculos/championDamage';
 import { playerBonusLine, playerTotalLine } from '../calculos/playerTotals';
 import { emptyStatLine, formatStat, type StatKey, type StatLine } from '../calculos/statLine';
@@ -54,7 +54,7 @@ type Stats = Record<string, unknown> & { bonus?: Record<string, unknown> };
  * missingHp: vida faltante del portador (máx. − actual) en combate; fuera de combate no hay.
  * melee: cuerpo a cuerpo (rango de ataque total ≤ 1, el 0 cuenta); si no, a distancia (condición «Solo si» de las reglas).
  */
-export type EffectContext = { stats: Stats; level: number; missingHp?: number; melee?: boolean; /** Dano infligido por el disparo (solo reglas "Al infligir dano ..."; ya con armadura/RM y escudos del objetivo aplicados). */ dealt?: number };
+export type EffectContext = { stats: Stats; level: number; missingHp?: number; melee?: boolean; /** Dano infligido por el disparo (solo reglas "Al infligir dano ..."; ya con armadura/RM y escudos del objetivo aplicados). */ dealt?: number; /** Enemigos distintos golpeados en esta activación (escalado «Enemigos golpeados»). */ enemiesHit?: number };
 type TargetInfo = { current: number; max: number; armor: number; mr: number; spe?: number; level?: number };
 
 /** Media de una stat (los dados cuentan su media); con roll, tira los dados. */
@@ -80,6 +80,7 @@ function scalingValue(stat: ScalingStat, ctx: EffectContext, target: TargetInfo 
     case 'bonusAd': case 'bonusHp': case 'bonusMana': case 'bonusArmor': case 'bonusMr': return bonus(SCALING_KEY[stat]!);
     case 'level': return ctx.level;
     case 'dealtDamage': return Math.max(0, ctx.dealt ?? 0);
+    case 'enemiesHit': return Math.max(0, ctx.enemiesHit ?? 0);
     case 'missingHp': return Math.max(0, ctx.missingHp ?? 0);
     case 'targetMaxHp': return target?.max ?? 0;
     case 'targetCurrentHp': return target?.current ?? 0;
@@ -139,6 +140,7 @@ export function ruleBreakdown(rule: EffectRule, ctx: EffectContext, target?: Tar
     }
   }
   for (const ratio of rule.ratios ?? []) {
+    if (ratio.stat === 'enemiesHit') continue;
     const base = scalingValue(ratio.stat, ctx, target, roll);
     const add = (ratio.pct / 100) * base;
     value += add;
@@ -158,9 +160,24 @@ export function ruleBreakdown(rule: EffectRule, ctx: EffectContext, target?: Tar
     value = value * ranged;
     parts.push(`a distancia ${fmt(rule.rangedPct ?? 100)}% (${fmt(before)} \u2192 ${fmt(value)})`);
   }
+  // Enemigos golpeados: multiplica todo lo anterior por los enemigos golpeados (× %); sin nada más, el % es el valor por enemigo.
+  const hitPct = (rule.ratios ?? []).reduce((sum, ratio) => sum + (ratio.stat === 'enemiesHit' ? ratio.pct : 0), 0);
+  let hitNote = '';
+  if (hitPct) {
+    const n = Math.max(0, Math.floor(ctx.enemiesHit ?? 0));
+    const word = `${n} enemigo${n === 1 ? '' : 's'} golpeado${n === 1 ? '' : 's'}`;
+    if (parts.length === 0) {
+      value = hitPct * n;
+      parts.push(`${fmt(hitPct)} × ${word} = ${fmt(value)}`);
+    } else {
+      const before = value;
+      value = value * (hitPct / 100) * n;
+      hitNote = ` · × ${word}${hitPct !== 100 ? ` × ${fmt(hitPct)}%` : ''} (${fmt(before)} → ${fmt(value)})`;
+    }
+  }
   const total = Math.round(value * 100) / 100;
   const text = parts.length === 0 ? '0' : parts.length === 1 ? parts[0] : `${parts.join(' + ')} → total ${fmt(total)}`;
-  return { value: total, text, raw: value };
+  return { value: total, text: hitNote ? `${text}${hitNote}` : text, raw: value };
 }
 
 /** Valor de la fórmula de una regla (plano o por nivel + ratios). */
@@ -293,16 +310,19 @@ export function alwaysOnLines(effects: ActiveNamedEffect[], ctx: EffectContext):
 export function permanentStackLines(effects: ActiveNamedEffect[], ctx: EffectContext, stacks: Record<string, number> | undefined): StatLine[] {
   const lines: StatLine[] = [];
   for (const effect of effects) {
-    const count = readStack(stacks, effectStackKey(effect.id));
-    if (!count) continue;
+    const stored = readStackValue(stacks, effectStackKey(effect.id));
+    const count = Math.trunc(stored);
+    if (!stored) continue;
     for (const rule of effect.config.rules) {
       if (!isPermanentStackRule(rule) || !rangeOk(rule, ctx)) continue;
       const stat = ruleStat(rule);
       if (!stat) continue;
-      const used = Math.min(count, rule.maxStacks ?? count);
+      if (!rule.stackValue && !count) continue;
+      // «Guarda el valor calculado»: lo guardado ya es el bonus (hacia abajo; % con 2 decimales).
+      const used = rule.stackValue ? Math.min(stored, rule.maxStacks ?? stored) : Math.min(count, rule.maxStacks ?? count);
       const lol = ruleLolAdAp(rule);
       if (lol) {
-        const total = Math.round(lol.value * used * 1000) / 1000;
+        const total = rule.stackValue ? Math.round(used * 1000) / 1000 : Math.round(lol.value * used * 1000) / 1000;
         if (!total) continue;
         const line = emptyStatLine();
         const converted = lolToDice(lol.stat, Math.max(0, total));
@@ -311,7 +331,7 @@ export function permanentStackLines(effects: ActiveNamedEffect[], ctx: EffectCon
         lines.push(line);
         continue;
       }
-      const amount = ruleAmount(rule, ctx) * used;
+      const amount = rule.stackValue ? (/Pct$/.test(stat) ? Math.round(used * 100) / 100 : Math.floor(used)) : ruleAmount(rule, ctx) * used;
       if (!amount) continue;
       const line = emptyStatLine();
       line[stat] = Math.round(amount * 1000) / 1000;
@@ -348,6 +368,22 @@ export const cooldownLeft = (bonuses: CombatBonus[] | undefined, base: string): 
 export const perTargetCdSource = (base: string, bearerId: string): string => `cd:${base}@${bearerId}`.slice(0, 80);
 
 /**
+ * «Cada AA reduce el CD»: baja by turnos del CD del portador (cd:<efecto>). Admite decimales: los turnos quedan
+ * redondeados hacia arriba y la parte ya gastada va en cdCut. A 0 o menos, se quita (disponible). null si no está en CD.
+ */
+export function reduceCooldownOnAttack(bonuses: CombatBonus[], base: string, by: number): { bonuses: CombatBonus[]; before: number; after: number } | null {
+  const cd = marker(bonuses, `cd:${base}`);
+  if (!cd || typeof cd.turns !== 'number' || !(by > 0)) return null;
+  const before = Math.round((cd.turns - (cd.cdCut ?? 0)) * 1000) / 1000;
+  const left = Math.round((before - by) * 1000) / 1000;
+  if (left <= 0) return { bonuses: bonuses.filter(bonus => bonus !== cd), before, after: 0 };
+  const turns = Math.ceil(left);
+  const cut = Math.round((turns - left) * 1000) / 1000;
+  const { cdCut: _old, ...rest } = cd;
+  return { bonuses: bonuses.map(bonus => (bonus === cd ? { ...rest, turns, ...(cut > 0 ? { cdCut: cut } : {}) } : bonus)), before, after: left };
+}
+
+/**
  * Marcas que tiene este participante de los efectos «Enfriamiento por objetivo» de los demás:
  * sin CD de ese portador = marcado (el CD ya sale como bonus suyo «CD … (de …)»).
  */
@@ -379,6 +415,8 @@ function upsertStacking(bonuses: CombatBonus[], source: string, stat: StatKey, a
     amount,
     ...(rule.maxStacks ? { stacks: index >= 0 ? Math.min(rule.maxStacks, (bonuses[index].stacks ?? 1) + 1) : 1, maxStacks: rule.maxStacks } : {}),
     ...(turns ? { turns } : {}),
+    // Decae durante la duración: guarda el valor entero y los turnos totales (tickCombatTrackers lo baja).
+    ...(rule.decays && !rule.permanent && turns ? { decayFrom: amount, decayTurns: turns } : {}),
     source,
     label,
     ...(ruleLolAdAp(rule) ? { lol: true } : {}),
@@ -411,6 +449,8 @@ export function armAfterAbility(
 
 /** Reservas: cura / escudo / man\u00e1 / vida temporal ('temp' admite negativo: refresco de una concesi\u00f3n). */
 export type PoolKind = 'heal' | 'shield' | 'shield-magic' | 'shield-physical' | 'mana' | 'temp';
+/** noReceived: no aplicar la curación y escudos recibidos % de quien recibe (robo de vida / omnivamp.: ya la llevan en su %). */
+export type PoolOpts = { noReceived?: boolean };
 /** Escudo generico (bloquea todo), magico (solo dano magico) o fisico (solo dano fisico). */
 export const isShieldKind = (kind: string): boolean => kind === 'shield' || kind === 'shield-magic' || kind === 'shield-physical';
 export const shieldWord = (kind: string): string => (kind === 'shield-magic' ? 'escudo m\u00e1gico' : kind === 'shield-physical' ? 'escudo f\u00edsico' : 'escudo');
@@ -426,16 +466,16 @@ export type EffectCallbacks = {
   /** «Objetivo + cercanos»: elegir el objetivo principal y los enemigos de alrededor (principal ya marcado). */
   pickArea?: (primaryId: string, effectName: string) => Promise<string[]>;
   /** Cura / escudo / maná al portador; devuelve su Deshacer. */
-  onSelfPool?: (kind: PoolKind, amount: number) => Promise<(() => Promise<void>) | null>;
+  onSelfPool?: (kind: PoolKind, amount: number, opts?: PoolOpts) => Promise<(() => Promise<void>) | null>;
   /** Cura / escudo a otro participante (reglas «Aliados»); devuelve su Deshacer. */
-  onTargetPool?: (targetId: string, kind: Exclude<PoolKind, 'mana'>, amount: number) => Promise<(() => Promise<void>) | null>;
+  onTargetPool?: (targetId: string, kind: Exclude<PoolKind, 'mana'>, amount: number, opts?: PoolOpts) => Promise<(() => Promise<void>) | null>;
   /** Reglas «Aliados»: elegir a quién (el portador puede ir incluido). */
   pickAllies?: (effectName: string) => Promise<string[]>;
   /**
    * Cargas permanentes: +N cargas del efecto (id con variante) en la ficha del portador (players.stacks effect:<id>, hasta max).
    * Devuelve antes / después y su Deshacer; null si el portador no tiene ficha (campeón / NPC).
    */
-  onPermanentStack?: (base: string, max: number | undefined, gain?: number) => Promise<{ before: number; after: number; undo: () => Promise<void> } | null>;
+  onPermanentStack?: (base: string, max: number | undefined, gain?: number, opts?: { value?: boolean }) => Promise<{ before: number; after: number; undo: () => Promise<void> } | null>;
   /** Concede una acción extra de habilidad o de AA este turno. */
   onGrantAction?: (kind: 'abilities' | 'attacks', amount: number) => Promise<void>;
   /** ¿El jugador ha marcado crítico en esta acción? */
@@ -451,7 +491,7 @@ export function itemRulePlan(item: Item, data: NamedEffectData): { authoritative
   const effects = activeNamedEffects([item], data);
   const rules = effects.flatMap(effect => effect.config.rules);
   const authoritative = rules.some(rule => rule.trigger === 'on-use' || rule.trigger === 'after-use');
-  const needsEnemies = rules.some(rule => rule.trigger === 'on-use' && ['target', 'area', 'nearby'].includes(ruleAppliesTo(rule)));
+  const needsEnemies = rules.some(rule => rule.trigger === 'on-use' && (['target', 'area', 'nearby'].includes(ruleAppliesTo(rule)) || (rule.ratios ?? []).some(ratio => ratio.stat === 'enemiesHit')));
   const limits = effects.map(effect => effect.config.maxTargets).filter((n): n is number => typeof n === 'number' && n > 0);
   return { authoritative, needsEnemies, ...(limits.length ? { maxTargets: Math.min(...limits) } : {}) };
 }
@@ -459,7 +499,10 @@ export function itemRulePlan(item: Item, data: NamedEffectData): { authoritative
 /** ¿Es una regla «Tras habilidad» / «Tras usar» (arma el siguiente AA)? */
 const isArmTrigger = (trigger: string): boolean => trigger === 'after-ability' || trigger === 'after-use';
 
-export type EffectTriggerName = 'on-attack' | 'on-hit' | 'on-ability-hit' | 'on-deal-physical' | 'on-deal-magic' | 'on-deal-true' | 'on-use' | 'on-takedown' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'each-turn' | 'energized-max' | 'on-ultimate-use' | 'on-enemy-ultimate-use' | 'combat-start' | 'combat-entry' | 'when-ready' | 'on-survived-hit' | 'on-death';
+/** Estados «Vulnerable» de reglas (source vuln:<efecto>): el objetivo recibe +valor% de da\u00f1o de todas las fuentes. */
+export const VULNERABLE_PREFIX = 'vuln:';
+
+export type EffectTriggerName = 'on-attack' | 'on-hit' | 'on-ability-hit' | 'on-cc' | 'on-deal-any' | 'on-deal-physical' | 'on-deal-magic' | 'on-deal-true' | 'on-use' | 'on-takedown' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'each-turn' | 'energized-max' | 'on-ultimate-use' | 'on-enemy-ultimate-use' | 'combat-start' | 'combat-entry' | 'when-ready' | 'on-survived-hit' | 'on-death';
 
 /** Efectos con reglas «Vigor al máximo». */
 export const vigorEffects = (effects: ActiveNamedEffect[]): ActiveNamedEffect[] =>
@@ -536,27 +579,45 @@ const DAMAGE_WORD = { physical: 'físico', magic: 'mágico', true: 'verdadero' }
 export async function vampHeal(options: { dealt: number; ctx: EffectContext; lifeSteal: boolean; lifeStealEfficacy?: number; onSelfPool?: EffectCallbacks['onSelfPool']; origin: string; bearerName: string }): Promise<{ heal: number; word: string; log: string[]; chips: ResultChip[]; undo?: () => Promise<void> } | null> {
   const { dealt, ctx, onSelfPool, origin, bearerName } = options;
   const efficacy = options.lifeSteal && options.lifeStealEfficacy != null ? options.lifeStealEfficacy : 100;
-  const ls = options.lifeSteal ? statNumber(ctx.stats.lifeStealPct) * (efficacy / 100) : 0;
-  const ov = statNumber(ctx.stats.omnivampPct);
+  // Curación y escudos recibidos % (Semblante espiritual): sube el % de robo de vida y omnisucción del portador; la cura no se vuelve a multiplicar.
+  const recPct = receivedPct(ctx.stats);
+  const recF = 1 + recPct / 100;
+  const lsStat = statNumber(ctx.stats.lifeStealPct) * recF;
+  const ls = options.lifeSteal ? lsStat * (efficacy / 100) : 0;
+  const ov = statNumber(ctx.stats.omnivampPct) * recF;
   if (!(dealt > 0) || (ls <= 0 && ov <= 0)) return null;
-  const lsPart = ls > 0 ? (options.lifeSteal && efficacy !== 100 ? `robo de vida ${fmt(statNumber(ctx.stats.lifeStealPct))}% × ${fmt(efficacy)}% eficacia = ${fmt(ls)}%` : `robo de vida ${fmt(ls)}%`) : '';
+  const lsPart = ls > 0 ? (options.lifeSteal && efficacy !== 100 ? `robo de vida ${fmt(lsStat)}% × ${fmt(efficacy)}% eficacia = ${fmt(ls)}%` : `robo de vida ${fmt(ls)}%`) : '';
   const parts = [lsPart, ov > 0 ? `omnivampirismo ${fmt(ov)}%` : ''].filter(Boolean);
   const word = ls > 0 && ov > 0 ? 'robo de vida + omnivamp.' : ls > 0 ? 'robo de vida' : 'omnivamp.';
   const final = poolAmount((dealt * (ls + ov)) / 100, ctx, false);
   const heal = final.amount;
-  const undo = heal > 0 && onSelfPool ? await onSelfPool('heal', heal) : null;
+  const undo = heal > 0 && onSelfPool ? await onSelfPool('heal', heal, { noReceived: true }) : null;
   const chips: ResultChip[] = heal > 0 ? [{ kind: undo ? 'heal' : 'manual', text: `+${heal} PV ${ls > 0 && ov > 0 ? 'RV+OV' : ls > 0 ? 'RV' : 'OV'}${undo ? '' : ' a mano'}`, title: `${parts.join(' + ')} → ${bearerName}` }] : [];
-  const log = [`${origin}: ${parts.join(' + ')} = ${fmt(dealt)} de daño × ${fmt(ls + ov)}% = ${final.text} (sin poder de curación y escudos) → ${heal > 0 ? `cura ${heal} a ${bearerName}${undo ? '' : ' (a mano / vida al máximo)'}` : 'nada'}`];
+  const log = [`${origin}: ${parts.join(' + ')} = ${fmt(dealt)} de daño × ${fmt(ls + ov)}% = ${final.text} (sin poder de curación y escudos${recPct ? `; robo de vida / omnivamp. × ${fmt(recF)} por curación y escudos recibidos ${fmt(recPct)}%` : ''}) → ${heal > 0 ? `cura ${heal} a ${bearerName}${undo ? '' : ' (a mano / vida al máximo)'}` : 'nada'}`];
   return { heal, word, log, chips, ...(undo ? { undo } : {}) };
 }
 
-export function poolAmount(raw: number, ctx: EffectContext, usePower = true): { amount: number; text: string } {
+/** Curación y escudos recibidos % de quien recibe (Semblante espiritual): no es poder de quien cura; multiplica aparte. */
+export function receivedPct(stats: Record<string, unknown> | undefined): number {
+  return stats ? Math.max(-100, statNumber(stats.healShieldReceivedPct)) : 0;
+}
+
+/** " × 1,25 (curación y escudos recibidos 25%)"; vacío sin el stat. */
+export function receivedText(pct: number): string {
+  return pct ? ` × ${fmt(1 + pct / 100)} (curación y escudos recibidos ${fmt(pct)}%)` : '';
+}
+
+/** receiver: stats de quien lo recibe (curación y escudos recibidos %, multiplicativo tras el poder de quien cura; un solo redondeo). */
+export function poolAmount(raw: number, ctx: EffectContext, usePower = true, receiver?: Record<string, unknown>): { amount: number; text: string } {
   const pct = usePower ? statNumber(ctx.stats.healShieldPct) : 0;
-  const boosted = raw * (1 + pct / 100);
+  const rec = receivedPct(receiver);
+  const powered = raw * (1 + pct / 100);
+  const boosted = powered * (1 + rec / 100);
   const amount = Math.round(boosted);
   const exact = Math.round(raw * 1000) / 1000;
-  const power = pct ? ` × ${fmt(1 + pct / 100)} (poder de curación y escudos ${fmt(pct)}%) = ${fmt(Math.round(boosted * 1000) / 1000)}` : usePower ? ' (sin poder de curación y escudos)' : '';
-  return { amount, text: `${fmt(exact)}${power} → ${amount} (redondeo al más cercano)` };
+  const power = pct ? ` × ${fmt(1 + pct / 100)} (poder de curación y escudos ${fmt(pct)}%) = ${fmt(Math.round(powered * 1000) / 1000)}` : usePower ? ' (sin poder de curación y escudos)' : '';
+  const received = rec ? `${receivedText(rec)} = ${fmt(Math.round(boosted * 1000) / 1000)}` : '';
+  return { amount, text: `${fmt(exact)}${power}${received} → ${amount} (redondeo al más cercano)` };
 }
 
 /**
@@ -583,6 +644,8 @@ export async function fireEffectRules(options: {
   damaged?: boolean;
   /** Daño que acaba de recibir el portador (reglas on-damage-taken con fromDamagePct). */
   incomingDamage?: number;
+  /** on-cc: ¿el control aplicado inmoviliza? (las reglas «Solo inmovilizaciones» lo necesitan). */
+  ccImmobilizing?: boolean;
 }): Promise<EffectFireResult> {
   const { trigger, effects, ctx, targetIds, participants, level, callbacks, bearer } = options;
   const incomingDamage = options.incomingDamage ?? 0;
@@ -590,6 +653,21 @@ export async function fireEffectRules(options: {
   const matches = (ruleTrigger: string) => ruleTrigger === trigger || (basicAttack && ruleTrigger === 'on-attack');
   let bonuses = [...(options.bonuses ?? [])];
   const result: EffectFireResult = { bonuses, changed: false, notes: [], undos: [], kills: [], manual: [], vigor: 0, chips: [], log: [] };
+  // «Cada AA reduce el CD»: un AA (on-hit de ataque básico) baja el CD del portador de esos efectos (antes de mirar sus reglas).
+  if (basicAttack) {
+    const seen = new Set<string>();
+    for (const effect of effects) {
+      const by = effect.config.cooldownReducedOnAttack;
+      if (!by || !(by > 0) || seen.has(effect.base)) continue;
+      seen.add(effect.base);
+      const cut = reduceCooldownOnAttack(bonuses, effect.base, by);
+      if (!cut) continue;
+      bonuses = cut.bonuses;
+      result.changed = true;
+      result.log.push(`CD de ${effect.name}: ${fmt(cut.before)} → ${fmt(cut.after)} (AA)${cut.after <= 0 ? ' · disponible' : ''}`);
+      result.chips.push({ kind: 'cd', text: `CD ${effect.name} ${Math.ceil(cut.before)}→${Math.ceil(cut.after)} (AA)`, title: `Cada AA reduce el CD ${fmt(by)} t.` });
+    }
+  }
   const nameOf = (id: string) => participants.find(p => p.id === id)?.name ?? id;
   const bearerName = bearer?.name ?? 'portador';
   const manual = (text: string) => { result.manual.push(text); result.chips.push({ kind: 'manual', text, title: 'Aplicar a mano' }); result.log.push(`${text} (a mano)`); };
@@ -616,6 +694,13 @@ export async function fireEffectRules(options: {
     return ids;
   };
 
+  // Escalado «Enemigos golpeados»: enemigos distintos de esta activación (con «Objetivo + cercanos» en el efecto, los elegidos de la zona; sin el portador).
+  const enemiesHitOf = async (effect: ActiveNamedEffect, targets: string[]): Promise<number> => {
+    const hasArea = effect.config.rules.some(other => { const to = ruleAppliesTo(other); return to === 'area' || to === 'nearby'; });
+    const ids = hasArea && targets.length ? [...targets, ...(await areaTargets(effect, targets))] : targets;
+    return new Set(ids.filter(id => !isBearer(id))).size;
+  };
+
   const alliesCache = new Map<string, string[]>();
   const allyTargets = async (effect: ActiveNamedEffect): Promise<string[]> => {
     const cached = alliesCache.get(effect.base);
@@ -635,6 +720,7 @@ export async function fireEffectRules(options: {
     const label = effect.name;
     const origin = `${label} (${effect.item})`;
     for (const { rule, index } of rules) {
+      if (rule.trigger === 'on-cc' && rule.ccImmobilizeOnly && !options.ccImmobilizing) continue;
       const source = `fx:${effect.base}:${index}`;
       const to = ruleAppliesTo(rule);
       // «Objetivo + cercanos» (Hendidura): se eligen el objetivo y los enemigos de alrededor (una vez por efecto).
@@ -648,6 +734,10 @@ export async function fireEffectRules(options: {
         result.log.push(`${origin}: aliados → ${ruleTargets.map(nameOf).join(', ')}`);
       }
       if (to === 'self' && rule.kind === 'status') ruleTargets = bearer ? [bearer.id] : [];
+      if ((rule.ratios ?? []).some(ratio => ratio.stat === 'enemiesHit')) {
+        ctx.enemiesHit = await enemiesHitOf(effect, targets);
+        result.log.push(`${origin}: enemigos golpeados = ${ctx.enemiesHit}${ctx.enemiesHit ? ` (${[...new Set(targets)].map(nameOf).join(', ')}${areaCache.has(effect.base) ? ' + zona' : ''})` : ' (sin objetivos marcados → 0)'}`);
+      }
       if (rule.targetHpBelowPct != null && ruleTargets.length) {
         const threshold = rule.targetHpBelowPct;
         ruleTargets = ruleTargets.filter(id => {
@@ -753,7 +843,7 @@ export async function fireEffectRules(options: {
         // -1 = hasta el final del combate: sin turnos (no caduca; se limpia al terminar el combate).
         const rawTurns = rule.duration ?? duration ?? 1;
         const turns = rule.permanent || rawTurns < 0 ? undefined : rawTurns;
-        const turnsText = turns ? `${turns} t.` : rule.permanent ? 'permanente (sin ficha: solo este combate)' : durationText(-1);
+        const turnsText = (rule.decays && turns ? 'decae hasta 0 en ' : '') + (turns ? `${turns} t.` : rule.permanent ? 'permanente (sin ficha: solo este combate)' : durationText(-1));
         // Buff a aliados: el portador va por sus propios bonus; el resto, por su lista.
         if (to === 'allies') {
           for (const id of ruleTargets) {
@@ -829,7 +919,19 @@ export async function fireEffectRules(options: {
             }
             const gain = stacksPerTriggerOf(rule);
             if (!callbacks.onPermanentStack) { manual(`${label}: +${gain} carga${gain === 1 ? '' : 's'} permanente${gain === 1 ? '' : 's'} (sin ficha)`); continue; }
-            const saved = await callbacks.onPermanentStack(effect.id, rule.maxStacks, gain);
+            // «Guarda el valor calculado»: suma lo de esta activación (stats de ahora: vida máx. antes de ganar) × cargas por activación.
+            const stackAdd = rule.stackValue ? (Math.round(calc.raw * 1000) / 1000) * gain : gain;
+            if (rule.stackValue && !(stackAdd > 0)) { result.log.push(`${origin}: valor calculado ${calc.text} → no suma`); continue; }
+            const saved = await callbacks.onPermanentStack(effect.id, rule.maxStacks, stackAdd, rule.stackValue ? { value: true } : undefined);
+            if (saved && rule.stackValue) {
+              result.undos.push(saved.undo);
+              const shown = (n: number) => fmt(Math.round(n * 100) / 100);
+              const added = Math.round((saved.after - saved.before) * 1000) / 1000;
+              result.notes.push(`${label}: +${shown(added)} ${statTitle(stat)} permanente (total ${shown(saved.after)})`);
+              result.chips.push({ kind: 'buff', text: `${label} +${shown(added)} ${statShort(stat)} (total ${shown(saved.after)})`, title: `${label} · ${statTitle(stat)} acumulado (ficha)` });
+              result.log.push(`${origin}: ${statTitle(stat)} permanente de ${bearerName} +${calc.text}${gain > 1 ? ` × ${gain}` : ''} → acumulado ${shown(saved.before)} → ${shown(saved.after)}${added < stackAdd ? ' (máx.)' : ''} (guardado en la ficha; suma con el ítem equipado; en la ficha, hacia abajo)`);
+              continue;
+            }
             if (saved && !calc.value) {
               result.undos.push(saved.undo);
               result.chips.push({ kind: 'buff', text: `${label} ${saved.before}→${saved.after}${rule.maxStacks ? `/${rule.maxStacks}` : ''}`, title: `${label} · cargas permanentes (ficha)` });
@@ -890,7 +992,7 @@ export async function fireEffectRules(options: {
                 dealt = Math.max(0, Math.ceil(calc.value));
                 calcText = `${calc.text}${dealt !== calc.value ? ` → ${fmt(dealt)} (redondeo ↑)` : ''}`;
                 return dealt;
-              });
+              }, { damageType: type, ...(bearer ? { attackerId: bearer.id } : {}), fromRule: true });
               if (damage) {
                 result.undos.push(damage.undo);
                 totalDealt += dealt;
@@ -961,10 +1063,11 @@ export async function fireEffectRules(options: {
           const grantSource = `${TEMP_HP_PREFIX}${effect.base}`;
           for (const id of ids) {
             const calc = ruleBreakdown(rule, ctx, isBearer(id) ? undefined : targetInfo(id, ''));
-            const final = poolAmount(calc.raw, ctx);
+            const holder = participants.find(p => p.id === id);
+            // Vida temporal: con la curación y escudos recibidos % de quien la recibe (aquí, para que la concesión guarde lo dado).
+            const final = poolAmount(calc.raw, ctx, true, isBearer(id) ? ctx.stats : holder ? participantContext(holder, level)?.ctx.stats : undefined);
             const amount = final.amount;
             if (amount <= 0) continue;
-            const holder = participants.find(p => p.id === id);
             const held = isBearer(id) ? bonuses : holder?.bonuses ?? [];
             const old = held.find(bonus => bonus.source === grantSource);
             const pools = holder ? participantHpPools(holder) : null;
@@ -1134,11 +1237,19 @@ export async function fireEffectRules(options: {
               break;
             }
           }
-          await callbacks.onApplySourcedEffect(ruleTargets, {
-            source: statusSource,
-            name: `${name} (${label})`.slice(0, 80),
-            duration: turns,
-          });
+          if (rule.extendDuration) {
+            // Reaplicar suma la duraci\u00f3n: por objetivo, lo que le queda + la duraci\u00f3n (m\u00e1x. 99).
+            for (const id of ruleTargets) {
+              const had = participants.find(entry => entry.id === id)?.effects?.find(fx => fx.source === statusSource && fx.duration > 0);
+              await callbacks.onApplySourcedEffect([id], { source: statusSource, name: `${name} (${label})`.slice(0, 80), duration: Math.min(99, had ? had.duration + turns : turns) });
+            }
+          } else {
+            await callbacks.onApplySourcedEffect(ruleTargets, {
+              source: statusSource,
+              name: `${name} (${label})`.slice(0, 80),
+              duration: turns,
+            });
+          }
           if (rule.cooldownOnProc) procCooldown = true;
           result.notes.push(`${label}: ${name}`);
           result.chips.push({ kind: 'debuff', text: `${name} ${ruleTargets.map(nameOf).join(', ')}`, title: label });
@@ -1158,6 +1269,30 @@ export async function fireEffectRules(options: {
           }
           break;
         }
+        case 'vulnerable': {
+          if (!callbacks.onApplySourcedEffect || ruleTargets.length === 0) { manual(`${label}: Vulnerable +${formulaText(rule)}%`); break; }
+          const calc = ruleBreakdown(rule, ctx);
+          const pct = Math.max(1, Math.min(99, Math.round(calc.value)));
+          const turns = combatTurns(rule.duration ?? duration ?? 1);
+          const vulnSource = `${VULNERABLE_PREFIX}${effect.base}`.slice(0, 80);
+          const vulnName = `Vulnerable +${pct}% (${label})`.slice(0, 80);
+          const parts: string[] = [];
+          for (const id of ruleTargets) {
+            const had = participants.find(entry => entry.id === id)?.effects?.find(fx => fx.source === vulnSource && fx.duration > 0);
+            // Reaplicar: renueva a la duraci\u00f3n completa; con «Reaplicar suma la duraci\u00f3n», lo que queda + la duraci\u00f3n.
+            const total = Math.min(99, had && rule.extendDuration ? had.duration + turns : turns);
+            await callbacks.onApplySourcedEffect([id], { source: vulnSource, name: vulnName, duration: total, value: pct });
+            parts.push(`${nameOf(id)} ${had ? (rule.extendDuration ? `${had.duration} \u2192 ${total} t. (suma)` : `renueva \u2192 ${total} t.`) : `${total} t.`}`);
+          }
+          if (rule.cooldownOnProc) procCooldown = true;
+          result.notes.push(`${label}: Vulnerable +${pct}%`);
+          result.chips.push({ kind: 'debuff', text: `Vulnerable +${pct}% ${ruleTargets.map(nameOf).join(', ')}`, title: `${label}: recibe +${pct}% de da\u00f1o de todas las fuentes` });
+          result.log.push(`${origin}: Vulnerable (recibe +${pct}% de da\u00f1o de todas las fuentes; ${calc.text}) a ${parts.join(', ')}`);
+          break;
+        }
+        case 'damage-amp':
+          result.log.push(`${origin}: +${formulaText(rule)}% de daño (se aplica al infligir cada golpe)`);
+          break;
         case 'damage-reduction':
           result.log.push(`${origin}: ${formulaText(rule)}% menos de daño${rule.vs === 'aa' ? ' de AA' : ''} (se aplica al recibir el golpe)`);
           break;

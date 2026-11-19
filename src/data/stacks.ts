@@ -17,6 +17,12 @@ export function readStack(stacks: Record<string, number> | undefined, key: strin
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.trunc(value) : 0;
 }
 
+/** Valor guardado con decimales (cargas que guardan el valor calculado); 0 si no hay. */
+export function readStackValue(stacks: Record<string, number> | undefined, key: string): number {
+  const value = stacks?.[key];
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.round(value * 1000) / 1000 : 0;
+}
+
 export const readCooldown = readStack;
 
 /** Baja todos los cooldowns en 1 (mín. 0). */

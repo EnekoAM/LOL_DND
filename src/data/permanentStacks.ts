@@ -14,7 +14,7 @@ import { emptyStatLine, isStatLineKey, type StatKey, type StatLine } from '../fe
 import { namedEffectBonus, type NamedEffectData } from './namedEffectDescriptions';
 import { baseNamedEffectId, namedEffectName } from './namedEffects';
 import { PLAYERS, PLAYERS_HYDRATED_EVENT, type PlayerListPatch } from './players';
-import { readStack } from './stacks';
+import { readStack, readStackValue } from './stacks';
 
 export const EFFECT_STACK_PREFIX = 'effect:';
 /** Clave del contador: id del efecto tal cual (variante incluida: cada variante lleva su contador). */
@@ -45,12 +45,17 @@ const maxOf = (rules: EffectRule[]): number | undefined => {
   return values.length ? Math.max(...values) : undefined;
 };
 
+/** Lo que se enseña: con «guarda el valor», el valor acumulado (hacia abajo); si no, el contador. */
+const stackValueOf = (rules: EffectRule[], stacks: Record<string, number> | undefined, key: string): number =>
+  rules.some(rule => rule.stackValue) ? Math.floor(readStackValue(stacks, key)) : readStack(stacks, key);
+
 const perStackText = (rules: EffectRule[]): string => rules.map(rule => {
+  if (rule.stackValue) return `${statLabel(rule.stat) || 'valor'} acumulado (suma lo calculado en cada activaci\u00f3n)`;
   const lol = ruleLolAdAp(rule);
   const stat = rule.kind === 'attack-speed' ? '% vel. ataque' : rule.kind === 'move-speed' ? 'velocidad' : statLabel(rule.stat);
   const amount = lol ? `${String(lol.value).replace('.', ',')} ${lol.stat.toUpperCase()} del LoL` : typeof rule.flat === 'number' ? String(rule.flat).replace('.', ',') : 'fórmula';
   return lol ? `+${amount}` : `+${amount} ${stat}`;
-}).join(' · ') + ' por carga';
+}).join(' · ') + (rules.every(rule => rule.stackValue) ? '' : ' por carga');
 
 /**
  * Contadores a enseñar: los efectos con cargas permanentes de los ítems equipados y, aparte, los que tienen
@@ -66,7 +71,7 @@ export function permanentStackEntries(items: Item[], data: NamedEffectData, stac
       const rules = (namedEffectBonus(data, id)?.rules ?? []).filter(isPermanentStackRule);
       if (!rules.length) continue;
       const key = effectStackKey(id);
-      out.set(id, { base: baseNamedEffectId(id), key, name: namedEffectName(id), value: readStack(stacks, key), max: maxOf(rules), equipped: true, item: item.nombre, perStack: perStackText(rules) });
+      out.set(id, { base: baseNamedEffectId(id), key, name: namedEffectName(id), value: stackValueOf(rules, stacks, key), max: maxOf(rules), equipped: true, item: item.nombre, perStack: perStackText(rules) });
     }
   }
   // Cargas guardadas sin regla todavía (migradas) o sin el ítem: se enseñan igual; sin regla no suman.
@@ -76,7 +81,7 @@ export function permanentStackEntries(items: Item[], data: NamedEffectData, stac
     if (out.has(id)) continue;
     const rules = (namedEffectBonus(data, id)?.rules ?? []).filter(isPermanentStackRule);
     const item = equippedBy.get(id);
-    out.set(id, { base: baseNamedEffectId(id), key, name: namedEffectName(id), value: readStack(stacks, key), max: maxOf(rules), equipped: !!item && rules.length > 0, ...(item ? { item } : {}), perStack: rules.length ? perStackText(rules) : 'sin regla de cargas todavía: no suma' });
+    out.set(id, { base: baseNamedEffectId(id), key, name: namedEffectName(id), value: stackValueOf(rules, stacks, key), max: maxOf(rules), equipped: !!item && rules.length > 0, ...(item ? { item } : {}), perStack: rules.length ? perStackText(rules) : 'sin regla de cargas todavía: no suma' });
   }
   return [...out.values()];
 }
@@ -127,17 +132,18 @@ export function itemPermanentStackSources(
       for (const rule of rules) {
         const stat = ruleStatKey(rule);
         if (!stat) continue;
-        const used = Math.min(count, rule.maxStacks ?? count);
+        const stored = readStackValue(stacks, key);
+        const used = rule.stackValue ? Math.min(stored, rule.maxStacks ?? stored) : Math.min(count, rule.maxStacks ?? count);
         const lolRule = ruleLolAdAp(rule);
         if (lolRule) {
-          const total = Math.round(lolRule.value * used * 1000) / 1000;
+          const total = rule.stackValue ? Math.round(used * 1000) / 1000 : Math.round(lolRule.value * used * 1000) / 1000;
           lol[lolRule.stat] = (lol[lolRule.stat] ?? 0) + total;
           const converted = lolToDice(lolRule.stat, Math.max(0, total));
           line[stat] = converted?.text ?? '0';
           continue;
         }
         const per = permanentRuleFlat(rule);
-        const amount = Math.round(per * used * 1000) / 1000;
+        const amount = rule.stackValue ? (/Pct$/.test(stat) ? Math.round(used * 100) / 100 : Math.floor(used)) : Math.round(per * used * 1000) / 1000;
         if (typeof line[stat] !== "string") {
           const current = typeof line[stat] === "number" ? line[stat] : 0;
           line[stat] = Math.round((current + amount) * 1000) / 1000;
@@ -188,17 +194,19 @@ if (typeof window !== 'undefined') window.addEventListener(PLAYERS_HYDRATED_EVEN
 export function permanentStackSaver(
   participant: { kind: string; sourceId?: string },
   patch: (playerName: string, patch: PlayerListPatch) => Promise<void>,
-): ((base: string, max: number | undefined, gain?: number) => Promise<{ before: number; after: number; undo: () => Promise<void> } | null>) | undefined {
+): ((base: string, max: number | undefined, gain?: number, opts?: { value?: boolean }) => Promise<{ before: number; after: number; undo: () => Promise<void> } | null>) | undefined {
   if (participant.kind !== 'player' || !participant.sourceId) return undefined;
   const playerName = participant.sourceId;
-  return async (base, max, gain = 1) => {
+  return async (base, max, gain = 1, opts) => {
     const player = PLAYERS.find(p => p.name === playerName);
     if (!player) return null;
     const key = effectStackKey(base);
     const memo = `${playerName}|${key}`;
-    const before = written.get(memo) ?? readStack(player.stacks, key);
-    const add = typeof gain === 'number' && Number.isFinite(gain) && gain >= 1 ? Math.min(999, Math.floor(gain)) : 1;
-    const after = typeof max === 'number' && max > 0 ? Math.min(max, before + add) : before + add;
+    const before = written.get(memo) ?? (opts?.value ? readStackValue(player.stacks, key) : readStack(player.stacks, key));
+    const add = opts?.value ? (typeof gain === 'number' && Number.isFinite(gain) && gain > 0 ? gain : 0) : typeof gain === 'number' && Number.isFinite(gain) && gain >= 1 ? Math.min(999, Math.floor(gain)) : 1;
+    // Valor acumulado: con decimales (3), sin pasar de 999 ni del máx. de la regla.
+    const raw = Math.round((before + add) * 1000) / 1000;
+    const after = Math.min(999, typeof max === 'number' && max > 0 ? Math.min(max, raw) : raw);
     if (after !== before) {
       await patch(playerName, { stacks: { [key]: after } });
       written.set(memo, after);

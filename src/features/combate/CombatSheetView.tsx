@@ -106,19 +106,26 @@ const penetrationOf = (stats: Partial<Record<'lethality' | 'magicPen' | 'armorPe
   { label: '% MÁG', title: 'Penetración mágica % (no acumulable: cuenta la más alta)', value: stats.magicPenPct, pct: true },
 ];
 
+/** Curación y escudos recibidos %: potencia robo de vida, omnisucción y regeneración de vida (se muestran ya potenciados). */
+const recBoost = (value: StatValue | undefined, rec: StatValue | undefined): StatValue | undefined =>
+  typeof value === 'number' && typeof rec === 'number' && rec ? Math.round(value * (1 + rec / 100) * 100) / 100 : value;
+const recNote = (rec: StatValue | undefined): string =>
+  typeof rec === 'number' && rec ? ` (× ${formatStat(Math.round((1 + rec / 100) * 1000) / 1000)} por curación y escudos recibidos ${formatStat(rec)}%)` : '';
+
 /** Stats que solo dan los ítems (curación/escudos, tenacidad, ralentización, robo de vida, omnisucción, rango, regeneración). */
-const utilityOf = (stats: Partial<Record<'healShieldPct' | 'tenacityPct' | 'slowResistPct' | 'lifeStealPct' | 'omnivampPct' | 'range' | 'healthRegen' | 'manaRegen', StatValue>>): Pen[] => [
+const utilityOf = (stats: Partial<Record<'healShieldPct' | 'healShieldReceivedPct' | 'tenacityPct' | 'slowResistPct' | 'lifeStealPct' | 'omnivampPct' | 'range' | 'healthRegen' | 'manaRegen', StatValue>>): Pen[] => [
   { label: 'CUR/ESC', title: 'Poder de curación y escudos %', value: stats.healShieldPct, pct: true },
+  { label: 'CUR/ESC REC.', title: 'Curación y escudos recibidos % (multiplica curas, escudos y vida temporal que recibe; robo de vida, omnisucción y regeneración de vida ya se muestran potenciados)', value: stats.healShieldReceivedPct, pct: true },
   { label: 'TENAC.', title: 'Tenacidad % (se suma)', value: stats.tenacityPct, pct: true },
   { label: 'RES. RAL.', title: 'Resistencia a ralentizaciones % (se suma)', value: stats.slowResistPct, pct: true },
-  { label: 'ROBO V.', title: 'Robo de vida %', value: stats.lifeStealPct, pct: true },
-  { label: 'OMNIS.', title: 'Omnisucción %', value: stats.omnivampPct, pct: true },
+  { label: 'ROBO V.', title: 'Robo de vida %' + recNote(stats.healShieldReceivedPct), value: recBoost(stats.lifeStealPct, stats.healShieldReceivedPct), pct: true },
+  { label: 'OMNIS.', title: 'Omnisucción %' + recNote(stats.healShieldReceivedPct), value: recBoost(stats.omnivampPct, stats.healShieldReceivedPct), pct: true },
   (() => {
     // Rango total ≤ 1 (0 o 1) = cuerpo a cuerpo; rango > 1 = a distancia (condición «Solo si» de los efectos).
     const { melee } = rangeInfo({ range: stats.range });
     return { label: 'RANGO', title: `Rango de ataque · ${melee ? 'Cuerpo a cuerpo (rango ≤ 1)' : 'A distancia (rango > 1)'}`, value: stats.range, badge: { text: melee ? 'Cuerpo a cuerpo' : 'A distancia', melee } };
   })(),
-  { label: 'REG. VIDA', title: 'Regeneración de vida', value: stats.healthRegen },
+  { label: 'REG. VIDA', title: 'Regeneración de vida' + recNote(stats.healShieldReceivedPct), value: recBoost(stats.healthRegen, stats.healShieldReceivedPct) },
   { label: 'REG. MANÁ', title: 'Regeneración de maná', value: stats.manaRegen },
 ];
 

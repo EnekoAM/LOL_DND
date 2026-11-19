@@ -126,7 +126,7 @@ export function namedEffectBonus(all: NamedEffectData, id: string): EffectBonusC
   const base = id.includes(':') ? all.bonus[baseNamedEffectId(id)] : undefined;
   // Variante con solo opciones (sin reglas propias): reglas / tiempos del base + sus opciones.
   if (own && own.rules.length === 0 && base) {
-    return { ...base, ...(own.abilityDischarge ? { abilityDischarge: true } : {}), ...(own.chainTargets ? { chainTargets: own.chainTargets } : {}), ...(own.perTargetCooldown ? { perTargetCooldown: true } : {}) };
+    return { ...base, ...(own.abilityDischarge ? { abilityDischarge: true } : {}), ...(own.chainTargets ? { chainTargets: own.chainTargets } : {}), ...(own.perTargetCooldown ? { perTargetCooldown: true } : {}), ...(own.cooldownReducedOnAttack ? { cooldownReducedOnAttack: own.cooldownReducedOnAttack } : {}) };
   }
   return own ?? base;
 }

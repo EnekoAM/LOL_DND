@@ -69,7 +69,8 @@ export function formatBonus(bonus: CombatBonus): string {
   const amount = `${value > 0 ? '+' : ''}${formatStat(Math.round(value * 100) / 100)}`;
   const stacks = (bonus.stacks ?? 1) > 1 || bonus.maxStacks ? ` ×${bonus.stacks ?? 1}${bonus.maxStacks ? `/${bonus.maxStacks}` : ''}` : '';
   const turns = typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : '';
-  return `${amount} ${statTitle(bonus.stat)}${stacks}${turns}`;
+  const decay = typeof bonus.decayFrom === 'number' ? ` · decae (de ${formatStat(Math.round(bonus.decayFrom * 100) / 100)})` : '';
+  return `${amount} ${statTitle(bonus.stat)}${stacks}${decay}${turns}`;
 }
 
 export const newBonusId = (): string => `b${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;

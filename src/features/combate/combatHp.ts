@@ -79,6 +79,8 @@ export type DamageApplyOpts = {
   damageType?: 'physical' | 'magic' | 'true';
   critical?: boolean;
   attackerId?: string;
+  /** Daño de una regla de efecto (tipo y atacante para amplificar / escudos), sin volver a saltar «Al infligir daño». */
+  fromRule?: boolean;
 };
 export type TargetDamageFn = (targetId: string, amount: DamageAmount, opts?: DamageApplyOpts) => Promise<TargetDamage | null>;
 
