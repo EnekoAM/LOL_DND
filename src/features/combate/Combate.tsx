@@ -8,9 +8,10 @@ import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
 import { critMultiplier } from './combatMitigation';
 import { hasVigorItem, participantContext, isTempGrant, receivedPct, receivedText, shieldWord, type PoolKind, type PoolOpts } from './effectRules';
 import { participantItems } from './itemCombatHooks';
-import { afterDamageTaken, fireCcEffects, isImmobilizingEffectName, vulnerablePct, cinderbloomCrit, expiredPendingByPrefix, firePendingHalfShields, firePendingItemDamage, fireDealtDamageEffects, fireReactiveItemEffects, grievousCutPct, incomingDamageReductionPct, itemDamageAmpPct, damageAmpRules } from './itemCombatHooks';
+import { afterDamageTaken, fireCcEffects, fireTakedownEffects, HIT_BY_PREFIX, isImmobilizingEffectName, vulnerablePct, cinderbloomCrit, expiredPendingByPrefix, firePendingHalfShields, firePendingItemDamage, fireDealtDamageEffects, fireReactiveItemEffects, grievousCutPct, incomingDamageReductionPct, itemDamageAmpPct, damageAmpRules } from './itemCombatHooks';
 import { participantAbilities } from './abilityRules';
 import CombatTargetPicker from './CombatTargetPicker';
+import CombatPromptHost from './CombatPromptHost';
 import CombatHitCheck from './CombatHitCheck';
 import CombatNotes from './CombatNotes';
 import {
@@ -64,6 +65,7 @@ import { useLiveRevision } from '../../data/live';
 import { loadNpcs, type Npc } from '../../data/npcs';
 import { needsSheet, snapshotChampion, snapshotNpc, withSheet } from '../../data/combatSheet';
 import { PLAYERS, playerPortraitUrl, savePlayerPatch } from '../../data/players';
+import { permanentStackSaver } from '../../data/permanentStacks';
 import { tickActiveEffects, tickCooldowns } from '../../data/stacks';
 import { cx } from '../../lib/cx';
 import CombatParticipantCard from './CombatParticipantCard';
@@ -413,7 +415,8 @@ export default function Combate() {
       }
     }
     // "Al infligir daño físico / mágico / verdadero": reacciona el atacante (AA y habilidades con atacante y tipo).
-    if (canAct && attacker && opts?.damageType && !opts.fromRule && !dealingRef.current) {
+    // Da\u00f1o de reglas (fromRule): solo \u00abAl infligir da\u00f1o o aplicar control\u00bb (Eclipse cuenta el da\u00f1o de efectos de \u00edtems).
+    if (canAct && attacker && opts?.damageType && !dealingRef.current) {
       dealingRef.current = true;
       try {
         const fresh = stateRef.current.participants.find(p => p.id === attacker.id);
@@ -430,7 +433,7 @@ export default function Combate() {
               onTargetPool: (id: string, kind: Exclude<PoolKind, 'mana'>, value: number, opts?: PoolOpts) => poolChange(id, kind, value, opts),
               onApplySourcedEffect: (ids: string[], input: SourcedEffectInput) => applySourcedToMany(ids, input, fresh.id),
             },
-          });
+          }, opts.fromRule ? { stackOnly: true } : undefined);
           let undoBonuses: (() => Promise<void>) | undefined;
           if (fired.bonuses) {
             const saved = await saveCombatBonuses(fresh.id, fired.bonuses);
@@ -456,6 +459,10 @@ export default function Combate() {
         dealingRef.current = false;
       }
     }
+    // Asistencias: marca en el objetivo de qui\u00e9n le ha da\u00f1ado (2 turnos).
+    if (opts?.attackerId && opts.attackerId !== targetId && result.after > 0) {
+      try { await markHitBy(targetId, opts.attackerId); } catch { /* sin marca: no cuenta como asistencia */ }
+    }
     if (result.after > 0 && result.before > result.after) {
       const survived = surviveHitBonuses({
         targetId,
@@ -472,10 +479,12 @@ export default function Combate() {
       }
     }
     if (result.before > 0 && result.after <= 0) {
+      const assisters = assistersOf(targetId, opts?.attackerId);
       const nextList = applyDeathConsequences(stateRef.current.participants, targetId).map(entry => (
         entry.id === targetId ? { ...entry, defeated: true } : entry
       ));
       await persist(syncOrder(nextList, stateRef.current.participants[stateRef.current.turnIndex]?.id));
+      if (assisters.length) await fireAssistTakedowns(targetId, assisters);
     }
     return result;
   };
@@ -663,6 +672,59 @@ export default function Combate() {
   };
 
   // «Al aplicar control»: tras poner un estado de CC, reacciona quien lo aplica (sus reglas on-cc) sobre los que lo han recibido.
+  // Asistencias (\u00abAl matar / asistir\u00bb): quien da\u00f1\u00f3 al derrotado desde su turno anterior (marca hitby: de 2 turnos en el objetivo)
+  // y no le ha dado el golpe final (las reglas del que mata las dispara su propia acci\u00f3n de AA / habilidad).
+  const ASSIST_TURNS = 2;
+  const markHitBy = async (targetId: string, attackerId: string) => {
+    const target = stateRef.current.participants.find(p => p.id === targetId);
+    const attacker = stateRef.current.participants.find(p => p.id === attackerId);
+    if (!target || !attacker) return;
+    const source = `${HIT_BY_PREFIX}${attackerId}`;
+    const prev = target.bonuses ?? [];
+    const had = prev.find(bonus => bonus.source === source);
+    if (had && had.turns === ASSIST_TURNS) return;
+    const next: CombatBonus[] = [...prev.filter(bonus => bonus.source !== source), { id: had?.id ?? newBonusId(), stat: 'buff', amount: 0, turns: ASSIST_TURNS, source, label: attacker.name.slice(0, 80) }];
+    const saved = await saveCombatBonuses(targetId, next);
+    stateRef.current = saved;
+    setState(saved);
+  };
+  const assistersOf = (victimId: string, killerId: string | undefined): string[] => {
+    const victim = stateRef.current.participants.find(p => p.id === victimId);
+    const ids = (victim?.bonuses ?? [])
+      .filter(bonus => (bonus.source ?? '').startsWith(HIT_BY_PREFIX) && (bonus.turns ?? 0) > 0)
+      .map(bonus => (bonus.source ?? '').slice(HIT_BY_PREFIX.length));
+    return [...new Set(ids)].filter(id => !!id && id !== killerId && id !== victimId);
+  };
+  const fireAssistTakedowns = async (victimId: string, assisters: string[]) => {
+    if (!canAct) return;
+    for (const id of assisters) {
+      const fresh = stateRef.current.participants.find(p => p.id === id);
+      if (!fresh || fresh.defeated) continue;
+      try {
+        const fired = await fireTakedownEffects(fresh, victimId, {
+          level: partyLevel(),
+          effectData,
+          participants: stateRef.current.participants,
+          callbacks: {
+            onTargetDamage: (tid: string, value: DamageAmount, o?: DamageApplyOpts) => damageTarget(tid, value, o),
+            onTargetBonuses: targetBonuses,
+            onSelfPool: (kind: PoolKind, value: number, o?: PoolOpts) => poolChange(fresh.id, kind, value, o),
+            onTargetPool: (tid: string, kind: Exclude<PoolKind, 'mana'>, value: number, o?: PoolOpts) => poolChange(tid, kind, value, o),
+            onApplySourcedEffect: (next: string[], effect: SourcedEffectInput) => applySourcedToMany(next, effect, fresh.id),
+            onPermanentStack: permanentStackSaver(fresh, async (playerName, patch) => { await savePlayerPatch(playerName, patch); setTrackerBump(n => n + 1); }),
+          },
+        });
+        if (fired.bonuses) {
+          const saved = await saveCombatBonuses(fresh.id, fired.bonuses);
+          stateRef.current = saved;
+          setState(saved);
+          setTrackerBump(n => n + 1);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'No se pudieron aplicar las reglas \u00abAl matar / asistir\u00bb (asistencia)');
+      }
+    }
+  };
   const ccFiringRef = useRef(false);
   const fireCcTrigger = async (bearerId: string | undefined, targetIds: string[], input: SourcedEffectInput) => {
     if (!canAct || !bearerId || input.restore || ccFiringRef.current) return;
@@ -1246,7 +1308,11 @@ export default function Combate() {
           vigorPerMove={state.vigorPerMove}
           onVigorPerMoveChange={isAdmin ? rate => persist({ ...stateRef.current, vigorPerMove: rate }) : undefined}
           onBonusesSave={async bonuses => {
-            const saved = await saveCombatBonuses(p.id, bonuses);
+            // CD puestos durante la acci\u00f3n por reacciones (\u00abAl infligir da\u00f1o\u00bb, Eclipse...): la lista de la acci\u00f3n no los trae; no se pisan.
+            const before = new Set((p.bonuses ?? []).map(bonus => bonus.source));
+            const fresh = stateRef.current.participants.find(entry => entry.id === p.id)?.bonuses ?? [];
+            const kept = fresh.filter(bonus => bonus.stat === 'cooldown' && (bonus.source ?? '').startsWith('cd:') && !before.has(bonus.source) && !bonuses.some(entry => entry.source === bonus.source));
+            const saved = await saveCombatBonuses(p.id, kept.length ? [...bonuses, ...kept] : bonuses);
             stateRef.current = saved;
             setState(saved);
           }}
@@ -1328,6 +1394,7 @@ export default function Combate() {
 
   return (
     <div className={cx('combat-page', state.active && 'combat-page--active')}>
+      <CombatPromptHost />
       <header className="combat-page__head">
         {!state.active && (
           <div>

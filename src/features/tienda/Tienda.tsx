@@ -31,6 +31,8 @@ const STAT_LABELS: Record<string, string> = {
   SPE: 'Velocidad',
   'ATK spe': 'Vel. ataque',
   'Ab haste': 'Vel. habilidad',
+  'Ab haste basic': 'Vel. habilidad (b\u00e1sicas)',
+  'Ab haste ult': 'Vel. habilidad (R)',
   LETHALITY: 'Letalidad',
   MAGIC_PEN: 'Pen. mágica',
   'Armor pen %': 'Pen. armadura %',

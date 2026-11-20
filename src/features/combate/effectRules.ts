@@ -17,7 +17,8 @@ import { emptyStatLine, formatStat, type StatKey, type StatLine } from '../calcu
 import { rollDamageStat } from '../players/abilityDamage';
 import { bonusLines, chargesText, equippedItems, isStatKey, newBonusId, statTitle } from './combatBonuses';
 import { participantHp, participantHpPools, type TargetDamageFn } from './combatHp';
-import { applyScaledMr, ownedCombatTraits, type AbilityLike } from '../../data/combatTraits';
+import { askCombatYesNo } from './combatPrompt';
+import { applyScaledMr, isEnemyOf, ownedCombatTraits, type AbilityLike } from '../../data/combatTraits';
 import { abilityNamedEffects, participantAbilities } from './abilityRules';
 import { fullStackBonuses, rollAmpRound } from '../../data/rollAmps';
 
@@ -54,7 +55,7 @@ type Stats = Record<string, unknown> & { bonus?: Record<string, unknown> };
  * missingHp: vida faltante del portador (máx. − actual) en combate; fuera de combate no hay.
  * melee: cuerpo a cuerpo (rango de ataque total ≤ 1, el 0 cuenta); si no, a distancia (condición «Solo si» de las reglas).
  */
-export type EffectContext = { stats: Stats; level: number; missingHp?: number; melee?: boolean; /** Dano infligido por el disparo (solo reglas "Al infligir dano ..."; ya con armadura/RM y escudos del objetivo aplicados). */ dealt?: number; /** Enemigos distintos golpeados en esta activación (escalado «Enemigos golpeados»). */ enemiesHit?: number };
+export type EffectContext = { stats: Stats; level: number; missingHp?: number; melee?: boolean; /** Dano infligido por el disparo (solo reglas "Al infligir dano ..."; ya con armadura/RM y escudos del objetivo aplicados). */ dealt?: number; /** Enemigos distintos golpeados en esta activación (escalado «Enemigos golpeados»). */ enemiesHit?: number; /** Cargas permanentes del efecto que se est\u00e1 aplicando (escalado \u00abCargas permanentes de este efecto\u00bb). */ effectStacks?: number; /** Man\u00e1 actual del portador (escalado \u00abMan\u00e1 actual\u00bb). */ currentMana?: number; /** Campeones enemigos vivos en el combate (solo sugerencia de la pregunta \u00abcerca\u00bb). */ enemyChampions?: number; /** Respuesta a \u00ab\u00bfHay m\u00e1s de un campe\u00f3n enemigo cerca?\u00bb (S\u00ed = suma el +%). */ multiEnemyNearby?: boolean };
 type TargetInfo = { current: number; max: number; armor: number; mr: number; spe?: number; level?: number };
 
 /** Media de una stat (los dados cuentan su media); con roll, tira los dados. */
@@ -81,6 +82,8 @@ function scalingValue(stat: ScalingStat, ctx: EffectContext, target: TargetInfo 
     case 'level': return ctx.level;
     case 'dealtDamage': return Math.max(0, ctx.dealt ?? 0);
     case 'enemiesHit': return Math.max(0, ctx.enemiesHit ?? 0);
+    case 'effectStacks': return Math.max(0, ctx.effectStacks ?? 0);
+    case 'currentMana': return Math.max(0, ctx.currentMana ?? total('mana'));
     case 'missingHp': return Math.max(0, ctx.missingHp ?? 0);
     case 'targetMaxHp': return target?.max ?? 0;
     case 'targetCurrentHp': return target?.current ?? 0;
@@ -92,7 +95,7 @@ function scalingValue(stat: ScalingStat, ctx: EffectContext, target: TargetInfo 
   }
 }
 
-const NO_DICE = new Set<string>(['baseAd', 'bonusAd', 'bonusHp', 'bonusMana', 'bonusArmor', 'bonusMr', 'level', 'missingHp', 'targetMaxHp', 'targetCurrentHp', 'targetMissingHp', 'targetArmor', 'targetMr', 'targetSpe', 'dealtDamage']);
+const NO_DICE = new Set<string>(['baseAd', 'bonusAd', 'bonusHp', 'bonusMana', 'bonusArmor', 'bonusMr', 'level', 'missingHp', 'targetMaxHp', 'targetCurrentHp', 'targetMissingHp', 'targetArmor', 'targetMr', 'targetSpe', 'dealtDamage', 'effectStacks', 'currentMana']);
 
 /** Diferencia por rango: factor de la regla para este portador (a distancia = rangedPct %; cuerpo a cuerpo o rango desconocido = 1). */
 export function rangedFactor(rule: Pick<EffectRule, 'rangedPct'>, ctx: Pick<EffectContext, 'melee'> | undefined): number {
@@ -159,6 +162,11 @@ export function ruleBreakdown(rule: EffectRule, ctx: EffectContext, target?: Tar
     const before = value;
     value = value * ranged;
     parts.push(`a distancia ${fmt(rule.rangedPct ?? 100)}% (${fmt(before)} \u2192 ${fmt(value)})`);
+  }
+  if (rule.multiEnemyChampionPct && ctx.multiEnemyNearby === true) {
+    const before = value;
+    value = value * (1 + rule.multiEnemyChampionPct / 100);
+    parts.push(`m\u00e1s de un campe\u00f3n enemigo cerca +${fmt(rule.multiEnemyChampionPct)}% (${fmt(before)} \u2192 ${fmt(value)})`);
   }
   // Enemigos golpeados: multiplica todo lo anterior por los enemigos golpeados (× %); sin nada más, el % es el valor por enemigo.
   const hitPct = (rule.ratios ?? []).reduce((sum, ratio) => sum + (ratio.stat === 'enemiesHit' ? ratio.pct : 0), 0);
@@ -314,7 +322,7 @@ export function permanentStackLines(effects: ActiveNamedEffect[], ctx: EffectCon
     const count = Math.trunc(stored);
     if (!stored) continue;
     for (const rule of effect.config.rules) {
-      if (!isPermanentStackRule(rule) || !rangeOk(rule, ctx)) continue;
+      if (!isPermanentStackRule(rule) || rule.counterOnly || !rangeOk(rule, ctx)) continue;
       const stat = ruleStat(rule);
       if (!stat) continue;
       if (!rule.stackValue && !count) continue;
@@ -465,6 +473,8 @@ export type EffectCallbacks = {
   onApplySourcedEffect?: (targetIds: string[], input: SourcedEffectInput) => void | Promise<void>;
   /** «Objetivo + cercanos»: elegir el objetivo principal y los enemigos de alrededor (principal ya marcado). */
   pickArea?: (primaryId: string, effectName: string) => Promise<string[]>;
+  /** «Rebota a enemigos adicionales (cargas)»: elegir el principal + hasta max - 1 adicionales (max = cargas). */
+  pickBounce?: (primaryId: string, effectName: string, max: number) => Promise<string[]>;
   /** Cura / escudo / maná al portador; devuelve su Deshacer. */
   onSelfPool?: (kind: PoolKind, amount: number, opts?: PoolOpts) => Promise<(() => Promise<void>) | null>;
   /** Cura / escudo a otro participante (reglas «Aliados»); devuelve su Deshacer. */
@@ -502,7 +512,16 @@ const isArmTrigger = (trigger: string): boolean => trigger === 'after-ability' |
 /** Estados «Vulnerable» de reglas (source vuln:<efecto>): el objetivo recibe +valor% de da\u00f1o de todas las fuentes. */
 export const VULNERABLE_PREFIX = 'vuln:';
 
-export type EffectTriggerName = 'on-attack' | 'on-hit' | 'on-ability-hit' | 'on-cc' | 'on-deal-any' | 'on-deal-physical' | 'on-deal-magic' | 'on-deal-true' | 'on-use' | 'on-takedown' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'each-turn' | 'energized-max' | 'on-ultimate-use' | 'on-enemy-ultimate-use' | 'combat-start' | 'combat-entry' | 'when-ready' | 'on-survived-hit' | 'on-death';
+/** Contador de cargas \u00absolo contador\u00bb en el combate (portadores sin ficha: campeones / NPC). */
+export const COMBAT_STACK_PREFIX = 'pstack:';
+
+/** Contador \u00abRequiere N aplicaciones al mismo objetivo\u00bb: en el objetivo, source hits:<efecto>:<portador>. */
+export const HITS_PREFIX = 'hits:';
+/** Misma acci\u00f3n: aplicaciones al mismo objetivo a menos de esto del anterior cuentan como una (instancia de lanzamiento). */
+const HIT_DEDUPE_MS = 2500;
+const hitDedupe = new Map<string, number>();
+
+export type EffectTriggerName = 'on-attack' | 'on-hit' | 'on-ability-hit' | 'on-ability-damage' | 'on-cc' | 'on-deal-any' | 'on-deal-physical' | 'on-deal-magic' | 'on-deal-true' | 'on-deal-or-cc' | 'on-use' | 'on-takedown' | 'hp-below' | 'on-damage-taken' | 'on-attacked' | 'each-turn' | 'energized-max' | 'on-ultimate-use' | 'on-enemy-ultimate-use' | 'combat-start' | 'combat-entry' | 'when-ready' | 'on-survived-hit' | 'on-death';
 
 /** Efectos con reglas «Vigor al máximo». */
 export const vigorEffects = (effects: ActiveNamedEffect[]): ActiveNamedEffect[] =>
@@ -527,14 +546,23 @@ export function abilityDischargesVigor(items: Item[], data: NamedEffectData): bo
 }
 
 /** Objetivos a los que encadena «Vigor al máximo»: el mayor «Encadena a N» de los efectos de sus ítems (mínimo 1). */
-export function vigorChainTargets(items: Item[], data: NamedEffectData): number {
+export function vigorChainTargets(items: Item[], data: NamedEffectData, level?: number): number {
   let chain = 1;
   for (const item of items) {
     for (const id of item.namedEffects ?? []) {
-      chain = Math.max(chain, Math.min(10, namedEffectBonus(data, id)?.chainTargets ?? 1));
+      const config = namedEffectBonus(data, id);
+      const byLevel = config?.chainTargetsByLevel;
+      // \u00abSeg\u00fan nivel\u00bb (Statikk): el valor del nivel del portador (sin nivel = el del 1); si no, el n\u00famero fijo.
+      const n = byLevel?.length ? byLevel[Math.min(byLevel.length, Math.max(1, Math.floor(level ?? 1))) - 1] ?? 1 : config?.chainTargets ?? 1;
+      chain = Math.max(chain, Math.min(10, n));
     }
   }
   return chain;
+}
+
+/** \u00bfAlg\u00fan efecto de sus \u00edtems hace que los secundarios del Vigor encadenado reciban los efectos de impacto? (Statikk) */
+export function vigorChainOnHit(items: Item[], data: NamedEffectData): boolean {
+  return items.some(item => (item.namedEffects ?? []).some(id => !!namedEffectBonus(data, id)?.chainOnHit));
 }
 
 /** Velocidad (casillas por turno) del participante. */
@@ -640,14 +668,20 @@ export async function fireEffectRules(options: {
    * y gasta los «Tras habilidad» armados; una habilidad con «Aplica efectos de impacto» solo dispara los de impacto.
    */
   basicAttack?: boolean;
+  /** \u00abAl matar / asistir\u00bb: el derrotado (para \u00abSolo derribos de campeones\u00bb). */
+  takedownOf?: string;
   /** Habilidad: ¿ha hecho daño a algún enemigo? (false = no gasta cargas de combate). Ausente = sí. */
   damaged?: boolean;
   /** Daño que acaba de recibir el portador (reglas on-damage-taken con fromDamagePct). */
   incomingDamage?: number;
   /** on-cc: ¿el control aplicado inmoviliza? (las reglas «Solo inmovilizaciones» lo necesitan). */
   ccImmobilizing?: boolean;
+  /** on-cc: \u00bfel control es una ralentizaci\u00f3n? (\u00ab...o ralentizar si es cuerpo a cuerpo\u00bb). */
+  ccSlow?: boolean;
 }): Promise<EffectFireResult> {
-  const { trigger, effects, ctx, targetIds, participants, level, callbacks, bearer } = options;
+  const { trigger, effects, ctx: ctxIn, targetIds, participants, level, callbacks, bearer } = options;
+  // Copia: effectStacks cambia por efecto (escalado \u00abCargas permanentes de este efecto\u00bb).
+  const ctx: EffectContext = { ...ctxIn };
   const incomingDamage = options.incomingDamage ?? 0;
   const basicAttack = trigger === 'on-hit' && options.basicAttack !== false;
   const matches = (ruleTrigger: string) => ruleTrigger === trigger || (basicAttack && ruleTrigger === 'on-attack');
@@ -669,6 +703,25 @@ export async function fireEffectRules(options: {
     }
   }
   const nameOf = (id: string) => participants.find(p => p.id === id)?.name ?? id;
+  /** \u00bfNo campe\u00f3n? (NPC / monstruo / personalizado: ni campe\u00f3n ni player). */
+  // Cargas permanentes por efecto: ficha del player (players.stacks) o, sin ficha, el contador del combate (pstack:<id>).
+  const stackCounts = new Map<string, number>();
+  const bearerEntry = bearer ? participants.find(p => p.id === bearer.id) : undefined;
+  if (bearerEntry) {
+    // Man\u00e1 actual: ficha del player (actualMana) o el recurso del combate; sin dato, el man\u00e1 total.
+    const sheet = bearerEntry.kind === 'player' ? PLAYERS.find(entry => entry.name === bearerEntry.sourceId) : undefined;
+    const mana = sheet ? (sheet.actualMana ?? sheet.mana) : bearerEntry.currentResource;
+    if (ctx.currentMana === undefined && typeof mana === 'number' && Number.isFinite(mana)) ctx.currentMana = mana;
+    ctx.enemyChampions = participants.filter(p => !p.defeated && (p.kind === 'champion' || p.kind === 'player') && isEnemyOf(p, bearerEntry) && (participantHp(p)?.current ?? 1) > 0).length;
+  }
+  const effectStackCount = (effect: ActiveNamedEffect): number => {
+    const known = stackCounts.get(effect.id);
+    if (known !== undefined) return known;
+    const stored = bearerEntry ? Math.trunc(readStackValue(playerPermanentStacks(bearerEntry), effectStackKey(effect.id))) : 0;
+    const combat = Number(bonuses.find(bonus => bonus.source === `${COMBAT_STACK_PREFIX}${effect.id}`)?.amount ?? 0);
+    return Math.max(0, stored || combat || 0);
+  };
+  const isNonChampion = (id: string) => { const kind = participants.find(p => p.id === id)?.kind; return !!kind && kind !== 'champion' && kind !== 'player'; };
   const bearerName = bearer?.name ?? 'portador';
   const manual = (text: string) => { result.manual.push(text); result.chips.push({ kind: 'manual', text, title: 'Aplicar a mano' }); result.log.push(`${text} (a mano)`); };
 
@@ -710,7 +763,11 @@ export async function fireEffectRules(options: {
     return picked;
   };
   const isBearer = (id: string) => !!bearer && id === bearer.id;
+  // \u00abSolo inmovilizaciones\u00bb (+ \u00ab...o ralentizar si cuerpo a cuerpo\u00bb) y \u00abSolo si el objetivo es un campe\u00f3n\u00bb.
+  const ccGateOk = (rule: EffectRule) => !(rule.trigger === 'on-cc' && rule.ccImmobilizeOnly) || !!options.ccImmobilizing || (!!rule.ccSlowIfMelee && !!options.ccSlow && ctx.melee === true);
+  const championTargets = (ids: string[]) => ids.filter(id => !isBearer(id) && participants.some(p => p.id === id) && !isNonChampion(id));
 
+  const nearbyAnswers = new Map<string, boolean>();
   let procCooldown = false;
   const applyRules = async (effect: ActiveNamedEffect, rules: { rule: EffectRule; index: number }[], targets: string[] = targetIds): Promise<number> => {
     let extraHits = 0;
@@ -720,12 +777,44 @@ export async function fireEffectRules(options: {
     const label = effect.name;
     const origin = `${label} (${effect.item})`;
     for (const { rule, index } of rules) {
-      if (rule.trigger === 'on-cc' && rule.ccImmobilizeOnly && !options.ccImmobilizing) continue;
+      if (!ccGateOk(rule)) {
+        if (options.ccSlow) result.log.push(`${origin}: ralentizar solo cuenta si ${bearerName} es cuerpo a cuerpo \u2192 no se aplica`);
+        continue;
+      }
+      if (rule.trigger === 'on-takedown' && rule.championTakedownOnly && options.takedownOf && isNonChampion(options.takedownOf)) {
+        result.log.push(`${origin}: ${nameOf(options.takedownOf)} no es un campe\u00f3n \u2192 no cuenta`);
+        continue;
+      }
+      ctx.effectStacks = effectStackCount(effect);
       const source = `fx:${effect.base}:${index}`;
       const to = ruleAppliesTo(rule);
       // «Objetivo + cercanos» (Hendidura): se eligen el objetivo y los enemigos de alrededor (una vez por efecto).
       // «Solo cercanos»: los mismos sin el objetivo principal. «Aliados»: se eligen aparte (portador incluido si se marca).
       let ruleTargets = targets;
+      if (rule.championTargetsOnly) {
+        const champs = championTargets(targets);
+        if (!champs.length) { result.log.push(`${origin}: ning\u00fan objetivo es un campe\u00f3n \u2192 no se aplica`); continue; }
+        ruleTargets = champs;
+      }
+      // \u00ab+% si hay m\u00e1s de un campe\u00f3n enemigo cerca\u00bb: se pregunta al aplicar (una vez por efecto y disparo; Escape = No).
+      ctx.multiEnemyNearby = undefined;
+      if (rule.multiEnemyChampionPct) {
+        let yes = nearbyAnswers.get(effect.base);
+        if (yes === undefined) {
+          const pct = fmt(rule.multiEnemyChampionPct);
+          const alive = ctx.enemyChampions;
+          yes = await askCombatYesNo({
+            title: `${label}: \u00bfhay m\u00e1s de un campe\u00f3n enemigo cerca de ${bearerName}?`,
+            body: `S\u00ed = +${pct}% (en el LoL, a 1200 u. o menos).${alive !== undefined ? ` Campeones enemigos vivos en el combate: ${alive}.` : ''}`,
+            yesLabel: `S\u00ed (+${pct}%)`,
+            noLabel: 'No',
+            suggestYes: (alive ?? 0) > 1,
+          });
+          nearbyAnswers.set(effect.base, yes);
+          result.log.push(`${origin}: \u00bfm\u00e1s de un campe\u00f3n enemigo cerca? ${yes ? `S\u00ed \u2192 +${pct}%` : 'No'}`);
+        }
+        ctx.multiEnemyNearby = yes;
+      }
       if ((to === 'area' || to === 'nearby') && targets.length > 0) ruleTargets = await areaTargets(effect, targets);
       if (to === 'nearby') ruleTargets = ruleTargets.filter(id => id !== targets[0]);
       if (to === 'allies') {
@@ -888,6 +977,21 @@ export async function fireEffectRules(options: {
           const calc = ruleBreakdown(rule, ctx);
           // Cargas permanentes: el contador va en la ficha (sigue entre combates); el bonus lo suma combatExtraLines.
           // Va antes del «sin valor»: la carga se gana aunque el valor por carga esté aún sin rellenar.
+          // Solo contador sin ficha (campeones / NPC): la carga va en el combate (pstack:<id>), sin stats.
+          if (isPermanentStackRule(rule) && rule.counterOnly && !callbacks.onPermanentStack && !effect.config.charges) {
+            if (permanentDone.has(effect.id)) continue;
+            permanentDone.add(effect.id);
+            const counterSource = `${COMBAT_STACK_PREFIX}${effect.id}`;
+            const had = bonuses.find(bonus => bonus.source === counterSource);
+            const before = had ? had.amount : effectStackCount(effect);
+            const after = Math.min(rule.maxStacks ?? 999, before + stacksPerTriggerOf(rule));
+            bonuses = [...bonuses.filter(bonus => bonus.source !== counterSource), { id: had?.id ?? newBonusId(), stat: 'stacks', amount: after, ...(rule.maxStacks ? { maxStacks: rule.maxStacks } : {}), source: counterSource, label }];
+            stackCounts.set(effect.id, after);
+            result.changed = true;
+            result.chips.push({ kind: 'buff', text: `${label} ${before}\u2192${after}`, title: `${label} \u00b7 cargas (solo este combate)` });
+            result.log.push(`${origin}: cargas de ${bearerName} ${before} \u2192 ${after}${rule.maxStacks ? `/${rule.maxStacks}` : ''} (solo contador; sin ficha: solo este combate)`);
+            continue;
+          }
           if (isPermanentStackRule(rule) && (callbacks.onPermanentStack || effect.config.charges)) {
             if (permanentDone.has(effect.id)) continue;
             permanentDone.add(effect.id);
@@ -923,6 +1027,14 @@ export async function fireEffectRules(options: {
             const stackAdd = rule.stackValue ? (Math.round(calc.raw * 1000) / 1000) * gain : gain;
             if (rule.stackValue && !(stackAdd > 0)) { result.log.push(`${origin}: valor calculado ${calc.text} → no suma`); continue; }
             const saved = await callbacks.onPermanentStack(effect.id, rule.maxStacks, stackAdd, rule.stackValue ? { value: true } : undefined);
+            if (saved) stackCounts.set(effect.id, Math.trunc(saved.after));
+            if (saved && rule.counterOnly) {
+              result.undos.push(saved.undo);
+              result.notes.push(`${label}: carga ${saved.after}${rule.maxStacks ? `/${rule.maxStacks}` : ''}`);
+              result.chips.push({ kind: 'buff', text: `${label} ${saved.before}\u2192${saved.after}${rule.maxStacks ? `/${rule.maxStacks}` : ''}`, title: `${label} \u00b7 cargas permanentes (ficha; solo contador)` });
+              result.log.push(`${origin}: cargas permanentes de ${bearerName} ${saved.before} \u2192 ${saved.after}${rule.maxStacks ? `/${rule.maxStacks}` : ''} (solo contador: no suma stats; guardado en la ficha)`);
+              continue;
+            }
             if (saved && rule.stackValue) {
               result.undos.push(saved.undo);
               const shown = (n: number) => fmt(Math.round(n * 100) / 100);
@@ -948,6 +1060,7 @@ export async function fireEffectRules(options: {
               continue;
             }
           }
+          if (rule.counterOnly) continue;
           if (!calc.value) continue;
           bonuses = upsertStacking(bonuses, source, stat, calc.value, rule, turns, label);
           const entry = bonuses.find(bonus => bonus.source === source);
@@ -964,10 +1077,12 @@ export async function fireEffectRules(options: {
           const hasFormula = !!rule.dice || (rule.flat != null && rule.flat !== 0) || (rule.ratios && rule.ratios.length > 0) || (rule.perLevel && rule.perLevel.length > 0);
           if (!hasFormula) { manual(`${label}: ${rule.note || 'tirar el daño a mano'}`); break; }
           if (!callbacks.onTargetDamage || ruleTargets.length === 0) { manual(`${label}: ${rule.note || 'elegir objetivo del daño'}`); break; }
+          // \u00abFijo contra no campeones\u00bb (Statikk: 60 \u2192 90): ese fijo en vez del normal si el objetivo no es campe\u00f3n.
+          const vsRule = (id: string): EffectRule => rule.nonChampionFlat != null && !isBearer(id) && isNonChampion(id) ? { ...rule, flat: rule.nonChampionFlat } : rule;
           if (rule.delayTurns) {
             for (const id of ruleTargets) {
               const info = targetInfo(id, '');
-              const calc = ruleBreakdown(rule, ctx, info, true);
+              const calc = ruleBreakdown(vsRule(id), ctx, info, true);
               const amount = Math.max(0, Math.ceil(calc.value));
               if (amount <= 0) continue;
               const pending = `pending-dmg:${effect.base}:${id}`;
@@ -977,6 +1092,22 @@ export async function fireEffectRules(options: {
             }
             if (rule.cooldownOnProc) procCooldown = true;
             break;
+          }
+          // «Rebota a enemigos adicionales (cargas)» (Eco de Luden): carga 1 = el principal; cada carga m\u00e1s = un enemigo adicional
+          // con el mismo da\u00f1o; las que se quedan sin objetivo (el DM elige cu\u00e1ntos hay) suman +X% cada una al principal.
+          let bounceFactor: Map<string, number> | null = null;
+          if (rule.bounceStacks && rule.bounceStacks >= 2 && ruleTargets.length > 0) {
+            const primary = ruleTargets[0];
+            const maxExtra = rule.bounceStacks - 1;
+            let picked: string[] = [];
+            if (callbacks.pickBounce) picked = await callbacks.pickBounce(primary, label, rule.bounceStacks);
+            else if (callbacks.pickArea) picked = await callbacks.pickArea(primary, `${label}: hasta ${maxExtra} adicionales`);
+            const extra = [...new Set(picked)].filter(id => id !== primary && !isBearer(id)).slice(0, maxExtra);
+            const leftover = maxExtra - extra.length;
+            const pct = rule.bounceLeftoverPct ?? 20;
+            ruleTargets = [primary, ...extra];
+            bounceFactor = new Map([[primary, 1 + (pct / 100) * leftover]]);
+            result.log.push(`${origin}: ${rule.bounceStacks} cargas \u2192 ${nameOf(primary)}${extra.length ? ` + ${extra.length} adicional(es): ${extra.map(nameOf).join(', ')}` : ' (sin adicionales)'}${leftover ? `; ${leftover} sobrante(s) \u2192 +${fmt(pct * leftover)}% al principal` : ''}`);
           }
           const parts: string[] = [];
           let totalDealt = 0;
@@ -988,9 +1119,12 @@ export async function fireEffectRules(options: {
             try {
               const damage = await callbacks.onTargetDamage(id, currentHp => {
                 info = targetInfo(id, '');
-                const calc = ruleBreakdown(rule, ctx, info ? { ...info, current: currentHp } : undefined, true);
-                dealt = Math.max(0, Math.ceil(calc.value));
-                calcText = `${calc.text}${dealt !== calc.value ? ` → ${fmt(dealt)} (redondeo ↑)` : ''}`;
+                const vs = vsRule(id);
+                const calc = ruleBreakdown(vs, ctx, info ? { ...info, current: currentHp } : undefined, true);
+                const factor = bounceFactor?.get(id) ?? 1;
+                const value = calc.value * factor;
+                dealt = Math.max(0, Math.ceil(value));
+                calcText = `${vs !== rule ? '(no campe\u00f3n) ' : ''}${calc.text}${factor !== 1 ? ` \u00d7 ${fmt(Math.round(factor * 1000) / 1000)} (cargas sobrantes)` : ''}${dealt !== value ? ` → ${fmt(dealt)} (redondeo ↑)` : ''}`;
                 return dealt;
               }, { damageType: type, ...(bearer ? { attackerId: bearer.id } : {}), fromRule: true });
               if (damage) {
@@ -1341,6 +1475,48 @@ export async function fireEffectRules(options: {
     return extraHits;
   };
 
+  // \u00abRequiere N aplicaciones al mismo objetivo\u00bb: suma 1 en cada objetivo (como mucho 1 por acci\u00f3n) y devuelve los que llegan a N.
+  const hitsGate = async (effect: ActiveNamedEffect, config: EffectBonusConfig): Promise<string[]> => {
+    const need = config.hitsRequired ?? 2;
+    const windowTurns = config.hitsWindow ?? 1;
+    const origin = `${effect.name} (${effect.item})`;
+    const key = `${HITS_PREFIX}${effect.base}:${bearer?.id ?? ''}`;
+    const done: string[] = [];
+    for (const id of [...new Set(targetIds)]) {
+      if (isBearer(id)) continue;
+      if (config.hitsChampionsOnly && (isNonChampion(id) || !participants.some(p => p.id === id))) {
+        result.log.push(`${origin}: ${nameOf(id)} no es un campe\u00f3n \u2192 no suma aplicaci\u00f3n`);
+        continue;
+      }
+      const memo = `${id}|${key}`;
+      const now = Date.now();
+      const last = hitDedupe.get(memo);
+      hitDedupe.set(memo, now);
+      if (last !== undefined && now - last < HIT_DEDUPE_MS) {
+        result.log.push(`${origin}: ${nameOf(id)} ya ha recibido una aplicaci\u00f3n en esta acci\u00f3n \u2192 no suma otra`);
+        continue;
+      }
+      if (!callbacks.onTargetBonuses) { manual(`${effect.name}: +1 aplicaci\u00f3n a ${nameOf(id)} (${need} en ${windowTurns} t.)`); continue; }
+      let count = 0;
+      const undo = await callbacks.onTargetBonuses(id, current => {
+        const found = current.find(bonus => bonus.source === key);
+        count = (found?.amount ?? 0) + 1;
+        const rest = current.filter(bonus => bonus.source !== key);
+        if (count >= need) return rest;
+        return [...rest, { id: found?.id ?? newBonusId(), stat: 'buff', amount: count, maxStacks: need, turns: found?.turns ?? windowTurns, source: key, label: `${effect.name} (${bearerName})`.slice(0, 80) }];
+      });
+      if (undo) result.undos.push(undo);
+      if (count >= need) {
+        done.push(id);
+        result.log.push(`${origin}: aplicaci\u00f3n ${need}/${need} en ${nameOf(id)} \u2192 se activa`);
+      } else {
+        result.chips.push({ kind: 'buff', text: `${effect.name} ${count}/${need} ${nameOf(id)}`, title: `${effect.name}: aplicaciones al mismo objetivo (caduca en ${windowTurns} t. del objetivo)` });
+        result.log.push(`${origin}: aplicaci\u00f3n ${count}/${need} en ${nameOf(id)} (caduca al empezar ${windowTurns === 1 ? 'su siguiente turno' : `su turno ${windowTurns}`})`);
+      }
+    }
+    return done;
+  };
+
   let extraHits = 0;
   const rangeText = `${bearerName} es ${rangeTypeLabel(ctx.melee === true).toLowerCase()} (rango ${fmt(statNumber(ctx.stats.range))}; cuerpo a cuerpo = rango ≤ 1)`;
   for (const effect of effects) {
@@ -1388,8 +1564,14 @@ export async function fireEffectRules(options: {
       result.log.push(`${effect.name} (${effect.item}): ya se usó en este combate → no se aplica`);
       continue;
     }
+    // Filtros de control / campe\u00f3n antes del CD: si ninguna regla vale, no salta ni gasta el CD.
+    if (own.length && !own.some(({ rule }) => ccGateOk(rule) && (!rule.championTargetsOnly || championTargets(targetIds).length > 0))) {
+      const why = own.some(({ rule }) => !ccGateOk(rule)) ? (options.ccSlow ? `ralentizar solo cuenta si ${bearerName} es cuerpo a cuerpo` : 'el control no inmoviliza') : 'ning\u00fan objetivo es un campe\u00f3n';
+      result.log.push(`${effect.name} (${effect.item}): ${why} \u2192 no se aplica (sin gastar CD)`);
+      continue;
+    }
     const hasAfterAbility = rules.some(({ rule }) => isArmTrigger(rule.trigger));
-    const deferCd = own.some(({ rule }) => rule.cooldownOnProc || rule.triggerAtMax || rule.everyN);
+    const deferCd = own.some(({ rule }) => rule.cooldownOnProc || rule.triggerAtMax || rule.everyN) || !!config.hitsRequired;
     procCooldown = false;
     // El CD de un efecto con «Tras habilidad» es el del AA potenciado; el resto lo comparte.
     // Enfriamiento por objetivo: solo los objetivos marcados (sin CD de este portador); el CD se pone en cada uno.
@@ -1438,7 +1620,18 @@ export async function fireEffectRules(options: {
         result.log.push(`${effect.name} (${effect.item}): CD ${turns} t. en ${bearerName}${config.cdStart === 'on-end' ? ` (${config.duration ?? 0} de efecto + ${config.cooldown} de CD)` : ''}${levelCdNote}`);
       }
     }
-    extraHits += await applyRules(effect, own);
+    let gateTargets: string[] | undefined;
+    if (config.hitsRequired && config.hitsRequired >= 2) {
+      const left = cooldownLeft(bonuses, effect.base);
+      if (left > 0) {
+        result.log.push(`${effect.name} (${effect.item}): en CD en ${bearerName} (${left} t.) \u2192 no suma aplicaciones`);
+        continue;
+      }
+      gateTargets = await hitsGate(effect, config);
+      if (!gateTargets.length) continue;
+      procCooldown = true;
+    }
+    extraHits += await applyRules(effect, own, gateTargets);
     if (deferCd && procCooldown && config.cooldown && cooldownLeft(bonuses, effect.base) <= 0) {
       const turns = config.cdStart === 'on-end' ? Math.max(0, config.duration ?? 0) + config.cooldown : config.cooldown;
       bonuses = setMarker(bonuses, 'cooldown', `cd:${effect.base}`, turns, effect.name);

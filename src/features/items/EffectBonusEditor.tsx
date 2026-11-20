@@ -18,6 +18,7 @@ import {
   type RuleAppliesTo,
   type EffectBonusConfig,
   type EffectRule,
+  expandLevelTiers,
 } from '../../data/effectBonus';
 import {
   FORMULA_KINDS,
@@ -143,6 +144,13 @@ const H = {
   requiresMax: 'Solo se aplica si otra regla de este efecto est\u00e1 al m\u00e1ximo de acumulaciones (3.er AA de Guinsoo).',
   delay: 'El efecto se aplica dentro de N turnos en vez de al momento.',
   half: 'Pasados N turnos el escudo baja a la mitad.',
+  bounceStacks: 'Cargas del golpe (Eco de Luden: 6). La primera es para el objetivo principal; cada una de las dem\u00e1s golpea a un enemigo adicional con el mismo da\u00f1o. En combate se eligen los adicionales (hasta cargas - 1); las que se queden sin objetivo suman da\u00f1o al principal.',
+  bounceLeftover: 'Por cada carga que no encuentra enemigo adicional, el principal recibe este % de da\u00f1o extra (Eco de Luden: 20). Ej.: 6 cargas y 2 adicionales elegidos = 3 sobrantes = +60% al principal.',
+  counterOnly: 'La carga se guarda (ficha del player; campeones / NPC: solo este combate) pero no da stats por s\u00ed misma. Otra regla del efecto puede escalar con \u00abCargas permanentes de este efecto\u00bb (Eminencia: +3 AD del LoL por carga). Pon esta regla ANTES que la que escala, para que cuente la carga nueva.',
+  championTakedownOnly: 'Solo cuenta si el derrotado es un campe\u00f3n (player o campe\u00f3n); no NPC, monstruos ni personalizados. Asistencia = haberle da\u00f1ado desde tu turno anterior (marca de 2 turnos en el objetivo) sin darle el golpe final.',
+  ccSlowIfMelee: 'Con \u00abSolo inmovilizaciones\u00bb: una ralentizaci\u00f3n tambi\u00e9n cuenta si el portador es cuerpo a cuerpo (rango \u2264 1). A distancia solo cuentan las inmovilizaciones.',
+  championTargetsOnly: 'Solo salta si el objetivo es un campe\u00f3n (player o campe\u00f3n); contra NPC, monstruos o personalizados no hace nada ni gasta el CD.',
+  multiEnemyChampionPct: 'Al aplicarse, el combate pregunta \u00ab\u00bfHay m\u00e1s de un campe\u00f3n enemigo cerca?\u00bb (S\u00ed / No). Solo con S\u00ed se suma este %. Escape o cerrar = No. Se sugiere S\u00ed si hay m\u00e1s de un campe\u00f3n enemigo vivo en el combate, pero decides t\u00fa.',
   ccImmobilizeOnly: 'Solo cuenta si el control inmoviliza (como en el LoL): aturdir, enraizar, lanzar por los aires / empujar, suprimir, dormir, encantar, asustar, provocar, estasis. Sin marcar vale cualquier control (tambi\u00e9n ralentizar, silenciar, cegar...). Se dispara cuando el portador aplica el estado a un enemigo (habilidades, activas y reglas de \u00edtems); los objetivos de la regla son los controlados.',
   extendDuration: 'Si el objetivo ya tiene este estado activo, volver a aplicarlo SUMA los turnos (quedan + duraci\u00f3n). Sin marcar se renueva a la duraci\u00f3n completa (lo normal en el LoL: \u00abreaplicar alarga\u00bb suele ser renovar).',
   decays: 'El bonus empieza entero y baja a partes iguales al empezar cada turno de quien lo tiene, hasta 0 al acabar la duración (valor × turnos que quedan / turnos totales). Los % guardan decimales; los planos se redondean al más cercano.',
@@ -166,7 +174,13 @@ const H = {
   discharge: 'Con el Vigor al m\u00e1ximo, usar una habilidad que golpea tambi\u00e9n lo descarga (Espada ciclovoltaica).',
   forever: 'Guarda -1: dura hasta que termine el combate (o hasta que se gaste, p. ej. un escudo de hechizos que bloquea una habilidad). 0 no es infinito.',
   lol: 'Escribe el n\u00famero del LoL (100, 150...). Fuera del editor y en combate se usa / 10 (la vida aqu\u00ed es la del LoL / 10). Solo el fijo y el por nivel: los escalados (% de armadura, % de vida...) y los dados no cambian. Sin redondeo intermedio: el total se redondea como siempre (curas y escudos, al m\u00e1s cercano).',
+  hits: 'Las reglas del efecto solo se aplican cuando el portador llega a N aplicaciones sobre el MISMO objetivo dentro de la ventana (Eclipse: 2). Cada disparo del efecto (p. ej. \u00abAl infligir da\u00f1o o aplicar control\u00bb) suma 1 en cada objetivo, como mucho 1 por acci\u00f3n (lo que llega a menos de 2,5 s del anterior en ese objetivo es la misma acci\u00f3n). Al completarse: se aplican las reglas a ese objetivo (y las de \u00abportador\u00bb, una vez) y empieza el CD; en CD no cuenta.',
+  hitsWindow: 'Turnos que dura el contador en el objetivo (baja al empezar el turno del objetivo). 1 = las aplicaciones tienen que llegar antes de que el objetivo vuelva a actuar (en la pr\u00e1ctica, en el mismo turno del portador: 2 s del LoL).',
+  hitsChampions: 'Solo cuentan objetivos campeones (player o campe\u00f3n), no NPC, monstruos ni personalizados.',
   chain: 'El golpe del Vigor al m\u00e1ximo salta a N objetivos.',
+  chainLevel: 'Objetivos del Vigor al m\u00e1ximo seg\u00fan el nivel del portador (incluye al principal; manda sobre el n\u00famero fijo). Hasta 20 valores separados por \u00ab/\u00bb; con menos (p. ej. 4/5/6/7/8 del LoL) se reparten en tramos iguales del nivel 1 al 20.',
+  chainOnHit: 'Los objetivos secundarios del encadenado reciben tambi\u00e9n los efectos de impacto (on-hit) de los \u00edtems del portador, como si les hubiera golpeado (no el da\u00f1o del AA, ni el Vigor, ni los efectos \u00abal auto-atacar\u00bb).',
+  nonChampionFlat: 'Sustituye al fijo cuando el objetivo no es un campe\u00f3n (NPC, monstruo o personalizado). Usa el mismo escalado: con \u00abEscala LoL\u00bb, 90 = 9.',
   lolDice: 'Escribe el AD / AP que da el LoL (4, 40, 75...). En un bonus de stat se guarda ese valor (aunque no llegue a 1d6) y se suma al AD/AP total antes de convertir. En da\u00f1o se rellenan los dados: 1d6 cada 15 de AD o cada 20 de AP; lo que sobra suma +1d2 o +1d4 (AD: 5-9 / 10-14; AP: 7-13 / 14-19). Si luego cambias los dados a mano, se olvida el valor del LoL.',
 };
 
@@ -188,7 +202,7 @@ const RuleCard = ({ rule, index, config, onChange, onRemove, onMoveUp, onMoveDow
   const range = rangeModeOf(rule);
   const options = appliesToOptions(rule.kind);
   const formula = FORMULA_KINDS.includes(rule.kind) || show('flat') || show('ratios') || show('perLevel');
-  const stacksUsed = [rule.maxStacks, rule.permanent, rule.stacksPerTrigger, rule.triggerAtMax, rule.perTargetCounter, rule.everyN, rule.requiresMaxStacks].filter(hasValue).length;
+  const stacksUsed = [rule.maxStacks, rule.permanent, rule.counterOnly, rule.stacksPerTrigger, rule.triggerAtMax, rule.perTargetCounter, rule.everyN, rule.requiresMaxStacks].filter(hasValue).length;
   const advancedUsed = [rule.delayTurns, rule.unseenTurns, rule.armedTurnsAfterSeen, rule.damageAmpPct, rule.critPotencyPct, rule.note].filter(hasValue).length;
   const warnings = ruleWarnings(rule, config, kindLabel(rule.kind));
   // AD / AP del LoL -> dados d6 (1d6 cada 15 AD / 20 AP) (Bonus de stat AD / AP y da\u00f1o).
@@ -247,7 +261,10 @@ const RuleCard = ({ rule, index, config, onChange, onRemove, onMoveUp, onMoveDow
                 {EFFECT_TRIGGERS.map(trigger => <option key={trigger.id} value={trigger.id}>{trigger.label}</option>)}
               </select>
             </Field>
+            {show('championTakedownOnly') && <Check label={'Solo derribos de campeones'} help={H.championTakedownOnly} checked={!!rule.championTakedownOnly} onChange={checked => set({ championTakedownOnly: checked || undefined })} />}
             {show('ccImmobilizeOnly') && <Check label={'Solo inmovilizaciones (no ralentizar / silenciar)'} help={H.ccImmobilizeOnly} checked={!!rule.ccImmobilizeOnly} onChange={checked => set({ ccImmobilizeOnly: checked || undefined })} />}
+            {show('ccSlowIfMelee') && (rule.ccImmobilizeOnly || rule.ccSlowIfMelee) && <Check label={'...o ralentizar si el portador es cuerpo a cuerpo'} help={H.ccSlowIfMelee} checked={!!rule.ccSlowIfMelee} onChange={checked => set({ ccSlowIfMelee: checked || undefined })} />}
+            {show('championTargetsOnly') && <Check label={'Solo si el objetivo es un campe\u00f3n'} help={H.championTargetsOnly} checked={!!rule.championTargetsOnly} onChange={checked => set({ championTargetsOnly: checked || undefined })} />}
             {show('hpBelowPct') && <NumberField label={'Vida del portador por debajo de (%)'} help={H.hpBelow} value={rule.hpBelowPct} onChange={hpBelowPct => set({ hpBelowPct })} placeholder="30" />}
             <Field label={'Cuerpo a cuerpo / distancia'} help={H.range}>
               <select value={range} onChange={e => onChange(withRangeMode(rule, e.target.value as RangeMode))}>
@@ -305,6 +322,11 @@ const RuleCard = ({ rule, index, config, onChange, onRemove, onMoveUp, onMoveDow
             {show('fromDamagePct') && <NumberField label={rule.trigger.startsWith('on-deal-') ? '% del da\u00f1o infligido' : '% del da\u00f1o recibido'} value={rule.fromDamagePct} onChange={fromDamagePct => set({ fromDamagePct })} />}
             {show('fromManaSpentPct') && <NumberField label={'% del coste de la habilidad'} value={rule.fromManaSpentPct} onChange={fromManaSpentPct => set({ fromManaSpentPct })} />}
             {show('healFromDealtPct') && <NumberField label={'Cura al portador el % del da\u00f1o hecho'} value={rule.healFromDealtPct} onChange={healFromDealtPct => set({ healFromDealtPct })} />}
+            {show('nonChampionFlat') && <NumberField label={'Fijo contra no campeones'} help={H.nonChampionFlat} placeholder="90" value={rule.nonChampionFlat} onChange={nonChampionFlat => set({ nonChampionFlat })} />}
+            {show('nonChampionFlat') && rule.nonChampionFlat != null && lolScaled(rule) && <span className="bx-lol">{`= ${rule.nonChampionFlat / 10}`}</span>}
+            {show('multiEnemyChampionPct') && <NumberField label={'+% si hay m\u00e1s de un campe\u00f3n enemigo cerca (pregunta al aplicar)'} help={H.multiEnemyChampionPct} placeholder="80" value={rule.multiEnemyChampionPct} onChange={multiEnemyChampionPct => set({ multiEnemyChampionPct: multiEnemyChampionPct && multiEnemyChampionPct > 0 ? multiEnemyChampionPct : undefined })} />}
+            {show('bounceStacks') && <NumberField label={'Rebota a enemigos adicionales (cargas)'} help={H.bounceStacks} step="1" placeholder="6" value={rule.bounceStacks} onChange={value => set(value && value >= 2 ? { bounceStacks: Math.min(20, Math.floor(value)) } : { bounceStacks: undefined, bounceLeftoverPct: undefined })} />}
+            {(rule.bounceStacks || rule.bounceLeftoverPct != null) && <NumberField label={'+% al principal por carga sobrante'} help={H.bounceLeftover} value={rule.bounceLeftoverPct ?? 20} onChange={value => set({ bounceLeftoverPct: value == null ? undefined : Math.max(0, Math.min(500, value)) })} />}
             {show('healOverTurns') && (
               <Check
                 label={'Repartir en N turnos'}
@@ -445,6 +467,7 @@ const RuleCard = ({ rule, index, config, onChange, onRemove, onMoveUp, onMoveDow
       <Fold title={'Acumulaci\u00f3n'} used={stacksUsed}>
         <NumberField label={'M\u00e1ximo de acumulaciones'} help={H.maxStacks} step="1" value={rule.maxStacks} onChange={maxStacks => set({ maxStacks })} />
         {(STACK_KINDS.includes(rule.kind) || rule.permanent) && <Check label={'Cargas permanentes (se guardan en la ficha)'} help={H.permanent} checked={!!rule.permanent} onChange={checked => set({ permanent: checked || undefined, ...(checked ? {} : { stacksPerTrigger: undefined }) })} />}
+        {(rule.permanent || rule.counterOnly) && <Check label={'Solo contador (no suma stats)'} help={H.counterOnly} checked={!!rule.counterOnly} onChange={checked => set({ counterOnly: checked || undefined })} />}
         {(rule.permanent || rule.stackValue) && <Check label={'La carga guarda el valor calculado (se suma)'} help={H.stackValue} checked={!!rule.stackValue} onChange={checked => set({ stackValue: checked || undefined })} />}
         {(rule.permanent || rule.stacksPerTrigger != null) && <NumberField label={'Cargas por activación'} help={H.stacksPerTrigger} step="1" value={rule.stacksPerTrigger ?? 1} onChange={value => set({ stacksPerTrigger: value && value >= 2 ? Math.min(999, Math.floor(value)) : undefined })} />}
         <Check label={'Solo al llegar al m\u00e1ximo'} help={H.triggerAtMax} checked={!!rule.triggerAtMax} onChange={checked => set({ triggerAtMax: checked || undefined })} />
@@ -546,7 +569,7 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
     update({ ...draft, rules });
   };
   const showMaxTargets = allRules.some(rule => rule.trigger === 'on-use') || draft.maxTargets != null;
-  const advancedUsed = [draft.charges, draft.abilityDischarge, draft.chainTargets].filter(hasValue).length;
+  const advancedUsed = [draft.charges, draft.abilityDischarge, draft.chainTargets, draft.chainTargetsByLevel?.length ? draft.chainTargetsByLevel : undefined, draft.chainOnHit].filter(hasValue).length;
   const timing = configTimingText(draft);
 
   return (
@@ -599,6 +622,14 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
             )}
           </div>
         </div>
+        <div className="bx-group">
+          <h5>{'Varias aplicaciones al mismo objetivo'}<Help text={H.hits} /></h5>
+          <div className="bx-grid">
+            <NumberField label={'Requiere N aplicaciones al mismo objetivo'} help={H.hits} step="1" placeholder="2" value={draft.hitsRequired} onChange={value => setConfig(value && value >= 2 ? { hitsRequired: Math.min(10, Math.floor(value)) } : { hitsRequired: undefined, hitsWindow: undefined, hitsChampionsOnly: undefined })} />
+            {!!draft.hitsRequired && <NumberField label={'En X turnos (ventana)'} help={H.hitsWindow} step="1" value={draft.hitsWindow ?? 1} onChange={value => setConfig({ hitsWindow: value && value >= 1 ? Math.min(20, Math.floor(value)) : undefined })} />}
+            {!!draft.hitsRequired && <Check label={'Solo campeones enemigos'} help={H.hitsChampions} checked={!!draft.hitsChampionsOnly} onChange={checked => setConfig({ hitsChampionsOnly: checked || undefined })} />}
+          </div>
+        </div>
         <Fold title={'Avanzado'} used={advancedUsed}>
           <NumberField label={'Usos recargables: inicio'} help={H.charges} step="1" value={charges?.start} onChange={start => setCharges({ start })} />
           <NumberField label={'Usos recargables: m\u00e1ximo'} step="1" value={charges?.max} onChange={max => setCharges({ max })} />
@@ -606,6 +637,20 @@ const EffectBonusEditor = ({ id, own, inherited, canEdit, onSave }: Props) => {
           <Check label={'Gasta como mucho 1 por turno'} checked={!!charges?.perTurn} disabled={!charges} onChange={checked => setCharges({ perTurn: checked || undefined })} />
           <Check label={'Las habilidades tambi\u00e9n descargan el Vigor'} help={H.discharge} checked={!!draft.abilityDischarge} onChange={checked => setConfig({ abilityDischarge: checked || undefined })} />
           <NumberField label={'Vigor al m\u00e1ximo: encadena a N objetivos'} help={H.chain} step="1" value={draft.chainTargets ?? 1} onChange={value => setConfig({ chainTargets: value && value > 1 ? Math.min(10, Math.floor(value)) : undefined })} />
+          <Field label={'Vigor al m\u00e1ximo: objetivos seg\u00fan nivel (1-20, separados por /)'} help={H.chainLevel} wide>
+            <input
+              type="text"
+              placeholder="4/5/6/7/8"
+              defaultValue={draft.chainTargetsByLevel?.join('/') ?? ''}
+              onBlur={e => {
+                const values = e.target.value.split('/').map(part => Number(part.trim())).filter(n => Number.isFinite(n) && n >= 1).map(n => Math.min(10, Math.floor(n)));
+                const full = values.length ? expandLevelTiers(values) : undefined;
+                e.target.value = full?.join('/') ?? '';
+                setConfig({ chainTargetsByLevel: full });
+              }}
+            />
+          </Field>
+          <Check label={'Aplica efectos on-hit a los secundarios'} help={H.chainOnHit} checked={!!draft.chainOnHit} onChange={checked => setConfig({ chainOnHit: checked || undefined })} />
         </Fold>
         <Warnings list={configWarnings(draft)} />
       </section>

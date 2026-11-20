@@ -17,12 +17,14 @@ export const EFFECT_TRIGGERS = [
   { id: 'after-ability', label: 'Tras habilidad: siguiente AA' },
   { id: 'after-use', label: 'Tras usar (activa): siguiente AA' },
   { id: 'on-ability-hit', label: 'Al acertar una habilidad' },
+  { id: 'on-ability-damage', label: 'Al infligir da\u00f1o con una habilidad' },
   { id: 'on-ability-use', label: 'Al usar una habilidad' },
   { id: 'on-cc', label: 'Al aplicar control (CC)' },
   { id: 'on-deal-any', label: 'Al infligir daño' },
   { id: 'on-deal-physical', label: 'Al infligir daño físico' },
   { id: 'on-deal-magic', label: 'Al infligir daño mágico' },
   { id: 'on-deal-true', label: 'Al infligir daño verdadero' },
+  { id: 'on-deal-or-cc', label: 'Al infligir da\u00f1o o aplicar control (a un enemigo)' },
   { id: 'on-use', label: 'Al usar (activa)' },
   { id: 'on-takedown', label: 'Al matar / asistir' },
   { id: 'hp-below', label: 'Vida por debajo de X%' },
@@ -91,6 +93,8 @@ export const SCALING_STATS = [
   { id: 'lethality', label: 'Letalidad' },
   { id: 'dealtDamage', label: 'Da\u00f1o infligido' },
   { id: 'enemiesHit', label: 'Enemigos golpeados' },
+  { id: 'effectStacks', label: 'Cargas permanentes de este efecto' },
+  { id: 'currentMana', label: 'Man\u00e1 actual' },
 ] as const;
 export type ScalingStat = (typeof SCALING_STATS)[number]['id'];
 
@@ -205,10 +209,26 @@ export type EffectRule = {
   permanent?: boolean;
   /** Cargas permanentes que guardan el VALOR calculado en cada activación (se suma; Corazón de acero), no un contador × valor por carga. */
   stackValue?: boolean;
+  /** Cargas permanentes \u00absolo contador\u00bb: guarda la carga (ficha / combate) pero NO suma stats; la usan otras reglas con el escalado \u00abCargas permanentes de este efecto\u00bb (Eminencia). */
+  counterOnly?: boolean;
+  /** \u00abAl matar / asistir\u00bb: solo si el derrotado es un campe\u00f3n (player / campe\u00f3n; no NPC, monstruo ni personalizado). */
+  championTakedownOnly?: boolean;
   /** «Al aplicar control»: solo con inmovilizaciones (aturdir, enraizar, lanzar por los aires, suprimir, dormir, encantar, asustar, provocar...), no ralentizar / silenciar. */
   ccImmobilizeOnly?: boolean;
+  /** Con \u00abSolo inmovilizaciones\u00bb: las ralentizaciones tambi\u00e9n cuentan si el portador es cuerpo a cuerpo (Invierno eterno). */
+  ccSlowIfMelee?: boolean;
+  /** Solo si el objetivo del disparo es un campe\u00f3n (player / campe\u00f3n); con NPC / monstruos / personalizados no salta (ni gasta CD). */
+  championTargetsOnly?: boolean;
+  /** +% al valor si hay m\u00e1s de un campe\u00f3n enemigo vivo en el combate (adaptaci\u00f3n de \u00abcampeones enemigos cerca\u00bb; no hay posiciones). */
+  multiEnemyChampionPct?: number;
   /** Estado / ralentizaci\u00f3n / Vulnerable: reaplicarlo con el efecto activo SUMA la duraci\u00f3n (si no, la renueva a la completa). */
   extendDuration?: boolean;
+  /** Da\u00f1o con cargas que rebotan (Eco de Luden): N cargas = el principal + hasta N-1 enemigos adicionales; las cargas sin objetivo suman da\u00f1o al principal. */
+  bounceStacks?: number;
+  /** % de da\u00f1o extra al principal por cada carga sobrante (por defecto 20). */
+  bounceLeftoverPct?: number;
+  /** Da\u00f1o: fijo que sustituye al fijo contra no campeones (NPC / monstruos / personalizados). Mismo escalado (LoL / 10 si lolScale). */
+  nonChampionFlat?: number;
   /** Decae durante la duración (stat / velocidades con turnos): empieza entero y baja a partes iguales al empezar cada turno de quien lo tiene, hasta 0. */
   decays?: boolean;
   /** Cargas permanentes que suma cada disparo (por defecto 1; no pasa de maxStacks). */
@@ -272,6 +292,20 @@ export type EffectBonusConfig = {
   abilityDischarge?: boolean;
   /** Vigor al máximo: encadena a N objetivos (1-10; ausente = 1). */
   chainTargets?: number;
+  /** Vigor al m\u00e1ximo: objetivos por nivel del portador (20 valores, nivel 1-20; manda sobre chainTargets). */
+  chainTargetsByLevel?: number[];
+  /** Vigor al m\u00e1ximo encadenado: los objetivos secundarios reciben tambi\u00e9n los efectos de impacto (on-hit) del portador. */
+  chainOnHit?: boolean;
+  /**
+   * \u00abRequiere N aplicaciones al mismo objetivo\u00bb (Eclipse): cada disparo del efecto suma 1 aplicaci\u00f3n en cada objetivo
+   * (como mucho 1 por acci\u00f3n: lo que llega a menos de 2,5 s del anterior en ese objetivo cuenta como la misma); al llegar a N
+   * en un objetivo, las reglas se aplican (a ese objetivo) y empieza el CD. Contador en el objetivo, caduca en hitsWindow turnos.
+   */
+  hitsRequired?: number;
+  /** Ventana del contador en turnos (del objetivo; 1 = antes de que empiece su siguiente turno). */
+  hitsWindow?: number;
+  /** Solo cuentan campeones enemigos (player / campe\u00f3n). */
+  hitsChampionsOnly?: boolean;
   /** Enfriamiento por objetivo: el CD se pone en el objetivo golpeado (cada objetivo tiene su marca), no en el portador. */
   perTargetCooldown?: boolean;
   /** Cada AA del portador reduce el CD restante de este efecto en estos turnos (admite decimales: 0.5, 1). */
@@ -354,12 +388,14 @@ const TRIGGER_SHORT: Record<EffectTrigger, string> = {
   'after-ability': 'Tras habilidad (siguiente AA)',
   'after-use': 'Tras usar (siguiente AA)',
   'on-ability-hit': 'Al acertar habilidad',
+  'on-ability-damage': 'Al infligir da\u00f1o con habilidad',
   'on-ability-use': 'Al usar habilidad',
   'on-cc': 'Al aplicar control',
   'on-deal-any': 'Al infligir daño',
   'on-deal-physical': 'Al infligir daño físico',
   'on-deal-magic': 'Al infligir daño mágico',
   'on-deal-true': 'Al infligir daño verdadero',
+  'on-deal-or-cc': 'Al da\u00f1ar o controlar',
   'on-use': 'Al usar',
   'on-takedown': 'Al matar/asistir',
   'hp-below': 'Vida < X%',
@@ -380,7 +416,7 @@ const TRIGGER_SHORT: Record<EffectTrigger, string> = {
 export function ruleSummary(rule: EffectRule): string {
   const dealt = rule.trigger === 'on-deal-any' || rule.trigger === 'on-deal-physical' || rule.trigger === 'on-deal-magic' || rule.trigger === 'on-deal-true';
   const dmgWord = dealt ? 'infligido' : 'recibido';
-  const trigger = rule.trigger === 'hp-below' ? `Vida < ${num(rule.hpBelowPct ?? 30)}%` : rule.trigger === 'on-cc' && rule.ccImmobilizeOnly ? 'Al inmovilizar' : TRIGGER_SHORT[rule.trigger] ?? rule.trigger;
+  const trigger = rule.trigger === 'hp-below' ? `Vida < ${num(rule.hpBelowPct ?? 30)}%` : rule.trigger === 'on-cc' && rule.ccImmobilizeOnly ? (rule.ccSlowIfMelee ? 'Al inmovilizar (o ralentizar si cuerpo a cuerpo)' : 'Al inmovilizar') : rule.trigger === 'on-takedown' && rule.championTakedownOnly ? 'Al matar/asistir a un campe\u00f3n' : TRIGGER_SHORT[rule.trigger] ?? rule.trigger;
   const when = rule.onlyIf ? `${trigger} (${rangeConditionShort(rule.onlyIf)})` : trigger;
   const amount = formulaText(rule);
   let what: string;
@@ -410,9 +446,13 @@ export function ruleSummary(rule: EffectRule): string {
   }
   const extras = [
     rule.rangedPct != null ? `a distancia ${num(rule.rangedPct)}%` : '',
-    rule.permanent ? (rule.stackValue ? 'cargas permanentes: suma el valor calculado (ficha)' : 'cargas permanentes (ficha)') : rule.duration ? durationText(rule.duration) : '',
+    rule.championTargetsOnly ? 'solo contra campeones' : '',
+    rule.multiEnemyChampionPct ? `+${num(rule.multiEnemyChampionPct)}% si hay m\u00e1s de un campe\u00f3n enemigo cerca (se pregunta)` : '',
+    rule.permanent ? (rule.counterOnly ? 'cargas permanentes: solo contador (no suma stats)' : rule.stackValue ? 'cargas permanentes: suma el valor calculado (ficha)' : 'cargas permanentes (ficha)') : rule.duration ? durationText(rule.duration) : '',
     rule.decays && !rule.permanent ? 'decae hasta 0' : '',
     rule.extendDuration ? 'reaplicar suma la duraci\u00f3n' : '',
+    rule.nonChampionFlat != null ? `contra no campeones: ${num(rule.nonChampionFlat)}${rule.lolScale ? ' (LoL)' : ''}` : '',
+    rule.bounceStacks ? `${rule.bounceStacks} cargas: principal + hasta ${rule.bounceStacks - 1} adicionales (sobrantes +${num(rule.bounceLeftoverPct ?? 20)}% al principal)` : '',
     rule.stacksPerTrigger && rule.stacksPerTrigger > 1 ? `+${rule.stacksPerTrigger} cargas por activación` : '',
     rule.maxStacks ? `hasta ×${rule.maxStacks}` : '',
     rule.everyN ? `cada ${rule.everyN}` : '',
@@ -453,7 +493,10 @@ export function configTimingText(config: EffectBonusConfig): string {
     config.rules.some(rule => rule.cooldownOnProc) ? `el CD empieza cuando se aplica la regla ${config.rules.findIndex(rule => rule.cooldownOnProc) + 1}` : '',
     config.duration ? (isForeverTurns(config.duration) ? 'dura hasta el final del combate' : `dura ${config.duration} t.`) : '',
     config.abilityDischarge ? 'las habilidades también descargan el Vigor' : '',
-    config.chainTargets && config.chainTargets > 1 ? `Vigor al máximo encadena a ${config.chainTargets} objetivos` : '',
+    config.chainTargets && config.chainTargets > 1 && !config.chainTargetsByLevel?.length ? `Vigor al máximo encadena a ${config.chainTargets} objetivos` : '',
+    config.chainTargetsByLevel?.length ? `Vigor al m\u00e1ximo encadena a ${levelTiersText(config.chainTargetsByLevel)} objetivos (seg\u00fan nivel)` : '',
+    config.chainOnHit ? 'los secundarios reciben los efectos de impacto' : '',
+    config.hitsRequired ? `requiere ${config.hitsRequired} aplicaciones al mismo objetivo en ${config.hitsWindow ?? 1} t.${config.hitsChampionsOnly ? ' (solo campeones)' : ''}` : '',
     config.perTargetCooldown ? 'CD por objetivo (marca)' : '',
     config.cooldownReducedOnAttack ? `cada AA reduce el CD ${num(config.cooldownReducedOnAttack)} t.` : '',
     config.maxTargets ? `hasta ${config.maxTargets} objetivos` : '',
@@ -547,7 +590,15 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
     if (maxStacks) rule.maxStacks = maxStacks;
     if (r.permanent === true && (rule.kind === 'stat' || rule.kind === 'attack-speed' || rule.kind === 'move-speed')) rule.permanent = true;
     if (r.stackValue === true && rule.permanent) rule.stackValue = true;
+    if (r.counterOnly === true && rule.permanent) rule.counterOnly = true;
+    if (r.championTakedownOnly === true && rule.trigger === 'on-takedown') rule.championTakedownOnly = true;
     if (r.ccImmobilizeOnly === true && rule.trigger === 'on-cc') rule.ccImmobilizeOnly = true;
+    if (r.ccSlowIfMelee === true && rule.trigger === 'on-cc' && rule.ccImmobilizeOnly) rule.ccSlowIfMelee = true;
+    if (r.championTargetsOnly === true) rule.championTargetsOnly = true;
+    if (finite(r.multiEnemyChampionPct) && r.multiEnemyChampionPct > 0) rule.multiEnemyChampionPct = r.multiEnemyChampionPct;
+    if (finite(r.bounceStacks) && r.bounceStacks >= 2 && rule.kind === 'damage') rule.bounceStacks = Math.min(20, Math.floor(r.bounceStacks));
+    if (finite(r.nonChampionFlat) && rule.kind === 'damage') rule.nonChampionFlat = r.nonChampionFlat;
+    if (finite(r.bounceLeftoverPct) && r.bounceLeftoverPct >= 0 && rule.bounceStacks) rule.bounceLeftoverPct = Math.min(500, r.bounceLeftoverPct);
     if (r.extendDuration === true && (rule.kind === 'status' || rule.kind === 'slow' || rule.kind === 'vulnerable')) rule.extendDuration = true;
     if (r.decays === true && (rule.kind === 'stat' || rule.kind === 'attack-speed' || rule.kind === 'move-speed') && !rule.permanent) rule.decays = true;
     if (finite(r.stacksPerTrigger) && r.stacksPerTrigger >= 2) rule.stacksPerTrigger = Math.min(999, Math.floor(r.stacksPerTrigger));
@@ -570,6 +621,13 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
   if (finite(source.cooldownReducedOnAttack) && source.cooldownReducedOnAttack > 0) config.cooldownReducedOnAttack = Math.min(99, Math.round(source.cooldownReducedOnAttack * 100) / 100);
   if (finite(source.maxTargets) && source.maxTargets >= 1) config.maxTargets = Math.min(20, Math.floor(source.maxTargets));
   if (finite(source.chainTargets) && source.chainTargets > 1) config.chainTargets = Math.min(10, Math.floor(source.chainTargets));
+  if (Array.isArray(source.chainTargetsByLevel) && source.chainTargetsByLevel.length && source.chainTargetsByLevel.every(finite)) config.chainTargetsByLevel = (source.chainTargetsByLevel as number[]).slice(0, 20).map(n => Math.max(1, Math.min(10, Math.floor(n))));
+  if (source.chainOnHit === true) config.chainOnHit = true;
+  if (finite(source.hitsRequired) && source.hitsRequired >= 2) {
+    config.hitsRequired = Math.min(10, Math.floor(source.hitsRequired));
+    if (finite(source.hitsWindow) && source.hitsWindow >= 1) config.hitsWindow = Math.min(20, Math.floor(source.hitsWindow));
+    if (source.hitsChampionsOnly === true) config.hitsChampionsOnly = true;
+  }
   if (source.oncePerCombat === true) config.oncePerCombat = true;
   if (source.charges && typeof source.charges === 'object') {
     const c = source.charges as Record<string, unknown>;
@@ -581,4 +639,19 @@ export function normalizeBonusConfig(raw: unknown): EffectBonusConfig | undefine
 }
 
 /** Estado de una regla que el combate aplica solo (el resto se apunta a mano). */
-export const AUTOMATED_TRIGGERS: readonly EffectTrigger[] = ['always', 'on-attack', 'on-hit', 'after-ability', 'after-use', 'on-ability-hit', 'on-ability-use', 'on-cc', 'on-deal-any', 'on-deal-physical', 'on-deal-magic', 'on-deal-true', 'on-use', 'on-takedown', 'hp-below', 'on-damage-taken', 'on-attacked', 'each-turn', 'energized-max', 'on-ultimate-use', 'on-enemy-ultimate-use', 'combat-start', 'combat-entry', 'when-ready', 'on-survived-hit', 'on-death'];
+export const AUTOMATED_TRIGGERS: readonly EffectTrigger[] = ['always', 'on-attack', 'on-hit', 'after-ability', 'after-use', 'on-ability-hit', 'on-ability-damage', 'on-ability-use', 'on-cc', 'on-deal-any', 'on-deal-physical', 'on-deal-magic', 'on-deal-true', 'on-deal-or-cc', 'on-use', 'on-takedown', 'hp-below', 'on-damage-taken', 'on-attacked', 'each-turn', 'energized-max', 'on-ultimate-use', 'on-enemy-ultimate-use', 'combat-start', 'combat-entry', 'when-ready', 'on-survived-hit', 'on-death'];
+
+/**
+ * Valores por nivel (1-20): con 20 o m\u00e1s se usan tal cual; con menos (p. ej. 4/5/6/7/8, \u00abseg\u00fan nivel\u00bb del LoL)
+ * se reparten en tramos iguales del nivel 1 al 20 (5 valores = 4 niveles cada uno).
+ */
+export function expandLevelTiers(values: number[], levels = 20): number[] {
+  if (!values.length) return [];
+  if (values.length >= levels) return values.slice(0, levels);
+  return Array.from({ length: levels }, (_, i) => values[Math.floor(i * values.length / levels)]);
+}
+
+/** \u00ab4/5/6/7/8\u00bb: los tramos distintos seguidos de una lista por nivel. */
+export function levelTiersText(values: number[]): string {
+  return values.filter((value, i) => i === 0 || value !== values[i - 1]).join('/');
+}

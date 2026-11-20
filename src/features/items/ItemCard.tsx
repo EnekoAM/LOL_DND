@@ -4,7 +4,8 @@ import type { Item } from '../../data/items';
 import { cx } from '../../lib/cx';
 import ItemStock from './ItemStock';
 import { rarityClass } from './rarity';
-import { formatStatValue, getVisibleStats } from './stats';
+import { formatStatValue } from './stats';
+import { itemStatRows } from '../../data/abilityHaste';
 import { itemAvailability } from './stock';
 
 type Props = {
@@ -35,9 +36,9 @@ const ItemCard = ({ item, onSelect }: Props) => {
       <div className="item-card__name">{item.nombre}</div>
 
       <ul className="item-card__stats">
-        {getVisibleStats(item.stats).map(([stat, value]) => (
-          <li key={stat} className="item-card__stat">
-            <span className="item-card__stat-key">{stat}</span>
+        {itemStatRows(item.stats).map(({ key: stat, label, value, title }) => (
+          <li key={stat} className="item-card__stat" title={title}>
+            <span className="item-card__stat-key">{label}</span>
             <span className="item-card__stat-val">{formatStatValue(value)}</span>
           </li>
         ))}

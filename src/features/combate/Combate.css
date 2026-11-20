@@ -1697,3 +1697,35 @@
   overflow-wrap: break-word;
   word-break: normal;
 }
+
+/* Pregunta Si / No del combate (CombatPromptHost). */
+.combat-prompt-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.combat-prompt {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(22, 20, 16, 0.98), rgba(10, 9, 8, 0.99));
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  color: #e8e4d9;
+}
+.combat-prompt__close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.5rem;
+  border: none;
+  background: none;
+  color: #c9a227;
+  font-size: 1.3rem;
+  cursor: pointer;
+}

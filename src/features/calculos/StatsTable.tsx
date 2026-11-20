@@ -12,6 +12,7 @@ import {
 } from './playerSheets';
 import { ROLE_TABLES, findRoleTable } from '../../data/roles';
 import { playerTotalLine } from './playerTotals';
+import { itemHasteTitle, totalHasteTitle } from '../../data/abilityHaste';
 import type { AbilityPassiveSource } from '../players/abilityPassiveStats';
 import type { PermanentStackStatSource } from '../../data/permanentStacks';
 import {
@@ -65,6 +66,8 @@ type SheetRow = {
   locked?: boolean;
   /** Botón a la derecha de la etiqueta (p. ej. editar). */
   action?: ReactNode;
+  /** Tooltip de la columna Ab haste (general / b\u00e1sicas / definitiva). */
+  hasteTitle?: string;
 };
 
 /** Niveles bloqueados por quests en fichas de players (19 y 20). */
@@ -130,7 +133,7 @@ const Score = ({ label, score }: { label: string; score: AbilityScore }) => (
   </div>
 );
 
-const StatCells = ({ line, roundDefenses = false }: { line: StatLine | null; roundDefenses?: boolean }) => (
+const StatCells = ({ line, roundDefenses = false, hasteTitle }: { line: StatLine | null; roundDefenses?: boolean; hasteTitle?: string }) => (
   <>
     {STAT_COLUMNS.map(column => {
       const value: StatValue | null = line ? line[column.key] : null;
@@ -144,7 +147,7 @@ const StatCells = ({ line, roundDefenses = false }: { line: StatLine | null; rou
         <td
           key={column.key}
           className={cx(isZeroStat(typeof zeroValue === 'number' ? zeroValue : value) && 'calc-sheet__zero')}
-          title={defense?.exactTitle}
+          title={column.key === 'abSpePct' && hasteTitle ? hasteTitle : defense?.exactTitle}
         >
           {shown}
         </td>
@@ -199,7 +202,7 @@ const SheetGrid = ({ rows, effects, className }: { rows: SheetRow[]; effects: bo
                 ) : row.label}
                 {row.action}
               </th>
-              <StatCells line={row.line} roundDefenses={row.tone === 'total'} />
+              <StatCells line={row.line} roundDefenses={row.tone === 'total'} hasteTitle={row.hasteTitle} />
               {effects && (
                 <>
                   <EffectCell text={row.passive} />
@@ -333,6 +336,7 @@ const StatsTable = ({
       key: `${name}-${index}`,
       label: item?.nombre ?? name,
       line: item ? itemStatLine(item.stats) : null,
+      hasteTitle: item ? itemHasteTitle(item.stats) : undefined,
       // Los textos antiguos de pasiva / activa ya no se ensenan: solo la descripcion del item.
       passive: item?.description ?? '',
     };
@@ -363,7 +367,7 @@ const StatsTable = ({
   ]);
 
   const rows: SheetRow[] = [
-    { key: 'total', label: 'Total', line: total, tone: 'total' },
+    { key: 'total', label: 'Total', line: total, tone: 'total', hasteTitle: totalHasteTitle(total.abSpePct, equipment) },
     ...(base ? [{ key: 'base', label: `Base nv. ${level}`, line: base, tone: 'base' as const }] : []),
     ...itemRows,
     ...passiveRows,

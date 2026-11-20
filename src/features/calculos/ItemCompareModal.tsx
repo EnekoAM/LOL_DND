@@ -2,7 +2,8 @@ import Modal from '../../components/Modal';
 import ThumbImg from '../../components/ThumbImg';
 import { findItem, type Item } from '../../data/items';
 import { cx } from '../../lib/cx';
-import { formatStatValue, getVisibleStats } from '../items/stats';
+import { formatStatValue } from '../items/stats';
+import { itemStatRows } from '../../data/abilityHaste';
 import { rarityClass } from '../items/rarity';
 
 type Props = {
@@ -23,7 +24,7 @@ const Column = ({ item, label, empty }: { item: Item | undefined; label: string;
     );
   }
   const rarity = rarityClass(item.rareza);
-  const stats = getVisibleStats(item.stats);
+  const stats = itemStatRows(item.stats);
 
   return (
     <div className="item-compare__col">
@@ -34,9 +35,9 @@ const Column = ({ item, label, empty }: { item: Item | undefined; label: string;
         : <div className="item-compare__img item-compare__img--empty">✦</div>}
       <h3 className="item-compare__name">{item.nombre}</h3>
       <ul className="item-compare__stats">
-        {stats.map(([stat, value]) => (
-          <li key={stat}>
-            <span>{stat}</span>
+        {stats.map(({ key: stat, label, value, title }) => (
+          <li key={stat} title={title}>
+            <span>{label}</span>
             <strong>{formatStatValue(value)}</strong>
           </li>
         ))}

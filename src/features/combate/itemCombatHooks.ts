@@ -240,6 +240,8 @@ export async function fireDealtDamageEffects(
   targetId: string,
   dealt: number,
   hooks: ReactiveHooks,
+  /** stackOnly: da\u00f1o de reglas de \u00edtems (fromRule): solo \u00abAl infligir da\u00f1o o aplicar control\u00bb. */
+  opts?: { stackOnly?: boolean },
 ): Promise<{ bonuses?: CombatBonus[]; undo?: () => Promise<void> }> {
   const typed = DEAL_TRIGGER[damageType];
   if (!typed || !(dealt > 0)) return {};
@@ -250,7 +252,8 @@ export async function fireDealtDamageEffects(
   let changed = false;
   const undos: (() => Promise<void>)[] = [];
   // Una vez por instancia de daño: primero «Al infligir daño <tipo>» y luego «Al infligir daño» (cualquier tipo).
-  for (const trigger of [typed, 'on-deal-any'] as const) {
+  const dealTriggers: ('on-deal-physical' | 'on-deal-magic' | 'on-deal-true' | 'on-deal-any' | 'on-deal-or-cc')[] = opts?.stackOnly ? ['on-deal-or-cc'] : [typed, 'on-deal-any', 'on-deal-or-cc'];
+  for (const trigger of dealTriggers) {
     const effects = all.filter(effect => effect.config.rules.some(rule => rule.trigger === trigger));
     if (!effects.length) continue;
     const result = await fireEffectRules({
@@ -268,7 +271,7 @@ export async function fireDealtDamageEffects(
     if (result.changed) { bonuses = result.bonuses; changed = true; }
     undos.push(...result.undos);
     const lines = result.log.map(line => line.replace(/ recibido\b/g, ' infligido'));
-    if (lines.length) logCombat({ title: `Al infligir daño${trigger === 'on-deal-any' ? '' : ` ${DEAL_LABEL[damageType]}`} — ${attacker.name}`, actor: attacker.name, lines });
+    if (lines.length) logCombat({ title: trigger === 'on-deal-or-cc' ? `Al infligir da\u00f1o o aplicar control \u2014 ${attacker.name}` : `Al infligir daño${trigger === 'on-deal-any' ? '' : ` ${DEAL_LABEL[damageType]}`} — ${attacker.name}`, actor: attacker.name, lines });
   }
   return {
     ...(changed && bonuses ? { bonuses } : {}),
@@ -291,24 +294,50 @@ export async function fireCcEffects(
   const base = participantContext(bearer, hooks.level);
   if (!base) return {};
   const all = [...activeNamedEffects(participantItems(bearer), hooks.effectData), ...base.abilityEffects];
-  const effects = all.filter(effect => effect.config.rules.some(rule => rule.trigger === 'on-cc' && (immobilizing || !rule.ccImmobilizeOnly)));
-  if (!effects.length) return {};
-  const result = await fireEffectRules({
-    trigger: 'on-cc',
-    effects,
-    ctx: base.ctx,
-    bonuses: bearer.bonuses,
-    targetIds,
-    participants: hooks.participants,
-    level: hooks.level,
-    callbacks: hooks.callbacks,
-    bearer: { id: bearer.id, name: bearer.name },
-    ccImmobilizing: immobilizing,
-  });
-  if (result.log.length) logCombat({ title: `Al aplicar control (${ccName}) \u2014 ${bearer.name}`, actor: bearer.name, lines: result.log });
-  const undos = result.undos;
+  const ccSlow = !immobilizing && (fold(ccName).includes('ralent') || fold(ccName).includes('slow'));
+  const effects = all.filter(effect => effect.config.rules.some(rule => rule.trigger === 'on-cc' && (immobilizing || !rule.ccImmobilizeOnly || (!!rule.ccSlowIfMelee && ccSlow && base.ctx.melee === true))));
+  // \u00abAl infligir da\u00f1o o aplicar control\u00bb (Eclipse): aplicar un control tambi\u00e9n cuenta.
+  const stackEffects = all.filter(effect => effect.config.rules.some(rule => rule.trigger === 'on-deal-or-cc'));
+  if (!effects.length && !stackEffects.length) return {};
+  let bonuses = bearer.bonuses;
+  let changed = false;
+  const undos: (() => Promise<void>)[] = [];
+  if (effects.length) {
+    const result = await fireEffectRules({
+      trigger: 'on-cc',
+      effects,
+      ctx: base.ctx,
+      bonuses,
+      targetIds,
+      participants: hooks.participants,
+      level: hooks.level,
+      callbacks: hooks.callbacks,
+      bearer: { id: bearer.id, name: bearer.name },
+      ccImmobilizing: immobilizing,
+      ccSlow,
+    });
+    if (result.changed) { bonuses = result.bonuses; changed = true; }
+    undos.push(...result.undos);
+    if (result.log.length) logCombat({ title: `Al aplicar control (${ccName}) \u2014 ${bearer.name}`, actor: bearer.name, lines: result.log });
+  }
+  if (stackEffects.length) {
+    const result = await fireEffectRules({
+      trigger: 'on-deal-or-cc',
+      effects: stackEffects,
+      ctx: base.ctx,
+      bonuses,
+      targetIds,
+      participants: hooks.participants,
+      level: hooks.level,
+      callbacks: hooks.callbacks,
+      bearer: { id: bearer.id, name: bearer.name },
+    });
+    if (result.changed) { bonuses = result.bonuses; changed = true; }
+    undos.push(...result.undos);
+    if (result.log.length) logCombat({ title: `Al infligir da\u00f1o o aplicar control (${ccName}) \u2014 ${bearer.name}`, actor: bearer.name, lines: result.log });
+  }
   return {
-    ...(result.changed ? { bonuses: result.bonuses } : {}),
+    ...(changed && bonuses ? { bonuses } : {}),
     ...(undos.length ? { undo: async () => { for (const undo of [...undos].reverse()) await undo(); } } : {}),
   };
 }
@@ -487,4 +516,43 @@ export async function firePendingHalfShields(
     await saveBonuses(participantId, currentBonuses().filter(bonus => bonus.source !== marker.source));
   }
   if (lines.length) logCombat({ title: 'Medallón: el escudo baja a la mitad', actor: '', lines });
+}
+
+/** Marca en el objetivo: le ha da\u00f1ado este participante (source hitby:<id>, 2 turnos) \u2192 asistencia si muere. */
+export const HIT_BY_PREFIX = 'hitby:';
+
+/**
+ * Asistencia: reglas \u00abAl matar / asistir\u00bb de quien da\u00f1\u00f3 al derrotado (marca hitby:) sin darle el golpe final.
+ * victimId: el derrotado (para \u00abSolo derribos de campeones\u00bb).
+ */
+export async function fireTakedownEffects(
+  bearer: CombatParticipant,
+  victimId: string,
+  hooks: ReactiveHooks,
+): Promise<{ bonuses?: CombatBonus[]; undo?: () => Promise<void> }> {
+  const base = participantContext(bearer, hooks.level);
+  if (!base) return {};
+  const all = [...activeNamedEffects(participantItems(bearer), hooks.effectData), ...base.abilityEffects];
+  const effects = all.filter(effect => effect.config.rules.some(rule => rule.trigger === 'on-takedown'));
+  if (!effects.length) return {};
+  const result = await fireEffectRules({
+    trigger: 'on-takedown',
+    effects,
+    ctx: base.ctx,
+    bonuses: bearer.bonuses,
+    targetIds: [],
+    participants: hooks.participants,
+    level: hooks.level,
+    callbacks: hooks.callbacks,
+    bearer: { id: bearer.id, name: bearer.name },
+    takedownOf: victimId,
+  });
+  const victim = hooks.participants.find(entry => entry.id === victimId)?.name ?? victimId;
+  const lines = [...result.log, ...result.manual.map(text => `a mano: ${text}`)];
+  if (lines.length) logCombat({ title: `Asistencia (${victim}) \u2014 ${bearer.name}`, actor: bearer.name, lines });
+  const undos = result.undos;
+  return {
+    ...(result.changed ? { bonuses: result.bonuses } : {}),
+    ...(undos.length ? { undo: async () => { for (const undo of [...undos].reverse()) await undo(); } } : {}),
+  };
 }

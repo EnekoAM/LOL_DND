@@ -50,12 +50,13 @@ const stackValueOf = (rules: EffectRule[], stacks: Record<string, number> | unde
   rules.some(rule => rule.stackValue) ? Math.floor(readStackValue(stacks, key)) : readStack(stacks, key);
 
 const perStackText = (rules: EffectRule[]): string => rules.map(rule => {
+  if (rule.counterOnly) return 'contador (no suma stats)';
   if (rule.stackValue) return `${statLabel(rule.stat) || 'valor'} acumulado (suma lo calculado en cada activaci\u00f3n)`;
   const lol = ruleLolAdAp(rule);
   const stat = rule.kind === 'attack-speed' ? '% vel. ataque' : rule.kind === 'move-speed' ? 'velocidad' : statLabel(rule.stat);
   const amount = lol ? `${String(lol.value).replace('.', ',')} ${lol.stat.toUpperCase()} del LoL` : typeof rule.flat === 'number' ? String(rule.flat).replace('.', ',') : 'fórmula';
   return lol ? `+${amount}` : `+${amount} ${stat}`;
-}).join(' · ') + (rules.every(rule => rule.stackValue) ? '' : ' por carga');
+}).join(' · ') + (rules.every(rule => rule.stackValue || rule.counterOnly) ? '' : ' por carga');
 
 /**
  * Contadores a enseñar: los efectos con cargas permanentes de los ítems equipados y, aparte, los que tienen
@@ -130,6 +131,7 @@ export function itemPermanentStackSources(
       const line = emptyStatLine();
       const lol: { ad?: number; ap?: number } = {};
       for (const rule of rules) {
+        if (rule.counterOnly) continue;
         const stat = ruleStatKey(rule);
         if (!stat) continue;
         const stored = readStackValue(stacks, key);

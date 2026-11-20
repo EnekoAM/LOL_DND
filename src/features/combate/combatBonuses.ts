@@ -57,6 +57,8 @@ export function formatBonus(bonus: CombatBonus): string {
   if (bonus.stat === 'buff' && bonus.source?.startsWith('trap:')) return `${bonus.label ?? 'Trampa'} ${typeof bonus.turns === 'number' ? `· ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'buff' && bonus.source?.startsWith('hot:')) return `Cura repartida ${bonus.label ?? ''}: quedan ${bonus.amount} en ${bonus.turns ?? 0} t.`;
   if (bonus.stat === 'buff' && bonus.source?.startsWith('temphp:')) return `Vida temporal ${bonus.label ?? ''} ${bonus.amount}${typeof bonus.turns === 'number' ? (bonus.turns >= 999 ? ' \u00b7 \u221e (resto del combate)' : ` \u00b7 ${bonus.turns} t.`) : ''}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('hits:')) return `${bonus.label ?? 'Aplicaciones'} ${bonus.amount}${bonus.maxStacks ? `/${bonus.maxStacks}` : ''}${typeof bonus.turns === 'number' ? ` \u00b7 ${bonus.turns} t.` : ''}`;
+  if (bonus.stat === 'buff' && bonus.source?.startsWith('hitby:')) return `Da\u00f1ado por ${bonus.label ?? '?'} (asistencia)${typeof bonus.turns === 'number' ? ` \u00b7 ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'buff') return `${bonus.label ?? 'Habilidad'} activa${typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : ''}`;
   if (bonus.stat === 'cooldown') {
     const turns = typeof bonus.turns === 'number' ? ` · ${bonus.turns} t.` : '';

@@ -1,4 +1,5 @@
 import { ITEMS, STAT_KEYS } from '../../data/items';
+import { statKeyLabel } from '../../data/abilityHaste';
 import { NAMED_EFFECTS, NAMED_EFFECT_KIND_LABEL, baseNamedEffectId, findNamedEffect, groupNamedEffects, namedEffectName } from '../../data/namedEffects';
 import { namedEffectOnHit, useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
 import { ALL, SORT_RAREZA_COSTE, type ItemFilterState, type StockFilter } from './filters';
@@ -41,7 +42,7 @@ const ItemFilters = ({ filters, resultCount, onChange }: Props) => {
       <select className="filter-select" value={filters.stat} onChange={e => onChange({ stat: e.target.value })}>
         <option value={ALL}>Todos</option>
         {STAT_KEYS.map(stat => (
-          <option key={stat} value={stat}>{stat}</option>
+          <option key={stat} value={stat}>{statKeyLabel(stat)}</option>
         ))}
       </select>
     </div>
@@ -117,7 +118,7 @@ const ItemFilters = ({ filters, resultCount, onChange }: Props) => {
         <option value="rareza">Rareza</option>
         <option value="nombre">Nombre</option>
         {STAT_KEYS.map(stat => (
-          <option key={stat} value={stat}>{stat}</option>
+          <option key={stat} value={stat}>{statKeyLabel(stat)}</option>
         ))}
       </select>
     </div>

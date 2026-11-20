@@ -85,7 +85,7 @@ const ITEM_STAT_KEYS: Record<string, StatKey> = {
 };
 
 /** Claves de ítem de las stats que solo dan los ítems; se ofrecen aunque ningún ítem las tenga aún. */
-export const ITEM_ONLY_STAT_KEYS = ['Heal & shield %', 'Heal & shield received %', 'Tenacity %', 'Slow resist %', 'Life steal %', 'Omnivamp %', 'Range', 'HP regen', 'Mana regen'] as const;
+export const ITEM_ONLY_STAT_KEYS = ['Ab haste basic', 'Ab haste ult', 'Heal & shield %', 'Heal & shield received %', 'Tenacity %', 'Slow resist %', 'Life steal %', 'Omnivamp %', 'Range', 'HP regen', 'Mana regen'] as const;
 
 /**
  * Stats en % que no se acumulan (como las pasivas únicas del LoL): el total es el valor más alto, no la suma.

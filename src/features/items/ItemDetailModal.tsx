@@ -1,4 +1,5 @@
-import { Fragment, useCallback, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { lolDiceNote, lolToDice } from '../../data/lolDiceTable';
 import Modal from '../../components/Modal';
 import { saveItemUpdate, type Item, type ItemUpdate } from '../../data/items';
@@ -10,7 +11,8 @@ import { useCanEdit } from '../../data/appRoleContext';
 import { describeNamedEffect, namedEffectArea, namedEffectBonus, namedEffectOnHit, useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
 import { configSummary } from '../../data/effectBonus';
 import { AreaGridView } from '../../components/AreaGrid';
-import { formatStatValue, getVisibleStats } from './stats';
+import { formatStatValue } from './stats';
+import { HASTE_KEY, HASTE_BASIC_KEY, HASTE_ULT_KEY, itemStatRows } from '../../data/abilityHaste';
 
 import { NAMED_EFFECTS, NAMED_EFFECT_KIND_LABEL, baseNamedEffectId, findNamedEffect, groupNamedEffects, namedEffectDescription, namedEffectName, namedEffectOptions } from '../../data/namedEffects';
 
@@ -75,9 +77,9 @@ const ItemView = ({ item, onEdit, canEdit }: { item: Item; onEdit: () => void; c
       </div>
 
       <ul className="modal-stats">
-        {getVisibleStats(item.stats).map(([stat, value]) => (
-          <li key={stat} className="modal-stat">
-            <span className="modal-stat__key">{stat}</span>
+        {itemStatRows(item.stats).map(({ key: stat, label, value, title }) => (
+          <li key={stat} className="modal-stat" title={title}>
+            <span className="modal-stat__key">{label}</span>
             <span className="modal-stat__val">{formatStatValue(value)}</span>
           </li>
         ))}
@@ -111,7 +113,58 @@ type FormProps = {
   onCancel: () => void;
 };
 
+/** Modal (encima del editor del item) para la velocidad de habilidades solo b\u00e1sicas / solo definitiva. */
+const HASTE_INPUT_STYLE = { background: '#0f0c06', color: '#fff', border: '1px solid #c9a227', borderRadius: 6, padding: '6px 8px', fontSize: 15, minWidth: 0 } as const;
+const HasteModal = ({ basic, ult, saving, onBasic, onUlt, onClose }: {
+  basic: string; ult: string; saving: boolean; onBasic: (value: string) => void; onUlt: (value: string) => void; onClose: () => void;
+}) => {
+  useEffect(() => {
+    // Captura en window: Esc cierra solo este modal, no el del item (que escucha Esc en window al burbujear).
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      onClose();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [onClose]);
+  return createPortal(
+    <div
+      role="presentation"
+      onClick={e => { e.stopPropagation(); onClose(); }}
+      style={{ position: 'fixed', inset: 0, zIndex: 10050, background: 'rgba(0, 0, 0, 0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="haste-modal-title"
+        onClick={e => e.stopPropagation()}
+        style={{ width: 'min(360px, 100%)', boxSizing: 'border-box', background: '#17130b', color: '#fff3c4', border: '2px solid #f2c94c', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 12, boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)' }}
+      >
+        <h3 id="haste-modal-title" style={{ margin: 0, color: '#ffe08a', fontSize: 18 }}>{'Velocidad de habilidades'}</h3>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <span style={{ fontWeight: 600 }}>{'B\u00e1sicas (Q/W/E)'}</span>
+          <input autoFocus inputMode="decimal" value={basic} placeholder="0" disabled={saving} style={HASTE_INPUT_STYLE} onChange={e => onBasic(e.target.value)} />
+        </label>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <span style={{ fontWeight: 600 }}>{'Definitiva (R)'}</span>
+          <input inputMode="decimal" value={ult} placeholder="0" disabled={saving} style={HASTE_INPUT_STYLE} onChange={e => onUlt(e.target.value)} />
+        </label>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.4, whiteSpace: 'normal', overflowWrap: 'anywhere', color: '#e8dcb0' }}>{'Se suman a la global (Ab haste) solo en esas habilidades. Vac\u00edo = sin valor.'}</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button type="button" onClick={onClose} style={{ padding: '6px 14px', fontWeight: 700, color: '#1b160c', background: '#f2c94c', border: '1px solid #ffe08a', borderRadius: 8, cursor: 'pointer' }}>{'Cerrar'}</button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+};
+
 const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onLolChange, onSave, onCancel }: FormProps) => {
+  // Velocidad de habilidades: «Ab haste» es la global; el engranaje abre la de solo b\u00e1sicas (Q/W/E) / solo definitiva (R).
+  const hasteScopedCount = [HASTE_BASIC_KEY, HASTE_ULT_KEY].filter(key => { const text = (draft.stats[key] ?? '').trim(); return !!text && Number(text.replace(',', '.')) !== 0; }).length;
+  const [hasteOpen, setHasteOpen] = useState(false);
   const rarities = RARITIES.includes(draft.rareza) || !draft.rareza ? RARITIES : [draft.rareza, ...RARITIES];
 
   return (
@@ -191,6 +244,51 @@ const ItemForm = ({ item, draft, saving, error, onChange, onStatChange, onLolCha
         <p className="item-edit__hint">{'AD / AP del LoL: escribe el n\u00famero que da el LoL y los dados se rellenan solos: 1d6 cada 15 AD / 20 AP, y lo que sobra +1d2 o +1d4 (fuera del editor solo se ven los dados).'}</p>
         <div className="item-edit__stats">
           {Object.entries(draft.stats).map(([key, value]) => {
+            const hasHaste = HASTE_KEY in draft.stats;
+            if (hasHaste && (key === HASTE_BASIC_KEY || key === HASTE_ULT_KEY)) return null;
+            if (hasHaste && key === HASTE_KEY) {
+              const gearTitle = 'Ajustes de velocidad de habilidades';
+              return (
+                <Fragment key={key}>
+                  <div className="item-field item-field--haste">
+                    <span>{'Ab haste (global: Q/W/E y R)'}</span>
+                    <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <input
+                        value={value}
+                        placeholder="0"
+                        disabled={saving}
+                        aria-label={'Ab haste global'}
+                        style={{ minWidth: 0, flex: '1 1 4em' }}
+                        onChange={e => onStatChange(key, e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        title={gearTitle}
+                        aria-label={gearTitle}
+                        aria-expanded={hasteOpen}
+                        onClick={() => setHasteOpen(open => !open)}
+                        style={{ position: 'relative', flex: '0 0 auto', padding: '2px 8px', fontSize: 16, lineHeight: 1.2, cursor: 'pointer', color: '#ffe08a', background: hasteOpen ? '#3a2e12' : '#1b160c', border: '1px solid #f2c94c', borderRadius: 6 }}
+                      >
+                        {'\u2699'}
+                        {hasteScopedCount > 0 && (
+                          <span aria-hidden="true" style={{ position: 'absolute', top: -7, right: -7, minWidth: 15, padding: '0 3px', borderRadius: 999, background: '#f87171', color: '#fff', fontSize: 10, fontWeight: 700, lineHeight: '15px', textAlign: 'center' }}>{hasteScopedCount}</span>
+                        )}
+                      </button>
+                    </span>
+                  </div>
+                  {hasteOpen && (
+                    <HasteModal
+                      basic={draft.stats[HASTE_BASIC_KEY] ?? ''}
+                      ult={draft.stats[HASTE_ULT_KEY] ?? ''}
+                      saving={saving}
+                      onBasic={next => onStatChange(HASTE_BASIC_KEY, next)}
+                      onUlt={next => onStatChange(HASTE_ULT_KEY, next)}
+                      onClose={() => setHasteOpen(false)}
+                    />
+                  )}
+                </Fragment>
+              );
+            }
             const lolStat = lolDiceStatOf(key);
             const lolKey: 'AD' | 'AP' = lolStat === 'ap' ? 'AP' : 'AD';
             const lolText = lolStat ? draft.lol[lolKey] ?? '' : '';

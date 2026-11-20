@@ -15,7 +15,7 @@ import { critMultiplier, effectiveResistLine, hitRollLines } from './combatMitig
 import { permanentStackSaver } from '../../data/permanentStacks';
 import { useNamedEffectDescriptions } from '../../data/namedEffectDescriptions';
 import { participantAbilities, stackGainOwners } from './abilityRules';
-import { abilityDischargesVigor, vigorChainTargets, activeNamedEffects, armAfterAbility, combatExtraLines, fireEffectRules, hasVigorItem, participantContext, poolAmount, vampHeal, vigorEffects, type EffectCallbacks, type EffectTriggerName } from './effectRules';
+import { abilityDischargesVigor, vigorChainTargets, vigorChainOnHit, activeNamedEffects, armAfterAbility, combatExtraLines, fireEffectRules, hasVigorItem, participantContext, poolAmount, vampHeal, vigorEffects, type EffectCallbacks, type EffectTriggerName } from './effectRules';
 import { VIGOR_MAX, VIGOR_PER_AA } from '../../data/combat';
 import { partyLevel, subscribeParty } from '../../data/party';
 import { PLAYERS, PLAYER_ABILITY_SLOTS, type Player, type PlayerListPatch } from '../../data/players';
@@ -1453,6 +1453,7 @@ export default function CombatAbilityUseSection({
         onApplySourcedEffect: (ids, input) => onApplySourcedEffect(ids, input),
         onSelfPool: onPoolChange,
         pickArea: (primary, name) => askTargets(`${name}: objetivo + cercanos`, primary),
+        pickBounce: (primary, name, max) => askTargets(`${name}: principal + hasta ${max - 1} enemigos adicionales (las cargas sin objetivo suman da\u00f1o al principal)`, primary, max, undefined, 'Lanzar'),
         onPermanentStack: permanentStackSaver(participant, onPlayerPatch),
         onGrantAction: async (kind, amount) => {
           const nextLeft = (left[kind] ?? 0) + amount;
@@ -1461,8 +1462,8 @@ export default function CombatAbilityUseSection({
           else await combatPatchRef.current({ actionsLeft: { ...participant.actionsLeft, attacks: left.attacks, abilities: left.abilities, [kind]: nextLeft } });
         },
       };
-      const fire = async (name: EffectTriggerName, ids: string[], basicAttack = true) => {
-        const result = await fireEffectRules({ trigger: name, effects, ctx: base.ctx, bonuses, targetIds: ids, participants, level, callbacks, bearer: { id: participant.id, name: participant.name }, basicAttack, ...(name === 'on-ability-hit' && damaged !== undefined ? { damaged } : {}) });
+      const fire = async (name: EffectTriggerName, ids: string[], basicAttack = true, extra?: { takedownOf?: string }) => {
+        const result = await fireEffectRules({ trigger: name, effects, ctx: base.ctx, bonuses, targetIds: ids, participants, level, callbacks, bearer: { id: participant.id, name: participant.name }, basicAttack, ...(extra?.takedownOf ? { takedownOf: extra.takedownOf } : {}), ...(name === 'on-ability-hit' && damaged !== undefined ? { damaged } : {}) });
         bonuses = result.bonuses;
         changed = changed || result.changed;
         notes.push(...result.notes, ...result.manual.map(text => `a mano: ${text}`));
@@ -1470,6 +1471,16 @@ export default function CombatAbilityUseSection({
         log.push(...result.log);
         undos.push(...result.undos);
         return result;
+      };
+      // Vigor encadenado con \u00abAplica efectos on-hit a los secundarios\u00bb (Statikk): reglas \u00abAl aplicar efecto de impacto\u00bb en cada
+      // secundario (sin el da\u00f1o del AA, sin \u00abal auto-atacar\u00bb ni armadas, sin Vigor). No vuelve a disparar el Vigor: no hay recursi\u00f3n.
+      const chainOnHitSecondaries = async (chainIds: string[], primary: string): Promise<string[]> => {
+        if (!vigorChainOnHit(items, effectData)) return [];
+        const secondaries = [...new Set(chainIds)].filter(id => id !== primary && id !== participant.id);
+        if (!secondaries.length) return [];
+        log.push(`\u26a1 Encadenado: efectos de impacto en los secundarios (${secondaries.map(id => participants.find(p => p.id === id)?.name ?? id).join(', ')})`);
+        const onHit = await fire('on-hit', secondaries, false);
+        return onHit.kills;
       };
       if (opts?.ultimate) {
         await fire('on-ultimate-use', targetIds, false);
@@ -1522,6 +1533,11 @@ export default function CombatAbilityUseSection({
         const hit = await fire(trigger === 'on-hit' ? 'on-hit' : 'on-ability-hit', targetIds);
         allKills.push(...hit.kills);
         ruleVigor = hit.vigor;
+        // «Al infligir da\u00f1o con una habilidad» (Eco de Luden): solo si la habilidad ha hecho da\u00f1o; su primer objetivo es el principal.
+        if (trigger === 'on-ability' && damaged !== false) {
+          const dealtRules = await fire('on-ability-damage', [targetIds[0]], false);
+          allKills.push(...dealtRules.kills);
+        }
         // Habilidad con «Aplica efectos de impacto»: también las reglas de impacto (no las de solo AA ni el Vigor del AA).
         if (trigger === 'on-ability' && abilityOnHit) {
           const onHit = await fire('on-hit', targetIds, false);
@@ -1536,7 +1552,7 @@ export default function CombatAbilityUseSection({
         && (participant.vigor ?? 0) >= VIGOR_MAX && abilityDischargesVigor(items, effectData);
       if (abilityDischarge) {
         const before = Math.max(0, Math.min(VIGOR_MAX, participant.vigor ?? 0));
-        const chain = vigorChainTargets(items, effectData);
+        const chain = vigorChainTargets(items, effectData, level);
         const chainIds = chain > 1 ? await askChainTargets(chain, targetIds[0]) : [targetIds[0]];
         log.push(`⚡ Vigor al máximo (${before}/${VIGOR_MAX}) descargado por la habilidad en ${chainIds.map(id => participants.find(p => p.id === id)?.name ?? id).join(', ')}`);
         const charged = await fire('energized-max', chainIds.length ? chainIds : [targetIds[0]]);
@@ -1546,6 +1562,7 @@ export default function CombatAbilityUseSection({
           notes.push('sin reglas «Vigor al máximo» configuradas: no aplica nada');
           log.push('sin reglas «Vigor al máximo» configuradas: no aplica nada');
         }
+        if (chain > 1) allKills.push(...await chainOnHitSecondaries(chainIds, targetIds[0]));
         await combatPatchRef.current({ vigor: undefined });
         undos.push(async () => { await combatPatchRef.current({ vigor: before }); });
         notes.push(`Vigor ${before}→0/${VIGOR_MAX}`);
@@ -1556,7 +1573,7 @@ export default function CombatAbilityUseSection({
         const before = Math.max(0, Math.min(VIGOR_MAX, participant.vigor ?? 0));
         let after: number;
         if (before >= VIGOR_MAX) {
-          const chain = vigorChainTargets(items, effectData);
+          const chain = vigorChainTargets(items, effectData, level);
           const chainIds = chain > 1 ? await askChainTargets(chain, targetIds[0]) : targetIds;
           log.push(`⚡ Vigor al máximo (${before}/${VIGOR_MAX}): el AA lo descarga en ${(chainIds.length ? chainIds : targetIds).map(id => participants.find(p => p.id === id)?.name ?? id).join(', ')}`);
           const charged = await fire('energized-max', chainIds.length ? chainIds : targetIds);
@@ -1566,6 +1583,7 @@ export default function CombatAbilityUseSection({
             notes.push('sin reglas «Vigor al máximo» configuradas: no aplica nada');
             log.push('sin reglas «Vigor al máximo» configuradas: no aplica nada');
           }
+          if (chain > 1) allKills.push(...await chainOnHitSecondaries(chainIds, targetIds[0]));
           after = 0;
         } else {
           after = Math.min(VIGOR_MAX, before + VIGOR_PER_AA + ruleVigor);
@@ -1580,7 +1598,7 @@ export default function CombatAbilityUseSection({
             : `Vigor de ${participant.name}: ${before} + ${VIGOR_PER_AA} (AA)${ruleVigor ? ` + ${ruleVigor} (reglas «Vigor extra»)` : ''} = ${before + VIGOR_PER_AA + ruleVigor}${before + VIGOR_PER_AA + ruleVigor > VIGOR_MAX ? ` → tope ${VIGOR_MAX}` : ''}`);
         }
       }
-      for (const _kill of new Set(allKills)) await fire('on-takedown', []);
+      for (const kill of new Set(allKills)) await fire('on-takedown', [], true, { takedownOf: kill });
     }
     if (changed && onBonusesSave) {
       await onBonusesSave(bonuses);

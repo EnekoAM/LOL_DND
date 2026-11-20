@@ -1095,7 +1095,7 @@ export default function CombatSheetView({
               {vigorPick && (
                 <CombatTargetPicker
                   title="Objetivos de Vigor al máximo"
-                  maxTargets={vigorBase ? vigorChainTargets(vigorBase.items, effectData) : 1}
+                  maxTargets={vigorBase ? vigorChainTargets(vigorBase.items, effectData, level) : 1}
                   targets={participants.filter(entry => entry.id !== participant.id)}
                   disabled={saving || itemBusy}
                   confirmLabel="Aplicar"

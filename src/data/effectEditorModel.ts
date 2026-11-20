@@ -7,6 +7,8 @@ import { LOL_SCALE_KINDS, ruleLolAdAp, type EffectBonusConfig, type EffectRule }
  */
 
 export const FORMULA_KINDS: readonly string[] = ['stat', 'damage', 'heal', 'shield', 'shield-magic', 'shield-physical', 'temp-hp', 'mana', 'attack-speed', 'move-speed', 'vigor', 'damage-reduction', 'damage-amp', 'vulnerable'];
+/** Disparadores con objetivo enemigo (para \u00abSolo si el objetivo es un campe\u00f3n\u00bb). */
+export const TARGET_TRIGGERS: readonly string[] = ['on-hit', 'on-attack', 'on-ability-hit', 'on-ability-damage', 'on-cc', 'on-deal-any', 'on-deal-physical', 'on-deal-magic', 'on-deal-true', 'on-deal-or-cc', 'energized-max'];
 export const STACK_KINDS: readonly string[] = ['stat', 'attack-speed', 'move-speed'];
 
 type RuleKey = keyof EffectRule;
@@ -39,7 +41,12 @@ export function ruleFieldApplies(field: RuleKey, rule: Pick<EffectRule, 'trigger
     case 'lolScale': return LOL_SCALE_KINDS.includes(kind);
     case 'permanent': case 'stacksPerTrigger': case 'decays': case 'stackValue': return STACK_KINDS.includes(kind);
     case 'flat': case 'ratios': case 'perLevel': case 'levelFrom': return FORMULA_KINDS.includes(kind);
-    case 'ccImmobilizeOnly': return rule.trigger === 'on-cc';
+    case 'bounceStacks': case 'bounceLeftoverPct': case 'nonChampionFlat': return kind === 'damage';
+    case 'ccImmobilizeOnly': case 'ccSlowIfMelee': return rule.trigger === 'on-cc';
+    case 'championTargetsOnly': return TARGET_TRIGGERS.includes(rule.trigger);
+    case 'multiEnemyChampionPct': return FORMULA_KINDS.includes(kind);
+    case 'championTakedownOnly': return rule.trigger === 'on-takedown';
+    case 'counterOnly': return STACK_KINDS.includes(kind);
     case 'extendDuration': return kind === 'status' || kind === 'slow' || kind === 'vulnerable';
     case 'auraRange': return false;
     default: return true;
@@ -57,7 +64,7 @@ export function lolDiceStatOfRule(rule: Pick<EffectRule, 'kind' | 'stat' | 'dama
 export const ruleFieldVisible = (field: RuleKey, rule: EffectRule): boolean =>
   ruleFieldApplies(field, rule) || hasValue(rule[field]);
 
-const RULE_KEYS: RuleKey[] = ['lolScale', 'lolDice', 'healOverTurns', 'hpBelowPct', 'targetHpBelowPct', 'lifeSteal', 'healFromDealtPct', 'dice', 'missingHpScalePct', 'pulseEachTurn', 'damageType', 'fromDamagePct', 'fromManaSpentPct', 'vs', 'action', 'slowPct', 'statusName', 'spellShield', 'count', 'stat', 'halfAfterTurns', 'permanent', 'stackValue', 'decays', 'stacksPerTrigger', 'flat', 'ratios', 'perLevel', 'levelFrom', 'auraRange', 'damageTypes', 'ccImmobilizeOnly', 'extendDuration'];
+const RULE_KEYS: RuleKey[] = ['lolScale', 'lolDice', 'healOverTurns', 'hpBelowPct', 'targetHpBelowPct', 'lifeSteal', 'healFromDealtPct', 'dice', 'missingHpScalePct', 'pulseEachTurn', 'damageType', 'fromDamagePct', 'fromManaSpentPct', 'vs', 'action', 'slowPct', 'statusName', 'spellShield', 'count', 'stat', 'halfAfterTurns', 'permanent', 'stackValue', 'decays', 'stacksPerTrigger', 'flat', 'ratios', 'perLevel', 'levelFrom', 'auraRange', 'damageTypes', 'ccImmobilizeOnly', 'extendDuration', 'bounceStacks', 'bounceLeftoverPct', 'nonChampionFlat', 'counterOnly', 'championTakedownOnly', 'ccSlowIfMelee', 'championTargetsOnly', 'multiEnemyChampionPct'];
 
 /** Al cambiar \u00abCu\u00e1ndo\u00bb o \u00abQu\u00e9\u00bb: se quitan los campos que ya no se usan (lo oculto no se guarda). */
 export function dropUnusedFields(rule: EffectRule): EffectRule {
@@ -190,6 +197,14 @@ export const FIELD_LABEL: Partial<Record<RuleKey, string>> = {
   permanent: 'Cargas permanentes',
   stackValue: 'La carga guarda el valor calculado',
   ccImmobilizeOnly: 'Solo inmovilizaciones',
+  counterOnly: 'Solo contador (no suma stats)',
+  championTakedownOnly: 'Solo derribos de campeones',
+  ccSlowIfMelee: 'Ralentizar cuenta si es cuerpo a cuerpo',
+  championTargetsOnly: 'Solo si el objetivo es un campe\u00f3n',
+  multiEnemyChampionPct: '+% si hay m\u00e1s de un campe\u00f3n enemigo cerca (pregunta al aplicar)',
+  bounceStacks: 'Rebota a enemigos adicionales (cargas)',
+  bounceLeftoverPct: '+% al principal por carga sobrante',
+  nonChampionFlat: 'Fijo contra no campeones',
   extendDuration: 'Reaplicar suma la duraci\u00f3n',
   decays: 'Decae durante la duración',
   stacksPerTrigger: 'Cargas por activación',
@@ -221,7 +236,7 @@ export function ruleWarnings(rule: EffectRule, config: EffectBonusConfig, kindLa
   if (rule.stackValue && !rule.permanent) out.push('«La carga guarda el valor calculado» necesita «Cargas permanentes».');
   if (rule.decays && (rule.duration ?? config.duration) === -1) out.push('«Decae durante la duración» necesita una duración en turnos (no «hasta el final del combate»).');
   if (rule.duration != null && config.duration != null && rule.duration === config.duration) out.push('La duraci\u00f3n propia es igual que la del efecto: sobra.');
-  if (FORMULA_KINDS.includes(rule.kind) && !rule.flat && !rule.ratios?.some(ratio => ratio.pct) && !rule.perLevel?.length && !rule.dice && !rule.fromDamagePct && !rule.fromManaSpentPct && !ruleLolAdAp(rule)) {
+  if (FORMULA_KINDS.includes(rule.kind) && !rule.flat && !rule.ratios?.some(ratio => ratio.pct) && !rule.perLevel?.length && !rule.dice && !rule.fromDamagePct && !rule.fromManaSpentPct && !ruleLolAdAp(rule) && !rule.counterOnly) {
     out.push('Falta el valor (fijo, por nivel, dados o un escalado).');
   }
   return out;
